@@ -4,12 +4,15 @@ import logger from './config/logger';
 import morgan from 'morgan';
 import { errorHandler } from './middleware/error';
 import { authRouter } from './auth/routes/authRoute';
+import { apiRouter } from './auth/routes';
+import { PORT } from './secrets';
 
 const app = express();
 dotenv.config();
 app.use(express.json());
 app.use(errorHandler);
-app.use('/api/auth', authRouter);
+
+app.use('/api', apiRouter);
 
 app.use(
   morgan(':method :url :status :response-time ms', {
@@ -19,6 +22,6 @@ app.use(
   })
 );
 
-app.listen(process.env.PORT, () => {
-  logger.info(`Started Your Application on Port ${process.env.PORT}`);
+app.listen(PORT, () => {
+  logger.info(`Started Your Application on Port ${PORT}`);
 });

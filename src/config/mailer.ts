@@ -1,23 +1,32 @@
 import nodemailer from 'nodemailer';
+import { NODEMAILER_HOST, NODEMAILER_PORT, NODEMAILER_SENDER_ADDRESS, NODEMAILER_GMAIL_APP_PASSWORD } from '../secrets';
 import dotenv from 'dotenv';
+
 dotenv.config();
 
-const transporter = nodemailer.createTransport({
-  host: '',
-  port: 0,
+let transport = nodemailer.createTransport({
+  host: NODEMAILER_HOST,
+  port: Number(NODEMAILER_PORT),
+  secure: true,
   auth: {
-    user: '',
-    pass: ''
+    user: NODEMAILER_SENDER_ADDRESS,
+    pass: NODEMAILER_GMAIL_APP_PASSWORD
   }
 });
 
 export const sendEmail = async (to: string, subject: string, text: string) => {
   const mailOptions = {
-    from: process.env.SENDER_MAIL_ADDRESS,
+    from: NODEMAILER_SENDER_ADDRESS,
     to,
     subject,
     text
   };
 
-  await transporter.sendMail(mailOptions);
+  transport.sendMail(mailOptions, function (err, info) {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log(info);
+    }
+  });
 };
