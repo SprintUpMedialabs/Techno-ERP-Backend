@@ -1,13 +1,13 @@
 import { Request, Response } from 'express';
 import expressAsyncHandler from 'express-async-handler';
-import { PrismaClient } from '@prisma/client';
 import { userSchema } from '../validators/user';
 import { RegisterUser } from '../types/user.type';
 import { sendEmail } from '../../config/mailer';
 import otpGenerator from 'otp-generator';
 import bcrypt from 'bcrypt';
+import PrismaRepo from '../../config/prismaRepo';
 
-const prisma = new PrismaClient();
+const prisma = PrismaRepo.getClient;
 
 export const register = expressAsyncHandler(async (req: Request, res: Response) => {
   try {
@@ -16,6 +16,15 @@ export const register = expressAsyncHandler(async (req: Request, res: Response) 
     const validation = userSchema.safeParse(user);
     if (!validation.success) {
       res.status(400).json({ error: validation.error.errors });
+      return;
+    }
+
+    const existingUser = await prisma.user.findFirst({
+      where: { email: user.email }
+    });
+
+    if (existingUser) {
+      res.status(400).json({ eror: 'User already exists with email id' });
       return;
     }
 
@@ -62,8 +71,8 @@ export const verifyOtp = expressAsyncHandler(async (req: Request, res: Response)
       return;
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email }
+    const user = await prisma.user.findFirst({
+      where: { email: email }
     });
 
     if (!user) {

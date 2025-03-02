@@ -9,11 +9,12 @@ datasource db {
 
 model User {
   id      String   @id @default(auto()) @map("_id") @db.ObjectId
-  email   String   @unique
+  email   String   
   firstName   String 
   lastName String
   password String
   verifyOtp Int
   verifyOtpExpireAt DateTime
   roles   String[]
+  @@unique([id,email])
 }

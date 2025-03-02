@@ -6,7 +6,7 @@ export default class PrismaRepo {
   private constructor() {}
 
   public static get getClient(): PrismaClient {
-    if (PrismaRepo.#client) {
+    if (!PrismaRepo.#client) {
       PrismaRepo.#client = new PrismaClient();
     }
     return PrismaRepo.#client;
