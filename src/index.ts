@@ -3,12 +3,13 @@ import dotenv from 'dotenv';
 import logger from './config/logger';
 import morgan from 'morgan';
 import { errorHandler } from './middleware/error';
-
-dotenv.config();
+import { authRouter } from './auth/routes/authRoute';
 
 const app = express();
+dotenv.config();
 app.use(express.json());
 app.use(errorHandler);
+app.use('/api/auth', authRouter);
 
 app.use(
   morgan(':method :url :status :response-time ms', {
