@@ -3,14 +3,15 @@ import dotenv from 'dotenv';
 import logger from './config/logger';
 import morgan from 'morgan';
 import { errorHandler } from './middleware/error';
-import { authRouter } from './auth/routes/authRoute';
 import { apiRouter } from './auth/routes';
 import { PORT } from './secrets';
+import cookieParser from "cookie-parser";
 
 const app = express();
 dotenv.config();
 app.use(express.json());
 app.use(errorHandler);
+app.use(cookieParser())
 
 app.use('/api', apiRouter);
 

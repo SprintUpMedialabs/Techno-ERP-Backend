@@ -19,7 +19,7 @@ export const sendEmail = async (to: string, subject: string, text: string) => {
     from: NODEMAILER_SENDER_ADDRESS,
     to,
     subject,
-    text
+    html : text
   };
 
   transport.sendMail(mailOptions, function (err, info) {
