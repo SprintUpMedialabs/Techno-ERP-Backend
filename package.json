@@ -4,7 +4,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "npx nodemon",
+    "dev": "npx nodemon",
+    "build": "tsc",
     "format": "prettier --write ."
   },
   "repository": {
@@ -25,12 +26,10 @@
     "nodemon": "^3.1.9",
     "otp-generator": "^4.0.1",
     "prettier": "^3.5.2",
-    "prisma": "^6.4.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.2"
   },
   "dependencies": {
-    "@prisma/client": "^6.4.1",
     "@types/nodemailer": "^6.4.17",
     "bcrypt": "^5.1.1",
     "cookie-parser": "^1.4.7",
@@ -41,6 +40,7 @@
     "express-async-handler": "^1.2.0",
     "http-errors": "^2.0.0",
     "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.12.0",
     "morgan": "^1.10.0",
     "nodemailer": "^6.10.0",
     "winston": "^3.17.0",

@@ -1,5 +1,10 @@
 import nodemailer from 'nodemailer';
-import { NODEMAILER_HOST, NODEMAILER_PORT, NODEMAILER_SENDER_ADDRESS, NODEMAILER_GMAIL_APP_PASSWORD } from '../secrets';
+import {
+  NODEMAILER_HOST,
+  NODEMAILER_PORT,
+  NODEMAILER_SENDER_ADDRESS,
+  NODEMAILER_GMAIL_APP_PASSWORD
+} from '../secrets';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -19,7 +24,7 @@ export const sendEmail = async (to: string, subject: string, text: string) => {
     from: NODEMAILER_SENDER_ADDRESS,
     to,
     subject,
-    html : text
+    html: text
   };
 
   transport.sendMail(mailOptions, function (err, info) {

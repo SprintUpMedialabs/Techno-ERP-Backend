@@ -5,13 +5,16 @@ import morgan from 'morgan';
 import { errorHandler } from './middleware/error';
 import { apiRouter } from './auth/routes';
 import { PORT } from './secrets';
-import cookieParser from "cookie-parser";
+import cookieParser from 'cookie-parser';
+import connectToDatabase from './config/database';
 
 const app = express();
 dotenv.config();
 app.use(express.json());
 app.use(errorHandler);
-app.use(cookieParser())
+app.use(cookieParser());
+
+connectToDatabase();
 
 app.use('/api', apiRouter);
 

@@ -1,31 +1,37 @@
 import expressAsyncHandler from 'express-async-handler';
-import PrismaRepo from '../../config/prismaRepo';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../../middleware/jwtAuthenticationMiddleware';
-
-const prisma = PrismaRepo.getClient;
+import { User } from '../models/user';
 
 export const userProfile = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const decodedData = req.data;
-  console.log(decodedData);
+
   if (!decodedData) {
-    res.status(404).json({ message: "Profile couldn't been displayed" });
+    res.status(404).json({ message: "Profile couldn't be displayed." });
+    return;
   }
+
   const { id, roles } = decodedData;
   console.log('User ID:', id, 'Roles:', roles);
-  const user = await prisma.user.findFirst({ where: { id: id } });
-  if (!user) {
-    res.status(404).json({ message: 'User not found' });
-  } 
-  else {
+
+  try {
+    const user = await User.findById(id);
+    if (!user) {
+      res.status(404).json({ message: 'User not found.' });
+      return;
+    }
+
     res.status(200).json({
-      message: 'User profile retrieved successfully',
+      message: 'User profile retrieved successfully.',
       userData: {
-        id: user.id,
+        id: user._id,
         name: `${user.firstName} ${user.lastName}`,
         email: user.email,
         roles: user.roles
       }
     });
+  } catch (error) {
+    console.error('Error in userProfile:', error);
+    res.status(500).json({ message: 'An unexpected error occurred.' });
   }
 });

@@ -1,8 +1,11 @@
-import zod from 'zod';
-export const userSchema = zod.object({
-  id: zod.string(),
-  email: zod.string().email(),
-  firstName: zod.string(),
-  lastName: zod.string(),
-  roles: zod.array(zod.string())
+import { z } from 'zod';
+
+export const userSchema = z.object({
+  email: z.string().email(),
+  firstName: z.string(),
+  lastName: z.string(),
+  password: z.string().optional(),
+  roles: z.array(z.string())
 });
+
+export type IUser = z.infer<typeof userSchema>;
