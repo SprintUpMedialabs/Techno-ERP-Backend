@@ -23,7 +23,7 @@ export const authenticate = (
     const decoded = jwt.verify(token, JWT_SECRET as string);
     const parsedUser = UserPayloadSchema.parse(decoded);
     req.data = parsedUser;
-    console.log("Authentication over!")
+    // console.log("Authentication over!")
     next();
     
   } catch (error) {

@@ -19,7 +19,7 @@ const leadSchema = new Schema<ILeadDocument>(
     assignedTo: { type: String },
     leadType: { type: String, enum: Object.values(LeadType), required: true },
     remarks: { type: String },
-    leadTypeModified: { type: Date, required: true },
+    leadTypeModified: { type: String },
     nextDueDate: { type: String, match: /^\d{2}-\d{2}-\d{4}$/ },
   },
   { timestamps: true }
