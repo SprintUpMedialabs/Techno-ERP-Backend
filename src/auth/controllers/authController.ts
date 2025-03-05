@@ -8,6 +8,7 @@ import { AUTH_API_PATH, JWT_SECRET } from '../../secrets';
 import { generateOTP } from '../utils/otpGenerator';
 import { User } from '../models/user';
 import { VerifyOtp } from '../models/verifyOtp';
+import logger from '../../config/logger';
 
 export const register = expressAsyncHandler(async (req: Request, res: Response) => {
   try {
@@ -32,7 +33,7 @@ export const register = expressAsyncHandler(async (req: Request, res: Response) 
       firstName: user.firstName,
       lastName: user.lastName,
       password: '',
-      roles: []
+      roles: user.roles
     });
 
     await VerifyOtp.create({
@@ -54,7 +55,7 @@ export const register = expressAsyncHandler(async (req: Request, res: Response) 
 
     res.status(201).json({ message: 'OTP sent to your email.', userId: newUser._id });
   } catch (error) {
-    console.error('Error in register:', error);
+    logger.error('Error in register:', error);
     res.status(500).json({ error: 'An unexpected error occurred.' });
   }
 });
@@ -113,7 +114,7 @@ export const verifyOtp = expressAsyncHandler(async (req: Request, res: Response)
       .status(200)
       .json({ message: 'Account created successfully. Check your email for the password.' });
   } catch (error) {
-    console.error('Error in verifyOtp:', error);
+    logger.error('Error in verifyOtp:', error);
     res.status(500).json({ error: 'An unexpected error occurred.' });
   }
 });
@@ -165,7 +166,7 @@ export const login = expressAsyncHandler(async (req: Request, res: Response) => 
       }
     });
   } catch (error) {
-    console.error('Error in login:', error);
+    logger.error('Error in login:', error);
     res.status(500).json({ error: 'An unexpected error occurred.' });
   }
 });
@@ -233,7 +234,7 @@ export const updatePassword = expressAsyncHandler(async (req: Request, res: Resp
 
     res.status(200).json({ message: 'Password updated successfully.' });
   } catch (error) {
-    console.error('Error in updatePassword:', error);
+    logger.error('Error in updatePassword:', error);
     res.status(400).json({ message: 'Invalid or tampered reset link.' });
   }
 });

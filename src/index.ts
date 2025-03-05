@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 import logger from './config/logger';
 import morgan from 'morgan';
 import { errorHandler } from './middleware/error';
-import { apiRouter } from './auth/routes';
+import { apiRouter } from './route';
 import { PORT } from './secrets';
 import cookieParser from 'cookie-parser';
 import connectToDatabase from './config/database';

@@ -1,11 +1,11 @@
 import express from 'express';
 import {
-  AuthenticatedRequest,
-  jwtAuthenticationMiddleWare
+  authenticate,
+  authorize
 } from '../../middleware/jwtAuthenticationMiddleware';
-import { Response } from 'express';
 import { userProfile } from '../controllers/userController';
+import { UserRoles } from '../../config/constants';
 
 export const userRouter = express.Router();
 
-userRouter.get('/profile', jwtAuthenticationMiddleWare, userProfile);
+userRouter.get('/profile', authenticate, authorize([UserRoles.BASIC_USER]), userProfile);

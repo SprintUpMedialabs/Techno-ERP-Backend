@@ -1,7 +1,8 @@
 import expressAsyncHandler from 'express-async-handler';
 import { Response } from 'express';
-import { AuthenticatedRequest } from '../../middleware/jwtAuthenticationMiddleware';
 import { User } from '../models/user';
+import { AuthenticatedRequest } from '../validators/authenticatedRequest';
+import logger from '../../config/logger';
 
 export const userProfile = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const decodedData = req.data;
@@ -12,7 +13,7 @@ export const userProfile = expressAsyncHandler(async (req: AuthenticatedRequest,
   }
 
   const { id, roles } = decodedData;
-  console.log('User ID:', id, 'Roles:', roles);
+  // console.log('User ID:', id, 'Roles:', roles);
 
   try {
     const user = await User.findById(id);
@@ -31,7 +32,7 @@ export const userProfile = expressAsyncHandler(async (req: AuthenticatedRequest,
       }
     });
   } catch (error) {
-    console.error('Error in userProfile:', error);
+    logger.error('Error in userProfile:', error);
     res.status(500).json({ message: 'An unexpected error occurred.' });
   }
 });

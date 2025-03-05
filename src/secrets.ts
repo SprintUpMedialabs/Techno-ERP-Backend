@@ -11,4 +11,9 @@ export const JWT_SECRET = process.env.JWT_SECRET!;
 export const CRYPTO_HASH_SECRET = process.env.CRYPTO_HASH_SECRET!;
 export const MONGODB_DATABASE_NAME = process.env.MONGODB_DATABASE_NAME!;
 
-export const AUTH_API_PATH = 'http://localhost:8000/api/auth/update-password';
+export const GOOGLE_SHEET_ID = process.env.GOOGLE_SHEET_ID!
+export const GOOGLE_SA_CLIENT_EMAIL = process.env.GOOGLE_SA_CLIENT_EMAIL!
+export const GOOGLE_SA_PRIVATE_KEY = process.env.GOOGLE_SA_PRIVATE_KEY!
+export const GOOGLE_SHEET_PAGE=process.env.GOOGLE_SHEET_PAGE!
+
+export const AUTH_API_PATH = process.env.AUTH_API_PATH!

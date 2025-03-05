@@ -6,6 +6,7 @@ import {
   NODEMAILER_GMAIL_APP_PASSWORD
 } from '../secrets';
 import dotenv from 'dotenv';
+import logger from './logger';
 
 dotenv.config();
 
@@ -29,9 +30,9 @@ export const sendEmail = async (to: string, subject: string, text: string) => {
 
   transport.sendMail(mailOptions, function (err, info) {
     if (err) {
-      console.log(err);
+      logger.error(err);
     } else {
-      console.log(info);
+      logger.info(info);
     }
   });
 };
