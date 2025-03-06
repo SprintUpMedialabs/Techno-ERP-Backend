@@ -9,8 +9,8 @@ import jwt, { SignOptions } from 'jsonwebtoken';
  */
 
 // TODO: need to fix this issue
-export const createToken = (payload: object, expiresIn = '1h'): string => {
-    return jwt.sign(payload, process.env.JWT_SECRET!, { expiresIn });
+export const createToken = (payload: object, options: SignOptions): string => {
+    return jwt.sign(payload, process.env.JWT_SECRET!, options);
 };
 
 /**
@@ -35,6 +35,6 @@ export const decodeToken = (token: string): object | null => {
     try {
         return jwt.decode(token) as object;
     } catch (error: any) {
-        throw createHttpError(500, "Internal Server Error."); // TODO: we may need to change this in future
+        throw createHttpError(500, "Invalid Token.");
     }
 };

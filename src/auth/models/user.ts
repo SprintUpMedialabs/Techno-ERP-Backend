@@ -50,6 +50,7 @@ const userSchema = new Schema<IUserDocument>(
 );
 
 const handleMongooseError = (error: any, next: Function) => {
+  console.log(error);
   if (error.name === 'ValidationError') {
     const firstError = error.errors[Object.keys(error.errors)[0]];
     throw createHttpError(400, firstError.message);

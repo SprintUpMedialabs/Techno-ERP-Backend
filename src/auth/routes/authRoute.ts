@@ -7,6 +7,7 @@ import {
   updatePassword,
   verifyOtp
 } from '../controllers/authController';
+import { authenticate } from '../../middleware/jwtAuthenticationMiddleware';
 
 export const authRouter = express.Router();
 
@@ -28,7 +29,7 @@ authRouter.post('/login', login);
 /*
  * Logout
  **/
-authRouter.get('/logout', logout);
+authRouter.get('/logout', authenticate, logout);
 
 /*
  * Input : Email
