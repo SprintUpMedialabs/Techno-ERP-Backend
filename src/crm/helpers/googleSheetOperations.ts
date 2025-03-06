@@ -2,14 +2,23 @@ import { google } from 'googleapis';
 import { googleAuth } from './googleAuth';
 import { GOOGLE_SHEET_ID, GOOGLE_SHEET_PAGE } from '../../secrets';
 import logger from '../../config/logger';
+import { SpreadSheetMetaData } from '../models/spreadSheet';
+import { spreadSheetSchema } from '../validators/spreadSheet';
 export const readFromGoogleSheet = async () => {
   try {
     const sheetInstance = google.sheets({ version: 'v4', auth: googleAuth });
 
     try {
+
+      const spreadSheetMetaData = await SpreadSheetMetaData.findOne({});
+      const lastSavedIndex = spreadSheetMetaData?.lastIdxMarketingSheet || 0;
+      logger.info(`Last saved index from DB: ${lastSavedIndex}`);
+
+      const range = `${GOOGLE_SHEET_PAGE}!A${lastSavedIndex}:Z`;
+
       const sheetInfo = sheetInstance.spreadsheets.get({
         spreadsheetId: GOOGLE_SHEET_ID,
-        ranges: [`${GOOGLE_SHEET_PAGE}!A:Z`],
+        ranges: [range],
         fields: 'sheets.data.rowData.values(userEnteredFormat.backgroundColor,effectiveValue)',
       });
 
@@ -18,27 +27,27 @@ export const readFromGoogleSheet = async () => {
 
 
         if (!rowData) {
-          console.log('No row formatting data found. Please check if sheet has green colors.');
+          logger.info('No row formatting data found. Please check if sheet has green colors.');
           return;
         }
 
         let lastReadIndex = -1;
 
         rowData?.forEach((row, index) => {
-          console.log("Row is : ", row)
+          // console.log("Row is : ", row)
           if (
             row.values &&
             row.values[0].userEnteredFormat &&
             row.values[0].userEnteredFormat.backgroundColor
           ) {
             const bgColor = row.values[0].userEnteredFormat.backgroundColor;
-            console.log("BGCOLOR IS : ", bgColor)
-            console.log(" R is : ", bgColor.red)
-            console.log(" G is : ", bgColor.green)
-            console.log(" B is : ", bgColor.blue)
+            // console.log("BGCOLOR IS : ", bgColor)
+            // console.log(" R is : ", bgColor.red)
+            // console.log(" G is : ", bgColor.green)
+            // console.log(" B is : ", bgColor.blue)
             if (bgColor && bgColor.green && bgColor.green === 0.5019608) {
               lastReadIndex = index;
-              console.log("Last read index : ", lastReadIndex)
+              // logger.info("Last read index : ", lastReadIndex)
             }
           }
         });
@@ -48,7 +57,7 @@ export const readFromGoogleSheet = async () => {
           return;
         }
 
-        console.log("Total Row DAta : ", rowData.length)
+        // console.log("Total Row DAta : ", rowData.length)
 
         const dataAfterLastMarked = rowData
           .slice(lastReadIndex + 1)
@@ -58,7 +67,7 @@ export const readFromGoogleSheet = async () => {
             )
           );
 
-        console.log("Data after last marked : ", dataAfterLastMarked)
+        // console.log("Data after last marked : ", dataAfterLastMarked)
 
         if(dataAfterLastMarked.length == 0)
         {
@@ -67,9 +76,17 @@ export const readFromGoogleSheet = async () => {
         }
 
 
-        const newLastReadIndex = lastReadIndex + dataAfterLastMarked.length;
-
+        const newLastReadIndex = lastSavedIndex + dataAfterLastMarked.length;
+        console.log("Last REad INdex  : ", lastReadIndex);
+        console.log("DAta after last marked : ", dataAfterLastMarked.length);
         console.log("New Last Read Index : ", newLastReadIndex)
+
+        await SpreadSheetMetaData.findOneAndUpdate(
+          {}, 
+          { lastIdxMarketingSheet: newLastReadIndex }, 
+          { new : true, upsert : true}
+        );
+
 
         await sheetInstance.spreadsheets.batchUpdate({
           spreadsheetId: GOOGLE_SHEET_ID,
@@ -80,7 +97,7 @@ export const readFromGoogleSheet = async () => {
                   range: {
                     sheetId: 0,
                     startRowIndex: 0,
-                    endRowIndex: lastReadIndex + 1,
+                    endRowIndex: lastSavedIndex + 1,
                   },
                   cell: {
                     userEnteredFormat: {
@@ -98,8 +115,8 @@ export const readFromGoogleSheet = async () => {
                 repeatCell: {
                   range: {
                     sheetId: 0,
-                    startRowIndex: newLastReadIndex,
-                    endRowIndex: newLastReadIndex + 1,
+                    startRowIndex: newLastReadIndex - 1,
+                    endRowIndex: newLastReadIndex,
                   },
                   cell: {
                     userEnteredFormat: {
