@@ -1,48 +1,51 @@
+import bcrypt from 'bcrypt';
 import { CookieOptions, Request, Response } from 'express';
 import expressAsyncHandler from 'express-async-handler';
-import { IUser, userSchema } from '../validators/user';
-import { sendEmail } from '../../config/mailer';
-import bcrypt from 'bcrypt';
+import createHttpError from 'http-errors';
 import * as jwt from 'jsonwebtoken';
+import logger from '../../config/logger';
+import { sendEmail } from '../../config/mailer';
 import { AUTH_API_PATH, JWT_SECRET } from '../../secrets';
-import { generateOTP } from '../utils/otpGenerator';
 import { User } from '../models/user';
 import { VerifyOtp } from '../models/verifyOtp';
-import logger from '../../config/logger';
+import { generateOTP } from '../utils/otpGenerator';
+import { IUser, userSchema } from '../validators/user';
+
+
+/*
+  we have issue with current registeration process.
+  so we need to fix it.
+  // in future on the 1st api we will apply rate limit
+    1. create api to send otp for registration
+    2. create api to verify otp for registration 
+        2.1 in this api we will get user's email, firstName, lastName, roles.
+*/
 
 export const register = expressAsyncHandler(async (req: Request, res: Response) => {
-  try {
-    const user: IUser = req.body;
 
-    const validation = userSchema.safeParse(user);
-    if (!validation.success) {
-      res.status(400).json({ error: validation.error.errors });
-      return;
-    }
+  const user: IUser = req.body;
 
-    const existingUser = await User.findOne({ email: user.email });
-    if (existingUser) {
-      res.status(400).json({ error: 'User already exists with this email.' });
-      return;
-    }
+  const validation = userSchema.safeParse(user);
+  if (!validation.success) {
+    throw createHttpError(400, validation.error.errors[0]);
+  }
 
-    const otp = generateOTP(10, 6);
+  const newUser = await User.create({
+    email: user.email,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    roles: user.roles
+  });
 
-    const newUser = await User.create({
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      password: '',
-      roles: user.roles
-    });
+  const otp = generateOTP(10, 6);
 
-    await VerifyOtp.create({
-      _id: newUser._id,
-      verifyOtp: parseInt(otp.otpValue),
-      verifyOtpExpireAt: otp.otpExpiryTime
-    });
+  await VerifyOtp.create({
+    _id: newUser._id,
+    verifyOtp: parseInt(otp.otpValue),
+    verifyOtpExpireAt: otp.otpExpiryTime
+  });
 
-    const emailBody = `
+  const emailBody = `
       <html>
         <body>
           <p><strong>Your OTP:</strong> <span style="background-color: #f3f3f3; padding: 5px; border-radius: 4px; font-size: 16px;">${otp.otpValue}</span></p>
@@ -51,13 +54,10 @@ export const register = expressAsyncHandler(async (req: Request, res: Response) 
       </html>
     `;
 
-    await sendEmail(user.email, 'Your OTP for Registration', emailBody);
+  await sendEmail(user.email, 'Your OTP for Registration', emailBody);
 
-    res.status(201).json({ message: 'OTP sent to your email.', userId: newUser._id });
-  } catch (error) {
-    logger.error('Error in register:', error);
-    res.status(500).json({ error: 'An unexpected error occurred.' });
-  }
+  res.status(201).json({ message: 'OTP sent to your email.', userId: newUser._id });
+
 });
 
 export const verifyOtp = expressAsyncHandler(async (req: Request, res: Response) => {
@@ -65,38 +65,32 @@ export const verifyOtp = expressAsyncHandler(async (req: Request, res: Response)
     const { email, otp } = req.body;
 
     if (!email || !otp) {
-      res.status(400).json({ error: 'Email and OTP are required.' });
-      return;
+      throw createHttpError(400, 'Email and OTP are required.');
     }
 
     const user = await User.findOne({ email });
     if (!user) {
-      res.status(404).json({ error: 'User not found.' });
-      return;
+      throw createHttpError(404, 'User not found.');
     }
 
     const otpRecord = await VerifyOtp.findById(user._id);
     if (!otpRecord) {
-      res.status(400).json({ error: 'OTP not found.' });
-      return;
+      throw createHttpError(400, 'OTP not found.');
     }
 
     if (otpRecord.verifyOtp !== parseInt(otp)) {
-      res.status(400).json({ error: 'Invalid OTP.' });
-      return;
+      throw createHttpError(400, 'Invalid OTP');
     }
 
     if (otpRecord.verifyOtpExpireAt < new Date()) {
-      res.status(400).json({ error: 'Expired OTP.' });
-      return;
+      throw createHttpError(400, 'Expired OTP.');
     }
 
     const password = Math.random().toString(36).slice(-8);
-    const hashedPassword = await bcrypt.hash(password, 10);
 
-    await User.findByIdAndUpdate(user._id, { password: hashedPassword });
+    await User.findByIdAndUpdate(user._id, { password });
 
-    await VerifyOtp.deleteOne({ _id: user._id });
+    VerifyOtp.deleteOne({ _id: user._id }); // TODO: removed await from here as regardless of this function complition we can give response back to the user
 
     const emailBody = `
       <html>
@@ -180,14 +174,13 @@ export const logout = (req: Request, res: Response) => {
   });
   res.status(200).json({ message: 'Logged out successfully.' });
 };
-
+// TODO: will application rate limit here
 export const forgotPassword = expressAsyncHandler(async (req: Request, res: Response) => {
   const { email } = req.body;
 
   const user = await User.findOne({ email });
   if (!user) {
-    res.status(404).json({ message: 'User not found. Please register first.' });
-    return;
+    throw createHttpError(404, 'User not found. Please register first.');
   }
 
   const token = jwt.sign({ userId: user._id, expiry: Date.now() + 15 * 60 * 1000 }, JWT_SECRET, {
@@ -218,17 +211,17 @@ export const updatePassword = expressAsyncHandler(async (req: Request, res: Resp
   const { password } = req.body;
 
   if (!token) {
-    res.status(400).json({ message: 'Invalid reset link.' });
-    return;
+    throw createHttpError(400, 'Invalid reset link.');
   }
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as { userId: string; expiry: number };
+    // TODO: this is not our job ( we are giving expire time in token so it will throw error while verifying it will throw an error )
     if (Date.now() > decoded.expiry) {
-      res.status(400).json({ message: 'Reset link expired.' });
-      return;
+      throw createHttpError(400, 'Reset link expired.');
     }
 
+    // no need to do this just store the password middleware will take care of hashing
     const hashedPassword = await bcrypt.hash(password, 10);
     await User.findByIdAndUpdate(decoded.userId, { password: hashedPassword });
 
