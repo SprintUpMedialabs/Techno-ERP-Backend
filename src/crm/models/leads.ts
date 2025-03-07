@@ -7,12 +7,12 @@ export interface ILeadDocument extends ILead, Document {}
 const leadSchema = new Schema<ILeadDocument>(
   {
     srNo: { type: Number },
-    date: { type: String , required: true, match: /^\d{2}-\d{2}-\d{4}$/ },
-    source : { type : String , required : true},
+    date: { type: String, required: true, match: /^\d{2}-\d{2}-\d{4}$/ },
+    source: { type: String, required: true },
     name: { type: String, required: true },
     phoneNumber: { type: String, required: true, unique: true, match: /^\+91\d{10}$/ },
     altPhoneNumber: { type: String, match: /^\+91\d{10}$/ },
-    email : { type : String },
+    email: { type: String },
     gender: { type: String, enum: Object.values(Gender) },
     location: { type: String },
     course: { type: String },
@@ -20,7 +20,7 @@ const leadSchema = new Schema<ILeadDocument>(
     leadType: { type: String, enum: Object.values(LeadType), required: true },
     remarks: { type: String },
     leadTypeModified: { type: String },
-    nextDueDate: { type: String, match: /^\d{2}-\d{2}-\d{4}$/ },
+    nextDueDate: { type: String, match: /^\d{2}-\d{2}-\d{4}$/ }
   },
   { timestamps: true }
 );

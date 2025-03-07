@@ -10,10 +10,10 @@ const userSchema = new Schema<IUserDocument>(
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
     password: { type: String },
-    roles: { 
-      type: [String], 
-      enum: Object.values(UserRoles), 
-      default: [UserRoles.BASIC_USER] 
+    roles: {
+      type: [String],
+      enum: Object.values(UserRoles),
+      default: [UserRoles.BASIC_USER]
     }
   },
   { timestamps: true }

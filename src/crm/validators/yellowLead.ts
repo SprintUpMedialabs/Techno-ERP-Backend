@@ -1,10 +1,12 @@
 import { z } from 'zod';
-import { Gender, LeadType } from '../../config/constants';
+import { Gender, FinalConversionType } from '../../config/constants';
 
-export const leadSchema = z.object({
+export const yellowLeadSchema = z.object({
   srNo: z.number(),
-  date: z.string().regex(/^\d{2}-\d{2}-\d{4}$/, 'Invalid date format, expected DD-MM-YYYY'),
-  source: z.string(),
+  leadTypeChangeDate: z
+    .string()
+    .regex(/^\d{2}-\d{2}-\d{4}$/, 'Invalid date format, expected DD-MM-YYYY')
+    .optional(),
   name: z.string(),
   phoneNumber: z
     .string()
@@ -15,16 +17,16 @@ export const leadSchema = z.object({
     .optional(),
   email: z.string().email('Invalid Email Format'),
   gender: z.nativeEnum(Gender).default(Gender.NOT_TO_MENTION),
+  assignedTo: z.string().optional(),
   location: z.string().optional(),
   course: z.string().optional(),
-  assignedTo: z.string().optional(),
-  leadType: z.nativeEnum(LeadType).default(LeadType.ORANGE),
-  remarks: z.string().optional(),
-  leadTypeModified: z.string(),
-  nextDueDate: z
+  campusVisit: z.boolean().default(false),
+  nextCallDate: z
     .string()
     .regex(/^\d{2}-\d{2}-\d{4}$/, 'Invalid date format, expected DD-MM-YYYY')
-    .optional()
+    .optional(),
+  finalConversion: z.nativeEnum(FinalConversionType).optional(),
+  remarks: z.string().optional()
 });
 
-export type ILead = z.infer<typeof leadSchema>;
+export type IYellowLead = z.infer<typeof yellowLeadSchema>;

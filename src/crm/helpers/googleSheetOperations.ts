@@ -25,7 +25,6 @@ export const readFromGoogleSheet = async () => {
       if (sheetInfo && (await sheetInfo).data && (await sheetInfo).data.sheets) {
         const rowData = (await sheetInfo)?.data?.sheets?.[0]?.data?.[0]?.rowData;
 
-
         if (!rowData) {
           logger.info('No row formatting data found. Please check if sheet has green colors.');
           return;
@@ -63,18 +62,19 @@ export const readFromGoogleSheet = async () => {
           .slice(lastReadIndex + 1)
           .map((row) =>
             row.values?.map(
-              (cell) => cell.effectiveValue?.stringValue || cell.effectiveValue?.numberValue?.toString() || ''
+              (cell) =>
+                cell.effectiveValue?.stringValue ||
+                cell.effectiveValue?.numberValue?.toString() ||
+                ''
             )
           );
 
         // console.log("Data after last marked : ", dataAfterLastMarked)
 
-        if(dataAfterLastMarked.length == 0)
-        {
-          logger.info("There is no new row updation, that is no update in existing db");
+        if (dataAfterLastMarked.length == 0) {
+          logger.info('There is no new row updation, that is no update in existing db');
           return;
         }
-
 
         const newLastReadIndex = lastSavedIndex + dataAfterLastMarked.length;
         console.log("Last REad INdex  : ", lastReadIndex);
@@ -102,14 +102,14 @@ export const readFromGoogleSheet = async () => {
                   cell: {
                     userEnteredFormat: {
                       backgroundColor: {
-                        red: 1.0, 
+                        red: 1.0,
                         green: 1.0,
-                        blue: 1.0,
-                      },
-                    },
+                        blue: 1.0
+                      }
+                    }
                   },
-                  fields: 'userEnteredFormat.backgroundColor',
-                },
+                  fields: 'userEnteredFormat.backgroundColor'
+                }
               },
               {
                 repeatCell: {
@@ -123,19 +123,18 @@ export const readFromGoogleSheet = async () => {
                       backgroundColor: {
                         red: 0.0,
                         green: 0.5019608,
-                        blue: 0.0,
-                      },
-                    },
+                        blue: 0.0
+                      }
+                    }
                   },
-                  fields: 'userEnteredFormat.backgroundColor',
-                },
-              },
-            ],
+                  fields: 'userEnteredFormat.backgroundColor'
+                }
+              }
+            ]
           }
         });
         return dataAfterLastMarked;
       }
-
     } catch (error) {
       logger.error('Error occurred : ');
       logger.error(error);

@@ -25,14 +25,12 @@ export const authenticate = (
     req.data = parsedUser;
     // console.log("Authentication over!")
     next();
-    
   } catch (error) {
     logger.error('JWT Verification Error:', error);
     res.status(403).json({ message: 'Invalid or expired token' });
     return;
   }
 };
-
 
 export const authorize =
   (allowedRoles: UserRoles[]) =>
@@ -47,15 +45,15 @@ export const authorize =
 
       if (!user) {
         res.status(404).json({ message: 'User not found. Please create an account first!' });
-      }
-      else
-      {
+      } else {
         const hasPermission = user.roles.some((role) => allowedRoles.includes(role as UserRoles));
 
         if (!hasPermission) {
-          res.status(403).json({ message: 'Forbidden: You are not authorized to access this resource.' });
+          res
+            .status(403)
+            .json({ message: 'Forbidden: You are not authorized to access this resource.' });
         }
-  
+
         next();
       }
     } catch (error) {
@@ -63,4 +61,3 @@ export const authorize =
       res.status(500).json({ message: 'Internal Server Error' });
     }
   };
-
