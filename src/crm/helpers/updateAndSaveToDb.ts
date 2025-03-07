@@ -27,7 +27,7 @@ const leadsToBeInserted = async (latestData: any[]) => {
 
       let leadData = {
         srNo: Number(row[0]),
-        date: row[1] ? ExcelDateToJSDate(row[1]) : '',
+        date: row[1],
         source: row[2] || '',
         name: row[3],
         phoneNumber: row[4],

@@ -10,6 +10,6 @@ export const ExcelDateToJSDate = (date: any) => {
   const paddedMonth = monthNumber.length === 1 ? '0' + monthNumber : monthNumber;
 
   const validDate = `${day}-${paddedMonth}-${year}`;
-  console.log(validDate.toString());
+  // console.log(validDate.toString())
   return validDate.toString();
 };

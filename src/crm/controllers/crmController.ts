@@ -42,7 +42,7 @@ export const fetchData = expressAsyncHandler(async (req: AuthenticatedRequest, r
 
       let leads: ILead[] = [];
 
-      if (roles.includes(UserRoles.ADMIN) || roles.includes(UserRoles.MARKETING_LEAD)) {
+      if (roles.includes(UserRoles.ADMIN) || roles.includes(UserRoles.LEAD_MARKETING)) {
         leads = await Lead.find().lean();
       } else if (roles.includes(UserRoles.EMPLOYEE_MARKETING)) {
         leads = await Lead.find({ assignedTo: id }).lean();
@@ -53,23 +53,23 @@ export const fetchData = expressAsyncHandler(async (req: AuthenticatedRequest, r
       const totalLeads: number = leads.length;
       const openLeads: number = leads.filter((lead) => lead.leadType === LeadType.ORANGE).length;
 
-      await Promise.all(
-        leads.map(async (lead) => {
-          if (lead.assignedTo) {
-            if (userIDMap.has(lead.assignedTo)) {
-              lead.assignedTo = userIDMap.get(lead.assignedTo)?.toString();
-            } else {
-              const existingUser = await User.findById(lead.assignedTo);
-              if (existingUser) {
-                let name = formatName(existingUser.firstName, existingUser.lastName);
-                const assignedToInfo = `${name} - ${existingUser.email}`;
-                lead.assignedTo = assignedToInfo;
-                userIDMap.set(lead.assignedTo, assignedToInfo);
-              }
-            }
-          }
-        })
-      );
+      // await Promise.all(
+      //   leads.map(async (lead) => {
+      //     if (lead.assignedTo) {
+      //       if (userIDMap.has(lead.assignedTo)) {
+      //         lead.assignedTo = userIDMap.get(lead.assignedTo)?.toString();
+      //       } else {
+      //         const existingUser = await User.findById(lead.assignedTo);
+      //         if (existingUser) {
+      //           let name = formatName(existingUser.firstName, existingUser.lastName);
+      //           const assignedToInfo = `${name} - ${existingUser.email}`;
+      //           lead.assignedTo = assignedToInfo;
+      //           userIDMap.set(lead.assignedTo, assignedToInfo);
+      //         }
+      //       }
+      //     }
+      //   })
+      // );
 
       res.status(200).json({
         leadStats: {
@@ -95,7 +95,7 @@ export const fetchFilteredData = expressAsyncHandler(
 
         let leads;
 
-        if (roles.includes(UserRoles.ADMIN) || roles.includes(UserRoles.MARKETING_LEAD)) {
+        if (roles.includes(UserRoles.ADMIN) || roles.includes(UserRoles.LEAD_MARKETING)) {
           leads = await Lead.find();
         } else if (roles.includes(UserRoles.EMPLOYEE_MARKETING)) {
           leads = await Lead.find({ assignedTo: id });
