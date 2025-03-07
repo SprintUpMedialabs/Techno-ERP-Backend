@@ -1,8 +1,5 @@
 import express from 'express';
-import {
-  authenticate,
-  authorize
-} from '../../middleware/jwtAuthenticationMiddleware';
+import { authenticate, authorize } from '../../middleware/jwtAuthenticationMiddleware';
 import { userProfile } from '../controllers/userController';
 import { UserRoles } from '../../config/constants';
 

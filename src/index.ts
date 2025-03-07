@@ -7,11 +7,12 @@ import { apiRouter } from './route';
 import { PORT } from './secrets';
 import cookieParser from 'cookie-parser';
 import connectToDatabase from './config/database';
+import { validateEnvVariables } from './config/validateEnv';
 
 const app = express();
 dotenv.config();
+validateEnvVariables();
 app.use(express.json());
-app.use(errorHandler);
 app.use(cookieParser());
 
 connectToDatabase();
@@ -26,6 +27,7 @@ app.use(
   })
 );
 
+app.use(errorHandler);
 app.listen(PORT, () => {
   logger.info(`Started Your Application on Port ${PORT}`);
 });

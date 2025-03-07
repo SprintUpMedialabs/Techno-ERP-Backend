@@ -15,8 +15,7 @@ apiRouter.use('/auth', authRouter);
  */
 apiRouter.use('/user', userRouter);
 
-
 /**
  * Contains the router for CRM Module
-*/
+ */
 apiRouter.use('/crm', crmRoute);

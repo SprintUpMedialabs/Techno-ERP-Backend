@@ -10,3 +10,10 @@ export const userSchema = z.object({
 });
 
 export type IUser = z.infer<typeof userSchema>;
+
+// TODO: take a look to this we may can use this.
+// export const handleZodError = (error: any) => {
+//   if (error instanceof z.ZodError) {
+//     throw new Error(error.errors.map(err => err.message).join(', '));
+//   }
+// }

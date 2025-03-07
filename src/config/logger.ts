@@ -2,7 +2,7 @@ import { createLogger, format, transports } from 'winston';
 const { combine, timestamp, json, colorize } = format;
 
 const logger = createLogger({
-  level: 'info',
+  level: 'debug', // TODO: shift it to info before going in production
   format: combine(colorize(), timestamp(), json()),
   transports: [
     new transports.Console({
