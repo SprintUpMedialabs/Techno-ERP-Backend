@@ -4,7 +4,7 @@ import { UserRoles } from '../../config/constants';
 import createHttpError from 'http-errors';
 import bcrypt from 'bcrypt';
 
-interface IUserDocument extends IUser, Document { }
+interface IUserDocument extends IUser, Document {}
 
 const userSchema = new Schema<IUserDocument>(
   {
@@ -34,9 +34,9 @@ const userSchema = new Schema<IUserDocument>(
           // Only validate if the password is provided
           return !value || value.length >= 6;
         },
-        message: 'Password must be at least 6 characters long',
-      },
-    },    
+        message: 'Password must be at least 6 characters long'
+      }
+    },
     roles: {
       type: [String],
       enum: {
@@ -59,7 +59,7 @@ const handleMongooseError = (error: any, next: Function) => {
   } else {
     next(error); // Pass any other errors to the next middleware
   }
-}
+};
 
 // 🔐 Pre-save middleware to hash password before saving a new user or when password is modified
 userSchema.pre<IUserDocument>('save', async function (next: Function) {

@@ -17,5 +17,3 @@ export type IUser = z.infer<typeof userSchema>;
 //     throw new Error(error.errors.map(err => err.message).join(', '));
 //   }
 // }
-
-

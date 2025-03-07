@@ -1,7 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import { IVerifyOtp } from '../validators/verifyOtp';
 
-interface IVerifyOtpDocument extends IVerifyOtp, Document { }
+interface IVerifyOtpDocument extends IVerifyOtp, Document {}
 
 const verifyOtpSchema = new Schema<IVerifyOtpDocument>(
   {

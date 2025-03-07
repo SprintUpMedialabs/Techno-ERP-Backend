@@ -4,22 +4,28 @@ import {
   login,
   logout,
   register,
+  sendOtpToEmail,
   updatePassword,
-  verifyOtp
+  validateAndVerifyOtp
 } from '../controllers/authController';
 import { authenticate } from '../../middleware/jwtAuthenticationMiddleware';
 
 export const authRouter = express.Router();
 
 /**
- * Input : id, email, firstName, lastName, roles
+ * Input : email
  */
-authRouter.post('/register', register);
+authRouter.post('/send-otp', sendOtpToEmail);
 
 /**
  * Input : email, otp
  */
-authRouter.post('/verify-otp', verifyOtp);
+authRouter.post('/verify-otp', validateAndVerifyOtp);
+
+/**
+ * Input : token, firstName, lastName, roles
+ */
+authRouter.post('/register', register);
 
 /**
  * Input : email, password

@@ -7,10 +7,8 @@ import jwt, { SignOptions } from 'jsonwebtoken';
  * @param expiresIn - Expiry time (default: 1 hour)
  * @returns Signed JWT token
  */
-
-// TODO: need to fix this issue
 export const createToken = (payload: object, options: SignOptions): string => {
-    return jwt.sign(payload, process.env.JWT_SECRET!, options);
+  return jwt.sign(payload, process.env.JWT_SECRET!, options);
 };
 
 /**
@@ -19,11 +17,11 @@ export const createToken = (payload: object, options: SignOptions): string => {
  * @returns Decoded token payload if valid, throws error if invalid
  */
 export const verifyToken = (token: string): object | null => {
-    try {
-        return jwt.verify(token, process.env.JWT_SECRET!) as object;
-    } catch (error: any) {
-        throw createHttpError(400, "Invalid token");
-    }
+  try {
+    return jwt.verify(token, process.env.JWT_SECRET!) as object;
+  } catch (error: any) {
+    throw createHttpError(400, 'Invalid token');
+  }
 };
 
 /**
@@ -32,9 +30,9 @@ export const verifyToken = (token: string): object | null => {
  * @returns Decoded token payload or null if invalid
  */
 export const decodeToken = (token: string): object | null => {
-    try {
-        return jwt.decode(token) as object;
-    } catch (error: any) {
-        throw createHttpError(500, "Invalid Token.");
-    }
+  try {
+    return jwt.decode(token) as object;
+  } catch (error: any) {
+    throw createHttpError(500, 'Invalid Token.');
+  }
 };

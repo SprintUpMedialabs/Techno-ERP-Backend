@@ -9,20 +9,29 @@ import { createToken, verifyToken } from '../../utils/jwtHelper';
 import { User } from '../models/user';
 import { VerifyOtp } from '../models/verifyOtp';
 import { generateOTP } from '../utils/otpGenerator';
-import { ILoginRequest, IOTPRequest, IRegisterationRequest, loginRequestSchema, OTPRequestSchema, registerationRequestSchema, forgotPasswordRequestSchema, IForgotPasswordRequest, IUpdatePasswordRequest, updatePasswordRequestSchema } from '../validators/authRequest.validators';
+import {
+  ILoginRequest,
+  IOTPRequest,
+  IRegisterationRequest,
+  loginRequestSchema,
+  OTPRequestSchema,
+  registerationRequestSchema,
+  forgotPasswordRequestSchema,
+  IForgotPasswordRequest,
+  IUpdatePasswordRequest,
+  updatePasswordRequestSchema,
+  IEmail,
+  emailSchema
+} from '../validators/authRequest.validators';
 
+// TODO: will apply rate limit here
+export const sendOtpToEmail = expressAsyncHandler(async (req: Request, res: Response) => {
+  const data: IEmail = req.body;
 
-/*
-  we have issue with current registeration process.
-  so we need to fix it.
-  // in future on the 1st api we will apply rate limit
-    1. create api to send otp for registration
-    2. create api to verify otp for registration 
-        2.1 in this api we will get user's email, firstName, lastName, roles.
-*/
-
-export const sendOTP = expressAsyncHandler(async (req: Request, res: Response) => {
-  const { email } = req.body; // TODO: need to validate it with zod
+  const validation = emailSchema.safeParse(data);
+  if (!validation.success) {
+    throw createHttpError(400, validation.error.errors[0]);
+  }
 
   const otp = generateOTP(10, 6);
 
@@ -35,20 +44,18 @@ export const sendOTP = expressAsyncHandler(async (req: Request, res: Response) =
   </html>
 `;
 
-  await sendEmail(email, 'Your OTP for Registration', emailBody);
+  await sendEmail(data.email, 'Your OTP for Registration', emailBody);
 
   await VerifyOtp.create({
-    email,
+    email: data.email,
     verifyOtp: parseInt(otp.otpValue),
     verifyOtpExpireAt: otp.otpExpiryTime
   });
 
   res.status(201).json({ message: 'OTP sent to your email.' });
-
 });
 
-export const verifyOtp = expressAsyncHandler(async (req: Request, res: Response) => {
-
+export const validateAndVerifyOtp = expressAsyncHandler(async (req: Request, res: Response) => {
   const data: IOTPRequest = req.body;
 
   const validation = OTPRequestSchema.safeParse(data);
@@ -74,16 +81,13 @@ export const verifyOtp = expressAsyncHandler(async (req: Request, res: Response)
 
   VerifyOtp.deleteOne({ email: data.email });
 
-  res
-    .status(200)
-    .json({
-      token,
-      message: 'Email Verified successfully.'
-    });
+  res.status(200).json({
+    token,
+    message: 'Email Verified successfully.'
+  });
 });
 
 export const register = expressAsyncHandler(async (req: Request, res: Response) => {
-
   const data: IRegisterationRequest = req.body;
 
   const validation = registerationRequestSchema.safeParse(data);
@@ -104,7 +108,6 @@ export const register = expressAsyncHandler(async (req: Request, res: Response) 
     roles: data.roles
   });
 
-
   const emailBody = `
       <html>
         <body>
@@ -118,11 +121,10 @@ export const register = expressAsyncHandler(async (req: Request, res: Response) 
   await sendEmail(email, 'Your Account Password', emailBody);
 
   res.status(201).json({ message: 'Account created successfully.', newUser }); // TODO: here we are sending password as well we need to remove it.
-
 });
 
 export const login = expressAsyncHandler(async (req: Request, res: Response) => {
-  const data: ILoginRequest = req.body; // TODO: use zod to validate the request body
+  const data: ILoginRequest = req.body;
 
   const validation = loginRequestSchema.safeParse(data);
 
@@ -177,7 +179,7 @@ export const logout = (req: Request, res: Response) => {
   res.status(200).json({ message: 'Logged out successfully.' });
 };
 
-// TODO: will application rate limit here
+// TODO: will apply rate limit here
 export const forgotPassword = expressAsyncHandler(async (req: Request, res: Response) => {
   const data: IForgotPasswordRequest = req.body;
 
@@ -234,5 +236,4 @@ export const updatePassword = expressAsyncHandler(async (req: Request, res: Resp
   await User.findByIdAndUpdate(decoded.userId, { password: data.password });
 
   res.status(200).json({ message: 'Password updated successfully.' });
-
 });
