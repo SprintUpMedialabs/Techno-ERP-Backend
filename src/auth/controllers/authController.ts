@@ -22,7 +22,7 @@ import {
   updatePasswordRequestSchema,
   IEmail,
   emailSchema
-} from '../validators/authRequest.validators';
+} from '../validators/authRequest';
 
 // TODO: will apply rate limit here
 export const sendOtpToEmail = expressAsyncHandler(async (req: Request, res: Response) => {
