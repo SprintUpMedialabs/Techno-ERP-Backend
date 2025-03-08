@@ -30,7 +30,7 @@ const yellowLeadSchema = new Schema<IYellowLeadDocument>(
       match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Invalid email format']
     },
     gender: { type: String, enum: Object.values(Gender), default: Gender.NOT_TO_MENTION },
-    assignedTo: { type: String },
+    assignedTo: { type: String, required: [true, 'Assigned To Field is required'] },
     location: { type: String },
     course: { type: String },
     campusVisit: { type: Boolean, default: false },
@@ -66,5 +66,11 @@ const handleMongooseError = (error: any, next: Function) => {
 yellowLeadSchema.post('save', function (error: any, doc: any, next: Function) {
   handleMongooseError(error, next);
 });
-// put same for findAndUpdate
+yellowLeadSchema.post('findOneAndUpdate', function (error: any, doc: any, next: Function) {
+  handleMongooseError(error, next);
+});
+yellowLeadSchema.post('findOne', function (error: any, doc: any, next: Function) {
+  handleMongooseError(error, next);
+});
+
 export const YellowLead = mongoose.model<IYellowLeadDocument>('YellowLead', yellowLeadSchema);
