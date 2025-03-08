@@ -3,29 +3,81 @@ import expressAsyncHandler from 'express-async-handler';
 import { yellowLeadSchema, IYellowLead } from '../validators/yellowLead';
 import { FilterQuery } from 'mongoose';
 import { YellowLead } from '../models/yellowLead';
-import { convertDateToFormatedDate } from '../utils/convertDateToFormatedDate';
-import { compareDates } from '../utils/compareFormatedDate';
 import { FinalConversionType } from '../../config/constants';
+import logger from '../../config/logger';
+import createHttpError from 'http-errors';
+import { convertToDDMMYYYY, convertToMongoDate } from '../utils/convertDateToFormatedDate';
 
 export const createYellowLead = expressAsyncHandler(async (req: Request, res: Response) => {
   try {
     const leadData: IYellowLead = req.body;
 
+    if (typeof leadData.leadTypeChangeDate === 'string') {
+      leadData.leadTypeChangeDate = convertToMongoDate(leadData.leadTypeChangeDate);
+    }
+    if (typeof leadData.nextCallDate === 'string') {
+      leadData.nextCallDate = convertToMongoDate(leadData.nextCallDate);
+    }
+
     const validation = yellowLeadSchema.safeParse(leadData);
     if (!validation.success) {
-      res.status(400).json({ error: validation.error.errors });
-      return;
+      throw createHttpError(400, JSON.stringify({ error: validation.error.errors }));
     }
 
     const newYellowLead = await YellowLead.create(leadData);
 
+    const responseData = {
+      ...newYellowLead.toObject(),
+      leadTypeChangeDate: convertToDDMMYYYY(newYellowLead.leadTypeChangeDate as Date),
+      nextCallDate: convertToDDMMYYYY(newYellowLead.nextCallDate as Date)
+    };
+
     res.status(201).json({
       message: 'Yellow lead created successfully.',
-      data: newYellowLead
+      data: responseData
     });
   } catch (error) {
-    console.error('Error in createYellowLead:', error);
-    res.status(500).json({ error: 'An unexpected error occurred.' });
+    logger.error('Error in createYellowLead:', error);
+    throw createHttpError(500, 'An unexpected error occurred.');
+  }
+});
+
+export const updateYellowLead = expressAsyncHandler(async (req: Request, res: Response) => {
+  try {
+    const { _id } = req.body;
+    const updateData: Partial<IYellowLead> = req.body;
+
+    if (typeof updateData.leadTypeChangeDate === 'string') {
+      updateData.leadTypeChangeDate = convertToMongoDate(updateData.leadTypeChangeDate);
+    }
+    if (typeof updateData.nextCallDate === 'string') {
+      updateData.nextCallDate = convertToMongoDate(updateData.nextCallDate);
+    }
+
+    const validation = yellowLeadSchema.partial().safeParse(updateData);
+    if (!validation.success) {
+      throw createHttpError(400, JSON.stringify({ error: validation.error.errors }));
+    }
+
+    const updatedYellowLead = await YellowLead.findByIdAndUpdate(_id, updateData, { new: true });
+
+    if (!updatedYellowLead) {
+      throw createHttpError(404, 'Yellow lead not found.');
+    }
+
+    const responseData = {
+      ...updatedYellowLead.toObject(),
+      leadTypeChangeDate: convertToDDMMYYYY(updatedYellowLead.leadTypeChangeDate as Date),
+      nextCallDate: convertToDDMMYYYY(updatedYellowLead.nextCallDate as Date)
+    };
+
+    res.status(200).json({
+      message: 'Yellow lead updated successfully.',
+      data: responseData
+    });
+  } catch (error) {
+    logger.error('Error in updateYellowLead:', error);
+    throw createHttpError(500, 'An unexpected error occurred.');
   }
 });
 
@@ -37,7 +89,9 @@ export const getFilteredYellowLeads = expressAsyncHandler(async (req: Request, r
       finalConversionType,
       course,
       location,
-      assignedTo
+      assignedTo,
+      page = 1,
+      limit = 10
     } = req.query;
 
     const filter: FilterQuery<IYellowLead> = {};
@@ -58,66 +112,48 @@ export const getFilteredYellowLeads = expressAsyncHandler(async (req: Request, r
       filter.assignedTo = assignedTo;
     }
 
-    const allLeads: IYellowLead[] = await YellowLead.find(filter);
-
-    let filteredLeads = allLeads;
-
     if (leadTypeChangeDateStart && leadTypeChangeDateEnd) {
-      filteredLeads = allLeads.filter((lead) => {
-        const leadDate = lead.leadTypeChangeDate!;
-        return (
-          compareDates(leadDate, leadTypeChangeDateStart as string) >= 0 &&
-          compareDates(leadDate, leadTypeChangeDateEnd as string) <= 0
-        );
-      });
+      filter.leadTypeChangeDate = {
+        $gte: convertToMongoDate(leadTypeChangeDateStart as string),
+        $lte: convertToMongoDate(leadTypeChangeDateEnd as string)
+      };
     } else {
       const today = new Date();
       const oneMonthAgo = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
 
-      const startDate = convertDateToFormatedDate(oneMonthAgo);
-      const endDate = convertDateToFormatedDate(today);
-
-      filteredLeads = allLeads.filter((lead) => {
-        const leadDate = lead.leadTypeChangeDate!;
-        return compareDates(leadDate, startDate) >= 0 && compareDates(leadDate, endDate) <= 0;
-      });
+      filter.leadTypeChangeDate = {
+        $gte: oneMonthAgo,
+        $lte: today
+      };
     }
+
+    const pageNumber = parseInt(page as string, 10);
+    const limitNumber = parseInt(limit as string, 10);
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const [leads, totalLeads] = await Promise.all([
+      YellowLead.find(filter).skip(skip).limit(limitNumber),
+      YellowLead.countDocuments(filter)
+    ]);
+
+    const formattedLeads = leads.map((lead) => ({
+      ...lead.toObject(),
+      leadTypeChangeDate: convertToDDMMYYYY(lead.leadTypeChangeDate as Date),
+      nextCallDate: convertToDDMMYYYY(lead.nextCallDate as Date)
+    }));
 
     res.status(200).json({
       message: 'Filtered yellow leads fetched successfully.',
-      data: filteredLeads
+      data: {
+        leads: formattedLeads,
+        totalLeads,
+        totalPages: Math.ceil(totalLeads / limitNumber),
+        currentPage: pageNumber
+      }
     });
   } catch (error) {
-    console.error('Error in getFilteredYellowLeads:', error);
-    res.status(500).json({ error: 'An unexpected error occurred.' });
-  }
-});
-
-export const updateYellowLead = expressAsyncHandler(async (req: Request, res: Response) => {
-  try {
-    const { _id } = req.body;
-    const updateData: Partial<IYellowLead> = req.body;
-
-    const validation = yellowLeadSchema.partial().safeParse(updateData);
-    if (!validation.success) {
-      res.status(400).json({ error: validation.error.errors });
-      return;
-    }
-
-    const updatedYellowLead = await YellowLead.findByIdAndUpdate(_id, updateData, { new: true });
-
-    if (!updatedYellowLead) {
-      res.status(404).json({ error: 'Yellow lead not found.' });
-      return;
-    }
-
-    res.status(200).json({
-      message: 'Yellow lead updated successfully.',
-      data: updatedYellowLead
-    });
-  } catch (error) {
-    console.error('Error in updateYellowLead:', error);
-    res.status(500).json({ error: 'An unexpected error occurred.' });
+    logger.error('Error in getFilteredYellowLeads:', error);
+    throw createHttpError(500, 'An unexpected error occurred.');
   }
 });
 
@@ -136,8 +172,16 @@ export const getYellowLeadsAnalytics = expressAsyncHandler(async (req: Request, 
 
     if (leadTypeChangeDateStart && leadTypeChangeDateEnd) {
       filter.leadTypeChangeDate = {
-        $gte: leadTypeChangeDateStart as string,
-        $lte: leadTypeChangeDateEnd as string
+        $gte: convertToMongoDate(leadTypeChangeDateStart as string),
+        $lte: convertToMongoDate(leadTypeChangeDateEnd as string)
+      };
+    } else {
+      const today = new Date();
+      const oneMonthAgo = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
+
+      filter.leadTypeChangeDate = {
+        $gte: oneMonthAgo,
+        $lte: today
       };
     }
 
@@ -157,33 +201,61 @@ export const getYellowLeadsAnalytics = expressAsyncHandler(async (req: Request, 
       filter.assignedTo = assignedTo;
     }
 
-    const filteredLeads = await YellowLead.find(filter);
+    const analytics = await YellowLead.aggregate([
+      { $match: filter },
+      {
+        $group: {
+          _id: null,
+          allLeadsCount: { $sum: 1 },
+          campusVisitTrueCount: {
+            $sum: { $cond: [{ $eq: ['$campusVisit', true] }, 1, 0] }
+          },
+          activeYellowLeadsCount: {
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    { $ne: ['$finalConversion', FinalConversionType.RED] },
+                    { $ne: ['$finalConversion', FinalConversionType.GREEN] }
+                  ]
+                },
+                1,
+                0
+              ]
+            }
+          },
+          deadLeadCount: {
+            $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.RED] }, 1, 0] }
+          }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          allLeadsCount: 1,
+          campusVisitTrueCount: 1,
+          activeYellowLeadsCount: 1,
+          deadLeadCount: 1
+        }
+      }
+    ]);
 
-    const allLeadsCount = filteredLeads.length;
-    const campusVisitTrueCount = filteredLeads.filter((lead) => lead.campusVisit).length;
-    const activeYellowLeadsCount = filteredLeads.filter(
-      (lead) =>
-        ![FinalConversionType.RED, FinalConversionType.GREEN].includes(
-          lead.finalConversion as FinalConversionType
-        )
-    ).length;
-    const deadLeadCount = filteredLeads.filter(
-      (lead) => lead.finalConversion === FinalConversionType.RED
-    ).length;
-
-    const analytics = {
-      allLeadsCount,
-      campusVisitTrueCount,
-      activeYellowLeadsCount,
-      deadLeadCount
-    };
+    const result =
+      analytics.length > 0
+        ? analytics[0]
+        : {
+            allLeadsCount: 0,
+            campusVisitTrueCount: 0,
+            activeYellowLeadsCount: 0,
+            deadLeadCount: 0
+          };
 
     res.status(200).json({
       message: 'Yellow leads analytics fetched successfully.',
-      data: analytics
+      data: result
     });
   } catch (error) {
-    console.error('Error in getYellowLeadsAnalytics:', error);
-    res.status(500).json({ error: 'An unexpected error occurred.' });
+    logger.error('Error in getYellowLeadsAnalytics:', error);
+    throw createHttpError(500, 'An unexpected error occurred.');
   }
 });

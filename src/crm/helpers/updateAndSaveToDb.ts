@@ -20,7 +20,7 @@ const leadsToBeInserted = async (latestData: any[]) => {
       if (!assignedToID) {
         const existingUser = await User.findOne({ email: assignedToEmail });
         if (existingUser && existingUser.roles.includes(UserRoles.EMPLOYEE_MARKETING)) {
-          assignedToID = existingUser?._id?.toString() || "";
+          assignedToID = existingUser?._id?.toString() || '';
           MarketingEmployees.set(assignedToEmail, assignedToID);
         }
       }
@@ -59,13 +59,13 @@ const leadsToBeInserted = async (latestData: any[]) => {
       if (leadDataValidation.success) {
         dataToInsert.push(leadDataValidation.data);
       } else {
-        console.error("Validation failed for row", row, leadDataValidation.error);
+        console.error('Validation failed for row', row, leadDataValidation.error);
       }
     } catch (error) {
       logger.error(`Error processing row: ${JSON.stringify(row)}`, error);
     }
   }
-  
+
   // console.log("Data to insert:", dataToInsert);
   return dataToInsert;
 };
@@ -74,7 +74,7 @@ export const saveDataToDb = async (latestData: any[]) => {
   const dataToInsert = await leadsToBeInserted(latestData);
 
   if (!dataToInsert || dataToInsert.length === 0) {
-    logger.info("No valid data to insert.");
+    logger.info('No valid data to insert.');
     return;
   }
 
