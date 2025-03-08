@@ -136,7 +136,7 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
         return;
       } else {
         updatedLead.leadType = leadData.leadType;
-        updatedLead.leadTypeModified = new Date().toString();
+        updatedLead.leadTypeModified = new Date().toString() ;
       }
     }
 

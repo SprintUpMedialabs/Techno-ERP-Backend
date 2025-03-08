@@ -30,3 +30,13 @@ export const yellowLeadSchema = z.object({
 });
 
 export type IYellowLead = z.infer<typeof yellowLeadSchema>;
+export type YellowLeadFilter = {
+  leadTypeChangeDateStart?: string;
+  leadTypeChangeDateEnd?: string;
+  finalConversionType?: FinalConversionType | FinalConversionType[];
+  course?: string | string[];
+  location?: string | string[];
+  assignedTo?: string | string[];
+  page?: number;
+  limit?: number;
+};
