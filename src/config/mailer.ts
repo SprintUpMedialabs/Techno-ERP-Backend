@@ -20,6 +20,7 @@ let transport = nodemailer.createTransport({
   }
 });
 
+// TODO: we need to have some robust approach here
 export const sendEmail = async (to: string, subject: string, text: string) => {
   const mailOptions = {
     from: NODEMAILER_SENDER_ADDRESS,

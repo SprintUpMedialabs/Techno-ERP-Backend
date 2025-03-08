@@ -2,10 +2,9 @@ import { z } from 'zod';
 import { Gender, LeadType } from '../../config/constants';
 
 export const leadSchema = z.object({
-  srNo: z.number(),
-  date: z.string().regex(/^\d{2}-\d{2}-\d{4}$/, 'Invalid date format, expected DD-MM-YYYY'),
-  source: z.string(),
-  name: z.string(),
+  date: z.union([z.string().regex(/^\d{2}\/\d{2}\/\d{4}$/, 'Invalid date format, expected DD/MM/YYYY'), z.date()]),
+  source: z.string().optional(),
+  name: z.string().min(1, 'Name field is required'),
   phoneNumber: z
     .string()
     .regex(/^\+91\d{10}$/, 'Invalid contact number format. Expected: +911234567890'),
@@ -13,21 +12,17 @@ export const leadSchema = z.object({
     .string()
     .regex(/^\+91\d{10}$/, 'Invalid contact number format. Expected: +911234567890')
     .optional(),
-  email: z.string().email('Invalid Email Format'),
+  email: z.string().email('Invalid Email Format').optional(),
   gender: z.nativeEnum(Gender).default(Gender.NOT_TO_MENTION),
   location: z.string().optional(),
   course: z.string().optional(),
-  assignedTo: z.string().optional(),
+  assignedTo: z.string().min(1, 'Assigned To field is required'),
   leadType: z.nativeEnum(LeadType).default(LeadType.ORANGE),
   remarks: z.string().optional(),
-<<<<<<< HEAD
-  leadTypeModified: z.string(),
-=======
-  leadTypeModified: z.date(),
->>>>>>> develop
+  leadTypeModified: z.string().optional(),
   nextDueDate: z
     .string()
-    .regex(/^\d{2}-\d{2}-\d{4}$/, 'Invalid date format, expected DD-MM-YYYY')
+    .regex(/^\d{2}\/\d{2}\/\d{4}$/, 'Invalid date format, expected DD/MM/YYYY')
     .optional()
 });
 

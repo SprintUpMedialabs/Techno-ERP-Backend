@@ -1,84 +1,66 @@
-import expressAsyncHandler from 'express-async-handler';
 import { Response } from 'express';
+import expressAsyncHandler from 'express-async-handler';
 import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
-import { User } from '../../auth/models/user';
-import { Gender, LeadType, UserRoles } from '../../config/constants';
+import { LeadType, UserRoles } from '../../config/constants';
 import logger from '../../config/logger';
 import { readFromGoogleSheet } from '../helpers/googleSheetOperations';
 import { saveDataToDb } from '../helpers/updateAndSaveToDb';
-import { ILead, leadSchema } from '../validators/leads';
 import { Lead } from '../models/leads';
-import { formatName } from '../utils/formatName';
+import { ILead, leadSchema } from '../validators/leads';
 
 export const uploadData = expressAsyncHandler(async (_: AuthenticatedRequest, res: Response) => {
-  try {
-    const latestData = await readFromGoogleSheet();
-    if (!latestData) {
-      res.status(200).json({ message: 'There is no data to update :)' });
-    } else {
-      try {
-        await saveDataToDb(latestData);
-        res.status(200).json({ message: 'Data updated in database' });
-      } catch (error) {
-        logger.error('Error occurred in saving sheet data to db', error);
-        res.status(500).json({ message: 'Error occurred in saving sheet data to db' });
-      }
-    }
-  } catch (error) {
-    logger.error("Couldn't fetch leads.", error);
-    res.status(500).json({ message: 'Error occurred in fetching leads.' });
+
+  const latestData = await readFromGoogleSheet(); // TODO: here there are few things inside this function which we need to take care
+  if (!latestData) {
+    res.status(200).json({ message: 'There is no data to update :)' });
+  } else {
+    await saveDataToDb(latestData);
+    res.status(200).json({ message: 'Data updated in database' });
   }
 });
 
 export const fetchData = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const userIDMap: Map<String, String> = new Map();
 
-    const decodedData = req.data;
-    if (!decodedData || !decodedData.id || !decodedData.roles) {
-      res.status(401).json({ message: 'Please login!' });
+    const { id, roles } = req.data!;
+
+    let leads: ILead[] = [];
+
+    if (roles.includes(UserRoles.ADMIN) || roles.includes(UserRoles.LEAD_MARKETING)) {
+      leads = await Lead.find().lean();
     } else {
-      const { id, roles } = decodedData;
-
-      let leads: ILead[] = [];
-
-      if (roles.includes(UserRoles.ADMIN) || roles.includes(UserRoles.LEAD_MARKETING)) {
-        leads = await Lead.find().lean();
-      } else if (roles.includes(UserRoles.EMPLOYEE_MARKETING)) {
-        leads = await Lead.find({ assignedTo: id }).lean();
-      } else {
-        res.status(403).json({ message: 'Unauthorized access!' });
-      }
-
-      const totalLeads: number = leads.length;
-      const openLeads: number = leads.filter((lead) => lead.leadType === LeadType.ORANGE).length;
-
-      // await Promise.all(
-      //   leads.map(async (lead) => {
-      //     if (lead.assignedTo) {
-      //       if (userIDMap.has(lead.assignedTo)) {
-      //         lead.assignedTo = userIDMap.get(lead.assignedTo)?.toString();
-      //       } else {
-      //         const existingUser = await User.findById(lead.assignedTo);
-      //         if (existingUser) {
-      //           let name = formatName(existingUser.firstName, existingUser.lastName);
-      //           const assignedToInfo = `${name} - ${existingUser.email}`;
-      //           lead.assignedTo = assignedToInfo;
-      //           userIDMap.set(lead.assignedTo, assignedToInfo);
-      //         }
-      //       }
-      //     }
-      //   })
-      // );
-
-      res.status(200).json({
-        leadStats: {
-          totalLeads,
-          openLeads
-        },
-        leads
-      });
+      // if user is not admin & lead_marketing then it will be employee_marketing
+      leads = await Lead.find({ assignedTo: id }).lean();
     }
+
+    const totalLeads: number = leads.length;
+    const openLeads: number = leads.filter((lead) => lead.leadType === LeadType.ORANGE).length;
+
+    // await Promise.all(
+    //   leads.map(async (lead) => {
+    //     if (lead.assignedTo) {
+    //       if (userIDMap.has(lead.assignedTo)) {
+    //         lead.assignedTo = userIDMap.get(lead.assignedTo)?.toString();
+    //       } else {
+    //         const existingUser = await User.findById(lead.assignedTo);
+    //         if (existingUser) {
+    //           let name = formatName(existingUser.firstName, existingUser.lastName);
+    //           const assignedToInfo = `${name} - ${existingUser.email}`;
+    //           lead.assignedTo = assignedToInfo;
+    //           userIDMap.set(lead.assignedTo, assignedToInfo);
+    //         }
+    //       }
+    //     }
+    //   })
+    // );
+
+    res.status(200).json({
+      leadStats: {
+        totalLeads,
+        openLeads
+      },
+      leads
+    });
   } catch (error) {
     res.status(404).json({ message: 'Could not fetch leads' });
   }
@@ -130,7 +112,6 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
     const existingLeadType = existingLead.leadType;
 
     let updatedLead: ILead = {
-      srNo: leadData.srNo || existingLead.srNo,
       date: existingLead.date,
       email: leadData.email || existingLead.email,
       name: leadData.name || existingLead.name,

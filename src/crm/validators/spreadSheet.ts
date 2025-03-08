@@ -1,6 +1,8 @@
-import * as z from "zod";
+import * as z from 'zod';
+
 export const spreadSheetSchema = z.object({
-    lastIdxMarketingSheet : z.number()
+  name: z.string(),
+  lastIdxMarketingSheet: z.number()
 });
 
 export type ISpreadSheetMetaData = z.infer<typeof spreadSheetSchema>;
