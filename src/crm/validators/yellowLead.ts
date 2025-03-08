@@ -17,7 +17,7 @@ export const yellowLeadSchema = z.object({
     .optional(),
   email: z.string().email('Invalid Email Format'),
   gender: z.nativeEnum(Gender).default(Gender.NOT_TO_MENTION),
-  assignedTo: z.string().optional(),
+  assignedTo: z.string().optional(),  // TODO: it mandatory
   location: z.string().optional(),
   course: z.string().optional(),
   campusVisit: z.boolean().default(false),

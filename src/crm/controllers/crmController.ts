@@ -26,6 +26,8 @@ export const fetchData = expressAsyncHandler(async (req: AuthenticatedRequest, r
 
     let leads: ILead[] = [];
 
+    
+
     if (roles.includes(UserRoles.ADMIN) || roles.includes(UserRoles.LEAD_MARKETING)) {
       leads = await Lead.find().lean();
     } else {

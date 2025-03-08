@@ -8,20 +8,17 @@ import logger from '../../config/logger';
 import createHttpError from 'http-errors';
 import { convertToDDMMYYYY, convertToMongoDate } from '../utils/convertDateToFormatedDate';
 
+// TODO: convert this to internal call function
 export const createYellowLead = expressAsyncHandler(async (req: Request, res: Response) => {
   try {
     const leadData: IYellowLead = req.body;
 
-    if (typeof leadData.leadTypeChangeDate === 'string') {
-      leadData.leadTypeChangeDate = convertToMongoDate(leadData.leadTypeChangeDate);
-    }
-    if (typeof leadData.nextCallDate === 'string') {
-      leadData.nextCallDate = convertToMongoDate(leadData.nextCallDate);
-    }
+    leadData.leadTypeChangeDate = convertToMongoDate(leadData.leadTypeChangeDate);
+    leadData.nextCallDate = convertToMongoDate(leadData.nextCallDate);
 
     const validation = yellowLeadSchema.safeParse(leadData);
     if (!validation.success) {
-      throw createHttpError(400, JSON.stringify({ error: validation.error.errors }));
+      throw createHttpError(400, validation.error.errors[0]);
     }
 
     const newYellowLead = await YellowLead.create(leadData);
@@ -41,7 +38,7 @@ export const createYellowLead = expressAsyncHandler(async (req: Request, res: Re
     throw createHttpError(500, 'An unexpected error occurred.');
   }
 });
-
+// TODO: remove global try/catch
 export const updateYellowLead = expressAsyncHandler(async (req: Request, res: Response) => {
   try {
     const { _id } = req.body;
@@ -81,6 +78,7 @@ export const updateYellowLead = expressAsyncHandler(async (req: Request, res: Re
   }
 });
 
+// TODO: array will be here for course,location,assigednTO,finalConversionType
 export const getFilteredYellowLeads = expressAsyncHandler(async (req: Request, res: Response) => {
   try {
     const {
@@ -244,11 +242,11 @@ export const getYellowLeadsAnalytics = expressAsyncHandler(async (req: Request, 
       analytics.length > 0
         ? analytics[0]
         : {
-            allLeadsCount: 0,
-            campusVisitTrueCount: 0,
-            activeYellowLeadsCount: 0,
-            deadLeadCount: 0
-          };
+          allLeadsCount: 0,
+          campusVisitTrueCount: 0,
+          activeYellowLeadsCount: 0,
+          deadLeadCount: 0
+        };
 
     res.status(200).json({
       message: 'Yellow leads analytics fetched successfully.',

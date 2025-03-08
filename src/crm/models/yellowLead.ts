@@ -66,4 +66,5 @@ const handleMongooseError = (error: any, next: Function) => {
 yellowLeadSchema.post('save', function (error: any, doc: any, next: Function) {
   handleMongooseError(error, next);
 });
+// put same for findAndUpdate
 export const YellowLead = mongoose.model<IYellowLeadDocument>('YellowLead', yellowLeadSchema);
