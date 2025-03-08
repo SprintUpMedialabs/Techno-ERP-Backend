@@ -5,6 +5,7 @@ interface IVerifyOtpDocument extends IVerifyOtp, Document {}
 
 const verifyOtpSchema = new Schema<IVerifyOtpDocument>(
   {
+    email: { type: String, required: true },
     verifyOtp: { type: Number, required: true },
     verifyOtpExpireAt: { type: Date, required: true }
   },

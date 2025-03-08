@@ -1,104 +1,114 @@
+import bcrypt from 'bcrypt';
 import { CookieOptions, Request, Response } from 'express';
 import expressAsyncHandler from 'express-async-handler';
-import { IUser, userSchema } from '../validators/user';
-import { sendEmail } from '../../config/mailer';
-import bcrypt from 'bcrypt';
+import createHttpError from 'http-errors';
 import * as jwt from 'jsonwebtoken';
+import { sendEmail } from '../../config/mailer';
 import { AUTH_API_PATH, JWT_SECRET } from '../../secrets';
-import { generateOTP } from '../utils/otpGenerator';
+import { createToken, verifyToken } from '../../utils/jwtHelper';
 import { User } from '../models/user';
 import { VerifyOtp } from '../models/verifyOtp';
-import logger from '../../config/logger';
+import { generateOTP } from '../utils/otpGenerator';
+import {
+  ILoginRequest,
+  IOTPRequest,
+  IRegisterationRequest,
+  loginRequestSchema,
+  OTPRequestSchema,
+  registerationRequestSchema,
+  forgotPasswordRequestSchema,
+  IForgotPasswordRequest,
+  IUpdatePasswordRequest,
+  updatePasswordRequestSchema,
+  IEmail,
+  emailSchema
+} from '../validators/authRequest';
 
-export const register = expressAsyncHandler(async (req: Request, res: Response) => {
-  try {
-    const user: IUser = req.body;
+// TODO: will apply rate limit here
+export const sendOtpToEmail = expressAsyncHandler(async (req: Request, res: Response) => {
+  const data: IEmail = req.body;
 
-    const validation = userSchema.safeParse(user);
-    if (!validation.success) {
-      res.status(400).json({ error: validation.error.errors });
-      return;
-    }
-
-    const existingUser = await User.findOne({ email: user.email });
-    if (existingUser) {
-      res.status(400).json({ error: 'User already exists with this email.' });
-      return;
-    }
-
-    const otp = generateOTP(10, 6);
-
-    const newUser = await User.create({
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      password: '',
-      roles: user.roles
-    });
-
-    await VerifyOtp.create({
-      _id: newUser._id,
-      verifyOtp: parseInt(otp.otpValue),
-      verifyOtpExpireAt: otp.otpExpiryTime
-    });
-
-    const emailBody = `
-      <html>
-        <body>
-          <p><strong>Your OTP:</strong> <span style="background-color: #f3f3f3; padding: 5px; border-radius: 4px; font-size: 16px;">${otp.otpValue}</span></p>
-          <p style="color: red;">It will expire in 10 minutes.</p>
-        </body>
-      </html>
-    `;
-
-    await sendEmail(user.email, 'Your OTP for Registration', emailBody);
-
-    res.status(201).json({ message: 'OTP sent to your email.', userId: newUser._id });
-  } catch (error) {
-    logger.error('Error in register:', error);
-    res.status(500).json({ error: 'An unexpected error occurred.' });
+  const validation = emailSchema.safeParse(data);
+  if (!validation.success) {
+    throw createHttpError(400, validation.error.errors[0]);
   }
+
+  const otp = generateOTP(10, 6);
+
+  const emailBody = `
+  <html>
+    <body>
+      <p><strong>Your OTP:</strong> <span style="background-color: #f3f3f3; padding: 5px; border-radius: 4px; font-size: 16px;">${otp.otpValue}</span></p>
+      <p style="color: red;">It will expire in 10 minutes.</p>
+    </body>
+  </html>
+`;
+
+  await sendEmail(data.email, 'Your OTP for Registration', emailBody);
+
+  await VerifyOtp.create({
+    email: data.email,
+    verifyOtp: parseInt(otp.otpValue),
+    verifyOtpExpireAt: otp.otpExpiryTime
+  });
+
+  res.status(201).json({ message: 'OTP sent to your email.' });
 });
 
-export const verifyOtp = expressAsyncHandler(async (req: Request, res: Response) => {
-  try {
-    const { email, otp } = req.body;
+export const validateAndVerifyOtp = expressAsyncHandler(async (req: Request, res: Response) => {
+  const data: IOTPRequest = req.body;
 
-    if (!email || !otp) {
-      res.status(400).json({ error: 'Email and OTP are required.' });
-      return;
-    }
+  const validation = OTPRequestSchema.safeParse(data);
 
-    const user = await User.findOne({ email });
-    if (!user) {
-      res.status(404).json({ error: 'User not found.' });
-      return;
-    }
+  if (!validation.success) {
+    throw createHttpError(400, validation.error.errors[0]);
+  }
 
-    const otpRecord = await VerifyOtp.findById(user._id);
-    if (!otpRecord) {
-      res.status(400).json({ error: 'OTP not found.' });
-      return;
-    }
+  const otpRecord = await VerifyOtp.findOne({ email: data.email });
+  if (!otpRecord) {
+    throw createHttpError(400, 'OTP not found.');
+  }
 
-    if (otpRecord.verifyOtp !== parseInt(otp)) {
-      res.status(400).json({ error: 'Invalid OTP.' });
-      return;
-    }
+  if (otpRecord.verifyOtp !== data.otp) {
+    throw createHttpError(400, 'Invalid OTP');
+  }
 
-    if (otpRecord.verifyOtpExpireAt < new Date()) {
-      res.status(400).json({ error: 'Expired OTP.' });
-      return;
-    }
+  if (otpRecord.verifyOtpExpireAt < new Date()) {
+    throw createHttpError(400, 'Expired OTP.');
+  }
 
-    const password = Math.random().toString(36).slice(-8);
-    const hashedPassword = await bcrypt.hash(password, 10);
+  const token = createToken({ email: data.email }, { expiresIn: '30m' });
 
-    await User.findByIdAndUpdate(user._id, { password: hashedPassword });
+  VerifyOtp.deleteOne({ email: data.email });
 
-    await VerifyOtp.deleteOne({ _id: user._id });
+  res.status(200).json({
+    token,
+    message: 'Email Verified successfully.'
+  });
+});
 
-    const emailBody = `
+export const register = expressAsyncHandler(async (req: Request, res: Response) => {
+  const data: IRegisterationRequest = req.body;
+
+  const validation = registerationRequestSchema.safeParse(data);
+
+  if (!validation.success) {
+    throw createHttpError(400, validation.error.errors[0]);
+  }
+
+  const { email } = verifyToken(data.token) as { email: string };
+
+  const password = Math.random().toString(36).slice(-8);
+
+  const newUser = await User.create({
+    email,
+    firstName: data.firstName,
+    lastName: data.lastName,
+    password,
+    roles: data.roles
+  });
+
+  const emailBody = `
       <html>
         <body>
           <p>Your account has been created.</p>
@@ -108,67 +118,55 @@ export const verifyOtp = expressAsyncHandler(async (req: Request, res: Response)
       </html>
     `;
 
-    await sendEmail(user.email, 'Your Account Password', emailBody);
+  await sendEmail(email, 'Your Account Password', emailBody);
 
-    res
-      .status(200)
-      .json({ message: 'Account created successfully. Check your email for the password.' });
-  } catch (error) {
-    logger.error('Error in verifyOtp:', error);
-    res.status(500).json({ error: 'An unexpected error occurred.' });
-  }
+  res.status(201).json({ message: 'Account created successfully.', newUser }); // TODO: here we are sending password as well we need to remove it.
 });
 
 export const login = expressAsyncHandler(async (req: Request, res: Response) => {
-  try {
-    const { email, password } = req.body;
+  const data: ILoginRequest = req.body;
 
-    if (!email || !password) {
-      res.status(400).json({ message: 'Email and password are required.' });
-      return;
-    }
+  const validation = loginRequestSchema.safeParse(data);
 
-    const user = await User.findOne({ email });
-    if (!user) {
-      res.status(404).json({ message: 'User not found. Please register first.' });
-      return;
-    }
-
-    const isPasswordValid = await bcrypt.compare(password, user.password!);
-    if (!isPasswordValid) {
-      res.status(400).json({ message: 'Invalid password.' });
-      return;
-    }
-
-    const payload = {
-      id: user._id,
-      roles: user.roles
-    };
-
-    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '15d' });
-
-    const options: CookieOptions = {
-      maxAge: 15 * 24 * 60 * 60 * 1000,
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none'
-    };
-
-    res.cookie('token', token, options);
-
-    res.status(200).json({
-      message: 'Login successful.',
-      token: token,
-      roles: user.roles,
-      userData: {
-        name: `${user.firstName} ${user.lastName}`,
-        email: user.email
-      }
-    });
-  } catch (error) {
-    logger.error('Error in login:', error);
-    res.status(500).json({ error: 'An unexpected error occurred.' });
+  if (!validation.success) {
+    throw createHttpError(400, validation.error.errors[0]);
   }
+
+  const user = await User.findOne({ email: data.email });
+  if (!user) {
+    throw createHttpError(404, 'User not found. Please register first.');
+  }
+
+  const isPasswordValid = await bcrypt.compare(data.password, user.password!);
+  if (!isPasswordValid) {
+    throw createHttpError(400, 'Invalid password.');
+  }
+
+  const payload = {
+    id: user._id,
+    roles: user.roles
+  };
+
+  const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '15d' });
+
+  const options: CookieOptions = {
+    maxAge: 15 * 24 * 60 * 60 * 1000,
+    httpOnly: true,
+    secure: true,
+    sameSite: 'none'
+  };
+
+  res.cookie('token', token, options);
+
+  res.status(200).json({
+    message: 'Login successful.',
+    token: token,
+    roles: user.roles,
+    userData: {
+      name: `${user.firstName} ${user.lastName}`,
+      email: user.email
+    }
+  });
 });
 
 export const logout = (req: Request, res: Response) => {
@@ -181,22 +179,28 @@ export const logout = (req: Request, res: Response) => {
   res.status(200).json({ message: 'Logged out successfully.' });
 };
 
+// TODO: will apply rate limit here
 export const forgotPassword = expressAsyncHandler(async (req: Request, res: Response) => {
-  const { email } = req.body;
+  const data: IForgotPasswordRequest = req.body;
 
-  const user = await User.findOne({ email });
-  if (!user) {
-    res.status(404).json({ message: 'User not found. Please register first.' });
-    return;
+  const validation = forgotPasswordRequestSchema.safeParse(data);
+
+  if (!validation.success) {
+    throw createHttpError(400, validation.error.errors[0]);
   }
 
-  const token = jwt.sign({ userId: user._id, expiry: Date.now() + 15 * 60 * 1000 }, JWT_SECRET, {
-    expiresIn: '15m'
-  });
+  const user = await User.findOne({ email: data.email });
+
+  if (!user) {
+    throw createHttpError(404, 'User not found. Please register first.');
+  }
+
+  const token = createToken({ userId: user._id }, { expiresIn: '15m' });
 
   const resetLink = `${AUTH_API_PATH}/?token=${encodeURIComponent(token)}`;
+
   await sendEmail(
-    email,
+    data.email,
     'Reset Password Link',
     `
     <html>
@@ -215,26 +219,21 @@ export const forgotPassword = expressAsyncHandler(async (req: Request, res: Resp
 
 export const updatePassword = expressAsyncHandler(async (req: Request, res: Response) => {
   const token = req.query.token as string;
-  const { password } = req.body;
+  const data: IUpdatePasswordRequest = req.body;
+
+  const validation = updatePasswordRequestSchema.safeParse(data);
+
+  if (!validation.success) {
+    throw createHttpError(400, validation.error.errors[0]);
+  }
 
   if (!token) {
-    res.status(400).json({ message: 'Invalid reset link.' });
-    return;
+    throw createHttpError(400, 'Invalid reset link.');
   }
 
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { userId: string; expiry: number };
-    if (Date.now() > decoded.expiry) {
-      res.status(400).json({ message: 'Reset link expired.' });
-      return;
-    }
+  const decoded = verifyToken(token) as { userId: string };
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    await User.findByIdAndUpdate(decoded.userId, { password: hashedPassword });
+  await User.findByIdAndUpdate(decoded.userId, { password: data.password });
 
-    res.status(200).json({ message: 'Password updated successfully.' });
-  } catch (error) {
-    logger.error('Error in updatePassword:', error);
-    res.status(400).json({ message: 'Invalid or tampered reset link.' });
-  }
+  res.status(200).json({ message: 'Password updated successfully.' });
 });
