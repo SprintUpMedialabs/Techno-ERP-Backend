@@ -20,11 +20,7 @@ export const leadSchema = z.object({
   assignedTo: z.string().optional(),
   leadType: z.nativeEnum(LeadType).default(LeadType.ORANGE),
   remarks: z.string().optional(),
-<<<<<<< HEAD
-  leadTypeModified: z.string(),
-=======
   leadTypeModified: z.date(),
->>>>>>> develop
   nextDueDate: z
     .string()
     .regex(/^\d{2}-\d{2}-\d{4}$/, 'Invalid date format, expected DD-MM-YYYY')

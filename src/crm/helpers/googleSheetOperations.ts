@@ -14,7 +14,7 @@ export const readFromGoogleSheet = async () => {
     const range = `${GOOGLE_SHEET_PAGE}!A${lastSavedIndex + 1}:Z`;
     const sheetResponse = await sheetInstance.spreadsheets.values.get({
       spreadsheetId: GOOGLE_SHEET_ID,
-      range,
+      range
     });
 
     const rowData = sheetResponse.data.values;
@@ -42,41 +42,41 @@ export const readFromGoogleSheet = async () => {
             repeatCell: {
               range: {
                 sheetId: 0,
-                startRowIndex: 1,
+                startRowIndex: 1
               },
               cell: {
                 userEnteredFormat: {
                   backgroundColor: {
                     red: 1.0,
                     green: 1.0,
-                    blue: 1.0,
-                  },
-                },
+                    blue: 1.0
+                  }
+                }
               },
-              fields: 'userEnteredFormat.backgroundColor',
-            },
+              fields: 'userEnteredFormat.backgroundColor'
+            }
           },
           {
             repeatCell: {
               range: {
                 sheetId: 0,
                 startRowIndex: newLastReadIndex - 1,
-                endRowIndex: newLastReadIndex,
+                endRowIndex: newLastReadIndex
               },
               cell: {
                 userEnteredFormat: {
                   backgroundColor: {
                     red: 0.0,
                     green: 0.5019608,
-                    blue: 0.0,
-                  },
-                },
+                    blue: 0.0
+                  }
+                }
               },
-              fields: 'userEnteredFormat.backgroundColor',
-            },
-          },
-        ],
-      },
+              fields: 'userEnteredFormat.backgroundColor'
+            }
+          }
+        ]
+      }
     });
 
     return rowData;
