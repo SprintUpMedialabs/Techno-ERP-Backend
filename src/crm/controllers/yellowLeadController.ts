@@ -40,42 +40,37 @@ export const createYellowLead = expressAsyncHandler(async (req: Request, res: Re
 });
 // TODO: remove global try/catch
 export const updateYellowLead = expressAsyncHandler(async (req: Request, res: Response) => {
-  try {
-    const { _id } = req.body;
-    const updateData: Partial<IYellowLead> = req.body;
+  const { _id } = req.body;
+  const updateData: Partial<IYellowLead> = req.body;
 
-    if (typeof updateData.leadTypeChangeDate === 'string') {
-      updateData.leadTypeChangeDate = convertToMongoDate(updateData.leadTypeChangeDate);
-    }
-    if (typeof updateData.nextCallDate === 'string') {
-      updateData.nextCallDate = convertToMongoDate(updateData.nextCallDate);
-    }
-
-    const validation = yellowLeadSchema.partial().safeParse(updateData);
-    if (!validation.success) {
-      throw createHttpError(400, JSON.stringify({ error: validation.error.errors }));
-    }
-
-    const updatedYellowLead = await YellowLead.findByIdAndUpdate(_id, updateData, { new: true });
-
-    if (!updatedYellowLead) {
-      throw createHttpError(404, 'Yellow lead not found.');
-    }
-
-    const responseData = {
-      ...updatedYellowLead.toObject(),
-      leadTypeChangeDate: convertToDDMMYYYY(updatedYellowLead.leadTypeChangeDate as Date),
-      nextCallDate: convertToDDMMYYYY(updatedYellowLead.nextCallDate as Date)
-    };
-
-    res.status(200).json({
-      message: 'Yellow lead updated successfully.',
-      data: responseData
-    });
-  } catch (error) {
-    logger.error('Error in updateYellowLead:', error);
-    throw createHttpError(500, 'An unexpected error occurred.');
+  if (typeof updateData.leadTypeChangeDate === 'string') {
+    updateData.leadTypeChangeDate = convertToMongoDate(updateData.leadTypeChangeDate);
   }
+  if (typeof updateData.nextCallDate === 'string') {
+    updateData.nextCallDate = convertToMongoDate(updateData.nextCallDate);
+  }
+
+  const validation = yellowLeadSchema.partial().safeParse(updateData);
+  if (!validation.success) {
+    throw createHttpError(400, validation.error.errors[0]);
+  }
+
+  const updatedYellowLead = await YellowLead.findByIdAndUpdate(_id, updateData, { new: true });
+
+  if (!updatedYellowLead) {
+    throw createHttpError(404, 'Yellow lead not found.');
+  }
+
+  const responseData = {
+    ...updatedYellowLead.toObject(),
+    leadTypeChangeDate: convertToDDMMYYYY(updatedYellowLead.leadTypeChangeDate as Date),
+    nextCallDate: convertToDDMMYYYY(updatedYellowLead.nextCallDate as Date)
+  };
+
+  res.status(200).json({
+    message: 'Yellow lead updated successfully.',
+    data: responseData
+  });
 });
 
 // TODO: array will be here for course,location,assigednTO,finalConversionType
@@ -242,11 +237,11 @@ export const getYellowLeadsAnalytics = expressAsyncHandler(async (req: Request, 
       analytics.length > 0
         ? analytics[0]
         : {
-          allLeadsCount: 0,
-          campusVisitTrueCount: 0,
-          activeYellowLeadsCount: 0,
-          deadLeadCount: 0
-        };
+            allLeadsCount: 0,
+            campusVisitTrueCount: 0,
+            activeYellowLeadsCount: 0,
+            deadLeadCount: 0
+          };
 
     res.status(200).json({
       message: 'Yellow leads analytics fetched successfully.',

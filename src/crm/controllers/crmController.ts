@@ -1,15 +1,16 @@
 import { Response } from 'express';
 import expressAsyncHandler from 'express-async-handler';
+import createHttpError from 'http-errors';
 import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
 import { LeadType, UserRoles } from '../../config/constants';
-import logger from '../../config/logger';
 import { readFromGoogleSheet } from '../helpers/googleSheetOperations';
 import { saveDataToDb } from '../helpers/updateAndSaveToDb';
 import { Lead } from '../models/leads';
-import { ILead, leadSchema } from '../validators/leads';
+import { AllLeadFilter } from '../types/marketingSpreadsheet';
+import { convertToMongoDate } from '../utils/convertExcelDateToJSDate';
+import { IUpdateLeadSchema, updateLeadSchema } from '../validators/leads';
 
 export const uploadData = expressAsyncHandler(async (_: AuthenticatedRequest, res: Response) => {
-
   const latestData = await readFromGoogleSheet(); // TODO: here there are few things inside this function which we need to take care
   if (!latestData) {
     res.status(200).json({ message: 'There is no data to update :)' });
@@ -19,142 +20,208 @@ export const uploadData = expressAsyncHandler(async (_: AuthenticatedRequest, re
   }
 });
 
-export const fetchData = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  try {
+export const getFilteredLeadData = expressAsyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const {
+      leadTypeChangeDateStart,
+      leadTypeChangeDateEnd,
+      leadType = [],
+      course = [],
+      location = [],
+      assignedTo = [],
+      page = 1,
+      limit = 10,
+      search = ''
+    } = req.body;
 
-    const { id, roles } = req.data!;
+    const filters: AllLeadFilter = {
+      leadTypeChangeDateStart,
+      leadTypeChangeDateEnd,
+      leadType,
+      course,
+      location,
+      assignedTo
+    };
+    const query: any = {};
 
-    let leads: ILead[] = [];
-
-    
-
-    if (roles.includes(UserRoles.ADMIN) || roles.includes(UserRoles.LEAD_MARKETING)) {
-      leads = await Lead.find().lean();
-    } else {
-      // if user is not admin & lead_marketing then it will be employee_marketing
-      leads = await Lead.find({ assignedTo: id }).lean();
+    if (filters.leadType.length > 0) {
+      query.leadType = { $in: filters.leadType };
     }
 
-    const totalLeads: number = leads.length;
-    const openLeads: number = leads.filter((lead) => lead.leadType === LeadType.ORANGE).length;
+    if (filters.course.length > 0) {
+      query.course = { $in: filters.course };
+    }
 
-    // await Promise.all(
-    //   leads.map(async (lead) => {
-    //     if (lead.assignedTo) {
-    //       if (userIDMap.has(lead.assignedTo)) {
-    //         lead.assignedTo = userIDMap.get(lead.assignedTo)?.toString();
-    //       } else {
-    //         const existingUser = await User.findById(lead.assignedTo);
-    //         if (existingUser) {
-    //           let name = formatName(existingUser.firstName, existingUser.lastName);
-    //           const assignedToInfo = `${name} - ${existingUser.email}`;
-    //           lead.assignedTo = assignedToInfo;
-    //           userIDMap.set(lead.assignedTo, assignedToInfo);
-    //         }
-    //       }
-    //     }
-    //   })
-    // );
+    if (filters.location.length > 0) {
+      query.location = { $in: filters.location };
+    }
+
+    if (filters.assignedTo.length > 0) {
+      if (
+        req.data?.roles.includes(UserRoles.EMPLOYEE_MARKETING) &&
+        !req.data?.roles.includes(UserRoles.LEAD_MARKETING)
+      ) {
+        filters.assignedTo = [req.data.id];
+      }
+      query.assignedTo = { $in: filters.assignedTo };
+    }
+
+    if (filters.leadTypeChangeDateStart || filters.leadTypeChangeDateEnd) {
+      query.date = {};
+      if (filters.leadTypeChangeDateStart) {
+        query.date.$gte = convertToMongoDate(filters.leadTypeChangeDateStart);
+      }
+      if (filters.leadTypeChangeDateEnd) {
+        query.date.$lte = convertToMongoDate(filters.leadTypeChangeDateEnd);
+      }
+    }
+
+    if (search.trim()) {
+      query.$and = [
+        ...(query.$and || []), // Preserve existing AND conditions if any
+        {
+          $or: [
+            { name: { $regex: search, $options: 'i' } }, // Case-insensitive search
+            { phoneNumber: { $regex: search, $options: 'i' } }
+          ]
+        }
+      ];
+    }
+
+    const skip = (page - 1) * limit;
+
+    // Fetch Leads from Database
+    const leads = await Lead.find(query).skip(skip).limit(limit).lean();
+
+    const totalLeads = await Lead.countDocuments(query);
 
     res.status(200).json({
-      leadStats: {
-        totalLeads,
-        openLeads
-      },
-      leads
+      leads,
+      total: totalLeads,
+      totalPages: Math.ceil(totalLeads / limit),
+      currentPage: page
     });
-  } catch (error) {
-    res.status(404).json({ message: 'Could not fetch leads' });
-  }
-});
-
-export const fetchFilteredData = expressAsyncHandler(
-  async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const decodedData = req.data;
-      if (!decodedData || !decodedData.id || !decodedData.roles) {
-        res.status(401).json({ message: 'Please login!' });
-      } else {
-        const { id, roles } = decodedData;
-
-        let leads;
-
-        if (roles.includes(UserRoles.ADMIN) || roles.includes(UserRoles.LEAD_MARKETING)) {
-          leads = await Lead.find();
-        } else if (roles.includes(UserRoles.EMPLOYEE_MARKETING)) {
-          leads = await Lead.find({ assignedTo: id });
-        } else {
-          res.status(403).json({ message: 'Unauthorized access!' });
-        }
-
-        res.status(200).json({ leads });
-      }
-    } catch (error) {
-      res.status(404).json({ message: 'Could not fetch leads' });
-    }
   }
 );
 
-export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  const leadData = req.body;
+export const getAllLeadAnalytics = expressAsyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const {
+      leadTypeChangeDateStart,
+      leadTypeChangeDateEnd,
+      leadType = [],
+      course = [],
+      location = [],
+      assignedTo = []
+    } = req.body;
 
-  const validation = leadSchema.safeParse(leadData);
-  if (!validation.success) {
-    res.status(400).json({ error: validation.error.errors });
-    return;
-  }
+    const filters: AllLeadFilter = {
+      leadTypeChangeDateStart,
+      leadTypeChangeDateEnd,
+      leadType,
+      course,
+      location,
+      assignedTo
+    };
+    const query: any = {};
 
-  const existingLead = await Lead.findOne({ phoneNumber: leadData.phoneNumber });
-  if (existingLead) {
-    if (existingLead.phoneNumber != leadData.phoneNumber) {
-      res.status(404).json({ message: 'Sorry, phone number can never be updated!' });
-      return;
+    if (filters.leadType.length > 0) {
+      query.leadType = { $in: filters.leadType };
     }
 
-    const existingLeadType = existingLead.leadType;
+    if (filters.course.length > 0) {
+      query.course = { $in: filters.course };
+    }
 
-    let updatedLead: ILead = {
-      date: existingLead.date,
-      email: leadData.email || existingLead.email,
-      name: leadData.name || existingLead.name,
-      source: existingLead.source,
-      gender: leadData.gender || existingLead.gender,
-      altPhoneNumber: leadData.altPhoneNumber || existingLead.altPhoneNumber,
-      leadType: existingLead.leadType,
-      leadTypeModified: existingLead.leadTypeModified,
-      phoneNumber: existingLead.phoneNumber,
-      location: leadData.location || existingLead.location,
-      course: leadData.course || existingLead.course,
-      assignedTo: leadData.assignedTo || existingLead.assignedTo,
-      remarks: leadData.remarks || existingLead.remarks,
-      nextDueDate: leadData.nextDueDate || existingLead.nextDueDate
-    };
+    if (filters.location.length > 0) {
+      query.location = { $in: filters.location };
+    }
 
-    if (existingLeadType != leadData.leadType) {
-      if (existingLeadType === LeadType.YELLOW) {
-        res.status(404).json({
-          message: 'Sorry, this lead can only be updated from the yellow leads tracker! '
-        });
-        return;
-      } else {
-        updatedLead.leadType = leadData.leadType;
-        updatedLead.leadTypeModified = new Date().toString();
+    if (filters.assignedTo.length > 0) {
+      if (
+        req.data?.roles.includes(UserRoles.EMPLOYEE_MARKETING) &&
+        !req.data?.roles.includes(UserRoles.LEAD_MARKETING)
+      ) {
+        filters.assignedTo = [req.data.id];
+      }
+      query.assignedTo = { $in: filters.assignedTo };
+    }
+    if (filters.leadTypeChangeDateStart || filters.leadTypeChangeDateEnd) {
+      query.date = {};
+      if (filters.leadTypeChangeDateStart) {
+        query.date.$gte = convertToMongoDate(filters.leadTypeChangeDateStart);
+      }
+      if (filters.leadTypeChangeDateEnd) {
+        query.date.$lte = convertToMongoDate(filters.leadTypeChangeDateEnd);
       }
     }
 
-    try {
-      await Lead.updateOne({ phoneNumber: leadData.phoneNumber }, updatedLead);
-      // logger.info('Data updated successfully');
-      res.status(200).json({ message: 'Data Updated Successfully!' });
-      return;
-    } catch (error) {
-      logger.error('Error occurred in updating database : ', error);
-      res.status(404).json({ message: 'Error occurred in updating to database!' });
-    }
-  } else {
-    res.status(404).json({
-      message:
-        ' You cannot update this lead, as it no longer exist! Please take care that you are not updating ph number'
+    // 🔹 Running Aggregate Pipeline
+    const analytics = await Lead.aggregate([
+      { $match: query }, // Apply Filters
+      {
+        $group: {
+          _id: null,
+          totalLeads: { $sum: 1 }, // Count total leads
+          openLeads: { $sum: { $cond: [{ $eq: ['$leadType', 'OPEN'] }, 1, 0] } }, // Count OPEN leads
+          interestedLeads: { $sum: { $cond: [{ $eq: ['$leadType', 'INTERESTED'] }, 1, 0] } }, // Count INTERESTED leads
+          notInterestedLeads: { $sum: { $cond: [{ $eq: ['$leadType', 'NOT_INTERESTED'] }, 1, 0] } } // Count NOT_INTERESTED leads
+        }
+      }
+    ]);
+
+    res.status(200).json({
+      totalLeads: analytics[0]?.totalLeads ?? 0,
+      openLeads: analytics[0]?.openLeads ?? 0,
+      interestedLeads: analytics[0]?.interestedLeads ?? 0,
+      notInterestedLeads: analytics[0]?.notInterestedLeads ?? 0
     });
+  }
+);
+
+// TODO: remain to test
+export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const leadRequestData: IUpdateLeadSchema = req.body;
+
+  const validation = updateLeadSchema.safeParse(leadRequestData);
+  if (!validation.success) {
+    throw createHttpError(400, validation.error.errors[0]);
+  }
+
+  const existingLead = await Lead.findById(leadRequestData._id);
+
+  if (existingLead) {
+    let updatedLeadData: IUpdateLeadSchema = {
+      email: leadRequestData.email ?? existingLead.email,
+      phoneNumber: leadRequestData.phoneNumber ?? existingLead.phoneNumber,
+      name: leadRequestData.name ?? existingLead.name,
+      gender: leadRequestData.gender ?? existingLead.gender,
+      altPhoneNumber: leadRequestData.altPhoneNumber ?? existingLead.altPhoneNumber,
+      leadType: existingLead.leadType,
+      location: leadRequestData.location ?? existingLead.location,
+      course: leadRequestData.course ?? existingLead.course,
+      remarks: leadRequestData.remarks ?? existingLead.remarks,
+      nextDueDate: leadRequestData.nextDueDate ?? existingLead.nextDueDate
+    };
+
+    if (existingLead.leadType != leadRequestData.leadType) {
+      if (existingLead.leadType === LeadType.YELLOW) {
+        throw createHttpError(
+          400,
+          'Sorry, this lead can only be updated from the yellow leads tracker!'
+        );
+      } else {
+        updatedLeadData.leadType = leadRequestData.leadType;
+        updatedLeadData.leadTypeModifiedDate = new Date();
+      }
+    }
+
+    const updatedData = await Lead.findByIdAndUpdate(existingLead._id, updatedLeadData, {
+      new: true,
+      runValidators: true
+    }).lean();
+    res.status(200).json({ message: 'Data Updated Successfully!', updatedData });
+  } else {
+    throw createHttpError(404, 'Lead does not found with the given ID.');
   }
 });

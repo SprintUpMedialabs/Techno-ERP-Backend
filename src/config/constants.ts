@@ -27,3 +27,10 @@ export enum FinalConversionType {
   GREEN = 'CONVERTED',
   RED = 'NOT_CONVERTED'
 }
+
+export enum CourseType {
+  BBA = 'BBA',
+  MBA = 'MBA',
+  BCOM = 'B.COM',
+  MCOM = 'M.COM'
+}

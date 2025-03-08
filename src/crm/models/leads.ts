@@ -3,7 +3,7 @@ import { ILead } from '../validators/leads';
 import { Gender, LeadType } from '../../config/constants';
 import createHttpError from 'http-errors';
 
-export interface ILeadDocument extends ILead, Document { }
+export interface ILeadDocument extends ILead, Document {}
 
 const leadSchema = new Schema<ILeadDocument>(
   {
@@ -21,7 +21,7 @@ const leadSchema = new Schema<ILeadDocument>(
     name: {
       type: String,
       required: [true, 'Name is required'],
-      match: [/^[A-Za-z\s]+$/, 'Name can only contain alphabets and spaces'],
+      match: [/^[A-Za-z\s]+$/, 'Name can only contain alphabets and spaces']
     },
 
     // Must be a unique Indian phone number (+91 followed by 10 digits)
@@ -29,19 +29,19 @@ const leadSchema = new Schema<ILeadDocument>(
       type: String,
       required: [true, 'Phone Number is required'],
       unique: [true, 'Phone Number already exists'],
-      match: [/^\+91\d{10}$/, 'Invalid phone number format, expected: +91XXXXXXXXXX'],
+      match: [/^\+91\d{10}$/, 'Invalid phone number format, expected: +91XXXXXXXXXX']
     },
 
     // Optional alternate phone number; must follow the same format as phoneNumber
     altPhoneNumber: {
       type: String,
-      match: [/^\+91\d{10}$/, 'Invalid alternate phone number format, expected: +91XXXXXXXXXX'],
+      match: [/^\+91\d{10}$/, 'Invalid alternate phone number format, expected: +91XXXXXXXXXX']
     },
 
     // Email validation using regex
     email: {
       type: String,
-      match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Invalid email format'],
+      match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Invalid email format']
     },
 
     // Optional gender field that must be one of the predefined enum values
@@ -49,8 +49,8 @@ const leadSchema = new Schema<ILeadDocument>(
       type: String,
       enum: {
         values: Object.values(Gender),
-        message: 'Invalid gender value',
-      },
+        message: 'Invalid gender value'
+      }
     },
 
     location: { type: String },
@@ -59,7 +59,7 @@ const leadSchema = new Schema<ILeadDocument>(
     // Required field with a custom validation error message
     assignedTo: {
       type: String,
-      required: [true, 'Assigned To is required'],
+      required: [true, 'Assigned To is required']
     },
 
     // Must be one of the predefined lead types; defaults to "ORANGE"
@@ -67,18 +67,17 @@ const leadSchema = new Schema<ILeadDocument>(
       type: String,
       enum: {
         values: Object.values(LeadType),
-        message: 'Invalid lead type',
+        message: 'Invalid lead type'
       },
-      default: LeadType.ORANGE,
+      default: LeadType.ORANGE
     },
 
     remarks: { type: String },
-    leadTypeModified: { type: String },
-
+    leadTypeModifiedDate: { type: Date },
 
     nextDueDate: {
-      type: Date,
-    },
+      type: Date
+    }
   },
   { timestamps: true }
 );

@@ -4,9 +4,10 @@ import { SpreadSheetMetaData } from '../models/spreadSheet';
 import { googleAuth } from './googleAuth';
 
 export const readFromGoogleSheet = async () => {
-
   const sheetInstance = google.sheets({ version: 'v4', auth: googleAuth });
-  const spreadSheetMetaData = await SpreadSheetMetaData.findOne({ name: process.env.MARKETING_SHEET });
+  const spreadSheetMetaData = await SpreadSheetMetaData.findOne({
+    name: process.env.MARKETING_SHEET
+  });
   const lastSavedIndex = spreadSheetMetaData?.lastIdxMarketingSheet!;
   logger.info(`Last saved index from DB: ${lastSavedIndex}`);
 
@@ -80,5 +81,4 @@ export const readFromGoogleSheet = async () => {
   });
 
   return rowData;
-
 };

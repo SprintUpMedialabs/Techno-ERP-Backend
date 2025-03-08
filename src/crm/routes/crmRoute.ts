@@ -1,7 +1,12 @@
 import express from 'express';
-import { fetchData, fetchFilteredData, updateData, uploadData } from '../controllers/crmController';
-import { authenticate, authorize } from '../../middleware/jwtAuthenticationMiddleware';
 import { UserRoles } from '../../config/constants';
+import { authenticate, authorize } from '../../middleware/jwtAuthenticationMiddleware';
+import {
+  getAllLeadAnalytics,
+  getFilteredLeadData,
+  updateData,
+  uploadData
+} from '../controllers/crmController';
 import {
   createYellowLead,
   getFilteredYellowLeads,
@@ -25,19 +30,26 @@ crmRoute.put(
   updateData
 );
 
-crmRoute.get(
+crmRoute.post(
   '/fetch-data',
   authenticate,
   authorize([UserRoles.EMPLOYEE_MARKETING, UserRoles.ADMIN, UserRoles.LEAD_MARKETING]),
-  fetchData
+  getFilteredLeadData
 );
 
-crmRoute.get(
-  '/fetch-filtered-data',
+crmRoute.post(
+  '/analytics',
   authenticate,
-  authorize([UserRoles.EMPLOYEE_MARKETING, UserRoles.ADMIN, UserRoles.LEAD_MARKETING]),
-  fetchFilteredData
+  authorize([UserRoles.ADMIN, UserRoles.EMPLOYEE_MARKETING, UserRoles.LEAD_MARKETING]),
+  getAllLeadAnalytics
 );
+
+// crmRoute.get(
+//   '/fetch-filtered-data',
+//   authenticate,
+//   authorize([UserRoles.EMPLOYEE_MARKETING, UserRoles.ADMIN, UserRoles.LEAD_MARKETING]),
+//   fetchFilteredData
+// );
 
 crmRoute.get('/yellow-lead', getFilteredYellowLeads);
 

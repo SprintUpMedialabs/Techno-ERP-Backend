@@ -11,14 +11,14 @@ const leadsToBeInserted = async (latestData: any[], report: IMarketingSpreadshee
   let MarketingEmployees: Map<string, string> = new Map();
   const dataToInsert: any[] = [];
 
-  for (const row of latestData) {    
+  for (const row of latestData) {
     try {
       if (!row[9]) {
         report.assignedToNotFound.push(row[0]); //TODO: need to have something from our side as srNo is no longer there
         continue;
       }
       if (!row) {
-        report.emptyRows.push(row[0]);//TODO: need to have something from our side as srNo is no longer there
+        report.emptyRows.push(row[0]); //TODO: need to have something from our side as srNo is no longer there
         continue;
       }
 
@@ -33,9 +33,12 @@ const leadsToBeInserted = async (latestData: any[], report: IMarketingSpreadshee
           MarketingEmployees.set(assignedToEmail, assignedToID);
         } else {
           if (!existingUser) {
-            report.otherIssue.push({ rowId: row[0], issue: 'Assigned to is not a valid User' });//TODO: need to have something from our side as srNo is no longer there
+            report.otherIssue.push({ rowId: row[0], issue: 'Assigned to is not a valid User' }); //TODO: need to have something from our side as srNo is no longer there
           } else {
-            report.otherIssue.push({ rowId: row[0], issue: 'Assigned to is not a Marketing Employee' });//TODO: need to have something from our side as srNo is no longer there
+            report.otherIssue.push({
+              rowId: row[0],
+              issue: 'Assigned to is not a Marketing Employee'
+            }); //TODO: need to have something from our side as srNo is no longer there
             continue;
           }
         }
@@ -50,22 +53,12 @@ const leadsToBeInserted = async (latestData: any[], report: IMarketingSpreadshee
         email: row[5],
         gender: Gender.NOT_TO_MENTION,
         location: row[7] || '',
-        assignedTo: assignedToID,
+        assignedTo: assignedToID
       };
-
-      // TODO: I think this section is not required as will not get LeadType from sheet
-      // if (row[13] && LeadType[row[13] as keyof typeof LeadType]) {
-      //   leadData.leadType = LeadType[row[13] as keyof typeof LeadType];
-      // }
 
       if (row[6] && Gender[row[6] as keyof typeof Gender]) {
         leadData.gender = Gender[row[6] as keyof typeof Gender];
       }
-
-      // TODO: I think this data also will not get from sheet
-      // if (row[14]) {
-      //   leadData.nextDueDate = ExcelDateToJSDate(row[14]);
-      // }
 
       const leadDataValidation = leadSchema.safeParse(leadData);
       if (leadDataValidation.success) {
@@ -74,16 +67,18 @@ const leadsToBeInserted = async (latestData: any[], report: IMarketingSpreadshee
       } else {
         report.rowsFailed++;
         report.otherIssue.push({
-          rowId: row[0], issue: leadDataValidation.error.errors.map((error) => `${error.path.join(".")}: ${error.message}`)
-            .join(", ")
-        });//TODO: need to have something from our side as srNo is no longer there
+          rowId: row[0],
+          issue: leadDataValidation.error.errors
+            .map((error) => `${error.path.join('.')}: ${error.message}`)
+            .join(', ')
+        }); //TODO: need to have something from our side as srNo is no longer there
         console.error('Validation failed for row', row, leadDataValidation.error.errors);
       }
     } catch (error) {
       logger.error(`Error processing row: ${JSON.stringify(row)}`, error);
     }
   }
-  
+
   return dataToInsert;
 };
 
@@ -94,42 +89,61 @@ const formatReport = (report: IMarketingSpreadsheetProcessReport): string => {
     <p><strong>Successfully Processed:</strong> ${report.actullyProcessedRows}</p>
     <p><strong>Rows Failed:</strong> ${report.rowsFailed}</p>
     
-    ${report.duplicateRowIds.length > 0 ? `
+    ${
+      report.duplicateRowIds.length > 0
+        ? `
       <h3>Duplicate Rows</h3>
-      <ul>${report.duplicateRowIds.map(id => `<li>Row ID: ${id}</li>`).join("")}</ul>
-    ` : ""}
+      <ul>${report.duplicateRowIds.map((id) => `<li>Row ID: ${id}</li>`).join('')}</ul>
+    `
+        : ''
+    }
 
-    ${report.assignedToNotFound.length > 0 ? `
+    ${
+      report.assignedToNotFound.length > 0
+        ? `
       <h3>Rows with Missing Assigned Users</h3>
-      <ul>${report.assignedToNotFound.map(id => `<li>Row ID: ${id}</li>`).join("")}</ul>
-    ` : ""}
+      <ul>${report.assignedToNotFound.map((id) => `<li>Row ID: ${id}</li>`).join('')}</ul>
+    `
+        : ''
+    }
 
-    ${report.emptyRows.length > 0 ? `
+    ${
+      report.emptyRows.length > 0
+        ? `
       <h3>Empty Rows</h3>
-      <ul>${report.emptyRows.map(id => `<li>Row ID: ${id}</li>`).join("")}</ul>
-    ` : ""}
+      <ul>${report.emptyRows.map((id) => `<li>Row ID: ${id}</li>`).join('')}</ul>
+    `
+        : ''
+    }
 
-    ${report.otherIssue.length > 0 ? `
+    ${
+      report.otherIssue.length > 0
+        ? `
       <h3>Other Issues</h3>
       <table border="1" cellpadding="5" cellspacing="0">
         <tr>
           <th>Row ID</th>
           <th>Issue</th>
         </tr>
-        ${report.otherIssue.map(issue => `
+        ${report.otherIssue
+          .map(
+            (issue) => `
           <tr>
             <td>${issue.rowId}</td>
             <td>${issue.issue}</td>
           </tr>
-        `).join("")}
+        `
+          )
+          .join('')}
       </table>
-    ` : ""}
+    `
+        : ''
+    }
   `;
 };
 
 // TODO: we need report after completing batch update
 export const saveDataToDb = async (latestData: any[]) => {
-
   const report: IMarketingSpreadsheetProcessReport = {
     rowsToBeProcessed: latestData.length,
     otherIssue: [],
@@ -149,7 +163,10 @@ export const saveDataToDb = async (latestData: any[]) => {
   }
 
   try {
-    const data = await Lead.insertMany(dataToInsert, { ordered: false, throwOnValidationError: true });
+    const data = await Lead.insertMany(dataToInsert, {
+      ordered: false,
+      throwOnValidationError: true
+    });
     report.actullyProcessedRows = data.length;
   } catch (error: any) {
     report.actullyProcessedRows = error.result.insertedCount;
@@ -159,10 +176,11 @@ export const saveDataToDb = async (latestData: any[]) => {
       if (e.err.code === 11000) {
         report.duplicateRowIds.push(e.err.op.srNo); // TODO: need to change this to row number
       } else {
-        report.otherIssue.push({ rowId: e.err.op.srNo, issue: e.err.errmsg });// TODO: need to change this to row number
+        report.otherIssue.push({ rowId: e.err.op.srNo, issue: e.err.errmsg }); // TODO: need to change this to row number
       }
     });
-    sendEmail(process.env.LEAD_MARKETING_EMAIL!, 'Lead Processing Report', formatReport(report));
+    // TODO: uncmet this
+    // sendEmail(process.env.LEAD_MARKETING_EMAIL!, 'Lead Processing Report', formatReport(report));
     // TODO: need to have proper log here
   }
 };
