@@ -2,6 +2,7 @@ import mongoose, { Document, Schema } from 'mongoose';
 import { ILead } from '../validators/leads';
 import { Gender, LeadType } from '../../config/constants';
 import createHttpError from 'http-errors';
+import logger from '../../config/logger';
 
 export interface ILeadDocument extends ILead, Document {}
 
@@ -83,7 +84,7 @@ const leadSchema = new Schema<ILeadDocument>(
 );
 
 const handleMongooseError = (error: any, next: Function) => {
-  console.log(error);
+  logger.error(error);
   if (error.code === 11000) {
     throw createHttpError(400, 'Phone Number already exists');
   } else if (error.name === 'ValidationError') {

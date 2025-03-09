@@ -3,6 +3,7 @@ import { IYellowLead } from '../validators/yellowLead';
 import { Gender, FinalConversionType } from '../../config/constants';
 import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import createHttpError from 'http-errors';
+import logger from '../../config/logger';
 
 export interface IYellowLeadDocument extends IYellowLead, Document {}
 
@@ -52,7 +53,7 @@ yellowLeadSchema.pre<IYellowLeadDocument>('save', function (next) {
 });
 
 const handleMongooseError = (error: any, next: Function) => {
-  console.log(error);
+  logger.error(error);
   if (error.name === 'ValidationError') {
     const firstError = error.errors[Object.keys(error.errors)[0]];
     throw createHttpError(400, firstError.message);

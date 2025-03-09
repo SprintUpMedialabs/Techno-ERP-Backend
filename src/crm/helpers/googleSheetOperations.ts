@@ -2,12 +2,17 @@ import { google } from 'googleapis';
 import logger from '../../config/logger';
 import { SpreadSheetMetaData } from '../models/spreadSheet';
 import { googleAuth } from './googleAuth';
+import { MARKETING_SHEET_ID } from '../../secrets';
+
+
 
 export const readFromGoogleSheet = async () => {
+
   const sheetInstance = google.sheets({ version: 'v4', auth: googleAuth });
+
   const spreadSheetMetaData = await SpreadSheetMetaData.findOne({
     name: process.env.MARKETING_SHEET
-  });
+  });  
   const lastSavedIndex = spreadSheetMetaData?.lastIdxMarketingSheet!;
   logger.info(`Last saved index from DB: ${lastSavedIndex}`);
 
@@ -26,74 +31,23 @@ export const readFromGoogleSheet = async () => {
   const newLastReadIndex = lastSavedIndex + rowData.length;
   logger.info(`New Last Read Index: ${newLastReadIndex}`);
 
-  // TODO: uncomment this after testing
-  // await SpreadSheetMetaData.findOneAndUpdate(
-  //   { name: 'Marketing Sheet' },
-  //   { $set: { lastIdxMarketingSheet: newLastReadIndex } },
-  //   { new: true, upsert: true }
-  // );
-
-  // console.log(rowData);
-
-  // await sheetInstance.spreadsheets.batchUpdate({
-  //   spreadsheetId: process.env.GOOGLE_SHEET_ID,
-  //   requestBody: {
-  //     requests: [
-  //       {
-  //         repeatCell: {
-  //           range: {
-  //             sheetId: 0,
-  //             startRowIndex: 1
-  //           },
-  //           cell: {
-  //             userEnteredFormat: {
-  //               backgroundColor: {
-  //                 red: 1.0,
-  //                 green: 1.0,
-  //                 blue: 1.0
-  //               }
-  //             }
-  //           },
-  //           fields: 'userEnteredFormat.backgroundColor'
-  //         }
-  //       },
-  //       {
-  //         repeatCell: {
-  //           range: {
-  //             sheetId: 0,
-  //             startRowIndex: newLastReadIndex - 1,
-  //             endRowIndex: newLastReadIndex
-  //           },
-  //           cell: {
-  //             userEnteredFormat: {
-  //               backgroundColor: {
-  //                 red: 0.0,
-  //                 green: 0.5019608,
-  //                 blue: 0.0
-  //               }
-  //             }
-  //           },
-  //           fields: 'userEnteredFormat.backgroundColor'
-  //         }
-  //       }
-  //     ]
-  //   }
-  // });
-
-  return rowData;
+  return {
+    "RowData" : rowData,
+    "LastSavedIndex" : lastSavedIndex
+  };
 };
+
+
 
 
 export const updateStatusForMarketingSheet = async (newLastReadIndex: number) => {
   const sheetInstance = google.sheets({ version: 'v4', auth: googleAuth });
-  // TODO: uncomment this after testing
+
   await SpreadSheetMetaData.findOneAndUpdate(
     { name: 'Marketing Sheet' },
     { $set: { lastIdxMarketingSheet: newLastReadIndex } },
     { new: true, upsert: true }
   );
-
-  // console.log(rowData);
 
   await sheetInstance.spreadsheets.batchUpdate({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
@@ -102,7 +56,8 @@ export const updateStatusForMarketingSheet = async (newLastReadIndex: number) =>
         {
           repeatCell: {
             range: {
-              sheetId: 0,
+              //Sheet ID can be found using the gid in sheet url, in case if we transfer entire data from one sheet to any other sheet, and we want same functionality to exist on that other sheet, we need to update this sheet id.
+              sheetId: Number(MARKETING_SHEET_ID),
               startRowIndex: 1
             },
             cell: {
@@ -120,7 +75,7 @@ export const updateStatusForMarketingSheet = async (newLastReadIndex: number) =>
         {
           repeatCell: {
             range: {
-              sheetId: 0,
+              sheetId: Number(MARKETING_SHEET_ID),
               startRowIndex: newLastReadIndex - 1,
               endRowIndex: newLastReadIndex
             },

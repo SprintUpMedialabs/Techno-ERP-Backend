@@ -19,3 +19,11 @@ export interface IAllLeadFilter {
   leadTypeChangeDateEnd?: string; // Date range end
   leadType: LeadType[]; // Lead Type Enum
 }
+
+export interface IAdminAnalyticsFilter {
+  location: string[]; // Array for multiple locations
+  assignedTo: string[]; // Array for multiple assigned users
+  leadTypeChangeDateStart?: string; // Date range start
+  leadTypeChangeDateEnd?: string; // Date range end
+  source: []
+}

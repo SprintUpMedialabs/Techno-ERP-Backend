@@ -11,15 +11,16 @@ import { IAllLeadFilter } from '../types/marketingSpreadsheet';
 import { IUpdateLeadRequestSchema, updateLeadRequestSchema } from '../validators/leads';
 
 export const uploadData = expressAsyncHandler(async (_: AuthenticatedRequest, res: Response) => {
-  const latestData = await readFromGoogleSheet(); // TODO: here there are few things inside this function which we need to take care
+  const latestData = await readFromGoogleSheet(); 
   if (!latestData) {
     res.status(200).json({ message: 'There is no data to update :)' });
-  } else {
-
-    await saveDataToDb(latestData);
+  } 
+  else {
+    await saveDataToDb(latestData.RowData, latestData.LastSavedIndex);
     res.status(200).json({ message: 'Data updated in database' });
   }
 });
+
 
 export const getFilteredLeadData = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
@@ -43,6 +44,7 @@ export const getFilteredLeadData = expressAsyncHandler(
       location,
       assignedTo
     };
+
     const query: any = {};
 
     if (filters.leadType.length > 0) {
@@ -61,7 +63,8 @@ export const getFilteredLeadData = expressAsyncHandler(
       if (
         req.data?.roles.includes(UserRoles.EMPLOYEE_MARKETING) &&
         !req.data?.roles.includes(UserRoles.LEAD_MARKETING)
-      ) {
+      )
+      {
         filters.assignedTo = [req.data.id];
       }
       query.assignedTo = { $in: filters.assignedTo };
@@ -180,11 +183,12 @@ export const getAllLeadAnalytics = expressAsyncHandler(
   }
 );
 
-// TODO: remain to test
+
 export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const leadRequestData: IUpdateLeadRequestSchema = req.body;
 
   const validation = updateLeadRequestSchema.safeParse(leadRequestData);
+
   if (!validation.success) {
     throw createHttpError(400, validation.error.errors[0]);
   }
@@ -229,7 +233,8 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
       runValidators: true
     }).lean();
     res.status(200).json({ message: 'Data Updated Successfully!', updatedData });
-  } else {
+  } 
+  else {
     throw createHttpError(404, 'Lead does not found with the given ID.');
   }
 });
