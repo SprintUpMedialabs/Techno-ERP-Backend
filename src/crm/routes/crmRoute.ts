@@ -8,7 +8,6 @@ import {
   uploadData
 } from '../controllers/crmController';
 import {
-  createYellowLead,
   getFilteredYellowLeads,
   getYellowLeadsAnalytics,
   updateYellowLead
@@ -44,11 +43,26 @@ crmRoute.post(
   getAllLeadAnalytics
 );
 
+crmRoute.post(
+  '/yellow-lead',
+  authenticate,
+  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING]),
+  getFilteredYellowLeads
+);
 
-crmRoute.get('/yellow-lead', authenticate, authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING]), getFilteredYellowLeads);
+crmRoute.put(
+  '/update-yellow-lead',
+  authenticate,
+  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING]),
+  updateYellowLead
+);
 
-crmRoute.put('/yellow-lead', updateYellowLead);
+//This is no longer the request endpoint, it is used as internal function
+// crmRoute.post('/yellow-lead', createYellowLead);
 
-crmRoute.post('/yellow-lead', createYellowLead);
-
-crmRoute.get('/yellow-lead/analytics', getYellowLeadsAnalytics);
+crmRoute.post(
+  '/yellow-lead-analytics',
+  authenticate,
+  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING]),
+  getYellowLeadsAnalytics
+);

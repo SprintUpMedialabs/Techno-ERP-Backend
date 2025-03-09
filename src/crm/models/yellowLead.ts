@@ -9,11 +9,6 @@ export interface IYellowLeadDocument extends IYellowLead, Document {}
 
 const yellowLeadSchema = new Schema<IYellowLeadDocument>(
   {
-    srNo: {
-      type: Number,
-      required: [true, 'Serial No Required'],
-      unique: [true, 'Duplicate Serial No is Not Allowed']
-    },
     leadTypeChangeDate: { type: Date, required: [true, 'Lead Type Change Date is required'] },
     name: { type: String, required: [true, 'Name is required'] },
     phoneNumber: {

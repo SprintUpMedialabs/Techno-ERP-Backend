@@ -1,26 +1,43 @@
 import { Request, Response } from 'express';
 import expressAsyncHandler from 'express-async-handler';
-import { yellowLeadSchema, IYellowLead, YellowLeadFilter } from '../validators/yellowLead';
-import { FilterQuery } from 'mongoose';
+import { yellowLeadSchema, IYellowLead } from '../validators/yellowLead';
 import { YellowLead } from '../models/yellowLead';
-import { FinalConversionType } from '../../config/constants';
+import { FinalConversionType, Gender } from '../../config/constants';
 import logger from '../../config/logger';
 import createHttpError from 'http-errors';
 import { convertToDDMMYYYY, convertToMongoDate } from '../../utils/convertDateToFormatedDate';
+import { parseFilter } from '../helpers/parseFilter';
+import { ILead } from '../validators/leads';
+import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
 
-// TODO: convert this to internal call function
-export const createYellowLead = expressAsyncHandler(async (req: Request, res: Response) => {
-  const leadData: IYellowLead = req.body;
+export const createYellowLead = async (leadData : ILead) => {
 
-  leadData.leadTypeChangeDate = convertToMongoDate(leadData.leadTypeChangeDate);
-  leadData.nextCallDate = convertToMongoDate(leadData.nextCallDate);
+  const yellowLead : IYellowLead = {
+    leadTypeChangeDate: convertToMongoDate(new Date()),
+    name: leadData.name,
+    phoneNumber: leadData.phoneNumber,
+    email: leadData.email ?? "",
+    gender: Gender.MALE,
+    campusVisit: false,
+    nextCallDate: '',
+    assignedTo: leadData.assignedTo,
+  };
 
-  const validation = yellowLeadSchema.safeParse(leadData);
+  if(leadData.nextDueDate)
+  {
+    yellowLead.nextCallDate = convertToMongoDate(leadData.nextDueDate);
+  }
+  else
+  {
+    yellowLead.nextCallDate = new Date();
+  }
+
+  const validation = yellowLeadSchema.safeParse(yellowLead);
   if (!validation.success) {
     throw createHttpError(400, { error: validation.error.errors[0] });
   }
 
-  const newYellowLead = await YellowLead.create(leadData);
+  const newYellowLead = await YellowLead.create(yellowLead);
 
   const responseData = {
     ...newYellowLead.toObject(),
@@ -28,12 +45,10 @@ export const createYellowLead = expressAsyncHandler(async (req: Request, res: Re
     nextCallDate: convertToDDMMYYYY(newYellowLead.nextCallDate as Date)
   };
 
-  res.status(201).json({
-    message: 'Yellow lead created successfully.',
-    data: responseData
-  });
-});
-// TODO: remove global try/catch
+  logger.info("Yellow lead object created successfully");
+
+}
+
 export const updateYellowLead = expressAsyncHandler(async (req: Request, res: Response) => {
   const { _id } = req.body;
   const updateData: Partial<IYellowLead> = req.body;
@@ -64,133 +79,91 @@ export const updateYellowLead = expressAsyncHandler(async (req: Request, res: Re
   });
 });
 
-// TODO: array will be here for course,location,assigednTO,finalConversionType
-export const getFilteredYellowLeads = expressAsyncHandler(async (req: Request, res: Response) => {
-  const {
-    leadTypeChangeDateStart,
-    leadTypeChangeDateEnd,
-    finalConversionType,
-    course,
-    location,
-    assignedTo,
-    page = 1,
-    limit = 10
-  } = req.query;
 
-  const filter: FilterQuery<YellowLeadFilter> = {};
 
-  if (finalConversionType) {
-    const finalConversionTypes = Array.isArray(finalConversionType)
-      ? finalConversionType
-      : [finalConversionType];
-    filter.finalConversion = { $in: finalConversionTypes as FinalConversionType[] };
-  }
+// export const getFilteredYellowLeads = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
 
-  if (course) {
-    const courses = Array.isArray(course) ? course : [course];
-    filter.course = { $in: courses };
-  }
+//   const parsedFilter = parseFilter(req);
+//   const filter = parsedFilter.query;
+//   const search = parsedFilter.search;
+//   const page = parsedFilter.page;
+//   const limit = parsedFilter.limit;
 
-  if (location) {
-    const locations = Array.isArray(location) ? location : [location];
-    filter.location = { $in: locations };
-  }
 
-  if (assignedTo) {
-    const assignedTos = Array.isArray(assignedTo) ? assignedTo : [assignedTo];
-    filter.assignedTo = { $in: assignedTos };
-  }
+//   const pageNumber = parseInt(page as string, 10);
+//   const limitNumber = parseInt(limit as string, 10);
+//   const skip = (pageNumber - 1) * limitNumber;
 
-  if (leadTypeChangeDateStart && leadTypeChangeDateEnd) {
-    filter.leadTypeChangeDate = {
-      $gte: convertToMongoDate(leadTypeChangeDateStart as string),
-      $lte: convertToMongoDate(leadTypeChangeDateEnd as string)
-    };
-  } else {
-    const today = new Date();
-    const oneMonthAgo = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
-    filter.leadTypeChangeDate = {
-      $gte: oneMonthAgo,
-      $lte: today
-    };
-  }
+//   const [leads, totalLeads] = await Promise.all([
+//     YellowLead.find(filter).skip(skip).limit(limitNumber),
+//     YellowLead.countDocuments(filter)
+//   ]);
 
-  const pageNumber = parseInt(page as string, 10);
-  const limitNumber = parseInt(limit as string, 10);
-  const skip = (pageNumber - 1) * limitNumber;
+//   const formattedLeads = leads.map((lead) => ({
+//     ...lead.toObject(),
+//     leadTypeChangeDate: convertToDDMMYYYY(lead.leadTypeChangeDate as Date),
+//     nextCallDate: convertToDDMMYYYY(lead.nextCallDate as Date)
+//   }));
 
-  const [leads, totalLeads] = await Promise.all([
-    YellowLead.find(filter).skip(skip).limit(limitNumber),
-    YellowLead.countDocuments(filter)
-  ]);
+//   res.status(200).json({
+//     message: 'Filtered yellow leads fetched successfully.',
+//     data: {
+//       leads: formattedLeads,
+//       totalLeads,
+//       totalPages: Math.ceil(totalLeads / limitNumber),
+//       currentPage: pageNumber
+//     }
+//   });
+// });
 
-  const formattedLeads = leads.map((lead) => ({
-    ...lead.toObject(),
-    leadTypeChangeDate: convertToDDMMYYYY(lead.leadTypeChangeDate as Date),
-    nextCallDate: convertToDDMMYYYY(lead.nextCallDate as Date)
-  }));
 
-  res.status(200).json({
-    message: 'Filtered yellow leads fetched successfully.',
-    data: {
-      leads: formattedLeads,
-      totalLeads,
-      totalPages: Math.ceil(totalLeads / limitNumber),
-      currentPage: pageNumber
+export const getFilteredYellowLeads = expressAsyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+
+    const parsedFilter = parseFilter(req);
+    const query = parsedFilter.query;
+    const search = parsedFilter.search;
+    const page = parsedFilter.page;
+    const limit = parsedFilter.limit;
+
+    // console.log("Query is : ", query);
+
+    if (parsedFilter.search.trim()) {
+      query.$and = [
+        ...(query.$and || []), // Preserve existing AND conditions if any
+        {
+          $or: [
+            { name: { $regex: search, $options: 'i' } }, // Case-insensitive search
+            { phoneNumber: { $regex: search, $options: 'i' } }
+          ]
+        }
+      ];
     }
-  });
-});
+
+    const skip = (page - 1) * limit;
+
+    // Fetch Leads from Database
+    const leads = await YellowLead.find(query).skip(skip).limit(limit).lean();
+
+    const totalLeads = await YellowLead.countDocuments(query);
+
+    res.status(200).json({
+      leads,
+      total: totalLeads,
+      totalPages: Math.ceil(totalLeads / limit),
+      currentPage: page
+    });
+  }
+);
+
+
 
 export const getYellowLeadsAnalytics = expressAsyncHandler(async (req: Request, res: Response) => {
-  const {
-    leadTypeChangeDateStart,
-    leadTypeChangeDateEnd,
-    finalConversionType,
-    course,
-    location,
-    assignedTo
-  } = req.query;
 
-  const filter: FilterQuery<YellowLeadFilter> = {};
-
-  if (finalConversionType) {
-    const finalConversionTypes = Array.isArray(finalConversionType)
-      ? finalConversionType
-      : [finalConversionType];
-    filter.finalConversion = { $in: finalConversionTypes as FinalConversionType[] };
-  }
-
-  if (course) {
-    const courses = Array.isArray(course) ? course : [course];
-    filter.course = { $in: courses };
-  }
-
-  if (location) {
-    const locations = Array.isArray(location) ? location : [location];
-    filter.location = { $in: locations };
-  }
-
-  if (assignedTo) {
-    const assignedTos = Array.isArray(assignedTo) ? assignedTo : [assignedTo];
-    filter.assignedTo = { $in: assignedTos };
-  }
-
-  if (leadTypeChangeDateStart && leadTypeChangeDateEnd) {
-    filter.leadTypeChangeDate = {
-      $gte: convertToMongoDate(leadTypeChangeDateStart as string),
-      $lte: convertToMongoDate(leadTypeChangeDateEnd as string)
-    };
-  } else {
-    const today = new Date();
-    const oneMonthAgo = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
-    filter.leadTypeChangeDate = {
-      $gte: oneMonthAgo,
-      $lte: today
-    };
-  }
+  const parsedFilter = parseFilter(req);
 
   const analytics = await YellowLead.aggregate([
-    { $match: filter },
+    { $match: parsedFilter.query },
     {
       $group: {
         _id: null,
