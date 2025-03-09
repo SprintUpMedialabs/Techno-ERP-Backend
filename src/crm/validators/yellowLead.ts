@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { Gender, FinalConversionType } from '../../config/constants';
 
 export const yellowLeadSchema = z.object({
-  leadTypeChangeDate: z.union([
+  date: z.union([
     z.string().regex(/^\d{2}\/\d{2}\/\d{4}$/, 'Invalid date format, expected DD/MM/YYYY'),
     z.date()
   ]),

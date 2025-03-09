@@ -13,7 +13,7 @@ import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest
 export const createYellowLead = async (leadData : ILead) => {
 
   const yellowLead : IYellowLead = {
-    leadTypeChangeDate: convertToMongoDate(new Date()),
+    date: convertToMongoDate(new Date()),
     name: leadData.name,
     phoneNumber: leadData.phoneNumber,
     email: leadData.email ?? "",
@@ -41,7 +41,7 @@ export const createYellowLead = async (leadData : ILead) => {
 
   const responseData = {
     ...newYellowLead.toObject(),
-    leadTypeChangeDate: convertToDDMMYYYY(newYellowLead.leadTypeChangeDate as Date),
+    leadTypeChangeDate: convertToDDMMYYYY(newYellowLead.date as Date),
     nextCallDate: convertToDDMMYYYY(newYellowLead.nextCallDate as Date)
   };
 
@@ -53,7 +53,7 @@ export const updateYellowLead = expressAsyncHandler(async (req: Request, res: Re
   const { _id } = req.body;
   const updateData: Partial<IYellowLead> = req.body;
 
-  updateData.leadTypeChangeDate = convertToMongoDate(updateData.leadTypeChangeDate as string);
+  updateData.date = convertToMongoDate(updateData.date as string);
   updateData.nextCallDate = convertToMongoDate(updateData.nextCallDate as string);
 
   const validation = yellowLeadSchema.partial().safeParse(updateData);
@@ -69,7 +69,7 @@ export const updateYellowLead = expressAsyncHandler(async (req: Request, res: Re
 
   const responseData = {
     ...updatedYellowLead.toObject(),
-    leadTypeChangeDate: convertToDDMMYYYY(updatedYellowLead.leadTypeChangeDate as Date),
+    leadTypeChangeDate: convertToDDMMYYYY(updatedYellowLead.date as Date),
     nextCallDate: convertToDDMMYYYY(updatedYellowLead.nextCallDate as Date)
   };
 

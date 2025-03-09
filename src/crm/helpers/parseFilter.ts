@@ -1,5 +1,5 @@
 import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
-import { UserRoles } from '../../config/constants';
+import { FinalConversionType, LeadType, UserRoles } from '../../config/constants';
 import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import { IAllLeadFilter } from '../types/marketingSpreadsheet';
 
@@ -16,8 +16,6 @@ export const parseFilter = (req: AuthenticatedRequest) => {
     search = ''
   } = req.body;
 
-  // console.log(req.body)
-
   const filters: IAllLeadFilter = {
     startDate,
     endDate,
@@ -30,7 +28,18 @@ export const parseFilter = (req: AuthenticatedRequest) => {
   const query: any = {};
 
   if (filters.leadType.length > 0) {
-    query.leadType = { $in: filters.leadType };
+    const finalConversionTypes = Object.values(FinalConversionType);
+    const leadTypes = Object.values(LeadType);
+
+    const isFinalConversionType = filters.leadType.some((type) =>
+      finalConversionTypes.includes(type as FinalConversionType)
+    );
+
+    if (isFinalConversionType) {
+      query.finalConversion = { $in: filters.leadType };
+    } else {
+      query.leadType = { $in: filters.leadType };
+    }
   }
 
   if (filters.course.length > 0) {
@@ -52,19 +61,23 @@ export const parseFilter = (req: AuthenticatedRequest) => {
   //   query.assignedTo = { $in: filters.assignedTo };
   // }
 
-
-  if (req.data?.roles.includes(UserRoles.EMPLOYEE_MARKETING) && !req.data?.roles.includes(UserRoles.LEAD_MARKETING) && !req.data?.roles.includes(UserRoles.ADMIN)) {
+  if (
+    req.data?.roles.includes(UserRoles.EMPLOYEE_MARKETING) &&
+    !req.data?.roles.includes(UserRoles.LEAD_MARKETING) &&
+    !req.data?.roles.includes(UserRoles.ADMIN)
+  ) {
     // console.log("A marketing employee!");
     query.assignedTo = { $in: [req.data.id] };
-  } 
-  else if (req.data?.roles.includes(UserRoles.ADMIN) || req.data?.roles.includes(UserRoles.LEAD_MARKETING)) {
+  } else if (
+    req.data?.roles.includes(UserRoles.ADMIN) ||
+    req.data?.roles.includes(UserRoles.LEAD_MARKETING)
+  ) {
     if (filters.assignedTo.length > 0) {
       query.assignedTo = { $in: filters.assignedTo };
     } else {
-      query.assignedTo = { $exists: true }; 
+      query.assignedTo = { $exists: true };
     }
   }
-
 
   if (filters.startDate || filters.endDate) {
     query.date = {};
@@ -82,6 +95,4 @@ export const parseFilter = (req: AuthenticatedRequest) => {
     page: page,
     limit: limit
   };
-
-  
 };

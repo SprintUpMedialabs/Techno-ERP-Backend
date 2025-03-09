@@ -15,7 +15,8 @@ const requiredEnvVariables = [
   'GOOGLE_SA_CLIENT_EMAIL',
   'GOOGLE_SA_PRIVATE_KEY',
   'GOOGLE_SHEET_PAGE',
-  'LEAD_MARKETING_EMAIL'
+  'LEAD_MARKETING_EMAIL',
+  'MARKETING_SHEET_ID'
 ];
 
 export const validateEnvVariables = (): void => {
