@@ -44,13 +44,6 @@ crmRoute.post(
   getAllLeadAnalytics
 );
 
-// crmRoute.get(
-//   '/fetch-filtered-data',
-//   authenticate,
-//   authorize([UserRoles.EMPLOYEE_MARKETING, UserRoles.ADMIN, UserRoles.LEAD_MARKETING]),
-//   fetchFilteredData
-// );
-
 crmRoute.get('/yellow-lead', getFilteredYellowLeads);
 
 crmRoute.put('/yellow-lead', updateYellowLead);

@@ -35,6 +35,66 @@ export const readFromGoogleSheet = async () => {
 
   // console.log(rowData);
 
+  // await sheetInstance.spreadsheets.batchUpdate({
+  //   spreadsheetId: process.env.GOOGLE_SHEET_ID,
+  //   requestBody: {
+  //     requests: [
+  //       {
+  //         repeatCell: {
+  //           range: {
+  //             sheetId: 0,
+  //             startRowIndex: 1
+  //           },
+  //           cell: {
+  //             userEnteredFormat: {
+  //               backgroundColor: {
+  //                 red: 1.0,
+  //                 green: 1.0,
+  //                 blue: 1.0
+  //               }
+  //             }
+  //           },
+  //           fields: 'userEnteredFormat.backgroundColor'
+  //         }
+  //       },
+  //       {
+  //         repeatCell: {
+  //           range: {
+  //             sheetId: 0,
+  //             startRowIndex: newLastReadIndex - 1,
+  //             endRowIndex: newLastReadIndex
+  //           },
+  //           cell: {
+  //             userEnteredFormat: {
+  //               backgroundColor: {
+  //                 red: 0.0,
+  //                 green: 0.5019608,
+  //                 blue: 0.0
+  //               }
+  //             }
+  //           },
+  //           fields: 'userEnteredFormat.backgroundColor'
+  //         }
+  //       }
+  //     ]
+  //   }
+  // });
+
+  return rowData;
+};
+
+
+export const updateStatusForMarketingSheet = async (newLastReadIndex: number) => {
+  const sheetInstance = google.sheets({ version: 'v4', auth: googleAuth });
+  // TODO: uncomment this after testing
+  await SpreadSheetMetaData.findOneAndUpdate(
+    { name: 'Marketing Sheet' },
+    { $set: { lastIdxMarketingSheet: newLastReadIndex } },
+    { new: true, upsert: true }
+  );
+
+  // console.log(rowData);
+
   await sheetInstance.spreadsheets.batchUpdate({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
     requestBody: {
@@ -80,5 +140,4 @@ export const readFromGoogleSheet = async () => {
     }
   });
 
-  return rowData;
-};
+}

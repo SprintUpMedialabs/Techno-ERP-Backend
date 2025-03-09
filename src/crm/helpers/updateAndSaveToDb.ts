@@ -2,10 +2,13 @@ import { Gender, LeadType, UserRoles } from '../../config/constants';
 import logger from '../../config/logger';
 import { leadSchema } from '../validators/leads';
 import { Lead } from '../models/leads';
-import { convertToMongoDate, ExcelDateToJSDate } from '../utils/convertExcelDateToJSDate';
 import { User } from '../../auth/models/user';
 import { IMarketingSpreadsheetProcessReport } from '../types/marketingSpreadsheet';
 import { sendEmail } from '../../config/mailer';
+import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
+import { MarketingsheetHeaders } from '../enums/marketingSheetHeader';
+import { SpreadSheetMetaData } from '../models/spreadSheet';
+import { updateStatusForMarketingSheet } from './googleSheetOperations';
 
 const leadsToBeInserted = async (latestData: any[], report: IMarketingSpreadsheetProcessReport) => {
   let MarketingEmployees: Map<string, string> = new Map();
@@ -13,17 +16,19 @@ const leadsToBeInserted = async (latestData: any[], report: IMarketingSpreadshee
 
   for (const row of latestData) {
     try {
-      if (!row[9]) {
+      // if assignTo is not mentationed in sheet
+      if (!row[MarketingsheetHeaders.AssignedTo]) {
         report.assignedToNotFound.push(row[0]); //TODO: need to have something from our side as srNo is no longer there
         continue;
       }
+
       if (!row) {
         report.emptyRows.push(row[0]); //TODO: need to have something from our side as srNo is no longer there
         continue;
       }
 
       // console.log("row[10] is : ", row[10]);
-      let assignedToEmail = row[9];
+      let assignedToEmail = row[MarketingsheetHeaders.AssignedTo];
       let assignedToID = MarketingEmployees.get(assignedToEmail);
 
       if (!assignedToID) {
@@ -44,20 +49,20 @@ const leadsToBeInserted = async (latestData: any[], report: IMarketingSpreadshee
         }
       }
 
-      let leadData = {
-        date: row[0],
-        source: row[1] || '',
-        name: row[2],
-        phoneNumber: row[3],
-        altPhoneNumber: row[4] || '',
-        email: row[5],
+      let leadData = {  // TODO: it should be have some type 
+        date: row[MarketingsheetHeaders.Date],
+        source: row[MarketingsheetHeaders.Source] || '',
+        name: row[MarketingsheetHeaders.Name],
+        phoneNumber: row[MarketingsheetHeaders.PhoneNumber],
+        altPhoneNumber: row[MarketingsheetHeaders.AltPhoneNumber] || '',
+        email: row[MarketingsheetHeaders.Email],
         gender: Gender.NOT_TO_MENTION,
-        location: row[7] || '',
+        location: row[MarketingsheetHeaders.Location] || '',
         assignedTo: assignedToID
       };
 
-      if (row[6] && Gender[row[6] as keyof typeof Gender]) {
-        leadData.gender = Gender[row[6] as keyof typeof Gender];
+      if (row[MarketingsheetHeaders.Gender] && Gender[row[MarketingsheetHeaders.Gender] as keyof typeof Gender]) {
+        leadData.gender = Gender[row[MarketingsheetHeaders.Gender] as keyof typeof Gender];
       }
 
       const leadDataValidation = leadSchema.safeParse(leadData);
@@ -72,7 +77,7 @@ const leadsToBeInserted = async (latestData: any[], report: IMarketingSpreadshee
             .map((error) => `${error.path.join('.')}: ${error.message}`)
             .join(', ')
         }); //TODO: need to have something from our side as srNo is no longer there
-        console.error('Validation failed for row', row, leadDataValidation.error.errors);
+        logger.error('Validation failed for row', row, leadDataValidation.error.errors);
       }
     } catch (error) {
       logger.error(`Error processing row: ${JSON.stringify(row)}`, error);
@@ -89,36 +94,32 @@ const formatReport = (report: IMarketingSpreadsheetProcessReport): string => {
     <p><strong>Successfully Processed:</strong> ${report.actullyProcessedRows}</p>
     <p><strong>Rows Failed:</strong> ${report.rowsFailed}</p>
     
-    ${
-      report.duplicateRowIds.length > 0
-        ? `
+    ${report.duplicateRowIds.length > 0
+      ? `
       <h3>Duplicate Rows</h3>
       <ul>${report.duplicateRowIds.map((id) => `<li>Row ID: ${id}</li>`).join('')}</ul>
     `
-        : ''
+      : ''
     }
 
-    ${
-      report.assignedToNotFound.length > 0
-        ? `
+    ${report.assignedToNotFound.length > 0
+      ? `
       <h3>Rows with Missing Assigned Users</h3>
       <ul>${report.assignedToNotFound.map((id) => `<li>Row ID: ${id}</li>`).join('')}</ul>
     `
-        : ''
+      : ''
     }
 
-    ${
-      report.emptyRows.length > 0
-        ? `
+    ${report.emptyRows.length > 0
+      ? `
       <h3>Empty Rows</h3>
       <ul>${report.emptyRows.map((id) => `<li>Row ID: ${id}</li>`).join('')}</ul>
     `
-        : ''
+      : ''
     }
 
-    ${
-      report.otherIssue.length > 0
-        ? `
+    ${report.otherIssue.length > 0
+      ? `
       <h3>Other Issues</h3>
       <table border="1" cellpadding="5" cellspacing="0">
         <tr>
@@ -126,18 +127,18 @@ const formatReport = (report: IMarketingSpreadsheetProcessReport): string => {
           <th>Issue</th>
         </tr>
         ${report.otherIssue
-          .map(
-            (issue) => `
+        .map(
+          (issue) => `
           <tr>
             <td>${issue.rowId}</td>
             <td>${issue.issue}</td>
           </tr>
         `
-          )
-          .join('')}
+        )
+        .join('')}
       </table>
     `
-        : ''
+      : ''
     }
   `;
 };
@@ -157,7 +158,10 @@ export const saveDataToDb = async (latestData: any[]) => {
   const dataToInsert = await leadsToBeInserted(latestData, report);
 
   if (!dataToInsert || dataToInsert.length === 0) {
-    sendEmail(process.env.LEAD_MARKETING_EMAIL!, 'Lead Processing Report', formatReport(report));
+    // TODO: uncmnt this
+    // if (report.rowsFailed != 0) {
+    //   sendEmail(process.env.LEAD_MARKETING_EMAIL!, 'Lead Processing Report', formatReport(report));
+    // }
     logger.info('No valid data to insert.');
     return;
   }
@@ -180,7 +184,18 @@ export const saveDataToDb = async (latestData: any[]) => {
       }
     });
     // TODO: uncmet this
-    // sendEmail(process.env.LEAD_MARKETING_EMAIL!, 'Lead Processing Report', formatReport(report));
+    // if (report.rowsFailed != 0) {
+    //   sendEmail(process.env.LEAD_MARKETING_EMAIL!, 'Lead Processing Report', formatReport(report));
+    // }
     // TODO: need to have proper log here
   }
+  const lastSavedIndex = spreadSheetMetaData?.lastIdxMarketingSheet!;
+  
+  const spreadSheetMetaData = await SpreadSheetMetaData.findOneAndUpdate({
+    name: process.env.MARKETING_SHEET
+  }, {
+    lastIdxMarketingSheet: lastSavedIndex
+  });
+
+  updateStatusForMarketingSheet(lastSavedIndex + latestData.length)
 };

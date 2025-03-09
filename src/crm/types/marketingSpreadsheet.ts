@@ -11,7 +11,7 @@ export interface IMarketingSpreadsheetProcessReport {
 }
 
 // Interface for Filtering Leads
-export interface AllLeadFilter {
+export interface IAllLeadFilter {
   course: CourseType[]; // Accepts multiple course values as an array
   location: string[]; // Array for multiple locations
   assignedTo: string[]; // Array for multiple assigned users

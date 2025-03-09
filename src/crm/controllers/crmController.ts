@@ -3,18 +3,19 @@ import expressAsyncHandler from 'express-async-handler';
 import createHttpError from 'http-errors';
 import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
 import { LeadType, UserRoles } from '../../config/constants';
+import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import { readFromGoogleSheet } from '../helpers/googleSheetOperations';
 import { saveDataToDb } from '../helpers/updateAndSaveToDb';
 import { Lead } from '../models/leads';
-import { AllLeadFilter } from '../types/marketingSpreadsheet';
-import { convertToMongoDate } from '../utils/convertExcelDateToJSDate';
-import { IUpdateLeadSchema, updateLeadSchema } from '../validators/leads';
+import { IAllLeadFilter } from '../types/marketingSpreadsheet';
+import { IUpdateLeadRequestSchema, updateLeadRequestSchema } from '../validators/leads';
 
 export const uploadData = expressAsyncHandler(async (_: AuthenticatedRequest, res: Response) => {
   const latestData = await readFromGoogleSheet(); // TODO: here there are few things inside this function which we need to take care
   if (!latestData) {
     res.status(200).json({ message: 'There is no data to update :)' });
   } else {
+
     await saveDataToDb(latestData);
     res.status(200).json({ message: 'Data updated in database' });
   }
@@ -34,7 +35,7 @@ export const getFilteredLeadData = expressAsyncHandler(
       search = ''
     } = req.body;
 
-    const filters: AllLeadFilter = {
+    const filters: IAllLeadFilter = {
       leadTypeChangeDateStart,
       leadTypeChangeDateEnd,
       leadType,
@@ -115,7 +116,7 @@ export const getAllLeadAnalytics = expressAsyncHandler(
       assignedTo = []
     } = req.body;
 
-    const filters: AllLeadFilter = {
+    const filters: IAllLeadFilter = {
       leadTypeChangeDateStart,
       leadTypeChangeDateEnd,
       leadType,
@@ -181,9 +182,9 @@ export const getAllLeadAnalytics = expressAsyncHandler(
 
 // TODO: remain to test
 export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  const leadRequestData: IUpdateLeadSchema = req.body;
+  const leadRequestData: IUpdateLeadRequestSchema = req.body;
 
-  const validation = updateLeadSchema.safeParse(leadRequestData);
+  const validation = updateLeadRequestSchema.safeParse(leadRequestData);
   if (!validation.success) {
     throw createHttpError(400, validation.error.errors[0]);
   }
@@ -191,7 +192,7 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
   const existingLead = await Lead.findById(leadRequestData._id);
 
   if (existingLead) {
-    let updatedLeadData: IUpdateLeadSchema = {
+    let updatedLeadData: IUpdateLeadRequestSchema = {
       email: leadRequestData.email ?? existingLead.email,
       phoneNumber: leadRequestData.phoneNumber ?? existingLead.phoneNumber,
       name: leadRequestData.name ?? existingLead.name,
@@ -204,6 +205,9 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
       nextDueDate: leadRequestData.nextDueDate ?? existingLead.nextDueDate
     };
 
+    // nextDueDate is there than format it in Date
+    updatedLeadData?.nextDueDate && (updatedLeadData.nextDueDate = convertToMongoDate(updatedLeadData.nextDueDate));
+
     if (existingLead.leadType != leadRequestData.leadType) {
       if (existingLead.leadType === LeadType.YELLOW) {
         throw createHttpError(
@@ -214,6 +218,10 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
         updatedLeadData.leadType = leadRequestData.leadType;
         updatedLeadData.leadTypeModifiedDate = new Date();
       }
+    } else {
+      // leadTypeModifiedDate is there than format it in Date
+      existingLead.leadTypeModifiedDate &&
+        (updatedLeadData.leadTypeModifiedDate = convertToMongoDate(existingLead.leadTypeModifiedDate!));
     }
 
     const updatedData = await Lead.findByIdAndUpdate(existingLead._id, updatedLeadData, {

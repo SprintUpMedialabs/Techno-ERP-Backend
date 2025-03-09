@@ -6,7 +6,7 @@ import { YellowLead } from '../models/yellowLead';
 import { FinalConversionType } from '../../config/constants';
 import logger from '../../config/logger';
 import createHttpError from 'http-errors';
-import { convertToDDMMYYYY, convertToMongoDate } from '../utils/convertDateToFormatedDate';
+import { convertToDDMMYYYY, convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 
 // TODO: convert this to internal call function
 export const createYellowLead = expressAsyncHandler(async (req: Request, res: Response) => {

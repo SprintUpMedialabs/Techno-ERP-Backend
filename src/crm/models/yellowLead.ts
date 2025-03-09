@@ -1,7 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import { IYellowLead } from '../validators/yellowLead';
 import { Gender, FinalConversionType } from '../../config/constants';
-import { convertToMongoDate } from '../utils/convertDateToFormatedDate';
+import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import createHttpError from 'http-errors';
 
 export interface IYellowLeadDocument extends IYellowLead, Document {}
