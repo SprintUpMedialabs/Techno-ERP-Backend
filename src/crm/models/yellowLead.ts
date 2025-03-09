@@ -9,12 +9,7 @@ export interface IYellowLeadDocument extends IYellowLead, Document {}
 
 const yellowLeadSchema = new Schema<IYellowLeadDocument>(
   {
-    srNo: {
-      type: Number,
-      required: [true, 'Serial No Required'],
-      unique: [true, 'Duplicate Serial No is Not Allowed']
-    },
-    leadTypeChangeDate: { type: Date, required: [true, 'Lead Type Change Date is required'] },
+    date: { type: Date, required: [true, 'Lead Type Change Date is required'] },
     name: { type: String, required: [true, 'Name is required'] },
     phoneNumber: {
       type: String,
@@ -43,8 +38,8 @@ const yellowLeadSchema = new Schema<IYellowLeadDocument>(
 );
 
 yellowLeadSchema.pre<IYellowLeadDocument>('save', function (next) {
-  if (typeof this.leadTypeChangeDate === 'string') {
-    this.leadTypeChangeDate = convertToMongoDate(this.leadTypeChangeDate);
+  if (typeof this.date === 'string') {
+    this.date = convertToMongoDate(this.date);
   }
   if (typeof this.nextCallDate === 'string') {
     this.nextCallDate = convertToMongoDate(this.nextCallDate);

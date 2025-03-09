@@ -9,6 +9,8 @@ import { saveDataToDb } from '../helpers/updateAndSaveToDb';
 import { Lead } from '../models/leads';
 import { IAllLeadFilter } from '../types/marketingSpreadsheet';
 import { IUpdateLeadRequestSchema, updateLeadRequestSchema } from '../validators/leads';
+import { parseFilter } from '../helpers/parseFilter';
+import { createYellowLead } from './yellowLeadController';
 
 export const uploadData = expressAsyncHandler(async (_: AuthenticatedRequest, res: Response) => {
   const latestData = await readFromGoogleSheet(); 
@@ -24,63 +26,14 @@ export const uploadData = expressAsyncHandler(async (_: AuthenticatedRequest, re
 
 export const getFilteredLeadData = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
-    const {
-      leadTypeChangeDateStart,
-      leadTypeChangeDateEnd,
-      leadType = [],
-      course = [],
-      location = [],
-      assignedTo = [],
-      page = 1,
-      limit = 10,
-      search = ''
-    } = req.body;
 
-    const filters: IAllLeadFilter = {
-      leadTypeChangeDateStart,
-      leadTypeChangeDateEnd,
-      leadType,
-      course,
-      location,
-      assignedTo
-    };
+    const parsedFilter = parseFilter(req);
+    const query = parsedFilter.query;
+    const search = parsedFilter.search;
+    const page = parsedFilter.page;
+    const limit = parsedFilter.limit;
 
-    const query: any = {};
-
-    if (filters.leadType.length > 0) {
-      query.leadType = { $in: filters.leadType };
-    }
-
-    if (filters.course.length > 0) {
-      query.course = { $in: filters.course };
-    }
-
-    if (filters.location.length > 0) {
-      query.location = { $in: filters.location };
-    }
-
-    if (filters.assignedTo.length > 0) {
-      if (
-        req.data?.roles.includes(UserRoles.EMPLOYEE_MARKETING) &&
-        !req.data?.roles.includes(UserRoles.LEAD_MARKETING)
-      )
-      {
-        filters.assignedTo = [req.data.id];
-      }
-      query.assignedTo = { $in: filters.assignedTo };
-    }
-
-    if (filters.leadTypeChangeDateStart || filters.leadTypeChangeDateEnd) {
-      query.date = {};
-      if (filters.leadTypeChangeDateStart) {
-        query.date.$gte = convertToMongoDate(filters.leadTypeChangeDateStart);
-      }
-      if (filters.leadTypeChangeDateEnd) {
-        query.date.$lte = convertToMongoDate(filters.leadTypeChangeDateEnd);
-      }
-    }
-
-    if (search.trim()) {
+    if (parsedFilter.search.trim()) {
       query.$and = [
         ...(query.$and || []), // Preserve existing AND conditions if any
         {
@@ -108,58 +61,13 @@ export const getFilteredLeadData = expressAsyncHandler(
   }
 );
 
+
+
 export const getAllLeadAnalytics = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
-    const {
-      leadTypeChangeDateStart,
-      leadTypeChangeDateEnd,
-      leadType = [],
-      course = [],
-      location = [],
-      assignedTo = []
-    } = req.body;
 
-    const filters: IAllLeadFilter = {
-      leadTypeChangeDateStart,
-      leadTypeChangeDateEnd,
-      leadType,
-      course,
-      location,
-      assignedTo
-    };
-    const query: any = {};
-
-    if (filters.leadType.length > 0) {
-      query.leadType = { $in: filters.leadType };
-    }
-
-    if (filters.course.length > 0) {
-      query.course = { $in: filters.course };
-    }
-
-    if (filters.location.length > 0) {
-      query.location = { $in: filters.location };
-    }
-
-    if (filters.assignedTo.length > 0) {
-      if (
-        req.data?.roles.includes(UserRoles.EMPLOYEE_MARKETING) &&
-        !req.data?.roles.includes(UserRoles.LEAD_MARKETING)
-      ) {
-        filters.assignedTo = [req.data.id];
-      }
-      query.assignedTo = { $in: filters.assignedTo };
-    }
-    if (filters.leadTypeChangeDateStart || filters.leadTypeChangeDateEnd) {
-      query.date = {};
-      if (filters.leadTypeChangeDateStart) {
-        query.date.$gte = convertToMongoDate(filters.leadTypeChangeDateStart);
-      }
-      if (filters.leadTypeChangeDateEnd) {
-        query.date.$lte = convertToMongoDate(filters.leadTypeChangeDateEnd);
-      }
-    }
-
+    const parsedFilter = parseFilter(req);
+    const query = parsedFilter.query as Object;
     // 🔹 Running Aggregate Pipeline
     const analytics = await Lead.aggregate([
       { $match: query }, // Apply Filters
@@ -182,7 +90,6 @@ export const getAllLeadAnalytics = expressAsyncHandler(
     });
   }
 );
-
 
 export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const leadRequestData: IUpdateLeadRequestSchema = req.body;
@@ -214,6 +121,7 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
 
     if (existingLead.leadType != leadRequestData.leadType) {
       if (existingLead.leadType === LeadType.YELLOW) {
+        createYellowLead(existingLead);
         throw createHttpError(
           400,
           'Sorry, this lead can only be updated from the yellow leads tracker!'

@@ -1,4 +1,4 @@
-import { CourseType, LeadType } from '../../config/constants';
+import { CourseType, FinalConversionType, LeadType } from '../../config/constants';
 
 export interface IMarketingSpreadsheetProcessReport {
   rowsToBeProcessed: number;
@@ -15,9 +15,9 @@ export interface IAllLeadFilter {
   course: CourseType[]; // Accepts multiple course values as an array
   location: string[]; // Array for multiple locations
   assignedTo: string[]; // Array for multiple assigned users
-  leadTypeChangeDateStart?: string; // Date range start
-  leadTypeChangeDateEnd?: string; // Date range end
-  leadType: LeadType[]; // Lead Type Enum
+  startDate?: string; // Date range start
+  endDate?: string; // Date range end
+  leadType: LeadType[] | FinalConversionType[]; // Lead Type Enum
 }
 
 export interface IAdminAnalyticsFilter {
