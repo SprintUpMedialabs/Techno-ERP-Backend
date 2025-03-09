@@ -26,25 +26,26 @@ crmRoute.post(
 crmRoute.put(
   '/edit',
   authenticate,
-  authorize([UserRoles.ADMIN, UserRoles.EMPLOYEE_MARKETING, UserRoles.LEAD_MARKETING]),
+  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING]),
   updateData
 );
 
 crmRoute.post(
   '/fetch-data',
   authenticate,
-  authorize([UserRoles.EMPLOYEE_MARKETING, UserRoles.ADMIN, UserRoles.LEAD_MARKETING]),
+  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING]),
   getFilteredLeadData
 );
 
 crmRoute.post(
   '/analytics',
   authenticate,
-  authorize([UserRoles.ADMIN, UserRoles.EMPLOYEE_MARKETING, UserRoles.LEAD_MARKETING]),
+  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING]),
   getAllLeadAnalytics
 );
 
-crmRoute.get('/yellow-lead', getFilteredYellowLeads);
+
+crmRoute.get('/yellow-lead', authenticate, authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING]), getFilteredYellowLeads);
 
 crmRoute.put('/yellow-lead', updateYellowLead);
 

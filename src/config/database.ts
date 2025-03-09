@@ -16,7 +16,7 @@ const connectToDatabase = async (): Promise<void> => {
 
 export const initializeDB = async () => {
   try {
-    const existingDoc = await SpreadSheetMetaData.findOne({ name: process.env.MARKETING_SHEET });
+    const existingDoc = await SpreadSheetMetaData.find({ name: process.env.MARKETING_SHEET });
     if (!existingDoc) {
       await SpreadSheetMetaData.create({
         name: process.env.MARKETING_SHEET,
@@ -24,7 +24,7 @@ export const initializeDB = async () => {
       });
       logger.debug('Initialized database with default Marketing Sheet entry.');
     } else {
-      console.log('Marketing Sheet entry already exists.');
+      logger.debug('Marketing Sheet entry already exists.');
     }
   } catch (error) {
     console.error('Error initializing database:', error);

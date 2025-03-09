@@ -33,7 +33,7 @@ export const sendEmail = async (to: string, subject: string, text: string) => {
     if (err) {
       logger.error(err);
     } else {
-      logger.info(info);
+      logger.info("Mail sent successfully");
     }
   });
 };
