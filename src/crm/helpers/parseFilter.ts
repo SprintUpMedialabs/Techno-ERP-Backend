@@ -8,6 +8,7 @@ export const parseFilter = (req: AuthenticatedRequest) => {
     startDate,
     endDate,
     leadType = [],
+    finalConversionType =[], // related to yellow lead table
     course = [],
     location = [],
     assignedTo = [],
@@ -20,6 +21,7 @@ export const parseFilter = (req: AuthenticatedRequest) => {
     startDate,
     endDate,
     leadType,
+    finalConversionType,
     course,
     location,
     assignedTo
@@ -27,20 +29,16 @@ export const parseFilter = (req: AuthenticatedRequest) => {
 
   const query: any = {};
 
-  if (filters.leadType.length > 0) {
-    const finalConversionTypes = Object.values(FinalConversionType);
-    const leadTypes = Object.values(LeadType);
 
-    const isFinalConversionType = filters.leadType.some((type) =>
-      finalConversionTypes.includes(type as FinalConversionType)
-    );
 
-    if (isFinalConversionType) {
-      query.finalConversion = { $in: filters.leadType };
-    } else {
-      query.leadType = { $in: filters.leadType };
-    }
+  if (finalConversionType.length > 0) {
+    query.finalConversion = { $in: filters.leadType };
   }
+
+  if (leadType.length > 0) {
+    query.leadType = { $in: filters.leadType };
+  }
+
 
   if (filters.course.length > 0) {
     query.course = { $in: filters.course };
@@ -50,23 +48,11 @@ export const parseFilter = (req: AuthenticatedRequest) => {
     query.location = { $in: filters.location };
   }
 
-  // if (filters.assignedTo.length > 0) {
-  //   if (
-  //     req.data?.roles.includes(UserRoles.EMPLOYEE_MARKETING) &&
-  //     !req.data?.roles.includes(UserRoles.LEAD_MARKETING)
-  //   ) {
-  //     console.log("Marketing emp id : ",req.data.id);
-  //     filters.assignedTo = [req.data.id];
-  //   }
-  //   query.assignedTo = { $in: filters.assignedTo };
-  // }
-
   if (
     req.data?.roles.includes(UserRoles.EMPLOYEE_MARKETING) &&
     !req.data?.roles.includes(UserRoles.LEAD_MARKETING) &&
     !req.data?.roles.includes(UserRoles.ADMIN)
   ) {
-    // console.log("A marketing employee!");
     query.assignedTo = { $in: [req.data.id] };
   } else if (
     req.data?.roles.includes(UserRoles.ADMIN) ||
@@ -75,7 +61,7 @@ export const parseFilter = (req: AuthenticatedRequest) => {
     if (filters.assignedTo.length > 0) {
       query.assignedTo = { $in: filters.assignedTo };
     } else {
-      query.assignedTo = { $exists: true };
+      query.assignedTo = { $exists: true }; // Raxit take a look to this
     }
   }
 

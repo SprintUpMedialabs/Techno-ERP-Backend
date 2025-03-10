@@ -4,7 +4,7 @@ import { SpreadSheetMetaData } from '../models/spreadSheet';
 import { googleAuth } from './googleAuth';
 import { MARKETING_SHEET_ID } from '../../secrets';
 
-
+// TODO: what if google api is down? we will focus on this on phase - 2
 
 export const readFromGoogleSheet = async () => {
 

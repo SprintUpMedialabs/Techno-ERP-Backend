@@ -1,10 +1,11 @@
-import mongoose, { Document, Schema } from 'mongoose';
-import { ILead } from '../validators/leads';
-import { Gender, LeadType } from '../../config/constants';
 import createHttpError from 'http-errors';
+import mongoose, { Document, Schema } from 'mongoose';
+import { Gender, LeadType } from '../../config/constants';
 import logger from '../../config/logger';
+import { convertToDDMMYYYY, convertToMongoDate } from '../../utils/convertDateToFormatedDate';
+import { ILead } from '../validators/leads';
 
-export interface ILeadDocument extends ILead, Document {}
+export interface ILeadDocument extends ILead, Document { }
 
 const leadSchema = new Schema<ILeadDocument>(
   {
@@ -13,7 +14,8 @@ const leadSchema = new Schema<ILeadDocument>(
     // Change format to DD/MM/YYYY and add error message
     date: {
       type: Date,
-      required: [true, 'Date is required']
+      required: [true, 'Date is required'],
+      set: (value:string)=> convertToMongoDate(value)
     },
 
     source: { type: String },
@@ -77,7 +79,11 @@ const leadSchema = new Schema<ILeadDocument>(
     leadTypeModifiedDate: { type: Date },
 
     nextDueDate: {
-      type: Date
+      type: Date,
+      set: (value:string)=>{
+        console.log(value);
+        return convertToMongoDate(value);
+      } 
     }
   },
   { timestamps: true }
@@ -104,5 +110,19 @@ leadSchema.post('save', function (error: any, doc: any, next: Function) {
 leadSchema.post('findOneAndUpdate', function (error: any, doc: any, next: Function) {
   handleMongooseError(error, next);
 });
+
+const transformDates = (_: any, ret: any) => {
+  logger.debug("we are here");
+  ['leadTypeModifiedDate', 'nextDueDate', 'date'].forEach((key) => {
+    if (ret[key]) {
+      ret[key] = convertToDDMMYYYY(ret[key]);
+    }
+  });
+  return ret;
+};
+
+leadSchema.set('toJSON', { transform: transformDates });
+leadSchema.set('toObject', { transform: transformDates });
+
 
 export const Lead = mongoose.model<ILeadDocument>('Lead', leadSchema);

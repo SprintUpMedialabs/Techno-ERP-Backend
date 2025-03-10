@@ -32,7 +32,7 @@ export const leadSchema = z.object({
 export type ILead = z.infer<typeof leadSchema>;
 
 export const updateLeadRequestSchema = z.object({
-  _id: objectIdSchema.optional(),
+  _id: objectIdSchema,
   name: z.string().min(1, 'Name field is required').optional(),
   phoneNumber: z
     .string()
@@ -48,16 +48,10 @@ export const updateLeadRequestSchema = z.object({
   course: z.nativeEnum(CourseType).optional(),
   leadType: z.nativeEnum(LeadType).optional(),
   remarks: z.string().optional(),
-  leadTypeModifiedDate: z.union([
+  nextDueDate:
     z.string()
-      .regex(/^\d{2}\/\d{2}\/\d{4}$/, 'Invalid date format, expected DD/MM/YYYY'),
-    z.date()])
-    .optional(),
-  nextDueDate: z.union([
-    z.string()
-      .regex(/^\d{2}\/\d{2}\/\d{4}$/, 'Invalid date format, expected DD/MM/YYYY'),
-    z.date()])
-    .optional()
-});
+      .regex(/^\d{2}\/\d{2}\/\d{4}$/, 'Invalid date format, expected DD/MM/YYYY')
+      .optional()
+}).strict(); // strict will restrict extra properties
 
 export type IUpdateLeadRequestSchema = z.infer<typeof updateLeadRequestSchema>;

@@ -17,7 +17,8 @@ export interface IAllLeadFilter {
   assignedTo: string[]; // Array for multiple assigned users
   startDate?: string; // Date range start
   endDate?: string; // Date range end
-  leadType: LeadType[] | FinalConversionType[]; // Lead Type Enum
+  leadType: LeadType[]; // Lead Type Enum
+  finalConversionType: FinalConversionType[];
 }
 
 export interface IAdminAnalyticsFilter {

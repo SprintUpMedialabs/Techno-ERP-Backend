@@ -10,10 +10,10 @@ import { parseFilter } from '../helpers/parseFilter';
 import { ILead } from '../validators/leads';
 import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
 
-export const createYellowLead = async (leadData : ILead) => {
+export const createYellowLead = async (leadData: ILead) => {
 
-  const yellowLead : IYellowLead = {
-    date: convertToMongoDate(new Date()),
+  const yellowLead: IYellowLead = {
+    date: leadData.date,
     name: leadData.name,
     phoneNumber: leadData.phoneNumber,
     email: leadData.email ?? "",
@@ -23,12 +23,10 @@ export const createYellowLead = async (leadData : ILead) => {
     assignedTo: leadData.assignedTo,
   };
 
-  if(leadData.nextDueDate)
-  {
+  if (leadData.nextDueDate) {
     yellowLead.nextCallDate = convertToMongoDate(leadData.nextDueDate);
   }
-  else
-  {
+  else {
     yellowLead.nextCallDate = new Date();
   }
 
@@ -120,15 +118,9 @@ export const updateYellowLead = expressAsyncHandler(async (req: Request, res: Re
 export const getFilteredYellowLeads = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
 
-    const parsedFilter = parseFilter(req);
-    const query = parsedFilter.query;
-    const search = parsedFilter.search;
-    const page = parsedFilter.page;
-    const limit = parsedFilter.limit;
+    const { query, search, page, limit } = parseFilter(req);
 
-    // console.log("Query is : ", query);
-
-    if (parsedFilter.search.trim()) {
+    if (search.trim()) {
       query.$and = [
         ...(query.$and || []), // Preserve existing AND conditions if any
         {
@@ -156,14 +148,12 @@ export const getFilteredYellowLeads = expressAsyncHandler(
   }
 );
 
-
-
 export const getYellowLeadsAnalytics = expressAsyncHandler(async (req: Request, res: Response) => {
 
-  const parsedFilter = parseFilter(req);
+  const { query } = parseFilter(req);
 
   const analytics = await YellowLead.aggregate([
-    { $match: parsedFilter.query },
+    { $match: query },
     {
       $group: {
         _id: null,
@@ -205,11 +195,11 @@ export const getYellowLeadsAnalytics = expressAsyncHandler(async (req: Request, 
     analytics.length > 0
       ? analytics[0]
       : {
-          allLeadsCount: 0,
-          campusVisitTrueCount: 0,
-          activeYellowLeadsCount: 0,
-          deadLeadCount: 0
-        };
+        allLeadsCount: 0,
+        campusVisitTrueCount: 0,
+        activeYellowLeadsCount: 0,
+        deadLeadCount: 0
+      };
 
   res.status(200).json({
     message: 'Yellow leads analytics fetched successfully.',

@@ -6,7 +6,7 @@ export const convertToMongoDate = (dateString: string | Date): Date => {
   const [day, month, year] = dateString.split('/').map(Number);
 
   // Create a JavaScript Date object (Months are 0-based in JavaScript)
-  return new Date(year, month - 1, day);
+  return new Date(Date.UTC(year, month - 1, day));
 };
 
 export const convertToDDMMYYYY = (dateObj: Date): string => {
