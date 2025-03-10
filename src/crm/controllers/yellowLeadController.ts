@@ -16,11 +16,11 @@ export const createYellowLead = async (leadData: ILead) => {
     date: leadData.date,
     name: leadData.name,
     phoneNumber: leadData.phoneNumber,
-    email: leadData.email ?? "",
+    email: leadData.email ?? '',
     gender: Gender.MALE,
     campusVisit: false,
     nextCallDate: '',
-    assignedTo: leadData.assignedTo,
+    assignedTo: leadData.assignedTo
   };
 
   if (leadData.nextDueDate) {
@@ -43,9 +43,8 @@ export const createYellowLead = async (leadData: ILead) => {
     nextCallDate: convertToDDMMYYYY(newYellowLead.nextCallDate as Date)
   };
 
-  logger.info("Yellow lead object created successfully");
-
-}
+  logger.info('Yellow lead object created successfully');
+};
 
 export const updateYellowLead = expressAsyncHandler(async (req: Request, res: Response) => {
   const { _id } = req.body;
@@ -77,8 +76,6 @@ export const updateYellowLead = expressAsyncHandler(async (req: Request, res: Re
   });
 });
 
-
-
 // export const getFilteredYellowLeads = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
 
 //   const parsedFilter = parseFilter(req);
@@ -86,7 +83,6 @@ export const updateYellowLead = expressAsyncHandler(async (req: Request, res: Re
 //   const search = parsedFilter.search;
 //   const page = parsedFilter.page;
 //   const limit = parsedFilter.limit;
-
 
 //   const pageNumber = parseInt(page as string, 10);
 //   const limitNumber = parseInt(limit as string, 10);
@@ -113,7 +109,6 @@ export const updateYellowLead = expressAsyncHandler(async (req: Request, res: Re
 //     }
 //   });
 // });
-
 
 export const getFilteredYellowLeads = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {

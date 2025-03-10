@@ -1,38 +1,42 @@
-import { IMarketingSpreadsheetProcessReport } from "../types/marketingSpreadsheet";
+import { IMarketingSpreadsheetProcessReport } from '../types/marketingSpreadsheet';
 
 export const formatReport = (report: IMarketingSpreadsheetProcessReport): string => {
-    return `
+  return `
       <h2>Lead Processing Report</h2>
       <p><strong>Total Rows Processed:</strong> ${report.rowsToBeProcessed}</p>
       <p><strong>Successfully Processed:</strong> ${report.actullyProcessedRows}</p>
       <p><strong>Rows Failed:</strong> ${report.rowsFailed}</p>
       
-      ${report.duplicateRowIds.length > 0
-        ? `
+      ${
+        report.duplicateRowIds.length > 0
+          ? `
         <h3>Duplicate Rows</h3>
         <ul>${report.duplicateRowIds.map((id) => `<li>Row ID: ${id}</li>`).join('')}</ul>
       `
-        : ''
+          : ''
       }
   
-      ${report.assignedToNotFound.length > 0
-        ? `
+      ${
+        report.assignedToNotFound.length > 0
+          ? `
         <h3>Rows with Missing Assigned Users</h3>
         <ul>${report.assignedToNotFound.map((id) => `<li>Row ID: ${id}</li>`).join('')}</ul>
       `
-        : ''
+          : ''
       }
   
-      ${report.emptyRows.length > 0
-        ? `
+      ${
+        report.emptyRows.length > 0
+          ? `
         <h3>Empty Rows</h3>
         <ul>${report.emptyRows.map((id) => `<li>Row ID: ${id}</li>`).join('')}</ul>
       `
-        : ''
+          : ''
       }
   
-      ${report.otherIssue.length > 0
-        ? `
+      ${
+        report.otherIssue.length > 0
+          ? `
         <h3>Other Issues</h3>
         <table border="1" cellpadding="5" cellspacing="0">
           <tr>
@@ -40,19 +44,18 @@ export const formatReport = (report: IMarketingSpreadsheetProcessReport): string
             <th>Issue</th>
           </tr>
           ${report.otherIssue
-          .map(
-            (issue) => `
+            .map(
+              (issue) => `
             <tr>
               <td>${issue.rowId}</td>
               <td>${issue.issue}</td>
             </tr>
           `
-          )
-          .join('')}
+            )
+            .join('')}
         </table>
       `
-        : ''
+          : ''
       }
     `;
-  };
-  
+};

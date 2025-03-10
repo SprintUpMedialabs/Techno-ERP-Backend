@@ -63,7 +63,8 @@ const leadsToBeInserted = async (latestData: any[], report: IMarketingSpreadshee
         }
       }
 
-      let leadData = {  // TODO: it should be have some type 
+      let leadData = {
+        // TODO: it should be have some type
         date: row[MarketingsheetHeaders.Date],
         source: row[MarketingsheetHeaders.Source] || '',
         name: row[MarketingsheetHeaders.Name],
@@ -75,7 +76,10 @@ const leadsToBeInserted = async (latestData: any[], report: IMarketingSpreadshee
         assignedTo: assignedToID
       };
 
-      if (row[MarketingsheetHeaders.Gender] && Gender[row[MarketingsheetHeaders.Gender] as keyof typeof Gender]) {
+      if (
+        row[MarketingsheetHeaders.Gender] &&
+        Gender[row[MarketingsheetHeaders.Gender] as keyof typeof Gender]
+      ) {
         leadData.gender = Gender[row[MarketingsheetHeaders.Gender] as keyof typeof Gender];
       }
 
@@ -93,7 +97,11 @@ const leadsToBeInserted = async (latestData: any[], report: IMarketingSpreadshee
             .map((error) => `${error.path.join('.')}: ${error.message}`)
             .join(', ')
         });
-        logger.error('Validation failed for row', correspondingSheetIndex, leadDataValidation.error.errors);
+        logger.error(
+          'Validation failed for row',
+          correspondingSheetIndex,
+          leadDataValidation.error.errors
+        );
       }
     }
     catch (error) {
@@ -105,7 +113,6 @@ const leadsToBeInserted = async (latestData: any[], report: IMarketingSpreadshee
 };
 
 export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) => {
-
   const report: IMarketingSpreadsheetProcessReport = {
     rowsToBeProcessed: latestData.length,
     otherIssue: [],
@@ -121,7 +128,7 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) =>
   if (!dataToInsert || dataToInsert.length === 0) {
     if (report.rowsFailed != 0) {
       sendEmail(LEAD_MARKETING_EMAIL, 'Lead Processing Report', formatReport(report));
-      logger.info("Error report sent to Lead!")
+      logger.info('Error report sent to Lead!');
     }
     logger.info('No valid data to insert.');
     updateStatusForMarketingSheet(lastSavedIndex + latestData.length);
@@ -151,10 +158,8 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) =>
 
   if (report.rowsFailed != 0) {
     sendEmail(LEAD_MARKETING_EMAIL, 'Lead Processing Report', formatReport(report));
-    logger.info("Error report sent to Lead!");
+    logger.info('Error report sent to Lead!');
   }
 
   updateStatusForMarketingSheet(lastSavedIndex + latestData.length);
-
 };
-

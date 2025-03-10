@@ -20,6 +20,7 @@ export interface IAllLeadFilter {
   leadType: LeadType[]; // Lead Type Enum
   finalConversionType: FinalConversionType[];
 }
+<<<<<<< HEAD
 
 export interface IAdminAnalyticsFilter {
   location: string[]; // Array for multiple locations
@@ -28,3 +29,5 @@ export interface IAdminAnalyticsFilter {
   leadTypeChangeDateEnd?: string; // Date range end
   source: []
 }
+=======
+>>>>>>> 46b61bd010cebb81f1a8ea828746fcd6ac45ff69

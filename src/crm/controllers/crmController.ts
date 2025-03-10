@@ -14,13 +14,11 @@ export const uploadData = expressAsyncHandler(async (_: AuthenticatedRequest, re
   const latestData = await readFromGoogleSheet();
   if (!latestData) {
     res.status(200).json({ message: 'There is no data to update :)' });
-  }
-  else {
+  } else {
     await saveDataToDb(latestData.RowData, latestData.LastSavedIndex);
     res.status(200).json({ message: 'Data updated in database' });
   }
 });
-
 
 export const getFilteredLeadData = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
@@ -91,7 +89,7 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
   if (!validation.success) {
     throw createHttpError(400, validation.error.errors[0]);
   }
-  
+
   const existingLead = await Lead.findById(leadRequestData._id);
 
   if (existingLead) {
@@ -116,7 +114,7 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
       runValidators: true
     }).lean();
 
-    res.status(200).json({ message: 'Data Updated Successfully!', data:updatedData?.toObject() });
+    res.status(200).json({ message: 'Data Updated Successfully!', data: updatedData });
   }
   else {
     throw createHttpError(404, 'Lead does not found with the given ID.');
