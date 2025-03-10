@@ -1,63 +1,43 @@
-import { NextFunction, Request, Response } from 'express';
-import * as jwt from 'jsonwebtoken';
-import { JWT_SECRET } from '../secrets';
-import { UserRoles } from '../config/constants';
-import { User } from '../auth/models/user';
+import { NextFunction, Response } from 'express';
+import expressAsyncHandler from 'express-async-handler';
+import createHttpError from 'http-errors';
 import { AuthenticatedRequest, UserPayloadSchema } from '../auth/validators/authenticatedRequest';
-import logger from '../config/logger';
+import { UserRoles } from '../config/constants';
+import { verifyToken } from '../utils/jwtHelper';
 
-export const authenticate = (
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction
-): void => {
-  try {
+export const authenticate = expressAsyncHandler(
+  async (req: AuthenticatedRequest, _: Response, next: NextFunction) => {
     const token = req.cookies?.token;
+
     if (!token) {
-      res.status(401).json({ message: 'Unauthorized. Please log in again' });
-      return;
+      throw createHttpError(401, 'Unauthorized. Please log in again');
     }
 
-    // console.log('Auth Token:', token);
-
-    const decoded = jwt.verify(token, JWT_SECRET as string);
+    const decoded = verifyToken(token);
     const parsedUser = UserPayloadSchema.parse(decoded);
     req.data = parsedUser;
-    console.log('Authentication over!');
+
     next();
-  } catch (error) {
-    logger.error('JWT Verification Error:', error);
-    res.status(403).json({ message: 'Invalid or expired token' });
-    return;
   }
-};
+);
 
-export const authorize =
-  (allowedRoles: UserRoles[]) =>
-  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-    try {
-      if (!req.data) {
-        res.status(401).json({ message: 'Unauthorized: Please log in and try again!' });
-      }
-
-      const id = req.data?.id;
-      const user = await User.findById(id);
-
-      if (!user) {
-        res.status(404).json({ message: 'User not found. Please create an account first!' });
-      } else {
-        const hasPermission = user.roles.some((role) => allowedRoles.includes(role as UserRoles));
-
-        if (!hasPermission) {
-          res
-            .status(403)
-            .json({ message: 'Forbidden: You are not authorized to access this resource.' });
-        }
-
-        next();
-      }
-    } catch (error) {
-      logger.error('Error in authorization middleware:', error);
-      res.status(500).json({ message: 'Internal Server Error' });
+export const authorize = (allowedRoles: UserRoles[]) =>
+  expressAsyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    if (!req.data) {
+      throw createHttpError(401, 'Unauthorized. Please log in again');
     }
-  };
+
+    const { roles } = req.data;
+
+    if (!roles || !Array.isArray(roles) || roles.length === 0) {
+      throw createHttpError(403, 'Forbidden: You do not have any assigned roles.');
+    }
+
+    const hasPermission = roles.some((role) => allowedRoles.includes(role as UserRoles));
+
+    if (!hasPermission) {
+      throw createHttpError(403, 'Forbidden: You are not authorized to access this resource.');
+    }
+
+    next();
+  });

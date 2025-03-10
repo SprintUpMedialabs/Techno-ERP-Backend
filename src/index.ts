@@ -6,7 +6,7 @@ import { errorHandler } from './middleware/error';
 import { apiRouter } from './route';
 import { PORT } from './secrets';
 import cookieParser from 'cookie-parser';
-import connectToDatabase from './config/database';
+import connectToDatabase, { initializeDB } from './config/database';
 import { validateEnvVariables } from './config/validateEnv';
 
 const app = express();
@@ -16,6 +16,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 connectToDatabase();
+initializeDB();
 
 app.use('/api', apiRouter);
 

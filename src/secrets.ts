@@ -15,5 +15,8 @@ export const GOOGLE_SHEET_ID = process.env.GOOGLE_SHEET_ID!;
 export const GOOGLE_SA_CLIENT_EMAIL = process.env.GOOGLE_SA_CLIENT_EMAIL!;
 export const GOOGLE_SA_PRIVATE_KEY = process.env.GOOGLE_SA_PRIVATE_KEY!;
 export const GOOGLE_SHEET_PAGE = process.env.GOOGLE_SHEET_PAGE!;
+export const MARKETING_SHEET_ID = process.env.MARKETING_SHEET_ID!;
+
+export const LEAD_MARKETING_EMAIL = process.env.LEAD_MARKETING_EMAIL!;
 
 export const AUTH_API_PATH = process.env.AUTH_API_PATH!;
