@@ -48,15 +48,17 @@ export const updateLeadRequestSchema = z.object({
   course: z.nativeEnum(CourseType).optional(),
   leadType: z.nativeEnum(LeadType).optional(),
   remarks: z.string().optional(),
-  leadTypeModifiedDate: z.union([
-    z.string()
-      .regex(/^\d{2}\/\d{2}\/\d{4}$/, 'Invalid date format, expected DD/MM/YYYY'),
-    z.date()])
+  leadTypeModifiedDate: z
+    .union([
+      z.string().regex(/^\d{2}\/\d{2}\/\d{4}$/, 'Invalid date format, expected DD/MM/YYYY'),
+      z.date()
+    ])
     .optional(),
-  nextDueDate: z.union([
-    z.string()
-      .regex(/^\d{2}\/\d{2}\/\d{4}$/, 'Invalid date format, expected DD/MM/YYYY'),
-    z.date()])
+  nextDueDate: z
+    .union([
+      z.string().regex(/^\d{2}\/\d{2}\/\d{4}$/, 'Invalid date format, expected DD/MM/YYYY'),
+      z.date()
+    ])
     .optional()
 });
 

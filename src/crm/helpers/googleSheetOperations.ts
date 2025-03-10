@@ -4,15 +4,12 @@ import { SpreadSheetMetaData } from '../models/spreadSheet';
 import { googleAuth } from './googleAuth';
 import { MARKETING_SHEET_ID } from '../../secrets';
 
-
-
 export const readFromGoogleSheet = async () => {
-
   const sheetInstance = google.sheets({ version: 'v4', auth: googleAuth });
 
   const spreadSheetMetaData = await SpreadSheetMetaData.findOne({
     name: process.env.MARKETING_SHEET
-  });  
+  });
   const lastSavedIndex = spreadSheetMetaData?.lastIdxMarketingSheet!;
   logger.info(`Last saved index from DB: ${lastSavedIndex}`);
 
@@ -32,13 +29,10 @@ export const readFromGoogleSheet = async () => {
   logger.info(`New Last Read Index: ${newLastReadIndex}`);
 
   return {
-    "RowData" : rowData,
-    "LastSavedIndex" : lastSavedIndex
+    RowData: rowData,
+    LastSavedIndex: lastSavedIndex
   };
 };
-
-
-
 
 export const updateStatusForMarketingSheet = async (newLastReadIndex: number) => {
   const sheetInstance = google.sheets({ version: 'v4', auth: googleAuth });
@@ -94,5 +88,4 @@ export const updateStatusForMarketingSheet = async (newLastReadIndex: number) =>
       ]
     }
   });
-
-}
+};

@@ -19,4 +19,3 @@ export interface IAllLeadFilter {
   endDate?: string; // Date range end
   leadType: LeadType[] | FinalConversionType[]; // Lead Type Enum
 }
-
