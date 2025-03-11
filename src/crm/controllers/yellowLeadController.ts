@@ -11,8 +11,7 @@ import { ILead } from '../validators/leads';
 import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
 
 export const createYellowLead = async (leadData: ILead) => {
-
-  // need to add field LTC it will come from leadData
+    // need to add field LTC it will come from leadData
     // here date field shows the date which we read from spread sheet.
   const yellowLead: IYellowLead = {
     date: leadData.date,
@@ -28,11 +27,17 @@ export const createYellowLead = async (leadData: ILead) => {
   // this logic need to be changed
     // as i discussed with you on voice not.
   if (leadData.nextDueDate) {
-    yellowLead.nextCallDate = convertToMongoDate(leadData.nextDueDate);
-  }
+    if (convertToMongoDate(leadData.nextDueDate) > new Date()) {
+      yellowLead.nextCallDate = convertToMongoDate(leadData.nextDueDate);
+    } 
+    else {
+      yellowLead.nextCallDate = '';
+    }
+  } 
   else {
-    yellowLead.nextCallDate = new Date();
+    yellowLead.nextCallDate = '';
   }
+
 
   const validation = yellowLeadSchema.safeParse(yellowLead);
   if (!validation.success) {
@@ -117,7 +122,6 @@ export const updateYellowLead = expressAsyncHandler(async (req: Request, res: Re
 
 export const getFilteredYellowLeads = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
-
     const { query, search, page, limit } = parseFilter(req);
 
     if (search.trim()) {
@@ -149,7 +153,6 @@ export const getFilteredYellowLeads = expressAsyncHandler(
 );
 
 export const getYellowLeadsAnalytics = expressAsyncHandler(async (req: Request, res: Response) => {
-
   const { query } = parseFilter(req);
 
   const analytics = await YellowLead.aggregate([
@@ -195,11 +198,11 @@ export const getYellowLeadsAnalytics = expressAsyncHandler(async (req: Request, 
     analytics.length > 0
       ? analytics[0]
       : {
-        allLeadsCount: 0,
-        campusVisitTrueCount: 0,
-        activeYellowLeadsCount: 0,
-        deadLeadCount: 0
-      };
+          allLeadsCount: 0,
+          campusVisitTrueCount: 0,
+          activeYellowLeadsCount: 0,
+          deadLeadCount: 0
+        };
 
   res.status(200).json({
     message: 'Yellow leads analytics fetched successfully.',

@@ -26,14 +26,14 @@ export const getFilteredLeadData = expressAsyncHandler(
     const { query, search, page, limit } = parseFilter(req);
 
     // TODO: test properly whether its working as our expection or not
-      // Test-1: lets say we have name: Disha in one row and Disha-1 in another row
-        // when i find based on name Disha it should give me both
-          // now i apply filter such that Disha-1 should not get filterd out and search is still there  
-            // check this sitution 
-              // expection is only one record should be there
-                // basically check whether our filter and search is working as and operation. it should be AND condition and not OR.
-      // Test-2: search based on the mobile number
-        // i found few issue there from postman i got error while seraching based on the mobile number
+    // Test-1: lets say we have name: Disha in one row and Disha-1 in another row
+    // when i find based on name Disha it should give me both
+    // now i apply filter such that Disha-1 should not get filterd out and search is still there  
+    // check this sitution 
+    // expection is only one record should be there
+    // basically check whether our filter and search is working as and operation. it should be AND condition and not OR.
+    // Test-2: search based on the mobile number
+    // i found few issue there from postman i got error while seraching based on the mobile number
     if (search.trim()) {
       query.$and = [
         ...(query.$and || []), // Preserve existing AND conditions if any
@@ -111,18 +111,18 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
     }
     let leadTypeModifiedDate = existingLead.leadTypeModifiedDate;
 
-    if (leadRequestData.leadType && existingLead.leadType != leadRequestData.leadType) {
-      if (leadRequestData.leadType === LeadType.YELLOW) {
-        createYellowLead(existingLead);
-      }
-      leadTypeModifiedDate = new Date();
-    }
-
     // check here whether all set is working as expected or not.
     const updatedData = await Lead.findByIdAndUpdate(existingLead._id, { ...leadRequestData, leadTypeModifiedDate }, {
       new: true,
       runValidators: true
     }).lean();
+
+    if (leadRequestData.leadType && existingLead.leadType != leadRequestData.leadType) {
+      if (leadRequestData.leadType === LeadType.YELLOW) {
+        createYellowLead(updatedData!);
+      }
+      leadTypeModifiedDate = new Date();
+    }
 
     // here toJSON is not working as expected. check why is it so?
     // is there any other way to do this converstion? if yes then should we use that or not?
