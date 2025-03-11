@@ -102,17 +102,23 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
     }
     let leadTypeModifiedDate = existingLead.leadTypeModifiedDate;
 
-    if (leadRequestData.leadType && existingLead.leadType != leadRequestData.leadType) {
-      if (leadRequestData.leadType === LeadType.YELLOW) {
-        createYellowLead(existingLead);
-      }
-      leadTypeModifiedDate = new Date();
-    }
-
     const updatedData = await Lead.findByIdAndUpdate(existingLead._id, { ...leadRequestData, leadTypeModifiedDate }, {
       new: true,
       runValidators: true
     }).lean();
+
+    if(!updatedData)
+    {
+        throw createHttpError(500,"Failed to update Lead!");
+    }
+
+    if (leadRequestData.leadType && existingLead.leadType != leadRequestData.leadType) {
+      if (leadRequestData.leadType === LeadType.YELLOW) {
+        createYellowLead(updatedData);
+      }
+      leadTypeModifiedDate = new Date();
+    }
+
 
     res.status(200).json({ message: 'Data Updated Successfully!', data: updatedData });
   }

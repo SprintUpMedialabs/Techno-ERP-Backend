@@ -67,4 +67,9 @@ crmRoute.post(
   authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING]),
   getYellowLeadsAnalytics
 );
-crmRoute.post('/admin/analytics', authenticate, authorize([UserRoles.ADMIN]), adminAnalytics);
+
+crmRoute.post('/admin/analytics', 
+  authenticate, 
+  authorize([UserRoles.ADMIN]), 
+  adminAnalytics
+);
