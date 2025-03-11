@@ -30,10 +30,17 @@ export const getFilteredLeadData = expressAsyncHandler(
     // when i find based on name Disha it should give me both
     // now i apply filter such that Disha-1 should not get filterd out and search is still there  
     // check this sitution 
-    // expection is only one record should be there
+    // expection is only one record should be there 
+    
+    //=> When we use search for "Disha", we get 2 entries and when we search "Disha-1", we get only single entry.  
+    
+    
     // basically check whether our filter and search is working as and operation. it should be AND condition and not OR.
     // Test-2: search based on the mobile number
-    // i found few issue there from postman i got error while seraching based on the mobile number
+    // i found few issue there from postman i got error while seraching based on the mobile number 
+
+    //=> Remove +91 from beginning while search and it will work well, eg :  "search" : "9172983210"
+    
     if (search.trim()) {
       query.$and = [
         ...(query.$and || []), // Preserve existing AND conditions if any
@@ -124,8 +131,10 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
       leadTypeModifiedDate = new Date();
     }
 
+    console.log(updatedData);
+
     // here toJSON is not working as expected. check why is it so?
-    // is there any other way to do this converstion? if yes then should we use that or not?
+    // is there any other way to do this converstion? if yes then should we use that or not? => Discussion in meeting
     res.status(200).json({ message: 'Data Updated Successfully!', data: updatedData });
   }
   else {

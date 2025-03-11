@@ -3,6 +3,7 @@ import { FinalConversionType, LeadType, UserRoles } from '../../config/constants
 import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import { IAllLeadFilter } from '../types/marketingSpreadsheet';
 
+//We need to add here one for LTC of yellow leads for allowing analytics of yellow leads table on that
 export const parseFilter = (req: AuthenticatedRequest) => {
   const {
     startDate,
