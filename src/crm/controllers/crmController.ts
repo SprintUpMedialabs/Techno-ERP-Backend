@@ -56,7 +56,7 @@ export const getFilteredLeadData = expressAsyncHandler(
     const skip = (page - 1) * limit;
 
     // Fetch Leads from Database
-    const leads = await Lead.find(query).skip(skip).limit(limit).lean();
+    const leads = await Lead.find(query).skip(skip).limit(limit)
 
     const totalLeads = await Lead.countDocuments(query);
 
@@ -133,9 +133,11 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
 
     console.log(updatedData);
 
+    const transformedData = new Lead(updatedData).toJSON();
+
     // here toJSON is not working as expected. check why is it so?
     // is there any other way to do this converstion? if yes then should we use that or not? => Discussion in meeting
-    res.status(200).json({ message: 'Data Updated Successfully!', data: updatedData });
+    res.status(200).json({ message: 'Data Updated Successfully!', data: transformedData });
   }
   else {
     throw createHttpError(404, 'Lead does not found with the given ID.');
