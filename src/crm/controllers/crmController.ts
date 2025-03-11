@@ -24,29 +24,13 @@ export const getFilteredLeadData = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
 
     const { query, search, page, limit } = parseFilter(req);
-
-    // TODO: test properly whether its working as our expection or not
-    // Test-1: lets say we have name: Disha in one row and Disha-1 in another row
-    // when i find based on name Disha it should give me both
-    // now i apply filter such that Disha-1 should not get filterd out and search is still there  
-    // check this sitution 
-    // expection is only one record should be there 
-    
-    //=> When we use search for "Disha", we get 2 entries and when we search "Disha-1", we get only single entry.  
-    
-    
-    // basically check whether our filter and search is working as and operation. it should be AND condition and not OR.
-    // Test-2: search based on the mobile number
-    // i found few issue there from postman i got error while seraching based on the mobile number 
-
-    //=> Remove +91 from beginning while search and it will work well, eg :  "search" : "9172983210"
     
     if (search.trim()) {
       query.$and = [
-        ...(query.$and || []), // Preserve existing AND conditions if any
+        ...(query.$and || []),
         {
           $or: [
-            { name: { $regex: search, $options: 'i' } }, // Case-insensitive search
+            { name: { $regex: search, $options: 'i' } },
             { phoneNumber: { $regex: search, $options: 'i' } }
           ]
         }
@@ -118,7 +102,6 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
     }
     let leadTypeModifiedDate = existingLead.leadTypeModifiedDate;
 
-    // check here whether all set is working as expected or not.
     const updatedData = await Lead.findByIdAndUpdate(existingLead._id, { ...leadRequestData, leadTypeModifiedDate }, {
       new: true,
       runValidators: true

@@ -11,56 +11,46 @@ import { ILead } from '../validators/leads';
 import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
 
 export const createYellowLead = async (leadData: ILead) => {
-    // need to add field LTC it will come from leadData
-    // here date field shows the date which we read from spread sheet.  => LTC will be the one where 
   const yellowLead: IYellowLead = {
     date: leadData.date,
     name: leadData.name,
     phoneNumber: leadData.phoneNumber,
     email: leadData.email ?? '',
-    gender: leadData.gender, // why MALE? need to be taken from leadData => It was by mistake, changed
+    gender: leadData.gender,
     campusVisit: false,
-    nextCallDate: '', // it should be null!! type should be Date not string
     assignedTo: leadData.assignedTo
   };
 
-  // this logic need to be changed
-    // as i discussed with you on voice not. => Changed
   if (leadData.nextDueDate) {
     if (convertToMongoDate(leadData.nextDueDate) > new Date()) {
       yellowLead.nextCallDate = convertToMongoDate(leadData.nextDueDate);
     } 
     else {
-      yellowLead.nextCallDate = '';
+      yellowLead.nextCallDate = undefined;
     }
   } 
   else {
-    yellowLead.nextCallDate = '';
+    yellowLead.nextCallDate = undefined;
   }
-
 
   const validation = yellowLeadSchema.safeParse(yellowLead);
   if (!validation.success) {
     throw createHttpError(400, { error: validation.error.errors[0] });
   }
 
-  const newYellowLead = await YellowLead.create(yellowLead);
-
-  // seems like this is not required so lets remove it. => Agreed
-  // const responseData = {
-  //   ...newYellowLead.toObject(),
-  //   leadTypeChangeDate: convertToDDMMYYYY(newYellowLead.date as Date),
-  //   nextCallDate: convertToDDMMYYYY(newYellowLead.nextCallDate as Date)
-  // };
+  await YellowLead.create(yellowLead);
 
   logger.info('Yellow lead object created successfully');
 };
 
 export const updateYellowLead = expressAsyncHandler(async (req: Request, res: Response) => {
   const { _id } = req.body;
+  // IYellow 
+  // sql injection
+  // 
   const updateData: Partial<IYellowLead> = req.body;
 
-  updateData.date = convertToMongoDate(updateData.date as string);
+  // updateData.date = convertToMongoDate(updateData.date as string);
   updateData.nextCallDate = convertToMongoDate(updateData.nextCallDate as string);
 
   const validation = yellowLeadSchema.partial().safeParse(updateData);
@@ -68,7 +58,7 @@ export const updateYellowLead = expressAsyncHandler(async (req: Request, res: Re
     throw createHttpError(400, { error: validation.error.errors[0] });
   }
 
-  const updatedYellowLead = await YellowLead.findByIdAndUpdate(_id, updateData, { new: true });
+  const updatedYellowLead = await YellowLead.findByIdAndUpdate(_id, updateData, { new: true ,runValidators:true});
 
   if (!updatedYellowLead) {
     throw createHttpError(404, 'Yellow lead not found.');

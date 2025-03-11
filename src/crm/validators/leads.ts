@@ -3,10 +3,8 @@ import { CourseType, Gender, LeadType } from '../../config/constants';
 import { objectIdSchema } from '../../validators/objectIdSchema';
 
 export const leadSchema = z.object({
-  date: z.union([
-    z.string().regex(/^\d{2}\/\d{2}\/\d{4}$/, 'Invalid date format, expected DD/MM/YYYY'),
-    z.date()
-  ]),
+  date:
+    z.date(),
   source: z.string().optional(),
   name: z.string().min(1, 'Name field is required'),
   phoneNumber: z

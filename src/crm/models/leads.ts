@@ -112,7 +112,6 @@ leadSchema.post('findOneAndUpdate', function (error: any, doc: any, next: Functi
 });
 
 const transformDates = (_: any, ret: any) => {
-  logger.debug("we are here");
   ['leadTypeModifiedDate', 'nextDueDate', 'date'].forEach((key) => {
     if (ret[key]) {
       ret[key] = convertToDDMMYYYY(ret[key]);

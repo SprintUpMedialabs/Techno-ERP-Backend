@@ -45,8 +45,6 @@ export const updateStatusForMarketingSheet = async (newLastReadIndex: number) =>
     { new: true, upsert: true }
   );
 
-  // what we are doing here?
-    // TODO: understand this code From DISHA => Basically this piece of code searches the lines  in sheet page where we are supposed to change color 
   await sheetInstance.spreadsheets.batchUpdate({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
     requestBody: {

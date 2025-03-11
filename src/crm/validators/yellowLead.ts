@@ -2,10 +2,8 @@ import { z } from 'zod';
 import { Gender, FinalConversionType } from '../../config/constants';
 
 export const yellowLeadSchema = z.object({
-  date: z.union([
-    z.string().regex(/^\d{2}\/\d{2}\/\d{4}$/, 'Invalid date format, expected DD/MM/YYYY'),
-    z.date()
-  ]),
+  date:
+    z.date(),
   name: z.string(),
   phoneNumber: z
     .string()
@@ -14,19 +12,17 @@ export const yellowLeadSchema = z.object({
     .string()
     .regex(/^\+91\d{10}$/, 'Invalid contact number format. Expected: +911234567890')
     .optional(),
-  email: z.string().email('Invalid Email Format'),
+  email: z.string().email('Invalid Email Format').optional(),
   gender: z.nativeEnum(Gender).default(Gender.NOT_TO_MENTION),
   assignedTo: z.string(),
   location: z.string().optional(),
   course: z.string().optional(),
   campusVisit: z.boolean().default(false),
-  nextCallDate: z.union([
-    z.string().regex(/^\d{2}\/\d{2}\/\d{4}$/, 'Invalid date format, expected DD/MM/YYYY'),
-    z.date()
-  ]),
+  nextCallDate:
+    z.date().optional(),
   finalConversion: z.nativeEnum(FinalConversionType).optional(),
   remarks: z.string().optional()
-});
+}).strict();
 
 export type IYellowLead = z.infer<typeof yellowLeadSchema>;
 

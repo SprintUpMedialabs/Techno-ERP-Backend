@@ -5,11 +5,14 @@ import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import createHttpError from 'http-errors';
 import logger from '../../config/logger';
 
-export interface IYellowLeadDocument extends IYellowLead, Document {}
+export interface IYellowLeadDocument extends IYellowLead, Document { }
 
 const yellowLeadSchema = new Schema<IYellowLeadDocument>(
   {
-    date: { type: Date, required: [true, 'Lead Type Change Date is required'] },
+    date: {
+      type: Date, required: [true, 'Lead Type Change Date is required'],
+      set: (value: string) => convertToMongoDate(value)
+    },
     name: { type: String, required: [true, 'Name is required'] },
     phoneNumber: {
       type: String,

@@ -1,5 +1,5 @@
 import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
-import { FinalConversionType, LeadType, UserRoles } from '../../config/constants';
+import { UserRoles } from '../../config/constants';
 import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import { IAllLeadFilter } from '../types/marketingSpreadsheet';
 
@@ -8,6 +8,7 @@ export const parseFilter = (req: AuthenticatedRequest) => {
   const {
     startDate,
     endDate,
+    // lead type modified date
     leadType = [],
     finalConversionType =[], // related to yellow lead table
     course = [],
