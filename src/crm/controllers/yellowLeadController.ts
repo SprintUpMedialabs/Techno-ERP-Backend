@@ -12,17 +12,21 @@ import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest
 
 export const createYellowLead = async (leadData: ILead) => {
 
+  // need to add field LTC it will come from leadData
+    // here date field shows the date which we read from spread sheet.
   const yellowLead: IYellowLead = {
     date: leadData.date,
     name: leadData.name,
     phoneNumber: leadData.phoneNumber,
     email: leadData.email ?? '',
-    gender: Gender.MALE,
+    gender: Gender.MALE, // why MALE? need to be taken from leadData
     campusVisit: false,
-    nextCallDate: '',
+    nextCallDate: '', // it should be null!! type should be Date not string
     assignedTo: leadData.assignedTo
   };
 
+  // this logic need to be changed
+    // as i discussed with you on voice not.
   if (leadData.nextDueDate) {
     yellowLead.nextCallDate = convertToMongoDate(leadData.nextDueDate);
   }
@@ -37,6 +41,7 @@ export const createYellowLead = async (leadData: ILead) => {
 
   const newYellowLead = await YellowLead.create(yellowLead);
 
+  // seems like this is not required so lets remove it.
   const responseData = {
     ...newYellowLead.toObject(),
     leadTypeChangeDate: convertToDDMMYYYY(newYellowLead.date as Date),

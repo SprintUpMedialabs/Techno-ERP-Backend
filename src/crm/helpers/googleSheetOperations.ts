@@ -45,6 +45,8 @@ export const updateStatusForMarketingSheet = async (newLastReadIndex: number) =>
     { new: true, upsert: true }
   );
 
+  // what we are doing here?
+    // TODO: understand this code From DISHA
   await sheetInstance.spreadsheets.batchUpdate({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
     requestBody: {

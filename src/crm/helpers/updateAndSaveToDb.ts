@@ -136,6 +136,8 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) =>
   }
 
   try {
+    // TODO: need to use SET here ( a one which we added at model level )
+      // means test here whether set is working or not with lean:false
     const data = await Lead.insertMany(dataToInsert, {
       ordered: false,
       throwOnValidationError: true

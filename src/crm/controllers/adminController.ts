@@ -67,7 +67,7 @@ export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedReque
     ]);
 
     const yellowLeadAnalytics = await YellowLead.aggregate([
-        { $match: query }, // Apply the same filters
+        { $match: query }, // in query we have issue
         {
             $group: {
                 _id: null,
