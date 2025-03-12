@@ -1,6 +1,7 @@
 import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
 import { FinalConversionType, LeadType, UserRoles } from '../../config/constants';
 import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
+import { OrderBy, SortableFields } from '../enums/sorting';
 import { IAllLeadFilter } from '../types/marketingSpreadsheet';
 
 //We need to add here one for LTC of yellow leads for allowing analytics of yellow leads table on that
@@ -8,13 +9,17 @@ export const parseFilter = (req: AuthenticatedRequest) => {
   const {
     startDate,
     endDate,
+    startLTCDate,
+    endLTCDate,
     leadType = [],
-    finalConversionType =[], // related to yellow lead table
+    finalConversionType = [], // related to yellow lead table
     course = [],
     location = [],
     assignedTo = [],
     page = 1,
     limit = 10,
+    sortBy,
+    orderBy = OrderBy.ASC,
     search = ''
   } = req.body;
 
@@ -25,12 +30,12 @@ export const parseFilter = (req: AuthenticatedRequest) => {
     finalConversionType,
     course,
     location,
-    assignedTo
+    assignedTo,
+    startLTCDate,
+    endLTCDate
   };
 
   const query: any = {};
-
-
 
   if (finalConversionType.length > 0) {
     query.finalConversion = { $in: filters.leadType };
@@ -39,7 +44,6 @@ export const parseFilter = (req: AuthenticatedRequest) => {
   if (leadType.length > 0) {
     query.leadType = { $in: filters.leadType };
   }
-
 
   if (filters.course.length > 0) {
     query.course = { $in: filters.course };
@@ -76,10 +80,27 @@ export const parseFilter = (req: AuthenticatedRequest) => {
     }
   }
 
+  if (filters.startLTCDate || filters.endLTCDate) {
+    query.date = {};
+    if (filters.startLTCDate) {
+      query.ltcDate.$gte = convertToMongoDate(filters.startLTCDate);
+    }
+    if (filters.endLTCDate) {
+      query.ltcDate.$lte = convertToMongoDate(filters.endLTCDate);
+    }
+  }
+
+
+  let sort: any = {};
+  if (sortBy === SortableFields.DATE || sortBy === SortableFields.NEXT_CALL_DATE) {
+    sort[sortBy] = orderBy === OrderBy.DESC ? -1 : 1;
+  }
+
   return {
     search: search,
     query: query,
     page: page,
-    limit: limit
+    limit: limit,
+    sort: sort
   };
 };

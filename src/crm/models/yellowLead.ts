@@ -1,7 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import { IYellowLead } from '../validators/yellowLead';
 import { Gender, FinalConversionType } from '../../config/constants';
-import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
+import { convertToDDMMYYYY, convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import createHttpError from 'http-errors';
 import logger from '../../config/logger';
 
@@ -30,6 +30,7 @@ const yellowLeadSchema = new Schema<IYellowLeadDocument>(
     location: { type: String },
     course: { type: String },
     campusVisit: { type: Boolean, default: false },
+    ltcDate: { type: Date},
     nextCallDate: { type: Date },
     finalConversion: { type: String, enum: Object.values(FinalConversionType) },
     remarks: { type: String }
@@ -68,5 +69,20 @@ yellowLeadSchema.post('findOneAndUpdate', function (error: any, doc: any, next: 
 yellowLeadSchema.post('findOne', function (error: any, doc: any, next: Function) {
   handleMongooseError(error, next);
 });
+
+
+const transformDates = (_: any, ret: any) => {
+  logger.debug("we are here");
+  ['ltcDate', 'nextDueDate', 'date'].forEach((key) => {
+    if (ret[key]) {
+      ret[key] = convertToDDMMYYYY(ret[key]);
+    }
+  });
+  return ret;
+};
+
+yellowLeadSchema.set('toJSON', { transform: transformDates });
+yellowLeadSchema.set('toObject', { transform: transformDates });
+
 
 export const YellowLead = mongoose.model<IYellowLeadDocument>('YellowLead', yellowLeadSchema);

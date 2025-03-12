@@ -22,25 +22,8 @@ export const uploadData = expressAsyncHandler(async (_: AuthenticatedRequest, re
 
 export const getFilteredLeadData = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
+    const { query, search, page, limit, sort } = parseFilter(req);
 
-    const { query, search, page, limit } = parseFilter(req);
-
-    // TODO: test properly whether its working as our expection or not
-    // Test-1: lets say we have name: Disha in one row and Disha-1 in another row
-    // when i find based on name Disha it should give me both
-    // now i apply filter such that Disha-1 should not get filterd out and search is still there  
-    // check this sitution 
-    // expection is only one record should be there 
-    
-    //=> When we use search for "Disha", we get 2 entries and when we search "Disha-1", we get only single entry.  
-    
-    
-    // basically check whether our filter and search is working as and operation. it should be AND condition and not OR.
-    // Test-2: search based on the mobile number
-    // i found few issue there from postman i got error while seraching based on the mobile number 
-
-    //=> Remove +91 from beginning while search and it will work well, eg :  "search" : "9172983210"
-    
     if (search.trim()) {
       query.$and = [
         ...(query.$and || []), // Preserve existing AND conditions if any
@@ -55,8 +38,14 @@ export const getFilteredLeadData = expressAsyncHandler(
 
     const skip = (page - 1) * limit;
 
-    // Fetch Leads from Database
-    const leads = await Lead.find(query).skip(skip).limit(limit)
+    let leadsQuery = Lead.find(query);
+
+    if (Object.keys(sort).length > 0) {
+      console.log("Sort is : ", sort)
+      leadsQuery = leadsQuery.sort(sort);
+    }
+
+    const leads = await leadsQuery.skip(skip).limit(limit);
 
     const totalLeads = await Lead.countDocuments(query);
 
@@ -71,7 +60,6 @@ export const getFilteredLeadData = expressAsyncHandler(
 
 export const getAllLeadAnalytics = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
-
     const { query } = parseFilter(req);
 
     // 🔹 Running Aggregate Pipeline
@@ -109,7 +97,6 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
   const existingLead = await Lead.findById(leadRequestData._id);
 
   if (existingLead) {
-
     if (existingLead.leadType === LeadType.YELLOW) {
       throw createHttpError(
         400,
@@ -119,10 +106,14 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
     let leadTypeModifiedDate = existingLead.leadTypeModifiedDate;
 
     // check here whether all set is working as expected or not.
-    const updatedData = await Lead.findByIdAndUpdate(existingLead._id, { ...leadRequestData, leadTypeModifiedDate }, {
-      new: true,
-      runValidators: true
-    }).lean();
+    const updatedData = await Lead.findByIdAndUpdate(
+      existingLead._id,
+      { ...leadRequestData, leadTypeModifiedDate },
+      {
+        new: true,
+        runValidators: true
+      }
+    ).lean();
 
     if (leadRequestData.leadType && existingLead.leadType != leadRequestData.leadType) {
       if (leadRequestData.leadType === LeadType.YELLOW) {
@@ -136,10 +127,9 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
     const transformedData = new Lead(updatedData).toJSON();
 
     // here toJSON is not working as expected. check why is it so?
-    // is there any other way to do this converstion? if yes then should we use that or not? => Discussion in meeting
+    // is there any other way to do this converstion? if yes then should we use that or not? => Got fixed by creating JSON object from plain object.
     res.status(200).json({ message: 'Data Updated Successfully!', data: transformedData });
-  }
-  else {
+  } else {
     throw createHttpError(404, 'Lead does not found with the given ID.');
   }
 });

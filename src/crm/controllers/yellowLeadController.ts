@@ -11,33 +11,30 @@ import { ILead } from '../validators/leads';
 import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
 
 export const createYellowLead = async (leadData: ILead) => {
-    // need to add field LTC it will come from leadData
-    // here date field shows the date which we read from spread sheet.  => LTC will be the one where 
+
   const yellowLead: IYellowLead = {
     date: leadData.date,
     name: leadData.name,
     phoneNumber: leadData.phoneNumber,
     email: leadData.email ?? '',
-    gender: leadData.gender, // why MALE? need to be taken from leadData => It was by mistake, changed
+    gender: leadData.gender,
     campusVisit: false,
-    nextCallDate: '', // it should be null!! type should be Date not string
-    assignedTo: leadData.assignedTo
+    nextCallDate: '',
+    assignedTo: leadData.assignedTo,
+    ltcDate: new Date()
   };
 
   // this logic need to be changed
-    // as i discussed with you on voice not. => Changed
+  // as i discussed with you on voice not. => Changed
   if (leadData.nextDueDate) {
     if (convertToMongoDate(leadData.nextDueDate) > new Date()) {
       yellowLead.nextCallDate = convertToMongoDate(leadData.nextDueDate);
-    } 
-    else {
+    } else {
       yellowLead.nextCallDate = '';
     }
-  } 
-  else {
+  } else {
     yellowLead.nextCallDate = '';
   }
-
 
   const validation = yellowLeadSchema.safeParse(yellowLead);
   if (!validation.success) {
@@ -45,13 +42,6 @@ export const createYellowLead = async (leadData: ILead) => {
   }
 
   const newYellowLead = await YellowLead.create(yellowLead);
-
-  // seems like this is not required so lets remove it. => Agreed
-  // const responseData = {
-  //   ...newYellowLead.toObject(),
-  //   leadTypeChangeDate: convertToDDMMYYYY(newYellowLead.date as Date),
-  //   nextCallDate: convertToDDMMYYYY(newYellowLead.nextCallDate as Date)
-  // };
 
   logger.info('Yellow lead object created successfully');
 };
@@ -86,43 +76,10 @@ export const updateYellowLead = expressAsyncHandler(async (req: Request, res: Re
   });
 });
 
-// export const getFilteredYellowLeads = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-
-//   const parsedFilter = parseFilter(req);
-//   const filter = parsedFilter.query;
-//   const search = parsedFilter.search;
-//   const page = parsedFilter.page;
-//   const limit = parsedFilter.limit;
-
-//   const pageNumber = parseInt(page as string, 10);
-//   const limitNumber = parseInt(limit as string, 10);
-//   const skip = (pageNumber - 1) * limitNumber;
-
-//   const [leads, totalLeads] = await Promise.all([
-//     YellowLead.find(filter).skip(skip).limit(limitNumber),
-//     YellowLead.countDocuments(filter)
-//   ]);
-
-//   const formattedLeads = leads.map((lead) => ({
-//     ...lead.toObject(),
-//     leadTypeChangeDate: convertToDDMMYYYY(lead.leadTypeChangeDate as Date),
-//     nextCallDate: convertToDDMMYYYY(lead.nextCallDate as Date)
-//   }));
-
-//   res.status(200).json({
-//     message: 'Filtered yellow leads fetched successfully.',
-//     data: {
-//       leads: formattedLeads,
-//       totalLeads,
-//       totalPages: Math.ceil(totalLeads / limitNumber),
-//       currentPage: pageNumber
-//     }
-//   });
-// });
 
 export const getFilteredYellowLeads = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
-    const { query, search, page, limit } = parseFilter(req);
+    const { query, search, page, limit, sort } = parseFilter(req);
 
     if (search.trim()) {
       query.$and = [
@@ -138,13 +95,19 @@ export const getFilteredYellowLeads = expressAsyncHandler(
 
     const skip = (page - 1) * limit;
 
-    // Fetch Leads from Database
-    const leads = await YellowLead.find(query).skip(skip).limit(limit).lean();
+    let leadsQuery = YellowLead.find(query);
+
+    if (Object.keys(sort).length > 0) {
+      console.log('Sort is : ', sort);
+      leadsQuery = leadsQuery.sort(sort);
+    }
+
+    const yellowLeads = await leadsQuery.skip(skip).limit(limit);
 
     const totalLeads = await YellowLead.countDocuments(query);
 
     res.status(200).json({
-      leads,
+      yellowLeads,
       total: totalLeads,
       totalPages: Math.ceil(totalLeads / limit),
       currentPage: page

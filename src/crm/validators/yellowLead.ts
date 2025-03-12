@@ -20,6 +20,7 @@ export const yellowLeadSchema = z.object({
   location: z.string().optional(),
   course: z.string().optional(),
   campusVisit: z.boolean().default(false),
+  ltcDate : z.date(),
   nextCallDate: z.union([
     z.string().regex(/^\d{2}\/\d{2}\/\d{4}$/, 'Invalid date format, expected DD/MM/YYYY'),
     z.date()
