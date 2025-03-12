@@ -19,7 +19,6 @@ export const yellowLeadSchema = z
     location: z.string().optional(),
     course: z.nativeEnum(CourseType).optional(),
     campusVisit: z.boolean().default(false),
-    ltcDate: z.date(),
     nextDueDate: z.date().optional(),
     finalConversion: z.nativeEnum(FinalConversionType).optional(),
     remarks: z.string().optional()

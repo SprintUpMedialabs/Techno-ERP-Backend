@@ -1,19 +1,19 @@
 import { Request, Response } from 'express';
 import expressAsyncHandler from 'express-async-handler';
+import createHttpError from 'http-errors';
+import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
+import { FinalConversionType } from '../../config/constants';
+import logger from '../../config/logger';
+import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
+import { parseFilter } from '../helpers/parseFilter';
+import { YellowLead } from '../models/yellowLead';
+import { ILead } from '../validators/leads';
 import {
-  yellowLeadSchema,
   IYellowLead,
   IYellowLeadUpdate,
+  yellowLeadSchema,
   yellowLeadUpdateSchema
 } from '../validators/yellowLead';
-import { YellowLead } from '../models/yellowLead';
-import { FinalConversionType, Gender } from '../../config/constants';
-import logger from '../../config/logger';
-import createHttpError from 'http-errors';
-import { convertToDDMMYYYY, convertToMongoDate } from '../../utils/convertDateToFormatedDate';
-import { parseFilter } from '../helpers/parseFilter';
-import { ILead } from '../validators/leads';
-import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
 
 export const createYellowLead = async (leadData: ILead) => {
   const yellowLead: IYellowLead = {
@@ -24,7 +24,6 @@ export const createYellowLead = async (leadData: ILead) => {
     gender: leadData.gender,
     campusVisit: false,
     assignedTo: leadData.assignedTo,
-    ltcDate: new Date()
   };
 
   if (leadData.nextDueDate && convertToMongoDate(leadData.nextDueDate) > new Date()) {
@@ -44,19 +43,14 @@ export const createYellowLead = async (leadData: ILead) => {
 };
 
 export const updateYellowLead = expressAsyncHandler(async (req: Request, res: Response) => {
-  const { _id } = req.body;
-  // IYellow
-  // sql injection
-  //
-
   const updateData: IYellowLeadUpdate = req.body;
 
   const validation = yellowLeadUpdateSchema.safeParse(updateData);
   if (!validation.success) {
-    throw createHttpError(400, validation.error.errors.map((error) => error.message).join(', '));
+    throw createHttpError(400, validation.error.errors[0]);
   }
 
-  const updatedYellowLead = await YellowLead.findByIdAndUpdate(_id, updateData, {
+  const updatedYellowLead = await YellowLead.findByIdAndUpdate(updateData._id, updateData, {
     new: true,
     runValidators: true
   });
@@ -97,7 +91,6 @@ export const getFilteredYellowLeads = expressAsyncHandler(
     let leadsQuery = YellowLead.find(query);
 
     if (Object.keys(sort).length > 0) {
-      console.log('Sort is : ', sort);
       leadsQuery = leadsQuery.sort(sort);
     }
 
@@ -160,11 +153,11 @@ export const getYellowLeadsAnalytics = expressAsyncHandler(async (req: Request, 
     analytics.length > 0
       ? analytics[0]
       : {
-          allLeadsCount: 0,
-          campusVisitTrueCount: 0,
-          activeYellowLeadsCount: 0,
-          deadLeadCount: 0
-        };
+        allLeadsCount: 0,
+        campusVisitTrueCount: 0,
+        activeYellowLeadsCount: 0,
+        deadLeadCount: 0
+      };
 
   res.status(200).json({
     message: 'Yellow leads analytics fetched successfully.',
