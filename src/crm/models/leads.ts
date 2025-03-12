@@ -5,17 +5,15 @@ import logger from '../../config/logger';
 import { convertToDDMMYYYY, convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import { ILead } from '../validators/leads';
 
-export interface ILeadDocument extends ILead, Document { }
+export interface ILeadDocument extends ILead, Document {}
 
 const leadSchema = new Schema<ILeadDocument>(
   {
-    // srNo: { type: Number, required: [true, 'Serial Number is required'] },
-
     // Change format to DD/MM/YYYY and add error message
     date: {
       type: Date,
       required: [true, 'Date is required'],
-      set: (value:string)=> convertToMongoDate(value)
+      set: (value: string) => convertToMongoDate(value)
     },
 
     source: { type: String },
@@ -80,10 +78,10 @@ const leadSchema = new Schema<ILeadDocument>(
 
     nextDueDate: {
       type: Date,
-      set: (value:string)=>{
+      set: (value: string) => {
         console.log(value);
         return convertToMongoDate(value);
-      } 
+      }
     }
   },
   { timestamps: true }
@@ -112,7 +110,6 @@ leadSchema.post('findOneAndUpdate', function (error: any, doc: any, next: Functi
 });
 
 const transformDates = (_: any, ret: any) => {
-  logger.debug("we are here");
   ['leadTypeModifiedDate', 'nextDueDate', 'date'].forEach((key) => {
     if (ret[key]) {
       ret[key] = convertToDDMMYYYY(ret[key]);
@@ -123,6 +120,5 @@ const transformDates = (_: any, ret: any) => {
 
 leadSchema.set('toJSON', { transform: transformDates });
 leadSchema.set('toObject', { transform: transformDates });
-
 
 export const Lead = mongoose.model<ILeadDocument>('Lead', leadSchema);

@@ -1,5 +1,5 @@
 import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
-import { FinalConversionType, LeadType, UserRoles } from '../../config/constants';
+import { UserRoles } from '../../config/constants';
 import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import { OrderBy, SortableFields } from '../enums/sorting';
 import { IAllLeadFilter } from '../types/marketingSpreadsheet';

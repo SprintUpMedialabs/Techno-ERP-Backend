@@ -45,9 +45,10 @@ export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedReque
         query.assignedTo = { $in: filters.assignedTo };
     }
 
-    if (filters.source.length > 0) {
-        query.source = { $in: filters.source }
-    }
+    // TODO: will discuss this in future and apply it here
+    // if (filters.source.length > 0) {
+    //     query.source = { $in: filters.source }
+    // }
 
     const allLeadAnalytics = await Lead.aggregate([
         { $match: query }, // Apply Filters

@@ -140,7 +140,7 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) =>
       // means test here whether set is working or not with lean:false
     const data = await Lead.insertMany(dataToInsert, {
       ordered: false,
-      throwOnValidationError: true
+      throwOnValidationError: true,
     });
     report.actullyProcessedRows = data.length;
   }

@@ -26,10 +26,10 @@ export const getFilteredLeadData = expressAsyncHandler(
 
     if (search.trim()) {
       query.$and = [
-        ...(query.$and || []), // Preserve existing AND conditions if any
+        ...(query.$and || []),
         {
           $or: [
-            { name: { $regex: search, $options: 'i' } }, // Case-insensitive search
+            { name: { $regex: search, $options: 'i' } },
             { phoneNumber: { $regex: search, $options: 'i' } }
           ]
         }
@@ -41,7 +41,7 @@ export const getFilteredLeadData = expressAsyncHandler(
     let leadsQuery = Lead.find(query);
 
     if (Object.keys(sort).length > 0) {
-      console.log("Sort is : ", sort)
+      // console.log("Sort is : ", sort)
       leadsQuery = leadsQuery.sort(sort);
     }
 
@@ -105,7 +105,6 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
     }
     let leadTypeModifiedDate = existingLead.leadTypeModifiedDate;
 
-    // check here whether all set is working as expected or not.
     const updatedData = await Lead.findByIdAndUpdate(
       existingLead._id,
       { ...leadRequestData, leadTypeModifiedDate },

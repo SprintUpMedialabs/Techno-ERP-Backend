@@ -3,6 +3,7 @@ import logger from '../../config/logger';
 import { SpreadSheetMetaData } from '../models/spreadSheet';
 import { googleAuth } from './googleAuth';
 import { MARKETING_SHEET_ID } from '../../secrets';
+import { MARKETING_SHEET } from '../../config/constants';
 
 // TODO: what if google api is down? we will focus on this on phase - 2
 
@@ -40,13 +41,11 @@ export const updateStatusForMarketingSheet = async (newLastReadIndex: number) =>
   const sheetInstance = google.sheets({ version: 'v4', auth: googleAuth });
 
   await SpreadSheetMetaData.findOneAndUpdate(
-    { name: 'Marketing Sheet' },
+    { name: MARKETING_SHEET },
     { $set: { lastIdxMarketingSheet: newLastReadIndex } },
     { new: true, upsert: true }
   );
 
-  // what we are doing here?
-    // TODO: understand this code From DISHA => Basically this piece of code searches the lines  in sheet page where we are supposed to change color 
   await sheetInstance.spreadsheets.batchUpdate({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
     requestBody: {

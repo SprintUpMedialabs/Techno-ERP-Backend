@@ -1,6 +1,11 @@
 import { Request, Response } from 'express';
 import expressAsyncHandler from 'express-async-handler';
-import { yellowLeadSchema, IYellowLead } from '../validators/yellowLead';
+import {
+  yellowLeadSchema,
+  IYellowLead,
+  IYellowLeadUpdate,
+  yellowLeadUpdateSchema
+} from '../validators/yellowLead';
 import { YellowLead } from '../models/yellowLead';
 import { FinalConversionType, Gender } from '../../config/constants';
 import logger from '../../config/logger';
@@ -19,51 +24,53 @@ export const createYellowLead = async (leadData: ILead) => {
     email: leadData.email ?? '',
     gender: leadData.gender,
     campusVisit: false,
-    nextCallDate: '',
     assignedTo: leadData.assignedTo,
     ltcDate: new Date()
   };
 
-  // this logic need to be changed
-  // as i discussed with you on voice not. => Changed
-  if (leadData.nextDueDate) {
-    if (convertToMongoDate(leadData.nextDueDate) > new Date()) {
-      yellowLead.nextCallDate = convertToMongoDate(leadData.nextDueDate);
-    } else {
-      yellowLead.nextCallDate = '';
-    }
+  if (leadData.nextDueDate && convertToMongoDate(leadData.nextDueDate) > new Date()) {
+    yellowLead.nextCallDate = convertToMongoDate(leadData.nextDueDate);
   } else {
-    yellowLead.nextCallDate = '';
+    yellowLead.nextCallDate = undefined;
   }
 
   const validation = yellowLeadSchema.safeParse(yellowLead);
   if (!validation.success) {
-    throw createHttpError(400, { error: validation.error.errors[0] });
+    throw createHttpError(400, validation.error.errors[0]);
   }
 
-  const newYellowLead = await YellowLead.create(yellowLead);
+  await YellowLead.create(yellowLead);
 
   logger.info('Yellow lead object created successfully');
 };
 
 export const updateYellowLead = expressAsyncHandler(async (req: Request, res: Response) => {
-  const { _id } = req.body;
-  const updateData: Partial<IYellowLead> = req.body;
+  const { _id, ...restData } = req.body;
+  // IYellow
+  // sql injection
+  //
 
-  updateData.date = convertToMongoDate(updateData.date as string);
-  updateData.nextCallDate = convertToMongoDate(updateData.nextCallDate as string);
-
-  const validation = yellowLeadSchema.partial().safeParse(updateData);
-  if (!validation.success) {
-    throw createHttpError(400, { error: validation.error.errors[0] });
+  if (!_id) { // RTODO: it should be parsed from zod only
+    throw createHttpError(404, 'Please send _id');
   }
 
-  const updatedYellowLead = await YellowLead.findByIdAndUpdate(_id, updateData, { new: true });
+  const updateData: Partial<IYellowLeadUpdate> = restData; // RTODO: why still partial?
 
-  if (!updatedYellowLead) {
+  const validation = yellowLeadUpdateSchema.partial().safeParse(updateData);
+  if (!validation.success) {
+    throw createHttpError(400, validation.error.errors.map((error) => error.message).join(', '));
+  }
+
+  const updatedYellowLead = await YellowLead.findByIdAndUpdate(_id, updateData, {
+    new: true,
+    runValidators: true
+  });
+
+  if (!updatedYellowLead) { // RTODO: do you think that this is possible?
     throw createHttpError(404, 'Yellow lead not found.');
   }
 
+  // RTODO: will use toJSON and toObject here
   const responseData = {
     ...updatedYellowLead.toObject(),
     leadTypeChangeDate: convertToDDMMYYYY(updatedYellowLead.date as Date),
