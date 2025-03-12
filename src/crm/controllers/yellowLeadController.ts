@@ -27,7 +27,7 @@ export const createYellowLead = async (leadData: ILead) => {
   };
 
   if (leadData.nextDueDate && convertToMongoDate(leadData.nextDueDate) > new Date()) {
-    yellowLead.nextCallDate = convertToMongoDate(leadData.nextDueDate); // TODO
+    yellowLead.nextCallDate = convertToMongoDate(leadData.nextDueDate);
   } else {
     yellowLead.nextCallDate = undefined;
   }
