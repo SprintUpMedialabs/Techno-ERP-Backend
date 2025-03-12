@@ -17,7 +17,7 @@ export const readFromGoogleSheet = async () => {
 
   const range = `${process.env.GOOGLE_SHEET_PAGE}!A${lastSavedIndex + 1}:Z`;
   const sheetResponse = await sheetInstance.spreadsheets.values.get({
-    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    spreadsheetId: process.env.MARKETING_SHEET_ID,
     range
   });
 
@@ -46,7 +46,7 @@ export const updateStatusForMarketingSheet = async (newLastReadIndex: number) =>
   );
 
   await sheetInstance.spreadsheets.batchUpdate({
-    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    spreadsheetId: process.env.MARKETING_SHEET_ID,
     requestBody: {
       requests: [
         {

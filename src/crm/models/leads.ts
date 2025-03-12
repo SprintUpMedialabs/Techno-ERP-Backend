@@ -121,4 +121,32 @@ const transformDates = (_: any, ret: any) => {
 leadSchema.set('toJSON', { transform: transformDates });
 leadSchema.set('toObject', { transform: transformDates });
 
+leadSchema.pre('insertMany', function (next, docs) {
+  console.log("we are here");
+  // docs.forEach(doc => {
+  //   doc.createdAt = new Date(); // Modify documents before insertion
+  // });
+  next();
+});
+
+leadSchema.pre('save', async function (next:Function) {
+  console.log("we are here");
+  // docs.forEach(doc => {
+  //   doc.createdAt = new Date(); // Modify documents before insertion
+  // });
+  next();
+});
+
+// userSchema.pre<IUserDocument>('save', async function (next: Function) {
+//   if (!this.isModified('password')) return next(); // Only hash if password is modified
+
+//   try {
+//     const saltRounds = 10;
+//     this.password = await bcrypt.hash(this.password!, saltRounds);
+//     next();
+//   } catch (error) {
+//     next(error);
+//   }
+// });
+
 export const Lead = mongoose.model<ILeadDocument>('Lead', leadSchema);

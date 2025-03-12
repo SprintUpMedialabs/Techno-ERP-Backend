@@ -122,27 +122,36 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) =>
     assignedToNotFound: [],
     emptyRows: []
   };
-
+  console.log(latestData);
   const dataToInsert = await leadsToBeInserted(latestData, report, lastSavedIndex);
-
+  console.log(dataToInsert);
   if (!dataToInsert || dataToInsert.length === 0) {
     if (report.rowsFailed != 0) {
-      sendEmail(LEAD_MARKETING_EMAIL, 'Lead Processing Report', formatReport(report));
+      // sendEmail(LEAD_MARKETING_EMAIL, 'Lead Processing Report', formatReport(report));
       logger.info('Error report sent to Lead!');
     }
     logger.info('No valid data to insert.');
-    updateStatusForMarketingSheet(lastSavedIndex + latestData.length);
+    // updateStatusForMarketingSheet(lastSavedIndex + latestData.length);
     return;
   }
 
   try {
     // TODO: need to use SET here ( a one which we added at model level )
-      // means test here whether set is working or not with lean:false
-    const data = await Lead.insertMany(dataToInsert, {
-      ordered: false,
-      throwOnValidationError: true,
-    });
-    report.actullyProcessedRows = data.length;
+    // means test here whether set is working or not with lean:false
+    const insertLeads = async (dataToInsert:any) => {
+      console.log(dataToInsert)
+      for (const data of dataToInsert) {
+        const lead = new Lead(data); // Create a new document
+        logger.debug("here we are")
+        await lead.save(); // This triggers `pre('save')`
+      }
+    };
+
+    // const data = await Lead.insertMany(dataToInsert, {
+    //   // ordered: false,
+    //   throwOnValidationError: true,
+    // });
+    // report.actullyProcessedRows = data.length;
   }
   catch (error: any) {
 
@@ -159,9 +168,9 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) =>
   }
 
   if (report.rowsFailed != 0) {
-    sendEmail(LEAD_MARKETING_EMAIL, 'Lead Processing Report', formatReport(report));
+    // sendEmail(LEAD_MARKETING_EMAIL, 'Lead Processing Report', formatReport(report));
     logger.info('Error report sent to Lead!');
   }
 
-  updateStatusForMarketingSheet(lastSavedIndex + latestData.length);
+  // updateStatusForMarketingSheet(lastSavedIndex + latestData.length);
 };

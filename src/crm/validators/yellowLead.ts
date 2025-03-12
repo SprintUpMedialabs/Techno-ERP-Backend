@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { Gender, FinalConversionType, CourseType } from '../../config/constants';
+import { objectIdSchema } from '../../validators/objectIdSchema';
 
 export const yellowLeadSchema = z
   .object({
