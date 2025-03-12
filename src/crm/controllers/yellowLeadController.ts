@@ -29,9 +29,9 @@ export const createYellowLead = async (leadData: ILead) => {
   };
 
   if (leadData.nextDueDate && convertToMongoDate(leadData.nextDueDate) > new Date()) {
-    yellowLead.nextCallDate = convertToMongoDate(leadData.nextDueDate);
+    yellowLead.nextDueDate = convertToMongoDate(leadData.nextDueDate);
   } else {
-    yellowLead.nextCallDate = undefined;
+    yellowLead.nextDueDate = undefined;
   }
 
   const validation = yellowLeadSchema.safeParse(yellowLead);
@@ -74,7 +74,7 @@ export const updateYellowLead = expressAsyncHandler(async (req: Request, res: Re
   const responseData = {
     ...updatedYellowLead.toObject(),
     leadTypeChangeDate: convertToDDMMYYYY(updatedYellowLead.date as Date),
-    nextCallDate: convertToDDMMYYYY(updatedYellowLead.nextCallDate as Date)
+    nextCallDate: convertToDDMMYYYY(updatedYellowLead.nextDueDate as Date)
   };
 
   res.status(200).json({

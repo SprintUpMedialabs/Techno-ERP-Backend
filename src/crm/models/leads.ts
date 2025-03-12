@@ -1,5 +1,5 @@
 import createHttpError from 'http-errors';
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Document, HydratedDocument, Schema } from 'mongoose';
 import { Gender, LeadType } from '../../config/constants';
 import logger from '../../config/logger';
 import { convertToDDMMYYYY, convertToMongoDate } from '../../utils/convertDateToFormatedDate';
@@ -13,7 +13,7 @@ const leadSchema = new Schema<ILeadDocument>(
     date: {
       type: Date,
       required: [true, 'Date is required'],
-      set: (value: string) => convertToMongoDate(value)
+      // set: (value: string) => { return convertToMongoDate(value) }
     },
 
     source: { type: String },
@@ -117,6 +117,16 @@ const transformDates = (_: any, ret: any) => {
   });
   return ret;
 };
+
+leadSchema.pre('save', function (this: HydratedDocument<ILead>, next: () => void) {
+  console.log("In pre save hook");
+  if (this.date) {
+    this.date = convertToMongoDate(this.date.toString());
+  }
+  next();
+});
+
+
 
 leadSchema.set('toJSON', { transform: transformDates });
 leadSchema.set('toObject', { transform: transformDates });

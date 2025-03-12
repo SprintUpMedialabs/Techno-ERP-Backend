@@ -12,7 +12,7 @@ const yellowLeadSchema = new Schema<IYellowLeadDocument>(
     date: {
       type: Date,
       required: [true, 'Lead Type Change Date is required'],
-      set: (value: string) => convertToMongoDate(value)
+      $set: (value: string) => convertToMongoDate(value)
     },
     name: { type: String, required: [true, 'Name is required'] },
     phoneNumber: {
@@ -37,22 +37,23 @@ const yellowLeadSchema = new Schema<IYellowLeadDocument>(
     course: { type: String },
     campusVisit: { type: Boolean, default: false },
     ltcDate: { type: Date},
-    nextCallDate: { type: Date },
+    nextDueDate: { type: Date },
     finalConversion: { type: String, enum: Object.values(FinalConversionType) },
     remarks: { type: String }
   },
   { timestamps: true }
 );
 
-yellowLeadSchema.pre<IYellowLeadDocument>('save', function (next) {
-  if (typeof this.date === 'string') {
-    this.date = convertToMongoDate(this.date);
-  }
-  if (typeof this.nextCallDate === 'string') {
-    this.nextCallDate = convertToMongoDate(this.nextCallDate);
-  }
-  next();
-});
+//NOT NEEDED AS WE WILL USE TOJSON AND TOOBJECT
+// yellowLeadSchema.pre<IYellowLeadDocument>('save', function (next) {
+//   if (typeof this.date === 'string') {
+//     this.date = convertToMongoDate(this.date);
+//   }
+//   if (typeof this.nextDueDate === 'string') {
+//     this.nextDueDate = convertToMongoDate(this.nextDueDate);
+//   }
+//   next();
+// });
 
 const handleMongooseError = (error: any, next: Function) => {
   logger.error(error);

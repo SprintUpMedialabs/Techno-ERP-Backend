@@ -81,8 +81,10 @@ export const parseFilter = (req: AuthenticatedRequest) => {
   }
 
   if (filters.startLTCDate || filters.endLTCDate) {
-    query.date = {};
+    query.ltcDate = {};
     if (filters.startLTCDate) {
+
+      console.log(filters.startLTCDate);
       query.ltcDate.$gte = convertToMongoDate(filters.startLTCDate);
     }
     if (filters.endLTCDate) {
@@ -90,9 +92,11 @@ export const parseFilter = (req: AuthenticatedRequest) => {
     }
   }
 
+  console.log("Query is : ", query)
+
 
   let sort: any = {};
-  if (sortBy === SortableFields.DATE || sortBy === SortableFields.NEXT_CALL_DATE) {
+  if (sortBy === SortableFields.DATE || sortBy === SortableFields.NEXT_DUE_DATE) {
     sort[sortBy] = orderBy === OrderBy.DESC ? -1 : 1;
   }
 

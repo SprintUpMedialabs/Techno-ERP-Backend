@@ -19,7 +19,7 @@ export const yellowLeadSchema = z
     course: z.nativeEnum(CourseType).optional(),
     campusVisit: z.boolean().default(false),
     ltcDate: z.date(),
-    nextCallDate: z.date().optional(),
+    nextDueDate: z.date().optional(),
     finalConversion: z.nativeEnum(FinalConversionType).optional(),
     remarks: z.string().optional()
   })
@@ -41,7 +41,7 @@ export const yellowLeadUpdateSchema = z
     location: z.string().optional(),
     course: z.nativeEnum(CourseType).optional(),
     campusVisit: z.boolean().optional(),
-    nextCallDate: z
+    nextDueDate: z
       .string()
       .regex(/^\d{2}\/\d{2}\/\d{4}$/, 'Invalid nextCallDate date format, expected DD/MM/YYYY')
       .optional(),

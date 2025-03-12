@@ -1,6 +1,6 @@
 export const enum SortableFields {
   DATE = 'date',
-  NEXT_CALL_DATE = 'nextCallDate'
+  NEXT_DUE_DATE = 'nextDueDate'
 }
 
 export const enum OrderBy {

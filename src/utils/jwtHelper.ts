@@ -1,5 +1,6 @@
 import createHttpError from 'http-errors';
 import jwt, { SignOptions } from 'jsonwebtoken';
+import { JWT_SECRET } from '../secrets';
 
 /**
  * Generate a JWT token
@@ -8,7 +9,7 @@ import jwt, { SignOptions } from 'jsonwebtoken';
  * @returns Signed JWT token
  */
 export const createToken = (payload: object, options: SignOptions): string => {
-  return jwt.sign(payload, process.env.JWT_SECRET!, options);
+  return jwt.sign(payload, JWT_SECRET, options);
 };
 
 /**
@@ -18,7 +19,7 @@ export const createToken = (payload: object, options: SignOptions): string => {
  */
 export const verifyToken = (token: string): object | null => {
   try {
-    return jwt.verify(token, process.env.JWT_SECRET!) as object;
+    return jwt.verify(token, JWT_SECRET) as object;
   } catch (error: any) {
     throw createHttpError(400, 'Invalid token');
   }
