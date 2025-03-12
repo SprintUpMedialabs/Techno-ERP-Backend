@@ -1,6 +1,7 @@
 export const enum SortableFields {
   DATE = 'date',
-  NEXT_DUE_DATE = 'nextDueDate'
+  NEXT_DUE_DATE = 'nextDueDate',
+  LTC_DATE = 'startLTCDate'
 }
 
 export const enum OrderBy {

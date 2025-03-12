@@ -19,14 +19,14 @@ export interface IAllLeadFilter {
   endDate?: string; // Date range end
   leadType: LeadType[]; // Lead Type Enum
   finalConversionType: FinalConversionType[];
-  startLTCDate? : string;
-  endLTCDate? : string;
+  startLTCDate?: string;
+  endLTCDate?: string;
 }
 
 export interface IAdminAnalyticsFilter {
   location: string[]; // Array for multiple locations
   assignedTo: string[]; // Array for multiple assigned users
-  leadTypeChangeDateStart?: string; // Date range start
-  leadTypeChangeDateEnd?: string; // Date range end
-  source: []
+  startDate?: string; // Date range start
+  endDate?: string; // Date range end
+  source: [];
 }

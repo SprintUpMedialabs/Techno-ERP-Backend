@@ -28,6 +28,7 @@ export const yellowLeadSchema = z
 
 export const yellowLeadUpdateSchema = z
   .object({
+    _id: objectIdSchema,
     name: z.string().optional(),
     phoneNumber: z
       .string()
@@ -44,7 +45,7 @@ export const yellowLeadUpdateSchema = z
     campusVisit: z.boolean().optional(),
     nextDueDate: z
       .string()
-      .regex(/^\d{2}\/\d{2}\/\d{4}$/, 'Invalid nextCallDate date format, expected DD/MM/YYYY')
+      .regex(/^\d{2}\/\d{2}\/\d{4}$/, 'Invalid nextDueDate date format, expected DD/MM/YYYY')
       .optional(),
     finalConversion: z.nativeEnum(FinalConversionType).optional(),
     remarks: z.string().optional()

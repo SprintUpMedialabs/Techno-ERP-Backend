@@ -66,7 +66,7 @@ export const parseFilter = (req: AuthenticatedRequest) => {
     if (filters.assignedTo.length > 0) {
       query.assignedTo = { $in: filters.assignedTo };
     } else {
-      query.assignedTo = { $exists: true }; // Raxit take a look to this
+      query.assignedTo = { $exists: true };
     }
   }
 
@@ -83,7 +83,6 @@ export const parseFilter = (req: AuthenticatedRequest) => {
   if (filters.startLTCDate || filters.endLTCDate) {
     query.ltcDate = {};
     if (filters.startLTCDate) {
-
       console.log(filters.startLTCDate);
       query.ltcDate.$gte = convertToMongoDate(filters.startLTCDate);
     }
@@ -92,12 +91,11 @@ export const parseFilter = (req: AuthenticatedRequest) => {
     }
   }
 
-  console.log("Query is : ", query)
-
-
   let sort: any = {};
   if (sortBy === SortableFields.DATE || sortBy === SortableFields.NEXT_DUE_DATE) {
     sort[sortBy] = orderBy === OrderBy.DESC ? -1 : 1;
+  } else if (sortBy === SortableFields.LTC_DATE) {
+    sort['createdAt'] = orderBy === OrderBy.DESC ? -1 : 1;
   }
 
   return {
