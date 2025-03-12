@@ -10,8 +10,8 @@ import logger from '../../config/logger';
 
 export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const {
-        leadTypeChangeDateStart,
-        leadTypeChangeDateEnd,
+        startDate,
+        endDate,
         location = [],
         assignedTo = [],
         source = [],
@@ -20,8 +20,8 @@ export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedReque
     const query: any = {};
 
     const filters: IAdminAnalyticsFilter = {
-        leadTypeChangeDateStart,
-        leadTypeChangeDateEnd,
+        startDate,
+        endDate,
         location,
         assignedTo,
         source
@@ -31,13 +31,13 @@ export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedReque
         query.location = { $in: filters.location };
     }
 
-    if (filters.leadTypeChangeDateStart || filters.leadTypeChangeDateEnd) {
+    if (filters.startDate || filters.endDate) {
         query.date = {};
-        if (filters.leadTypeChangeDateStart) {
-            query.date.$gte = convertToMongoDate(filters.leadTypeChangeDateStart);
+        if (filters.startDate) {
+            query.date.$gte = convertToMongoDate(filters.startDate);
         }
-        if (filters.leadTypeChangeDateEnd) {
-            query.date.$lte = convertToMongoDate(filters.leadTypeChangeDateEnd);
+        if (filters.endDate) {
+            query.date.$lte = convertToMongoDate(filters.endDate);
         }
     }
 

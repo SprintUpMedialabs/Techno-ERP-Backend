@@ -16,7 +16,6 @@ import { ILead } from '../validators/leads';
 import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
 
 export const createYellowLead = async (leadData: ILead) => {
-
   const yellowLead: IYellowLead = {
     date: leadData.date,
     name: leadData.name,
@@ -45,18 +44,14 @@ export const createYellowLead = async (leadData: ILead) => {
 };
 
 export const updateYellowLead = expressAsyncHandler(async (req: Request, res: Response) => {
-  const { _id, ...restData } = req.body;
+  const { _id } = req.body;
   // IYellow
   // sql injection
   //
 
-  if (!_id) { // RTODO: it should be parsed from zod only
-    throw createHttpError(404, 'Please send _id');
-  }
+  const updateData: IYellowLeadUpdate = req.body;
 
-  const updateData: Partial<IYellowLeadUpdate> = restData; // RTODO: why still partial?
-
-  const validation = yellowLeadUpdateSchema.partial().safeParse(updateData);
+  const validation = yellowLeadUpdateSchema.safeParse(updateData);
   if (!validation.success) {
     throw createHttpError(400, validation.error.errors.map((error) => error.message).join(', '));
   }
@@ -66,15 +61,13 @@ export const updateYellowLead = expressAsyncHandler(async (req: Request, res: Re
     runValidators: true
   });
 
-  if (!updatedYellowLead) { // RTODO: do you think that this is possible?
+  if (!updatedYellowLead) {
     throw createHttpError(404, 'Yellow lead not found.');
   }
 
-  // RTODO: will use toJSON and toObject here
   const responseData = {
-    ...updatedYellowLead.toObject(),
-    leadTypeChangeDate: convertToDDMMYYYY(updatedYellowLead.date as Date),
-    nextCallDate: convertToDDMMYYYY(updatedYellowLead.nextDueDate as Date)
+    ...updatedYellowLead.toJSON(),
+    leadTypeChangeDate: updatedYellowLead.toJSON().date
   };
 
   res.status(200).json({
@@ -82,7 +75,6 @@ export const updateYellowLead = expressAsyncHandler(async (req: Request, res: Re
     data: responseData
   });
 });
-
 
 export const getFilteredYellowLeads = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
