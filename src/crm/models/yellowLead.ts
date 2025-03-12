@@ -5,18 +5,20 @@ import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import createHttpError from 'http-errors';
 import logger from '../../config/logger';
 
-export interface IYellowLeadDocument extends IYellowLead, Document { }
+export interface IYellowLeadDocument extends IYellowLead, Document {}
 
 const yellowLeadSchema = new Schema<IYellowLeadDocument>(
   {
     date: {
-      type: Date, required: [true, 'Lead Type Change Date is required'],
+      type: Date,
+      required: [true, 'Lead Type Change Date is required'],
       set: (value: string) => convertToMongoDate(value)
     },
     name: { type: String, required: [true, 'Name is required'] },
     phoneNumber: {
       type: String,
       required: [true, 'Phone no is required'],
+      unique: [true, 'Phone Number already exists'],
       match: [/^\+91\d{10}$/, 'Invalid contact number format. Expected: +911234567890']
     },
     altPhoneNumber: {
@@ -26,6 +28,7 @@ const yellowLeadSchema = new Schema<IYellowLeadDocument>(
     email: {
       type: String,
       required: [true, 'Email is required'],
+      unique: [true, 'Phone Number already exists'],
       match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Invalid email format']
     },
     gender: { type: String, enum: Object.values(Gender), default: Gender.NOT_TO_MENTION },
@@ -33,7 +36,7 @@ const yellowLeadSchema = new Schema<IYellowLeadDocument>(
     location: { type: String },
     course: { type: String },
     campusVisit: { type: Boolean, default: false },
-    nextCallDate: { type: Date },
+    nextCallDate: { type: Date, set: (value: string) => convertToMongoDate(value) },
     finalConversion: { type: String, enum: Object.values(FinalConversionType) },
     remarks: { type: String }
   },

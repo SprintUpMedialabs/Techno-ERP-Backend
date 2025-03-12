@@ -1,6 +1,11 @@
 import { Request, Response } from 'express';
 import expressAsyncHandler from 'express-async-handler';
-import { yellowLeadSchema, IYellowLead } from '../validators/yellowLead';
+import {
+  yellowLeadSchema,
+  IYellowLead,
+  IYellowLeadUpdate,
+  yellowLeadUpdateSchema
+} from '../validators/yellowLead';
 import { YellowLead } from '../models/yellowLead';
 import { FinalConversionType, Gender } from '../../config/constants';
 import logger from '../../config/logger';
@@ -21,21 +26,15 @@ export const createYellowLead = async (leadData: ILead) => {
     assignedTo: leadData.assignedTo
   };
 
-  if (leadData.nextDueDate) {
-    if (convertToMongoDate(leadData.nextDueDate) > new Date()) {
-      yellowLead.nextCallDate = convertToMongoDate(leadData.nextDueDate);
-    } 
-    else {
-      yellowLead.nextCallDate = undefined;
-    }
-  } 
-  else {
+  if (leadData.nextDueDate && convertToMongoDate(leadData.nextDueDate) > new Date()) {
+    yellowLead.nextCallDate = convertToMongoDate(leadData.nextDueDate); // TODO
+  } else {
     yellowLead.nextCallDate = undefined;
   }
 
   const validation = yellowLeadSchema.safeParse(yellowLead);
   if (!validation.success) {
-    throw createHttpError(400, { error: validation.error.errors[0] });
+    throw createHttpError(400, validation.error.errors[0]);
   }
 
   await YellowLead.create(yellowLead);
@@ -44,21 +43,26 @@ export const createYellowLead = async (leadData: ILead) => {
 };
 
 export const updateYellowLead = expressAsyncHandler(async (req: Request, res: Response) => {
-  const { _id } = req.body;
-  // IYellow 
+  const { _id, ...restData } = req.body;
+  // IYellow
   // sql injection
-  // 
-  const updateData: Partial<IYellowLead> = req.body;
+  //
 
-  // updateData.date = convertToMongoDate(updateData.date as string);
-  updateData.nextCallDate = convertToMongoDate(updateData.nextCallDate as string);
-
-  const validation = yellowLeadSchema.partial().safeParse(updateData);
-  if (!validation.success) {
-    throw createHttpError(400, { error: validation.error.errors[0] });
+  if (!_id) {
+    throw createHttpError(404, 'Please send _id');
   }
 
-  const updatedYellowLead = await YellowLead.findByIdAndUpdate(_id, updateData, { new: true ,runValidators:true});
+  const updateData: Partial<IYellowLeadUpdate> = restData;
+
+  const validation = yellowLeadUpdateSchema.partial().safeParse(updateData);
+  if (!validation.success) {
+    throw createHttpError(400, validation.error.errors.map((error) => error.message).join(', '));
+  }
+
+  const updatedYellowLead = await YellowLead.findByIdAndUpdate(_id, updateData, {
+    new: true,
+    runValidators: true
+  });
 
   if (!updatedYellowLead) {
     throw createHttpError(404, 'Yellow lead not found.');
