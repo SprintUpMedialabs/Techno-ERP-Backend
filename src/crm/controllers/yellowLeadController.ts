@@ -48,11 +48,11 @@ export const updateYellowLead = expressAsyncHandler(async (req: Request, res: Re
   // sql injection
   //
 
-  if (!_id) {
+  if (!_id) { // RTODO: it should be parsed from zod only
     throw createHttpError(404, 'Please send _id');
   }
 
-  const updateData: Partial<IYellowLeadUpdate> = restData;
+  const updateData: Partial<IYellowLeadUpdate> = restData; // RTODO: why still partial?
 
   const validation = yellowLeadUpdateSchema.partial().safeParse(updateData);
   if (!validation.success) {
@@ -64,10 +64,11 @@ export const updateYellowLead = expressAsyncHandler(async (req: Request, res: Re
     runValidators: true
   });
 
-  if (!updatedYellowLead) {
+  if (!updatedYellowLead) { // RTODO: do you think that this is possible?
     throw createHttpError(404, 'Yellow lead not found.');
   }
 
+  // RTODO: will use toJSON and toObject here
   const responseData = {
     ...updatedYellowLead.toObject(),
     leadTypeChangeDate: convertToDDMMYYYY(updatedYellowLead.date as Date),
@@ -132,6 +133,7 @@ export const getFilteredYellowLeads = expressAsyncHandler(
 
     const skip = (page - 1) * limit;
 
+    // RTODO: here need to use toJSON
     // Fetch Leads from Database
     const leads = await YellowLead.find(query).skip(skip).limit(limit).lean();
 

@@ -8,6 +8,7 @@ export const parseFilter = (req: AuthenticatedRequest) => {
   const {
     startDate,
     endDate,
+    // RTODO: here add leadTypeModifiedStartDate, leadTypeModifiedEndDate for yellow lead fillter will discuss this FIRST | which will apply filter on createdAt
     // lead type modified date
     leadType = [],
     finalConversionType =[], // related to yellow lead table
@@ -16,7 +17,7 @@ export const parseFilter = (req: AuthenticatedRequest) => {
     assignedTo = [],
     page = 1,
     limit = 10,
-    search = ''
+    search = '',
   } = req.body;
 
   const filters: IAllLeadFilter = {
@@ -31,8 +32,6 @@ export const parseFilter = (req: AuthenticatedRequest) => {
 
   const query: any = {};
 
-
-
   if (finalConversionType.length > 0) {
     query.finalConversion = { $in: filters.leadType };
   }
@@ -40,7 +39,6 @@ export const parseFilter = (req: AuthenticatedRequest) => {
   if (leadType.length > 0) {
     query.leadType = { $in: filters.leadType };
   }
-
 
   if (filters.course.length > 0) {
     query.course = { $in: filters.course };
