@@ -9,8 +9,8 @@ export const parseFilter = (req: AuthenticatedRequest) => {
   const {
     startDate,
     endDate,
-    startLTCDate,
-    endLTCDate,
+    startLTCDate,// related to yellow lead table
+    endLTCDate,// related to yellow lead table
     leadType = [],
     finalConversionType = [], // related to yellow lead table
     course = [],
@@ -80,14 +80,14 @@ export const parseFilter = (req: AuthenticatedRequest) => {
     }
   }
 
+  // TODO: need to test it.
   if (filters.startLTCDate || filters.endLTCDate) {
     query.ltcDate = {};
     if (filters.startLTCDate) {
-      console.log(filters.startLTCDate);
-      query.ltcDate.$gte = convertToMongoDate(filters.startLTCDate);
+      query.createdAt.$gte = convertToMongoDate(filters.startLTCDate);
     }
     if (filters.endLTCDate) {
-      query.ltcDate.$lte = convertToMongoDate(filters.endLTCDate);
+      query.createdAt.$lte = convertToMongoDate(filters.endLTCDate);
     }
   }
 

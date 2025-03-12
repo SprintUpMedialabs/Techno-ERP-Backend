@@ -79,7 +79,7 @@ yellowLeadSchema.post('findOne', function (error: any, doc: any, next: Function)
 
 const transformDates = (_: any, ret: any) => {
   logger.debug("we are here");
-  ['ltcDate', 'nextDueDate', 'date'].forEach((key) => {
+  ['ltcDate', 'nextDueDate', 'date','createdAt'].forEach((key) => {
     if (ret[key]) {
       ret[key] = convertToDDMMYYYY(ret[key]);
     }
