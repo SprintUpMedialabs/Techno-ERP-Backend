@@ -19,6 +19,8 @@ export interface IAllLeadFilter {
   endDate?: string; // Date range end
   leadType: LeadType[]; // Lead Type Enum
   finalConversionType: FinalConversionType[];
+  startLTCDate? : string;
+  endLTCDate? : string;
 }
 
 export interface IAdminAnalyticsFilter {

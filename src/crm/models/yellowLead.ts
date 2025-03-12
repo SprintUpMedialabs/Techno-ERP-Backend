@@ -1,7 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import { IYellowLead } from '../validators/yellowLead';
 import { Gender, FinalConversionType } from '../../config/constants';
-import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
+import { convertToDDMMYYYY, convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import createHttpError from 'http-errors';
 import logger from '../../config/logger';
 
@@ -12,7 +12,7 @@ const yellowLeadSchema = new Schema<IYellowLeadDocument>(
     date: {
       type: Date,
       required: [true, 'Lead Type Change Date is required'],
-      set: (value: string) => convertToMongoDate(value)
+      $set: (value: string) => convertToMongoDate(value)
     },
     name: { type: String, required: [true, 'Name is required'] },
     phoneNumber: {
@@ -36,22 +36,24 @@ const yellowLeadSchema = new Schema<IYellowLeadDocument>(
     location: { type: String },
     course: { type: String },
     campusVisit: { type: Boolean, default: false },
-    nextCallDate: { type: Date, set: (value: string) => convertToMongoDate(value) },
+    ltcDate: { type: Date},
+    nextDueDate: { type: Date },
     finalConversion: { type: String, enum: Object.values(FinalConversionType) },
     remarks: { type: String }
   },
   { timestamps: true }
 );
 
-yellowLeadSchema.pre<IYellowLeadDocument>('save', function (next) {
-  if (typeof this.date === 'string') {
-    this.date = convertToMongoDate(this.date);
-  }
-  if (typeof this.nextCallDate === 'string') {
-    this.nextCallDate = convertToMongoDate(this.nextCallDate);
-  }
-  next();
-});
+//NOT NEEDED AS WE WILL USE TOJSON AND TOOBJECT
+// yellowLeadSchema.pre<IYellowLeadDocument>('save', function (next) {
+//   if (typeof this.date === 'string') {
+//     this.date = convertToMongoDate(this.date);
+//   }
+//   if (typeof this.nextDueDate === 'string') {
+//     this.nextDueDate = convertToMongoDate(this.nextDueDate);
+//   }
+//   next();
+// });
 
 const handleMongooseError = (error: any, next: Function) => {
   logger.error(error);
@@ -74,5 +76,20 @@ yellowLeadSchema.post('findOneAndUpdate', function (error: any, doc: any, next: 
 yellowLeadSchema.post('findOne', function (error: any, doc: any, next: Function) {
   handleMongooseError(error, next);
 });
+
+
+const transformDates = (_: any, ret: any) => {
+  logger.debug("we are here");
+  ['ltcDate', 'nextDueDate', 'date'].forEach((key) => {
+    if (ret[key]) {
+      ret[key] = convertToDDMMYYYY(ret[key]);
+    }
+  });
+  return ret;
+};
+
+yellowLeadSchema.set('toJSON', { transform: transformDates });
+yellowLeadSchema.set('toObject', { transform: transformDates });
+
 
 export const YellowLead = mongoose.model<IYellowLeadDocument>('YellowLead', yellowLeadSchema);

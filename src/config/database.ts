@@ -1,11 +1,13 @@
 import mongoose from 'mongoose';
 import { SpreadSheetMetaData } from '../crm/models/spreadSheet';
 import logger from './logger';
+import { MARKETING_SHEET } from './constants';
+import { MONGODB_DATABASE_NAME, MONGODB_DATABASE_URL } from '../secrets';
 
 const connectToDatabase = async (): Promise<void> => {
   try {
-    await mongoose.connect(process.env.MONGODB_DATABASE_URL!, {
-      dbName: process.env.MONGODB_DATABASE_NAME
+    await mongoose.connect(MONGODB_DATABASE_URL!, {
+      dbName: MONGODB_DATABASE_NAME!
     });
     logger.info('Database connected successfully !');
   } catch (error) {
@@ -16,10 +18,10 @@ const connectToDatabase = async (): Promise<void> => {
 
 export const initializeDB = async () => {
   try {
-    const existingDoc = await SpreadSheetMetaData.find({ name: process.env.MARKETING_SHEET });
+    const existingDoc = await SpreadSheetMetaData.find({ name: MARKETING_SHEET });
     if (!existingDoc) {
       await SpreadSheetMetaData.create({
-        name: process.env.MARKETING_SHEET,
+        name: MARKETING_SHEET,
         lastIdxMarketingSheet: 1
       });
       logger.debug('Initialized database with default Marketing Sheet entry.');

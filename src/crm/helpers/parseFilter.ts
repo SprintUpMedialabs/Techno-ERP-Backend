@@ -1,6 +1,7 @@
 import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
 import { UserRoles } from '../../config/constants';
 import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
+import { OrderBy, SortableFields } from '../enums/sorting';
 import { IAllLeadFilter } from '../types/marketingSpreadsheet';
 
 //We need to add here one for LTC of yellow leads for allowing analytics of yellow leads table on that
@@ -8,16 +9,18 @@ export const parseFilter = (req: AuthenticatedRequest) => {
   const {
     startDate,
     endDate,
-    // RTODO: here add leadTypeModifiedStartDate, leadTypeModifiedEndDate for yellow lead fillter will discuss this FIRST | which will apply filter on createdAt
-    // lead type modified date
+    startLTCDate,
+    endLTCDate,
     leadType = [],
-    finalConversionType =[], // related to yellow lead table
+    finalConversionType = [], // related to yellow lead table
     course = [],
     location = [],
     assignedTo = [],
     page = 1,
     limit = 10,
-    search = '',
+    sortBy,
+    orderBy = OrderBy.ASC,
+    search = ''
   } = req.body;
 
   const filters: IAllLeadFilter = {
@@ -27,7 +30,9 @@ export const parseFilter = (req: AuthenticatedRequest) => {
     finalConversionType,
     course,
     location,
-    assignedTo
+    assignedTo,
+    startLTCDate,
+    endLTCDate
   };
 
   const query: any = {};
@@ -75,10 +80,31 @@ export const parseFilter = (req: AuthenticatedRequest) => {
     }
   }
 
+  if (filters.startLTCDate || filters.endLTCDate) {
+    query.ltcDate = {};
+    if (filters.startLTCDate) {
+
+      console.log(filters.startLTCDate);
+      query.ltcDate.$gte = convertToMongoDate(filters.startLTCDate);
+    }
+    if (filters.endLTCDate) {
+      query.ltcDate.$lte = convertToMongoDate(filters.endLTCDate);
+    }
+  }
+
+  console.log("Query is : ", query)
+
+
+  let sort: any = {};
+  if (sortBy === SortableFields.DATE || sortBy === SortableFields.NEXT_DUE_DATE) {
+    sort[sortBy] = orderBy === OrderBy.DESC ? -1 : 1;
+  }
+
   return {
     search: search,
     query: query,
     page: page,
-    limit: limit
+    limit: limit,
+    sort: sort
   };
 };

@@ -22,7 +22,7 @@ export const uploadData = expressAsyncHandler(async (_: AuthenticatedRequest, re
 
 export const getFilteredLeadData = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
-    const { query, search, page, limit } = parseFilter(req);
+    const { query, search, page, limit, sort } = parseFilter(req);
 
     if (search.trim()) {
       query.$and = [
@@ -38,8 +38,14 @@ export const getFilteredLeadData = expressAsyncHandler(
 
     const skip = (page - 1) * limit;
 
-    // Fetch Leads from Database
-    const leads = await Lead.find(query).skip(skip).limit(limit);
+    let leadsQuery = Lead.find(query);
+
+    if (Object.keys(sort).length > 0) {
+      // console.log("Sort is : ", sort)
+      leadsQuery = leadsQuery.sort(sort);
+    }
+
+    const leads = await leadsQuery.skip(skip).limit(limit);
 
     const totalLeads = await Lead.countDocuments(query);
 
@@ -120,7 +126,7 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
     const transformedData = new Lead(updatedData).toJSON();
 
     // here toJSON is not working as expected. check why is it so?
-    // is there any other way to do this converstion? if yes then should we use that or not? => Discussion in meeting
+    // is there any other way to do this converstion? if yes then should we use that or not? => Got fixed by creating JSON object from plain object.
     res.status(200).json({ message: 'Data Updated Successfully!', data: transformedData });
   } else {
     throw createHttpError(404, 'Lead does not found with the given ID.');

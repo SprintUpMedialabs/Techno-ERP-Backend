@@ -16,6 +16,7 @@ import { ILead } from '../validators/leads';
 import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
 
 export const createYellowLead = async (leadData: ILead) => {
+
   const yellowLead: IYellowLead = {
     date: leadData.date,
     name: leadData.name,
@@ -23,13 +24,14 @@ export const createYellowLead = async (leadData: ILead) => {
     email: leadData.email ?? '',
     gender: leadData.gender,
     campusVisit: false,
-    assignedTo: leadData.assignedTo
+    assignedTo: leadData.assignedTo,
+    ltcDate: new Date()
   };
 
   if (leadData.nextDueDate && convertToMongoDate(leadData.nextDueDate) > new Date()) {
-    yellowLead.nextCallDate = convertToMongoDate(leadData.nextDueDate);
+    yellowLead.nextDueDate = convertToMongoDate(leadData.nextDueDate);
   } else {
-    yellowLead.nextCallDate = undefined;
+    yellowLead.nextDueDate = undefined;
   }
 
   const validation = yellowLeadSchema.safeParse(yellowLead);
@@ -72,7 +74,7 @@ export const updateYellowLead = expressAsyncHandler(async (req: Request, res: Re
   const responseData = {
     ...updatedYellowLead.toObject(),
     leadTypeChangeDate: convertToDDMMYYYY(updatedYellowLead.date as Date),
-    nextCallDate: convertToDDMMYYYY(updatedYellowLead.nextCallDate as Date)
+    nextCallDate: convertToDDMMYYYY(updatedYellowLead.nextDueDate as Date)
   };
 
   res.status(200).json({
@@ -81,43 +83,10 @@ export const updateYellowLead = expressAsyncHandler(async (req: Request, res: Re
   });
 });
 
-// export const getFilteredYellowLeads = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-
-//   const parsedFilter = parseFilter(req);
-//   const filter = parsedFilter.query;
-//   const search = parsedFilter.search;
-//   const page = parsedFilter.page;
-//   const limit = parsedFilter.limit;
-
-//   const pageNumber = parseInt(page as string, 10);
-//   const limitNumber = parseInt(limit as string, 10);
-//   const skip = (pageNumber - 1) * limitNumber;
-
-//   const [leads, totalLeads] = await Promise.all([
-//     YellowLead.find(filter).skip(skip).limit(limitNumber),
-//     YellowLead.countDocuments(filter)
-//   ]);
-
-//   const formattedLeads = leads.map((lead) => ({
-//     ...lead.toObject(),
-//     leadTypeChangeDate: convertToDDMMYYYY(lead.leadTypeChangeDate as Date),
-//     nextCallDate: convertToDDMMYYYY(lead.nextCallDate as Date)
-//   }));
-
-//   res.status(200).json({
-//     message: 'Filtered yellow leads fetched successfully.',
-//     data: {
-//       leads: formattedLeads,
-//       totalLeads,
-//       totalPages: Math.ceil(totalLeads / limitNumber),
-//       currentPage: pageNumber
-//     }
-//   });
-// });
 
 export const getFilteredYellowLeads = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
-    const { query, search, page, limit } = parseFilter(req);
+    const { query, search, page, limit, sort } = parseFilter(req);
 
     if (search.trim()) {
       query.$and = [
@@ -133,14 +102,19 @@ export const getFilteredYellowLeads = expressAsyncHandler(
 
     const skip = (page - 1) * limit;
 
-    // RTODO: here need to use toJSON
-    // Fetch Leads from Database
-    const leads = await YellowLead.find(query).skip(skip).limit(limit).lean();
+    let leadsQuery = YellowLead.find(query);
+
+    if (Object.keys(sort).length > 0) {
+      console.log('Sort is : ', sort);
+      leadsQuery = leadsQuery.sort(sort);
+    }
+
+    const yellowLeads = await leadsQuery.skip(skip).limit(limit);
 
     const totalLeads = await YellowLead.countDocuments(query);
 
     res.status(200).json({
-      leads,
+      yellowLeads,
       total: totalLeads,
       totalPages: Math.ceil(totalLeads / limit),
       currentPage: page

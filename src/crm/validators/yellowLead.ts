@@ -19,7 +19,8 @@ export const yellowLeadSchema = z
     location: z.string().optional(),
     course: z.nativeEnum(CourseType).optional(),
     campusVisit: z.boolean().default(false),
-    nextCallDate: z.date().optional(),
+    ltcDate: z.date(),
+    nextDueDate: z.date().optional(),
     finalConversion: z.nativeEnum(FinalConversionType).optional(),
     remarks: z.string().optional()
   })
@@ -41,7 +42,7 @@ export const yellowLeadUpdateSchema = z
     location: z.string().optional(),
     course: z.nativeEnum(CourseType).optional(),
     campusVisit: z.boolean().optional(),
-    nextCallDate: z
+    nextDueDate: z
       .string()
       .regex(/^\d{2}\/\d{2}\/\d{4}$/, 'Invalid nextCallDate date format, expected DD/MM/YYYY')
       .optional(),
@@ -52,15 +53,3 @@ export const yellowLeadUpdateSchema = z
 
 export type IYellowLead = z.infer<typeof yellowLeadSchema>;
 export type IYellowLeadUpdate = z.infer<typeof yellowLeadUpdateSchema>;
-
-//TODO : Remove this after testing filters.
-// export type YellowLeadFilter = {
-//   leadTypeChangeDateStart?: string;
-//   leadTypeChangeDateEnd?: string;
-//   finalConversionType?: FinalConversionType | FinalConversionType[];
-//   course?: string | string[];
-//   location?: string | string[];
-//   assignedTo?: string | string[];
-//   page?: number;
-//   limit?: number;
-// };

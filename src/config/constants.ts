@@ -34,3 +34,6 @@ export enum CourseType {
   BCOM = 'B.COM',
   MCOM = 'M.COM'
 }
+
+
+export const MARKETING_SHEET = 'Marketing Sheet'
