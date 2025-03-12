@@ -41,7 +41,6 @@ export const getFilteredLeadData = expressAsyncHandler(
     let leadsQuery = Lead.find(query);
 
     if (Object.keys(sort).length > 0) {
-      // console.log("Sort is : ", sort)
       leadsQuery = leadsQuery.sort(sort);
     }
 
@@ -112,7 +111,7 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
         new: true,
         runValidators: true
       }
-    ).lean();
+    );
 
     if (leadRequestData.leadType && existingLead.leadType != leadRequestData.leadType) {
       if (leadRequestData.leadType === LeadType.YELLOW) {
@@ -121,13 +120,7 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
       leadTypeModifiedDate = new Date();
     }
 
-    console.log(updatedData);
-
-    const transformedData = new Lead(updatedData).toJSON();
-
-    // here toJSON is not working as expected. check why is it so?
-    // is there any other way to do this converstion? if yes then should we use that or not? => Got fixed by creating JSON object from plain object.
-    res.status(200).json({ message: 'Data Updated Successfully!', data: transformedData });
+    res.status(200).json({ message: 'Data Updated Successfully!', data: updatedData });
   } else {
     throw createHttpError(404, 'Lead does not found with the given ID.');
   }

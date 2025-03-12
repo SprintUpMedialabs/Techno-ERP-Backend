@@ -1,6 +1,6 @@
 import { Gender, UserRoles } from '../../config/constants';
 import logger from '../../config/logger';
-import { ILead, leadSchema } from '../validators/leads';
+import {  ILeadRequest, leadRequestSchema } from '../validators/leads';
 import { Lead } from '../models/leads';
 import { User } from '../../auth/models/user';
 import { IMarketingSpreadsheetProcessReport } from '../types/marketingSpreadsheet';
@@ -18,7 +18,7 @@ const leadsToBeInserted = async (
 ) => {
   let MarketingEmployees: Map<string, string> = new Map();
 
-  const dataToInsert: any[] = [];
+  const dataToInsert: ILeadRequest[] = [];
 
   for (const index in latestData) {
     const row = latestData[index];
@@ -67,7 +67,6 @@ const leadsToBeInserted = async (
       }
 
       let leadData = {
-        // TODO: it should be have some type
         date: row[MarketingsheetHeaders.Date],
         source: row[MarketingsheetHeaders.Source] || '',
         name: row[MarketingsheetHeaders.Name],
@@ -86,10 +85,9 @@ const leadsToBeInserted = async (
         leadData.gender = Gender[row[MarketingsheetHeaders.Gender] as keyof typeof Gender];
       }
 
-      const leadDataValidation = leadSchema.safeParse(leadData);
+      const leadDataValidation = leadRequestSchema.safeParse(leadData);
 
       if (leadDataValidation.success) {
-        leadDataValidation.data.date = convertToMongoDate(leadDataValidation.data.date);
         dataToInsert.push(leadDataValidation.data);
       } else {
         report.rowsFailed++;
@@ -133,47 +131,12 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) =>
     }
     logger.info('No valid data to insert.');
 
-    //EDGE CASE : If we don't have any valid data to insert, what is the need of update here?
     // updateStatusForMarketingSheet(lastSavedIndex + latestData.length, lastSavedIndex);
     return;
   }
 
   try {
-    // TODO: need to use SET here ( a one which we added at model level )
-    // means test here whether set is working or not with lean:false
-
-    // const data = await Lead.insertMany(dataToInsert, {
-    //   ordered: false,
-    //   throwOnValidationError: true
-    // });
-
-    // const dataToInsertInDb = latestData.map(async (data) => {
-    //   const lead = new Lead(data);
-    //   await lead.save();
-    // });
-
-    // const insertedData = await Promise.allSettled(dataToInsertInDb);
-
-    // const successfulInserts = insertedData
-    //   .filter((res) => res.status === 'fulfilled')
-    //   .map((res) => (res as PromiseFulfilledResult<any>).value);
-
-    // const failedInserts = insertedData
-    //   .filter((res) => res.status === 'rejected')
-    //   .map((res) => (res as PromiseRejectedResult).reason);
-
-    // console.log(`${successfulInserts.length} documents inserted successfully.`);
-    // console.log(`${failedInserts.length} documents failed to insert.`);
-
-    const dataToInserted = dataToInsert.map((data : ILead) => {
-      return {
-        ...data,
-        date: data.date ? convertToMongoDate(new Date(data.date)) : undefined // Convert date manually
-      };
-    });
-
-    const insertedData = await Lead.insertMany(dataToInserted, { ordered: false });
-
+    const insertedData = await Lead.insertMany(dataToInsert, { ordered: false, throwOnValidationError: true });
     report.actullyProcessedRows = insertedData.length;
   } catch (error: any) {
     report.actullyProcessedRows = error.result.insertedCount;
@@ -186,6 +149,7 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) =>
         report.otherIssue.push({ rowId: e.err.index + lastSavedIndex + 1, issue: e.err.errmsg });
       }
     });
+    console.log(report);
   }
 
   if (report.rowsFailed != 0) {

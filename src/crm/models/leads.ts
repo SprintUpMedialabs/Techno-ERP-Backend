@@ -13,7 +13,7 @@ const leadSchema = new Schema<ILeadDocument>(
     date: {
       type: Date,
       required: [true, 'Date is required'],
-      // set: (value: string) => { return convertToMongoDate(value) }
+      set: (value: string) => { return convertToMongoDate(value) }
     },
 
     source: { type: String },
@@ -118,45 +118,7 @@ const transformDates = (_: any, ret: any) => {
   return ret;
 };
 
-leadSchema.pre('save', function (this: HydratedDocument<ILead>, next: () => void) {
-  console.log("In pre save hook");
-  if (this.date) {
-    this.date = convertToMongoDate(this.date.toString());
-  }
-  next();
-});
-
-
-
 leadSchema.set('toJSON', { transform: transformDates });
 leadSchema.set('toObject', { transform: transformDates });
-
-leadSchema.pre('insertMany', function (next, docs) {
-  console.log("we are here");
-  // docs.forEach(doc => {
-  //   doc.createdAt = new Date(); // Modify documents before insertion
-  // });
-  next();
-});
-
-leadSchema.pre('save', async function (next:Function) {
-  console.log("we are here");
-  // docs.forEach(doc => {
-  //   doc.createdAt = new Date(); // Modify documents before insertion
-  // });
-  next();
-});
-
-// userSchema.pre<IUserDocument>('save', async function (next: Function) {
-//   if (!this.isModified('password')) return next(); // Only hash if password is modified
-
-//   try {
-//     const saltRounds = 10;
-//     this.password = await bcrypt.hash(this.password!, saltRounds);
-//     next();
-//   } catch (error) {
-//     next(error);
-//   }
-// });
 
 export const Lead = mongoose.model<ILeadDocument>('Lead', leadSchema);

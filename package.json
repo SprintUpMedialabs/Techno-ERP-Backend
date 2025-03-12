@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "npx nodemon",
+    "dev": "nodemon --watch src/** --ext ts,json --ignore src/**/*.spec.ts --exec tsx src/index.ts",
     "build": "tsc",
     "format": "prettier --write . TODO remove this TO RUN FORMAT"
   },
@@ -46,6 +46,7 @@
     "mongoose": "^8.12.0",
     "morgan": "^1.10.0",
     "nodemailer": "^6.10.0",
+    "tsx": "^4.19.3",
     "winston": "^3.17.0",
     "zod": "^3.24.2"
   }
