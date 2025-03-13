@@ -4,7 +4,7 @@ import { UserRoles } from '../../config/constants';
 import createHttpError from 'http-errors';
 import bcrypt from 'bcrypt';
 
-interface IUserDocument extends IUser, Document {}
+interface IUserDocument extends IUser, Document { }
 
 const userSchema = new Schema<IUserDocument>(
   {
@@ -96,5 +96,13 @@ userSchema.post('save', function (error: any, doc: any, next: Function) {
 userSchema.post('findOneAndUpdate', function (error: any, doc: any, next: Function) {
   handleMongooseError(error, next);
 });
+
+const transformDates = (_: any, ret: any) => {
+  delete ret.password; 
+  return ret;
+};
+
+userSchema.set('toJSON', { transform: transformDates });
+userSchema.set('toObject', { transform: transformDates });
 
 export const User = mongoose.model<IUserDocument>('User', userSchema);

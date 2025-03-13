@@ -18,5 +18,3 @@ export const convertToDDMMYYYY = (dateObj: Date | string): string => {
   const year = dateObj.getFullYear();
   return `${day}/${month}/${year}`;
 };
-
-

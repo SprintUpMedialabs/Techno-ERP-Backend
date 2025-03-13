@@ -80,7 +80,6 @@ export const parseFilter = (req: AuthenticatedRequest) => {
     }
   }
 
-  // TODO1: need to test it. => Perfectly works
   if (filters.startLTCDate || filters.endLTCDate) {
     query.createdAt = {};
     if (filters.startLTCDate) {

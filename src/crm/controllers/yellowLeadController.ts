@@ -59,18 +59,9 @@ export const updateYellowLead = expressAsyncHandler(async (req: Request, res: Re
     throw createHttpError(404, 'Yellow lead not found.');
   }
 
-      // TODO1: check createdAt is converted to dd/mm/yyyy or not => done
-      // also try whether we can introduce new field with name leadTypeChangeDate in toJSON => createdAt introduced and this one is done
-
-      // if we are able to do above thing then this will no longer be required.
-  const responseData = {
-    ...updatedYellowLead.toJSON(),
-    leadTypeChangeDate: updatedYellowLead.toJSON().date
-  };
-
   res.status(200).json({
     message: 'Yellow lead updated successfully.',
-    data: responseData
+    data: updatedYellowLead
   });
 });
 
@@ -78,7 +69,6 @@ export const getFilteredYellowLeads = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const { query, search, page, limit, sort } = parseFilter(req);
 
-    // console.log("Query is : ", query);
     if (search.trim()) {
       query.$and = [
         ...(query.$and || []), // Preserve existing AND conditions if any
@@ -102,8 +92,6 @@ export const getFilteredYellowLeads = expressAsyncHandler(
 
     const yellowLeads = await leadsQuery.skip(skip).limit(limit);
 
-    // TODO1: check createdAt is converted to dd/mm/yyyy or not => DOne, works perfect
-      // also try whether we can introduce new field with name leadTypeChangeDate in toJSON => DOne, works perfect
     const totalLeads = await YellowLead.countDocuments(query);
 
     res.status(200).json({

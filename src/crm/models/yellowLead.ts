@@ -5,7 +5,7 @@ import { convertToDDMMYYYY, convertToMongoDate } from '../../utils/convertDateTo
 import createHttpError from 'http-errors';
 import logger from '../../config/logger';
 
-export interface IYellowLeadDocument extends IYellowLead, Document {}
+export interface IYellowLeadDocument extends IYellowLead, Document { }
 
 const yellowLeadSchema = new Schema<IYellowLeadDocument>(
   {
@@ -79,9 +79,13 @@ yellowLeadSchema.post('findOne', function (error: any, doc: any, next: Function)
 
 const transformDates = (_: any, ret: any) => {
   logger.debug("we are here");
-  ['ltcDate', 'nextDueDate', 'date','createdAt'].forEach((key) => {
+  ['nextDueDate', 'date', 'createdAt'].forEach((key) => {
     if (ret[key]) {
-      ret[key] = convertToDDMMYYYY(ret[key]);
+      if (key == 'createdAt') {
+        ret['ltcDate'] = convertToDDMMYYYY(ret[key]);
+      } else {
+        ret[key] = convertToDDMMYYYY(ret[key]);
+      }
     }
   });
   return ret;

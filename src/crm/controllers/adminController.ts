@@ -82,9 +82,6 @@ export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedReque
         }
     ]);
 
-    // console.log(allLeadAnalytics);
-    // console.log(yellowLeadAnalytics);
-
     res.status(200).json({
         success: true,
         message: "Admin analytics fetched successfully",
