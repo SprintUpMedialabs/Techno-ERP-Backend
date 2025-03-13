@@ -8,10 +8,11 @@ export const yellowLeadSchema = z
     name: z.string(),
     phoneNumber: z
       .string()
-      .regex(/^\+91\d{10}$/, 'Invalid contact number format. Expected: +911234567890'),
-    altPhoneNumber: z
+      .regex(/^\d{10}$/, 'Invalid contact number format. Expected: 1234567890'),
+      altPhoneNumber: z
       .string()
-      .regex(/^\+91\d{10}$/, 'Invalid contact number format. Expected: +911234567890')
+      .regex(/^\d{10}$/, 'Invalid contact number format. Expected: 1234567890')
+
       .optional(),
     email: z.string().email('Invalid Email Format').optional(),
     gender: z.nativeEnum(Gender).default(Gender.NOT_TO_MENTION),
@@ -31,11 +32,11 @@ export const yellowLeadUpdateSchema = z
     name: z.string().optional(),
     phoneNumber: z
       .string()
-      .regex(/^\+91\d{10}$/, 'Invalid phoneNumber format. Expected: +911234567890')
+      .regex(/^\d{10}$/, 'Invalid contact number format. Expected: 1234567890')
       .optional(),
     altPhoneNumber: z
       .string()
-      .regex(/^\+91\d{10}$/, 'Invalid altPhoneNumber format. Expected: +911234567890')
+      .regex(/^\d{10}$/, 'Invalid contact number format. Expected: 1234567890')
       .optional(),
     email: z.string().email('Invalid Email Format').optional(),
     gender: z.nativeEnum(Gender).optional(),

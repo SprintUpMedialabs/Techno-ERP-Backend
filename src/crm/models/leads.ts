@@ -30,13 +30,13 @@ const leadSchema = new Schema<ILeadDocument>(
       type: String,
       required: [true, 'Phone Number is required'],
       unique: [true, 'Phone Number already exists'],
-      match: [/^\+91\d{10}$/, 'Invalid phone number format, expected: +91XXXXXXXXXX']
+      match: [/^\d{10}$/, 'Invalid phone number format, expected: 10 digits']
     },
 
     // Optional alternate phone number; must follow the same format as phoneNumber
     altPhoneNumber: {
       type: String,
-      match: [/^\+91\d{10}$/, 'Invalid alternate phone number format, expected: +91XXXXXXXXXX']
+      match: [/^\d{10}$/, 'Invalid alternative phone number format, expected: 10 digits']
     },
 
     // Email validation using regex

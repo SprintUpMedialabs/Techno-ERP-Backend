@@ -14,7 +14,7 @@ export const MONGODB_DATABASE_NAME = process.env.MONGODB_DATABASE_NAME!;
 export const MARKETING_SHEET_ID = process.env.MARKETING_SHEET_ID!;
 export const GOOGLE_SA_CLIENT_EMAIL = process.env.GOOGLE_SA_CLIENT_EMAIL!;
 export const GOOGLE_SA_PRIVATE_KEY = process.env.GOOGLE_SA_PRIVATE_KEY!;
-export const GOOGLE_SHEET_PAGE = process.env.GOOGLE_SHEET_PAGE!;
+export const MARKETING_SHEET_PAGE_NAME = process.env.MARKETING_SHEET_PAGE_NAME!;
 
 export const LEAD_MARKETING_EMAIL = process.env.LEAD_MARKETING_EMAIL!;
 

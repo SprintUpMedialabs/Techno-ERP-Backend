@@ -126,12 +126,12 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) =>
   // console.log(dataToInsert);
   if (!dataToInsert || dataToInsert.length === 0) {
     if (report.rowsFailed != 0) {
-      // sendEmail(LEAD_MARKETING_EMAIL, 'Lead Processing Report', formatReport(report));
+      sendEmail(LEAD_MARKETING_EMAIL, 'Lead Processing Report', formatReport(report));
       logger.info('Error report sent to Lead!');
     }
     logger.info('No valid data to insert.');
 
-    // updateStatusForMarketingSheet(lastSavedIndex + latestData.length, lastSavedIndex);
+    updateStatusForMarketingSheet(lastSavedIndex + latestData.length, lastSavedIndex);
     return;
   }
 
@@ -139,6 +139,7 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) =>
     const insertedData = await Lead.insertMany(dataToInsert, { ordered: false, throwOnValidationError: true });
     report.actullyProcessedRows = insertedData.length;
   } catch (error: any) {
+    console.log(error);
     report.actullyProcessedRows = error.result.insertedCount;
 
     error.writeErrors.map((e: any) => {
@@ -153,9 +154,9 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) =>
   }
 
   if (report.rowsFailed != 0) {
-    // sendEmail(LEAD_MARKETING_EMAIL, 'Lead Processing Report', formatReport(report));
+    sendEmail(LEAD_MARKETING_EMAIL, 'Lead Processing Report', formatReport(report));
     logger.info('Error report sent to Lead!');
   }
 
-  // updateStatusForMarketingSheet(lastSavedIndex + latestData.length);
+  updateStatusForMarketingSheet(lastSavedIndex + latestData.length, lastSavedIndex);
 };

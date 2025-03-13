@@ -9,10 +9,11 @@ export const leadSchema = z.object({
   name: z.string().min(1, 'Name field is required'),
   phoneNumber: z
     .string()
-    .regex(/^\+91\d{10}$/, 'Invalid contact number format. Expected: +911234567890'),
+    .regex(/^\d{10}$/, 'Invalid contact number format. Expected: 1234567890'),
+
   altPhoneNumber: z
     .string()
-    .regex(/^\+91\d{10}$/, 'Invalid contact number format. Expected: +911234567890')
+    .regex(/^\d{10}$/, 'Invalid contact number format. Expected: 1234567890')
     .optional(),
   email: z.string().email('Invalid Email Format').optional(),
   gender: z.nativeEnum(Gender).default(Gender.NOT_TO_MENTION),
@@ -36,10 +37,10 @@ export const leadRequestSchema = z.object({
   name: z.string().min(1, 'Name field is required'),
   phoneNumber: z
     .string()
-    .regex(/^\+91\d{10}$/, 'Invalid contact number format. Expected: +911234567890'),
+    .regex(/^\d{10}$/, 'Invalid contact number format. Expected: 1234567890'),
   altPhoneNumber: z
     .string()
-    .regex(/^\+91\d{10}$/, 'Invalid contact number format. Expected: +911234567890')
+    .regex(/^\d{10}$/, 'Invalid contact number format. Expected: 1234567890')
     .optional(),
   email: z.string().email('Invalid Email Format').optional(),
   gender: z.nativeEnum(Gender).default(Gender.NOT_TO_MENTION),
@@ -62,11 +63,11 @@ export const updateLeadRequestSchema = z.object({
   name: z.string().min(1, 'Name field is required').optional(),
   phoneNumber: z
     .string()
-    .regex(/^\+91\d{10}$/, 'Invalid contact number format. Expected: +911234567890')
+    .regex(/^\d{10}$/, 'Invalid contact number format. Expected: 1234567890')
     .optional(),
   altPhoneNumber: z
     .string()
-    .regex(/^\+91\d{10}$/, 'Invalid contact number format. Expected: +911234567890')
+    .regex(/^\d{10}$/, 'Invalid contact number format. Expected: 1234567890')
     .optional(),
   email: z.string().email('Invalid Email Format').optional(),
   gender: z.nativeEnum(Gender).optional(),

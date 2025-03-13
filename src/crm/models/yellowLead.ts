@@ -19,11 +19,11 @@ const yellowLeadSchema = new Schema<IYellowLeadDocument>(
       type: String,
       required: [true, 'Phone no is required'],
       unique: [true, 'Phone no already exists'],
-      match: [/^\+91\d{10}$/, 'Invalid contact number format. Expected: +911234567890']
+      match: [/^\d{10}$/, 'Invalid phone number format, expected: 10 digits']
     },
     altPhoneNumber: {
       type: String,
-      match: [/^\+91\d{10}$/, 'Invalid contact number format. Expected: +911234567890']
+      match: [/^\d{10}$/, 'Invalid phone number format, expected: 10 digits']
     },
     email: {
       type: String,

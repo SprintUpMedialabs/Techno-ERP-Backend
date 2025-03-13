@@ -2,7 +2,7 @@ import { google } from 'googleapis';
 import logger from '../../config/logger';
 import { SpreadSheetMetaData } from '../models/spreadSheet';
 import { googleAuth } from './googleAuth';
-import { GOOGLE_SHEET_PAGE, MARKETING_SHEET_ID } from '../../secrets';
+import { MARKETING_SHEET_PAGE_NAME, MARKETING_SHEET_ID } from '../../secrets';
 import { MARKETING_SHEET } from '../../config/constants';
 
 // TODO: what if google api is down? we will focus on this on phase - 2
@@ -16,17 +16,21 @@ export const readFromGoogleSheet = async () => {
   const lastSavedIndex = spreadSheetMetaData?.lastIdxMarketingSheet!;
   logger.info(`Last saved index from DB: ${lastSavedIndex}`);
 
-  const range = `${GOOGLE_SHEET_PAGE}!A${lastSavedIndex + 1}:Z`;
+  const range = `${MARKETING_SHEET_PAGE_NAME}!A${lastSavedIndex + 1}:Z`;
   const sheetResponse = await sheetInstance.spreadsheets.values.get({
     spreadsheetId: MARKETING_SHEET_ID,
     range
   });
 
+  console.log("Sheet response successfully generated");
   const rowData = sheetResponse.data.values;
   if (!rowData || rowData.length === 0) {
     logger.info('No new data found in the sheet.');
     return;
   }
+
+  console.log(rowData.length);
+  console.log(lastSavedIndex);
 
   const newLastReadIndex = lastSavedIndex + rowData.length;
   logger.info(`New Last Read Index: ${newLastReadIndex}`);
