@@ -120,7 +120,7 @@ export const register = expressAsyncHandler(async (req: Request, res: Response) 
 
   await sendEmail(email, 'Your Account Password', emailBody);
 
-  res.status(201).json({ message: 'Account created successfully.', newUser }); // TODO: here we are sending password as well we need to remove it.
+  res.status(201).json({ message: 'Account created successfully.', newUser }); // TODO1: here we are sending password as well we need to remove it.
 });
 
 export const login = expressAsyncHandler(async (req: Request, res: Response) => {

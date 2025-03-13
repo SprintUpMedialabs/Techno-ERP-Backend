@@ -11,7 +11,7 @@ const userSchema = new Schema<IUserDocument>(
     email: {
       type: String,
       required: [true, 'Email is required'],
-      unique: [true, 'Email should be unique'], // TODO: need to check this.
+      unique: [true, 'Email should be unique'],
       match: [/^\S+@\S+\.\S+$/, 'Please enter a valid email address']
     },
     firstName: {
