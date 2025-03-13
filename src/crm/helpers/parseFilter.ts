@@ -4,7 +4,7 @@ import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import { OrderBy, SortableFields } from '../enums/sorting';
 import { IAllLeadFilter } from '../types/marketingSpreadsheet';
 
-//We need to add here one for LTC of yellow leads for allowing analytics of yellow leads table on that
+//We need to add here one for LTC of yellow leads for allowing analytics of yellow leads table on that => createdAt pe kaam kar raha hai ab
 export const parseFilter = (req: AuthenticatedRequest) => {
   const {
     startDate,
@@ -80,9 +80,9 @@ export const parseFilter = (req: AuthenticatedRequest) => {
     }
   }
 
-  // TODO1: need to test it.
+  // TODO1: need to test it. => Perfectly works
   if (filters.startLTCDate || filters.endLTCDate) {
-    query.ltcDate = {};
+    query.createdAt = {};
     if (filters.startLTCDate) {
       query.createdAt.$gte = convertToMongoDate(filters.startLTCDate);
     }

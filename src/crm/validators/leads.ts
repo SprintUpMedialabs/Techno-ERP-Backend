@@ -28,6 +28,7 @@ export const leadSchema = z.object({
 });
 export type ILead = z.infer<typeof leadSchema>;
 
+
 export const leadRequestSchema = z.object({
   date: z.string()
     .regex(/^\d{2}\/\d{2}\/\d{4}$/, 'Invalid date format, expected DD/MM/YYYY'),
@@ -54,6 +55,7 @@ export const leadRequestSchema = z.object({
     .optional()
 });
 export type ILeadRequest = z.infer<typeof leadRequestSchema>;
+
 
 export const updateLeadRequestSchema = z.object({
   _id: objectIdSchema,

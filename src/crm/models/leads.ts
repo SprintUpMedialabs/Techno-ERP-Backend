@@ -79,7 +79,7 @@ const leadSchema = new Schema<ILeadDocument>(
     nextDueDate: {
       type: Date,
       set: (value: string) => {
-        console.log(value);
+        // console.log(value);
         return convertToMongoDate(value);
       }
     }

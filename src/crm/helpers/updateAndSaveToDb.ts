@@ -121,9 +121,9 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) =>
     assignedToNotFound: [],
     emptyRows: []
   };
-  console.log(latestData);
+  // console.log(latestData);
   const dataToInsert = await leadsToBeInserted(latestData, report, lastSavedIndex);
-  console.log(dataToInsert);
+  // console.log(dataToInsert);
   if (!dataToInsert || dataToInsert.length === 0) {
     if (report.rowsFailed != 0) {
       // sendEmail(LEAD_MARKETING_EMAIL, 'Lead Processing Report', formatReport(report));
@@ -149,7 +149,7 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) =>
         report.otherIssue.push({ rowId: e.err.index + lastSavedIndex + 1, issue: e.err.errmsg });
       }
     });
-    console.log(report);
+    // console.log(report);
   }
 
   if (report.rowsFailed != 0) {

@@ -19,3 +19,5 @@ export const GOOGLE_SHEET_PAGE = process.env.GOOGLE_SHEET_PAGE!;
 export const LEAD_MARKETING_EMAIL = process.env.LEAD_MARKETING_EMAIL!;
 
 export const AUTH_API_PATH = process.env.AUTH_API_PATH!;
+
+export const NODE_ENV = process.env.NODE_ENV!;
