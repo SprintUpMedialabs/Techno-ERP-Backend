@@ -20,6 +20,7 @@ let transport = nodemailer.createTransport({
   }
 });
 
+// TODO: we need to have some robust approach here => What changes are we expecting?
 export const sendEmail = async (to: string, subject: string, text: string) => {
   const mailOptions = {
     from: NODEMAILER_SENDER_ADDRESS,
@@ -32,7 +33,7 @@ export const sendEmail = async (to: string, subject: string, text: string) => {
     if (err) {
       logger.error(err);
     } else {
-      logger.info(info);
+      logger.info('Mail sent successfully');
     }
   });
 };

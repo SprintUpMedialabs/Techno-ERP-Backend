@@ -11,10 +11,11 @@ const requiredEnvVariables = [
   'JWT_SECRET',
   'CRYPTO_HASH_SECRET',
   'AUTH_API_PATH',
-  'GOOGLE_SHEET_ID',
   'GOOGLE_SA_CLIENT_EMAIL',
   'GOOGLE_SA_PRIVATE_KEY',
-  'GOOGLE_SHEET_PAGE'
+  'MARKETING_SHEET_PAGE_NAME',
+  'LEAD_MARKETING_EMAIL',
+  'MARKETING_SHEET_ID'
 ];
 
 export const validateEnvVariables = (): void => {

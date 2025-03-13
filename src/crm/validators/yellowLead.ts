@@ -1,0 +1,56 @@
+import { z } from 'zod';
+import { Gender, FinalConversionType, CourseType } from '../../config/constants';
+import { objectIdSchema } from '../../validators/objectIdSchema';
+
+export const yellowLeadSchema = z
+  .object({
+    date: z.date(),
+    name: z.string(),
+    phoneNumber: z
+      .string()
+      .regex(/^\d{10}$/, 'Invalid contact number format. Expected: 1234567890'),
+      altPhoneNumber: z
+      .string()
+      .regex(/^\d{10}$/, 'Invalid contact number format. Expected: 1234567890')
+
+      .optional(),
+    email: z.string().email('Invalid Email Format').optional(),
+    gender: z.nativeEnum(Gender).default(Gender.NOT_TO_MENTION),
+    assignedTo: z.string(),
+    location: z.string().optional(),
+    course: z.nativeEnum(CourseType).optional(),
+    campusVisit: z.boolean().default(false),
+    nextDueDate: z.date().optional(),
+    finalConversion: z.nativeEnum(FinalConversionType).optional(),
+    remarks: z.string().optional()
+  })
+  .strict();
+
+export const yellowLeadUpdateSchema = z
+  .object({
+    _id: objectIdSchema,
+    name: z.string().optional(),
+    phoneNumber: z
+      .string()
+      .regex(/^\d{10}$/, 'Invalid contact number format. Expected: 1234567890')
+      .optional(),
+    altPhoneNumber: z
+      .string()
+      .regex(/^\d{10}$/, 'Invalid contact number format. Expected: 1234567890')
+      .optional(),
+    email: z.string().email('Invalid Email Format').optional(),
+    gender: z.nativeEnum(Gender).optional(),
+    location: z.string().optional(),
+    course: z.nativeEnum(CourseType).optional(),
+    campusVisit: z.boolean().optional(),
+    nextDueDate: z
+      .string()
+      .regex(/^\d{2}\/\d{2}\/\d{4}$/, 'Invalid nextDueDate date format, expected DD/MM/YYYY')
+      .optional(),
+    finalConversion: z.nativeEnum(FinalConversionType).optional(),
+    remarks: z.string().optional()
+  })
+  .strict();
+
+export type IYellowLead = z.infer<typeof yellowLeadSchema>;
+export type IYellowLeadUpdate = z.infer<typeof yellowLeadUpdateSchema>;

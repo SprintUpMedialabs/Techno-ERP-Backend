@@ -1,6 +1,6 @@
 export enum UserRoles {
   ADMIN = 'ADMIN',
-  MARKETING_LEAD = 'MARKETING_LEAD',
+  LEAD_MARKETING = 'LEAD_MARKETING',
   EMPLOYEE_MARKETING = 'EMPLOYEE_MARKETING',
   BASIC_USER = 'BASIC_USER'
 }
@@ -21,3 +21,19 @@ export enum LeadType {
   GREEN = 'ADMISSION',
   WHITE = 'DID_NOT_PICK'
 }
+
+export enum FinalConversionType {
+  PINK = 'PENDING',
+  GREEN = 'CONVERTED',
+  RED = 'NOT_CONVERTED'
+}
+
+export enum CourseType {
+  BBA = 'BBA',
+  MBA = 'MBA',
+  BCOM = 'B.COM',
+  MCOM = 'M.COM'
+}
+
+
+export const MARKETING_SHEET = 'Marketing Sheet'

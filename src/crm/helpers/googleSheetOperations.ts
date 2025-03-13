@@ -1,131 +1,99 @@
 import { google } from 'googleapis';
-import { googleAuth } from './googleAuth';
-import { GOOGLE_SHEET_ID, GOOGLE_SHEET_PAGE } from '../../secrets';
 import logger from '../../config/logger';
+import { SpreadSheetMetaData } from '../models/spreadSheet';
+import { googleAuth } from './googleAuth';
+import { MARKETING_SHEET_PAGE_NAME, MARKETING_SHEET_ID } from '../../secrets';
+import { MARKETING_SHEET } from '../../config/constants';
+
+// TODO: what if google api is down? we will focus on this on phase - 2
+
 export const readFromGoogleSheet = async () => {
-  try {
-    const sheetInstance = google.sheets({ version: 'v4', auth: googleAuth });
+  const sheetInstance = google.sheets({ version: 'v4', auth: googleAuth });
 
-    try {
-      const sheetInfo = sheetInstance.spreadsheets.get({
-        spreadsheetId: GOOGLE_SHEET_ID,
-        ranges: [`${GOOGLE_SHEET_PAGE}!A:Z`],
-        fields: 'sheets.data.rowData.values(userEnteredFormat.backgroundColor,effectiveValue)'
-      });
+  const spreadSheetMetaData = await SpreadSheetMetaData.findOne({
+    name: MARKETING_SHEET
+  });
+  const lastSavedIndex = spreadSheetMetaData?.lastIdxMarketingSheet!;
+  logger.info(`Last saved index from DB: ${lastSavedIndex}`);
 
-      if (sheetInfo && (await sheetInfo).data && (await sheetInfo).data.sheets) {
-        const rowData = (await sheetInfo)?.data?.sheets?.[0]?.data?.[0]?.rowData;
+  const range = `${MARKETING_SHEET_PAGE_NAME}!A${lastSavedIndex + 1}:Z`;
+  const sheetResponse = await sheetInstance.spreadsheets.values.get({
+    spreadsheetId: MARKETING_SHEET_ID,
+    range
+  });
 
-        if (!rowData) {
-          console.log('No row formatting data found. Please check if sheet has green colors.');
-          return;
-        }
-
-        let lastReadIndex = -1;
-
-        rowData?.forEach((row, index) => {
-          console.log('Row is : ', row);
-          if (
-            row.values &&
-            row.values[0].userEnteredFormat &&
-            row.values[0].userEnteredFormat.backgroundColor
-          ) {
-            const bgColor = row.values[0].userEnteredFormat.backgroundColor;
-            console.log('BGCOLOR IS : ', bgColor);
-            console.log(' R is : ', bgColor.red);
-            console.log(' G is : ', bgColor.green);
-            console.log(' B is : ', bgColor.blue);
-            if (bgColor && bgColor.green && bgColor.green === 0.5019608) {
-              lastReadIndex = index;
-              console.log('Last read index : ', lastReadIndex);
-            }
-          }
-        });
-
-        if (lastReadIndex == -1) {
-          logger.info('No row found with green background color');
-          return;
-        }
-
-        console.log('Total Row DAta : ', rowData.length);
-
-        const dataAfterLastMarked = rowData
-          .slice(lastReadIndex + 1)
-          .map((row) =>
-            row.values?.map(
-              (cell) =>
-                cell.effectiveValue?.stringValue ||
-                cell.effectiveValue?.numberValue?.toString() ||
-                ''
-            )
-          );
-
-        console.log('Data after last marked : ', dataAfterLastMarked);
-
-        if (dataAfterLastMarked.length == 0) {
-          logger.info('There is no new row updation, that is no update in existing db');
-          return;
-        }
-
-        const newLastReadIndex = lastReadIndex + dataAfterLastMarked.length;
-
-        console.log('New Last Read Index : ', newLastReadIndex);
-
-        await sheetInstance.spreadsheets.batchUpdate({
-          spreadsheetId: GOOGLE_SHEET_ID,
-          requestBody: {
-            requests: [
-              {
-                repeatCell: {
-                  range: {
-                    sheetId: 0,
-                    startRowIndex: 0,
-                    endRowIndex: lastReadIndex + 1
-                  },
-                  cell: {
-                    userEnteredFormat: {
-                      backgroundColor: {
-                        red: 1.0,
-                        green: 1.0,
-                        blue: 1.0
-                      }
-                    }
-                  },
-                  fields: 'userEnteredFormat.backgroundColor'
-                }
-              },
-              {
-                repeatCell: {
-                  range: {
-                    sheetId: 0,
-                    startRowIndex: newLastReadIndex,
-                    endRowIndex: newLastReadIndex + 1
-                  },
-                  cell: {
-                    userEnteredFormat: {
-                      backgroundColor: {
-                        red: 0.0,
-                        green: 0.5019608,
-                        blue: 0.0
-                      }
-                    }
-                  },
-                  fields: 'userEnteredFormat.backgroundColor'
-                }
-              }
-            ]
-          }
-        });
-        return dataAfterLastMarked;
-      }
-    } catch (error) {
-      logger.error('Error occurred : ');
-      logger.error(error);
-      return;
-    }
-  } catch (error) {
-    logger.error('Error while reading from sheet');
-    logger.error(error);
+  console.log("Sheet response successfully generated");
+  const rowData = sheetResponse.data.values;
+  if (!rowData || rowData.length === 0) {
+    logger.info('No new data found in the sheet.');
     return;
   }
+
+  console.log(rowData.length);
+  console.log(lastSavedIndex);
+
+  const newLastReadIndex = lastSavedIndex + rowData.length;
+  logger.info(`New Last Read Index: ${newLastReadIndex}`);
+
+  return {
+    RowData: rowData,
+    LastSavedIndex: lastSavedIndex
+  };
+};
+
+export const updateStatusForMarketingSheet = async (newLastReadIndex: number, lastSavedIndex: number) => {
+  const sheetInstance = google.sheets({ version: 'v4', auth: googleAuth });
+
+  await SpreadSheetMetaData.findOneAndUpdate(
+    { name: MARKETING_SHEET },
+    { $set: { lastIdxMarketingSheet: newLastReadIndex } },
+    { new: true, upsert: true }
+  );
+
+  await sheetInstance.spreadsheets.batchUpdate({
+    spreadsheetId: MARKETING_SHEET_ID,
+    requestBody: {
+      requests: [
+        {
+          repeatCell: {
+            range: {
+              //Sheet ID can be found using the gid in sheet url, in case if we transfer entire data from one sheet to any other sheet, and we want same functionality to exist on that other sheet, we need to update this sheet id.
+              sheetId: Number(MARKETING_SHEET_ID),
+              startRowIndex: lastSavedIndex - 1,
+              endRowIndex: lastSavedIndex
+            },
+            cell: {
+              userEnteredFormat: {
+                backgroundColor: {
+                  red: 1.0,
+                  green: 1.0,
+                  blue: 1.0
+                }
+              }
+            },
+            fields: 'userEnteredFormat.backgroundColor'
+          }
+        },
+        {
+          repeatCell: {
+            range: {
+              sheetId: Number(MARKETING_SHEET_ID),
+              startRowIndex: newLastReadIndex - 1,
+              endRowIndex: newLastReadIndex
+            },
+            cell: {
+              userEnteredFormat: {
+                backgroundColor: {
+                  red: 0.0,
+                  green: 0.5019608,
+                  blue: 0.0
+                }
+              }
+            },
+            fields: 'userEnteredFormat.backgroundColor'
+          }
+        }
+      ]
+    }
+  });
 };
