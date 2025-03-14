@@ -1,3 +1,6 @@
+/**
+ * Marketing Module Enums
+*/
 export enum UserRoles {
   ADMIN = 'ADMIN',
   LEAD_MARKETING = 'LEAD_MARKETING',
@@ -13,6 +16,7 @@ export enum Gender {
   NOT_TO_MENTION = 'NOT_TO_MENTION'
 }
 
+
 export enum LeadType {
   ORANGE = 'OPEN',
   RED = 'NOT_INTERESTED',
@@ -22,6 +26,18 @@ export enum LeadType {
   GREEN = 'ADMISSION',
   WHITE = 'DID_NOT_PICK'
 }
+
+
+export enum FinalConversionType {
+  PINK = 'PENDING',
+  GREEN = 'CONVERTED',
+  RED = 'NOT_CONVERTED'
+}
+
+
+/**
+ * Admission Module Enums
+*/
 
 export enum Category {
   SC = "SC",
@@ -63,10 +79,19 @@ export enum Course {
   MSCC = "MSCC"
 }
 
-export enum FinalConversionType {
-  PINK = 'PENDING',
-  GREEN = 'CONVERTED',
-  RED = 'NOT_CONVERTED'
+
+export enum AcademicDetails {
+  Tenth = "10th",
+  Twelfth = "12th",
+  Graduation = "Graduation",
+  Others = "Others"
+}
+
+
+export enum ApplicationIdPrefix{
+  "TIHS" = "TIHS",
+  "TIMS" = "TIMS",
+  "TCL" = "TCL"
 }
 
 export const MARKETING_SHEET = 'Marketing Sheet'
