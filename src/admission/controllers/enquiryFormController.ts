@@ -16,6 +16,7 @@ const extractParts = (applicationId: string) => {
 
 export const createEnquiry = async (req: Request, res: Response, next: NextFunction) => {
   try {
+
     const data: IEnquiryRequestSchema = req.body;
     const validation = enquiryRequestSchema.safeParse(data);
 
@@ -93,6 +94,9 @@ export const updateEnquiry = async (req: Request, res: Response, next: NextFunct
       );
     }
 
+    //One edge case needs to be handled => What if the course is getting updated, in that case, we need to change the serial entry table too.
+
+
     // Below mentioned are optional as we will disable it from frontend only so...
     // if (data.studentPhoneNumber && data.studentPhoneNumber !== existingEnquiry.studentPhoneNumber) {
     //   throw createHttpError(400, 'Updating studentPhoneNumber is not allowed');
@@ -100,7 +104,7 @@ export const updateEnquiry = async (req: Request, res: Response, next: NextFunct
     // if (data.applicationId && data.applicationId !== existingEnquiry.applicationId) {
     //   throw createHttpError(400, 'Updating applicationId is not allowed');
     // }
-    
+
     const { _id, date, __v, applicationId, ...cleanData } = existingEnquiry.toObject();
 
     delete (cleanData as any).createdAt;
