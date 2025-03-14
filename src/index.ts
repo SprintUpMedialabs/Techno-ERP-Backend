@@ -22,7 +22,7 @@ app.use(cookieParser());
 const allowedOrigins =
   process.env.NODE_ENV === 'production'
     ? ['https://myepicfrontend.com']  //PROD ENV
-    : ['*'];      //DEV ENV
+    : ['http://localhost:3000','http://localhost:3001','https://techno.sprintup.in'];      //DEV ENV
 
 
 const corsOptions = {
