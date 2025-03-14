@@ -21,13 +21,12 @@ app.use(cookieParser());
 
 const allowedOrigins =
   process.env.NODE_ENV === 'production'
-    ? ['https://myepicfrontend.com']  //PROD ENV
-    : ['*'];      //DEV ENV
-
+    ? ['https://myepicfrontend.com'] // PROD ENV
+    : '*'; // Allow all origins in DEV ENV
 
 const corsOptions = {
-  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean | string) => void) => {
+    if (!origin || allowedOrigins === '*' || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
