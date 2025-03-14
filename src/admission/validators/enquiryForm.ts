@@ -33,18 +33,7 @@ export const enquiryRequestSchema = z
   .object({
     //Date field is there but it should be new Date() by default.
     studentName: z.string().min(1, 'Student Name is required'),
-    dateOfBirth: z
-      .string()
-      .refine(
-        (date) => {
-          const convertedDate = convertToMongoDate(date);
-          return convertedDate !== null;
-        },
-        {
-          message: 'Invalid date format, expected DD-MM-YYYY'
-        }
-      )
-      .transform((date) => convertToMongoDate(date) as Date),
+    dateOfBirth: requestDateSchema.transform((date) => convertToMongoDate(date) as Date),
     studentPhoneNumber: contactNumberSchema,
     fatherName: z.string().min(1, "Father's Name is required"),
     fatherPhoneNumber: contactNumberSchema,
@@ -63,5 +52,29 @@ export const enquiryRequestSchema = z
   })
   .strict();
 
+export const enquiryUpdateSchema = z
+  .object({
+    _id: objectIdSchema,
+    studentName: z.string().optional(),
+    dateOfBirth: requestDateSchema.transform((date) => convertToMongoDate(date) as Date).optional(),
+    studentPhoneNumber: contactNumberSchema.optional(),
+    fatherName: z.string().optional(),
+    fatherPhoneNumber: contactNumberSchema.optional(),
+    fatherOccupation: z.string().optional(),
+    motherName: z.string().optional(),
+    motherPhoneNumber: contactNumberSchema.optional(),
+    motherOccupation: z.string().optional(),
+    category: z.nativeEnum(Category).optional(),
+    address: z.string().optional(),
+    emailId: z.string().email('Invalid email format').optional(),
+    reference: z.nativeEnum(AdmissionReference).optional(),
+    course: z.nativeEnum(Course).optional(),
+    counsellor: z.union([objectIdSchema, z.enum(['other'])]).optional(),
+    remarks: z.string().optional(),
+    academicDetails: academicDetailsArraySchema.optional()
+  })
+  .strict();
+
+export type IEnquiryUpdateSchema = z.infer<typeof enquiryUpdateSchema>;
 export type IEnquiryRequestSchema = z.infer<typeof enquiryRequestSchema>;
 export type IAcademicDetailSchema = z.infer<typeof academicDetailSchema>;

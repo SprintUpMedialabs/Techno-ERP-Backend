@@ -1,7 +1,7 @@
 import mongoose, { Schema } from 'mongoose';
 import { IAcademicDetailSchema, IEnquiryRequestSchema } from '../validators/enquiryForm';
-import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
-import { emailSchema } from '../../validators/commonSchema';
+import { convertToDDMMYYYY, convertToMongoDate } from '../../utils/convertDateToFormatedDate';
+import { contactNumberSchema, emailSchema } from '../../validators/commonSchema';
 import {
   AcademicDetails,
   AdmissionReference,
@@ -10,6 +10,7 @@ import {
   Course
 } from '../../config/constants';
 import { EnquiryApplicationId } from './enquiryApplicationIdSchema';
+import createHttpError from 'http-errors';
 
 export interface IEnquiryFormDocument extends IEnquiryRequestSchema, Document {
   applicationId: string;
@@ -86,7 +87,10 @@ const enquiryFormSchema = new Schema<IEnquiryFormDocument>(
       type: String,
       required: [true, 'Student Phone Number is required.'],
       unique: true,
-      match: [/^\d{10}$/, "Invalid Student's phone number format, expected: 10 digits"]
+      validate: {
+        validator: (stuPhNum: string) => contactNumberSchema.safeParse(stuPhNum).success,
+        message: 'Invalid Phone Number'
+      }
     },
     fatherName: {
       type: String,
@@ -95,7 +99,10 @@ const enquiryFormSchema = new Schema<IEnquiryFormDocument>(
     fatherPhoneNumber: {
       type: String,
       required: [true, 'Father Phone Number is required.'],
-      match: [/^\d{10}$/, "Invalid Father's phone number format, expected: 10 digits"]
+      validate: {
+        validator: (stuPhNum: string) => contactNumberSchema.safeParse(stuPhNum).success,
+        message: 'Invalid Father Phone Number'
+      }
     },
     fatherOccupation: {
       type: String,
@@ -108,7 +115,10 @@ const enquiryFormSchema = new Schema<IEnquiryFormDocument>(
     motherPhoneNumber: {
       type: String,
       required: [true, 'Mother Phone Number is required.'],
-      match: [/^\d{10}$/, "Invalid Mother's phone number format, expected: 10 digits"]
+      validate: {
+        validator: (stuPhNum: string) => contactNumberSchema.safeParse(stuPhNum).success,
+        message: 'Invalid Mother Phone Number'
+      }
     },
     motherOccupation: {
       type: String,
@@ -175,23 +185,52 @@ enquiryFormSchema.pre<IEnquiryFormDocument>('save', async function (next) {
     // console.log(doc);
     const prefix = getPrefixForCourse(doc.course);
     console.log(prefix);
-    
+
     // Find existing serial number for the prefix
     let serial = await EnquiryApplicationId.findOne({ prefix: prefix });
 
     console.log(serial);
 
-    if (!serial) {
-      serial = new EnquiryApplicationId({ prefix, lastSerialNumber: 100 });
-    }
-
-    console.log(serial.lastSerialNumber)
-    serial.lastSerialNumber += 1;
+    console.log(serial!.lastSerialNumber);
+    serial!.lastSerialNumber += 1;
     // await serial.save(); => We will not do this here, as this can get updated even if validation of enquirySchema are failing, so we will update lastSerialNumber after the enquiry object is saved successfully.
 
-    doc.applicationId = `${prefix}${serial.lastSerialNumber}`;
+    doc.applicationId = `${prefix}${serial!.lastSerialNumber}`;
   }
   next();
 });
+
+const handleMongooseError = (error: any, next: Function) => {
+  if (error.code === 11000) {
+    throw createHttpError(400, 'Phone Number already exists');
+  } else if (error.name === 'ValidationError') {
+    const firstError = error.errors[Object.keys(error.errors)[0]];
+    throw createHttpError(400, firstError.message);
+  } else if (error.name == 'MongooseError') {
+    throw createHttpError(400, `${error.message}`);
+  } else {
+    next(error); // Pass any other errors to the next middleware
+  }
+};
+
+enquiryFormSchema.post('save', function (error: any, doc: any, next: Function) {
+  handleMongooseError(error, next);
+});
+
+enquiryFormSchema.post('findOneAndUpdate', function (error: any, doc: any, next: Function) {
+  handleMongooseError(error, next);
+});
+
+const transformDates = (_: any, ret: any) => {
+  ['date', 'dateOfBirth'].forEach((key) => {
+    if (ret[key]) {
+      ret[key] = convertToDDMMYYYY(ret[key]);
+    }
+  });
+  return ret;
+};
+
+enquiryFormSchema.set('toJSON', { transform: transformDates });
+enquiryFormSchema.set('toObject', { transform: transformDates });
 
 export const Enquiry = mongoose.model<IEnquiryFormDocument>('Enquiry', enquiryFormSchema);

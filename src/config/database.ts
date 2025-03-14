@@ -38,7 +38,7 @@ export const initializeDB = async () => {
       if (!existingEntry) {
         await EnquiryApplicationId.create({
           prefix,
-          lastSerialNumber: 101
+          lastSerialNumber: 100
         });
         logger.debug(`Initialized database with default serial number for ${prefix}`);
       } else {
