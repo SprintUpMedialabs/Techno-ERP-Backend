@@ -1,15 +1,14 @@
+import { User } from '../../auth/models/user';
 import { Gender, UserRoles } from '../../config/constants';
 import logger from '../../config/logger';
-import {  ILeadRequest, leadRequestSchema } from '../validators/leads';
-import { Lead } from '../models/leads';
-import { User } from '../../auth/models/user';
-import { IMarketingSpreadsheetProcessReport } from '../types/marketingSpreadsheet';
-import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
-import { MarketingsheetHeaders } from '../enums/marketingSheetHeader';
-import { updateStatusForMarketingSheet } from './googleSheetOperations';
 import { sendEmail } from '../../config/mailer';
 import { LEAD_MARKETING_EMAIL } from '../../secrets';
+import { MarketingsheetHeaders } from '../enums/marketingSheetHeader';
+import { Lead } from '../models/leads';
+import { IMarketingSpreadsheetProcessReport } from '../types/marketingSpreadsheet';
+import { ILeadRequest, leadRequestSchema } from '../validators/leads';
 import { formatReport } from './formatReport';
+import { updateStatusForMarketingSheet } from './googleSheetOperations';
 
 const leadsToBeInserted = async (
   latestData: any[],
@@ -121,9 +120,8 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) =>
     assignedToNotFound: [],
     emptyRows: []
   };
-  // console.log(latestData);
+  
   const dataToInsert = await leadsToBeInserted(latestData, report, lastSavedIndex);
-  // console.log(dataToInsert);
   if (!dataToInsert || dataToInsert.length === 0) {
     if (report.rowsFailed != 0) {
       sendEmail(LEAD_MARKETING_EMAIL, 'Lead Processing Report', formatReport(report));

@@ -1,12 +1,11 @@
 import { Response } from 'express';
 import expressAsyncHandler from "express-async-handler";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
-import { IAdminAnalyticsFilter, IAllLeadFilter } from "../types/marketingSpreadsheet";
+import { FinalConversionType, LeadType } from "../../config/constants";
 import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
 import { Lead } from "../models/leads";
-import { FinalConversionType, LeadType } from "../../config/constants";
 import { YellowLead } from "../models/yellowLead";
-import logger from '../../config/logger';
+import { IAdminAnalyticsFilter } from "../types/marketingSpreadsheet";
 
 export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const {

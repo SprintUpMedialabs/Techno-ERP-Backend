@@ -1,24 +1,20 @@
 import { z } from 'zod';
-import { CourseType, Gender, LeadType } from '../../config/constants';
-import { objectIdSchema } from '../../validators/objectIdSchema';
+import { Course, Gender, LeadType } from '../../config/constants';
+import { contactNumberSchema, objectIdSchema, requestDateSchema } from '../../validators/commonSchema';
 
 export const leadSchema = z.object({
   date:
     z.date(),
   source: z.string().optional(),
   name: z.string().min(1, 'Name field is required'),
-  phoneNumber: z
-    .string()
-    .regex(/^\d{10}$/, 'Invalid contact number format. Expected: 1234567890'),
+  phoneNumber: contactNumberSchema,
 
-  altPhoneNumber: z
-    .string()
-    .regex(/^\d{10}$/, 'Invalid contact number format. Expected: 1234567890')
+  altPhoneNumber: contactNumberSchema
     .optional(),
   email: z.string().email('Invalid Email Format').optional(),
   gender: z.nativeEnum(Gender).default(Gender.NOT_TO_MENTION),
   location: z.string().optional(),
-  course: z.nativeEnum(CourseType).optional(),
+  course: z.nativeEnum(Course).optional(),
   assignedTo: objectIdSchema,
   leadType: z.nativeEnum(LeadType).default(LeadType.ORANGE),
   remarks: z.string().optional(),
@@ -31,28 +27,21 @@ export type ILead = z.infer<typeof leadSchema>;
 
 
 export const leadRequestSchema = z.object({
-  date: z.string()
-    .regex(/^\d{2}\/\d{2}\/\d{4}$/, 'Invalid date format, expected DD/MM/YYYY'),
+  date: requestDateSchema,
   source: z.string().optional(),
   name: z.string().min(1, 'Name field is required'),
-  phoneNumber: z
-    .string()
-    .regex(/^\d{10}$/, 'Invalid contact number format. Expected: 1234567890'),
-  altPhoneNumber: z
-    .string()
-    .regex(/^\d{10}$/, 'Invalid contact number format. Expected: 1234567890')
+  phoneNumber: contactNumberSchema,
+  altPhoneNumber: contactNumberSchema
     .optional(),
   email: z.string().email('Invalid Email Format').optional(),
   gender: z.nativeEnum(Gender).default(Gender.NOT_TO_MENTION),
   location: z.string().optional(),
-  course: z.nativeEnum(CourseType).optional(),
+  course: z.nativeEnum(Course).optional(),
   assignedTo: objectIdSchema,
   leadType: z.nativeEnum(LeadType).default(LeadType.ORANGE),
   remarks: z.string().optional(),
   leadTypeModifiedDate: z.date().optional(),
-  nextDueDate: z
-    .string()
-    .regex(/^\d{2}\/\d{2}\/\d{4}$/, 'Invalid date format, expected DD/MM/YYYY')
+  nextDueDate: requestDateSchema
     .optional()
 });
 export type ILeadRequest = z.infer<typeof leadRequestSchema>;
@@ -61,23 +50,18 @@ export type ILeadRequest = z.infer<typeof leadRequestSchema>;
 export const updateLeadRequestSchema = z.object({
   _id: objectIdSchema,
   name: z.string().min(1, 'Name field is required').optional(),
-  phoneNumber: z
-    .string()
-    .regex(/^\d{10}$/, 'Invalid contact number format. Expected: 1234567890')
+  phoneNumber: contactNumberSchema
     .optional(),
-  altPhoneNumber: z
-    .string()
-    .regex(/^\d{10}$/, 'Invalid contact number format. Expected: 1234567890')
+  altPhoneNumber: contactNumberSchema
     .optional(),
   email: z.string().email('Invalid Email Format').optional(),
   gender: z.nativeEnum(Gender).optional(),
   location: z.string().optional(),
-  course: z.nativeEnum(CourseType).optional(),
+  course: z.nativeEnum(Course).optional(),
   leadType: z.nativeEnum(LeadType).optional(),
   remarks: z.string().optional(),
   nextDueDate:
-    z.string()
-      .regex(/^\d{2}\/\d{2}\/\d{4}$/, 'Invalid date format, expected DD/MM/YYYY')
+    requestDateSchema
       .optional()
 }).strict(); // strict will restrict extra properties
 

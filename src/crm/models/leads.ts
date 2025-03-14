@@ -55,11 +55,11 @@ const leadSchema = new Schema<ILeadDocument>(
     },
 
     location: { type: String },
-    course: { type: String },
+    course: { type: String }, // TODO: this should be enum with validation
 
     // Required field with a custom validation error message
     assignedTo: {
-      type: String,
+      type: String, // this should be objectId ( no need to put ref but mongoId is required)
       required: [true, 'Assigned To is required']
     },
 

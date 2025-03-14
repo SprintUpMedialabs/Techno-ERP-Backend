@@ -2,6 +2,7 @@ import express from 'express';
 import { authRouter } from './auth/routes/authRoute';
 import { userRouter } from './auth/routes/userRoute';
 import { crmRoute } from './crm/routes/crmRoute';
+import { admissionRoute } from './admission/routes';
 
 export const apiRouter = express.Router();
 
@@ -19,3 +20,6 @@ apiRouter.use('/user', userRouter);
  * Contains the router for CRM Module
  */
 apiRouter.use('/crm', crmRoute);
+
+
+apiRouter.use('/admission',admissionRoute)

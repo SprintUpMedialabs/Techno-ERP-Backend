@@ -2,7 +2,8 @@ export enum UserRoles {
   ADMIN = 'ADMIN',
   LEAD_MARKETING = 'LEAD_MARKETING',
   EMPLOYEE_MARKETING = 'EMPLOYEE_MARKETING',
-  BASIC_USER = 'BASIC_USER'
+  BASIC_USER = 'BASIC_USER',
+  COUNSELOR = 'COUNSELOR'
 }
 
 export enum Gender {
@@ -22,18 +23,50 @@ export enum LeadType {
   WHITE = 'DID_NOT_PICK'
 }
 
+export enum Category {
+  SC = "SC",
+  ST = "ST",
+  OBC = "OBC",
+  GENERAL = "General",
+  EWS = "EWS",
+  OTHER = "Other"
+};
+
+export enum AdmissionReference {
+  Advertising = "Advertising",
+  BusinessAssociate = "Business Associate",
+  DigitalMarketing = "Digital Marketing",
+  DirectWalkIn = "Direct Walk-in",
+  LUNPGExternalVenue = "LU/NPG/External Venue",
+  StudentReference = "Student Reference",
+  TechnoligenceStaffCalling = "Technoligence/Staff Calling",
+  Other = "Other"
+};
+
+export enum Course {
+  BCOM = "BCOM",
+  BCOMH = "BCOMH",
+  BAJMC = "BAJMC",
+  BED = "BED",
+  BSCM = "BSCM",
+  BSCB = "BSCB",
+  BBA = "BBA",
+  BCA = "BCA",
+  BVAA = "BVAA",
+  BVAP = "BVAP",
+  MAJMC = "MAJMC",
+  MCOMC = "MCOMC",
+  MBA = "MBA",
+  LLB = "LLB",
+  MCA = "MCA",
+  MVAP = "MVAP",
+  MSCC = "MSCC"
+}
+
 export enum FinalConversionType {
   PINK = 'PENDING',
   GREEN = 'CONVERTED',
   RED = 'NOT_CONVERTED'
 }
-
-export enum CourseType {
-  BBA = 'BBA',
-  MBA = 'MBA',
-  BCOM = 'B.COM',
-  MCOM = 'M.COM'
-}
-
 
 export const MARKETING_SHEET = 'Marketing Sheet'
