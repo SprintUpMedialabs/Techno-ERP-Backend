@@ -222,11 +222,13 @@ enquiryFormSchema.post('findOneAndUpdate', function (error: any, doc: any, next:
 });
 
 const transformDates = (_: any, ret: any) => {
+  
   ['date', 'dateOfBirth'].forEach((key) => {
     if (ret[key]) {
       ret[key] = convertToDDMMYYYY(ret[key]);
     }
   });
+  // console.log("TRansforming date")
   return ret;
 };
 

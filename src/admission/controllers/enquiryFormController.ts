@@ -112,8 +112,10 @@ export const updateEnquiry = async (req: Request, res: Response, next: NextFunct
 };
 
 export const getEnquiryData = async (req: Request, res: Response, next: NextFunction) => {
-  const enquiryData = Enquiry.find();
-  res.status(200).json({
-    data: enquiryData
-  });
+    const enquiryData = await Enquiry.find();
+
+    res.status(200).json({
+      data: enquiryData
+    });
+  
 };
