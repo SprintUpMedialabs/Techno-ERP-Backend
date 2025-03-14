@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { UserRoles } from '../../config/constants';
+import { objectIdSchema } from '../../validators/commonSchema';
 
 export const userSchema = z.object({
   email: z.string().email(),

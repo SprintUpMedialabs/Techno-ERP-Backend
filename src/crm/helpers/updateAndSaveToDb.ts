@@ -1,3 +1,4 @@
+import { Types } from 'mongoose';
 import { User } from '../../auth/models/user';
 import { Gender, UserRoles } from '../../config/constants';
 import logger from '../../config/logger';
@@ -15,7 +16,7 @@ const leadsToBeInserted = async (
   report: IMarketingSpreadsheetProcessReport,
   lastSavedIndex: number
 ) => {
-  let MarketingEmployees: Map<string, string> = new Map();
+  let MarketingEmployees: Map<string, Types.ObjectId> = new Map();
 
   const dataToInsert: ILeadRequest[] = [];
 
@@ -47,8 +48,8 @@ const leadsToBeInserted = async (
       if (!assignedToID) {
         const existingUser = await User.findOne({ email: assignedToEmail });
         if (existingUser && existingUser.roles.includes(UserRoles.EMPLOYEE_MARKETING)) {
-          assignedToID = existingUser?._id?.toString() || '';
-          MarketingEmployees.set(assignedToEmail, assignedToID);
+          assignedToID = existingUser._id as Types.ObjectId;
+          MarketingEmployees.set(assignedToEmail, assignedToID!);
         } else {
           if (!existingUser) {
             report.otherIssue.push({
@@ -137,7 +138,6 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) =>
     const insertedData = await Lead.insertMany(dataToInsert, { ordered: false, throwOnValidationError: true });
     report.actullyProcessedRows = insertedData.length;
   } catch (error: any) {
-    console.log(error);
     report.actullyProcessedRows = error.result.insertedCount;
 
     error.writeErrors.map((e: any) => {

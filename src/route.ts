@@ -22,4 +22,4 @@ apiRouter.use('/user', userRouter);
 apiRouter.use('/crm', crmRoute);
 
 
-apiRouter.use('/admission',admissionRoute)
+apiRouter.use('/admission',admissionRoute);

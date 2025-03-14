@@ -15,7 +15,7 @@ export const leadSchema = z.object({
   gender: z.nativeEnum(Gender).default(Gender.NOT_TO_MENTION),
   location: z.string().optional(),
   course: z.nativeEnum(Course).optional(),
-  assignedTo: objectIdSchema,
+  assignedTo: objectIdSchema, // TODO: need to test this
   leadType: z.nativeEnum(LeadType).default(LeadType.ORANGE),
   remarks: z.string().optional(),
   leadTypeModifiedDate: z.date().optional(),
@@ -37,7 +37,7 @@ export const leadRequestSchema = z.object({
   gender: z.nativeEnum(Gender).default(Gender.NOT_TO_MENTION),
   location: z.string().optional(),
   course: z.nativeEnum(Course).optional(),
-  assignedTo: objectIdSchema,
+  assignedTo: objectIdSchema, // TODO: need to test this
   leadType: z.nativeEnum(LeadType).default(LeadType.ORANGE),
   remarks: z.string().optional(),
   leadTypeModifiedDate: z.date().optional(),
