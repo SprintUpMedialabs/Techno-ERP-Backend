@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { object, z } from 'zod';
 import { Gender, FinalConversionType, Course } from '../../config/constants';
 import { contactNumberSchema, objectIdSchema, requestDateSchema } from '../../validators/commonSchema';
 
@@ -11,7 +11,7 @@ export const yellowLeadSchema = z
       .optional(),
     email: z.string().email('Invalid Email Format').optional(),
     gender: z.nativeEnum(Gender).default(Gender.NOT_TO_MENTION),
-    assignedTo: z.string(),
+    assignedTo: objectIdSchema,
     location: z.string().optional(),
     course: z.nativeEnum(Course).optional(),
     campusVisit: z.boolean().default(false),

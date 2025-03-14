@@ -1,9 +1,11 @@
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import { z } from 'zod';
+import { UserRoles } from '../config/constants';
 
-export const objectIdSchema = z.string().refine((id) => mongoose.Types.ObjectId.isValid(id), {
-  message: 'Invalid ObjectId'
-});
+export const objectIdSchema = z.custom<Types.ObjectId>(
+  (id) => mongoose.Types.ObjectId.isValid(id),
+  { message: "Invalid ObjectId" }
+);
 
 export const requestDateSchema = z
   .string()
@@ -16,3 +18,6 @@ export const contactNumberSchema = z
 export const emailSchema = z
   .string()
   .regex(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, 'Invalid email format');
+
+
+export const roleSchema = z.nativeEnum(UserRoles);

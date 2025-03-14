@@ -32,7 +32,7 @@ const yellowLeadSchema = new Schema<IYellowLeadDocument>(
       match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Invalid email format']
     },
     gender: { type: String, enum: Object.values(Gender), default: Gender.NOT_TO_MENTION },
-    assignedTo: { type: String, required: [true, 'Assigned To Field is required'] },
+    assignedTo: { type: Schema.Types.ObjectId, required: [true, 'Assigned To Field is required'] },
     location: { type: String },
     course: { type: String },
     campusVisit: { type: Boolean, default: false },
@@ -42,17 +42,6 @@ const yellowLeadSchema = new Schema<IYellowLeadDocument>(
   },
   { timestamps: true }
 );
-
-//NOT NEEDED AS WE WILL USE TOJSON AND TOOBJECT
-// yellowLeadSchema.pre<IYellowLeadDocument>('save', function (next) {
-//   if (typeof this.date === 'string') {
-//     this.date = convertToMongoDate(this.date);
-//   }
-//   if (typeof this.nextDueDate === 'string') {
-//     this.nextDueDate = convertToMongoDate(this.nextDueDate);
-//   }
-//   next();
-// });
 
 const handleMongooseError = (error: any, next: Function) => {
   logger.error(error);
