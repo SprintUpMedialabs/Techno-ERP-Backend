@@ -14,34 +14,26 @@ export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedReque
         location = [],
         assignedTo = [],
         source = [],
-    } = req.body;
+    } = req.body as IAdminAnalyticsFilter;
 
-    const query: any = {};
+    const query: Record<string, any> = {};
 
-    const filters: IAdminAnalyticsFilter = {
-        startDate,
-        endDate,
-        location,
-        assignedTo,
-        source
-    };
-
-    if (filters.location.length > 0) {
-        query.location = { $in: filters.location };
+    if (location.length > 0) {
+        query.location = { $in: location };
     }
 
-    if (filters.startDate || filters.endDate) {
+    if (startDate || endDate) {
         query.date = {};
-        if (filters.startDate) {
-            query.date.$gte = convertToMongoDate(filters.startDate);
+        if (startDate) {
+            query.date.$gte = convertToMongoDate(startDate);
         }
-        if (filters.endDate) {
-            query.date.$lte = convertToMongoDate(filters.endDate);
+        if (endDate) {
+            query.date.$lte = convertToMongoDate(endDate);
         }
     }
 
-    if (filters.assignedTo.length > 0) {
-        query.assignedTo = { $in: filters.assignedTo };
+    if (assignedTo.length > 0) {
+        query.assignedTo = { $in: assignedTo };
     }
 
     // TODO: will discuss this in future and apply it here
@@ -49,36 +41,36 @@ export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedReque
     //     query.source = { $in: filters.source }
     // }
 
-    const allLeadAnalytics = await Lead.aggregate([
-        { $match: query }, // Apply Filters
-        {
-            $group: {
-                _id: null,
-                allLeads: { $sum: 1 }, // Count total leads
-                reached: { $sum: { $cond: [{ $ne: ['$leadType', LeadType.ORANGE] }, 1, 0] } }, // Count leads where leadType is NOT 'OPEN'
-                notReached: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.ORANGE] }, 1, 0] } }, // Count leads where leadType is 'OPEN'
-                white: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.WHITE] }, 1, 0] } }, // Count leads where leadType is 'DID_NOT_PICK'
-                black: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.BLACK] }, 1, 0] } }, // Count leads where leadType is 'COURSE_UNAVAILABLE'
-                red: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.RED] }, 1, 0] } }, // Count leads where leadType is 'NOT_INTERESTED'
-                blue: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.BLUE] }, 1, 0] } }, // Count leads where leadType is 'NO_CLARITY'
-                yellow: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.YELLOW] }, 1, 0] } }, // Count leads where leadType is 'INTERESTED'
+    const [allLeadAnalytics, yellowLeadAnalytics] = await Promise.all([
+        Lead.aggregate([
+            { $match: query }, // Apply Filters
+            {
+                $group: {
+                    _id: null,
+                    allLeads: { $sum: 1 }, // Count total leads
+                    reached: { $sum: { $cond: [{ $ne: ['$leadType', LeadType.ORANGE] }, 1, 0] } }, // Count leads where leadType is NOT 'OPEN'
+                    notReached: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.ORANGE] }, 1, 0] } }, // Count leads where leadType is 'OPEN'
+                    white: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.WHITE] }, 1, 0] } }, // Count leads where leadType is 'DID_NOT_PICK'
+                    black: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.BLACK] }, 1, 0] } }, // Count leads where leadType is 'COURSE_UNAVAILABLE'
+                    red: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.RED] }, 1, 0] } }, // Count leads where leadType is 'NOT_INTERESTED'
+                    blue: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.BLUE] }, 1, 0] } }, // Count leads where leadType is 'NO_CLARITY'
+                    yellow: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.YELLOW] }, 1, 0] } }, // Count leads where leadType is 'INTERESTED'
+                }
             }
-        }
-    ]);
-
-    const yellowLeadAnalytics = await YellowLead.aggregate([
-        { $match: query }, // in query we have issue
-        {
-            $group: {
-                _id: null,
-                // New Fields for Second Collection
-                campusVisit: { $sum: { $cond: [{ $eq: ['$campusVisit', true] }, 1, 0] } }, // Count where campusVisit is true
-                noCampusVisit: { $sum: { $cond: [{ $eq: ['$campusVisit', false] }, 1, 0] } }, // Count where campusVisit is false
-                unconfirmed: { $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.PINK] }, 1, 0] } }, // Count where finalConversion is 'PENDING'
-                declined: { $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.RED] }, 1, 0] } }, // Count where finalConversion is 'NOT_CONVERTED'
-                finalConversion: { $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.GREEN] }, 1, 0] } }, // Count where finalConversion is 'CONVERTED'
+        ]), YellowLead.aggregate([
+            { $match: query }, // in query we have issue
+            {
+                $group: {
+                    _id: null,
+                    // New Fields for Second Collection
+                    campusVisit: { $sum: { $cond: [{ $eq: ['$campusVisit', true] }, 1, 0] } }, // Count where campusVisit is true
+                    noCampusVisit: { $sum: { $cond: [{ $eq: ['$campusVisit', false] }, 1, 0] } }, // Count where campusVisit is false
+                    unconfirmed: { $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.PINK] }, 1, 0] } }, // Count where finalConversion is 'PENDING'
+                    declined: { $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.RED] }, 1, 0] } }, // Count where finalConversion is 'NOT_CONVERTED'
+                    finalConversion: { $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.GREEN] }, 1, 0] } }, // Count where finalConversion is 'CONVERTED'
+                }
             }
-        }
+        ])
     ]);
 
     res.status(200).json({
