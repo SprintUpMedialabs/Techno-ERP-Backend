@@ -7,6 +7,7 @@ import {
   IEnquiryRequestSchema
 } from '../validators/enquiryForm';
 import { EnquiryApplicationId } from '../models/enquiryApplicationIdSchema';
+import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
 
 const extractParts = (applicationId: string) => {
   const match = applicationId.match(/^([A-Za-z]+)(\d+)$/);
@@ -67,7 +68,7 @@ export const createEnquiry = async (req: Request, res: Response, next: NextFunct
     return next(createHttpError(500, 'Failed to create enquiry', { error }));
   }
 };
-
+// DTODO: lets use AuthenticatedRequest only jiiii also do same in above function
 export const updateEnquiry = async (req: Request, res: Response, next: NextFunction) => {
   try {
     // Validate request body
@@ -111,11 +112,30 @@ export const updateEnquiry = async (req: Request, res: Response, next: NextFunct
   }
 };
 
-export const getEnquiryData = async (req: Request, res: Response, next: NextFunction) => {
-  const enquiryData = await Enquiry.find();
+export const getEnquiryData = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  const search = (req.query.search as string) || "";
+  const page = parseInt(req.query.page as string, 10) || 1;
+  const limit = parseInt(req.query.limit as string, 10) || 10;
+
+  const skip = (page - 1) * limit;
+  const query = search
+    ? {
+      $or: [
+        { studentName: { $regex: search, $options: "i" } },
+        { studentPhoneNumber: { $regex: search, $options: "i" } },
+      ],
+    }
+    : {};
+
+  const [results, totalItems] = await Promise.all([
+    Enquiry.find(query).skip(skip).limit(limit),
+    Enquiry.countDocuments(query),
+  ]);
 
   res.status(200).json({
-    data: enquiryData
+    enquiry: results,
+    total: totalItems,
+    totalPages: Math.ceil(totalItems / limit),
+    currentPage: page,
   });
-
 };
