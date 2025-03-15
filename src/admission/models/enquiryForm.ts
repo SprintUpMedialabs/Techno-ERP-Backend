@@ -85,8 +85,6 @@ const enquiryFormSchema = new Schema<IEnquiryFormDocument>(
     },
     studentPhoneNumber: {
       type: String,
-      required: [true, 'Student Phone Number is required.'],
-      unique: true,
       validate: {
         validator: (stuPhNum: string) => contactNumberSchema.safeParse(stuPhNum).success,
         message: 'Invalid Phone Number'
@@ -163,7 +161,6 @@ const enquiryFormSchema = new Schema<IEnquiryFormDocument>(
     },
     remarks: {
       type: String,
-      required: true
     },
     academicDetails: {
       type: [academicDetailFormSchema],
@@ -198,7 +195,7 @@ enquiryFormSchema.pre<IEnquiryFormDocument>('save', async function (next) {
 
 const handleMongooseError = (error: any, next: Function) => {
   if (error.code === 11000) {
-    throw createHttpError(400, 'Phone Number already exists');
+    throw createHttpError(400, 'Student Phone Number already exists');
   } else if (error.name === 'ValidationError') {
     const firstError = error.errors[Object.keys(error.errors)[0]];
     throw createHttpError(400, firstError.message);

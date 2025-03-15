@@ -1,13 +1,14 @@
-import { Request, Response, NextFunction } from 'express';
+import { Response } from 'express';
 import createHttpError from 'http-errors';
+import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
+import { EnquiryApplicationId } from '../models/enquiryApplicationIdSchema';
 import { Enquiry } from '../models/enquiryForm';
 import {
   enquiryRequestSchema,
   enquiryUpdateSchema,
   IEnquiryRequestSchema
 } from '../validators/enquiryForm';
-import { EnquiryApplicationId } from '../models/enquiryApplicationIdSchema';
-import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
+import expressAsyncHandler from 'express-async-handler';
 
 const extractParts = (applicationId: string) => {
   const match = applicationId.match(/^([A-Za-z]+)(\d+)$/);
@@ -19,22 +20,18 @@ const extractParts = (applicationId: string) => {
   throw new Error('Invalid applicationId format');
 };
 
-export const createEnquiry = async (req: AuthenticatedRequest, res: Response) => {
+// DTODO: here you forgot to add expressAsyncHandler
+export const createEnquiry = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const data: IEnquiryRequestSchema = req.body;
   const validation = enquiryRequestSchema.safeParse(data);
 
   if (!validation.success) {
+    console.log(validation.error);
     throw createHttpError(400, validation.error.errors[0]);
   }
 
-  const newEnquiry = new Enquiry({
-    ...data
-  });
-
-  // DTODO: why we are not using create here? lets use that only [to make things identical - as we already used it in marketing module] => Done
-  // let savedResult = await newEnquiry.save();
-
-  let savedResult = await Enquiry.create(newEnquiry);
+  let savedResult = await Enquiry.create({...data});
+  
   //Save the status of updated serial number in db once enquiry object insertion is successful.
   let { prefix, serialNumber } = extractParts(savedResult.applicationId);
 
@@ -47,13 +44,12 @@ export const createEnquiry = async (req: AuthenticatedRequest, res: Response) =>
     success: true,
     message: 'Enquiry created successfully',
     data: {
-      applicationId: newEnquiry.applicationId
+      applicationId: savedResult.applicationId
     }
   });
-};
+});
 
-// DTODO: lets use AuthenticatedRequest only jiiii also do same in above function => Done
-export const updateEnquiry = async (req: AuthenticatedRequest, res: Response) => {
+export const updateEnquiry = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const validation = enquiryUpdateSchema.safeParse(req.body);
   if (!validation.success) {
     throw createHttpError(400, validation.error.errors[0]);
@@ -62,8 +58,7 @@ export const updateEnquiry = async (req: AuthenticatedRequest, res: Response) =>
   const { _id, ...data } = validation.data;
 
   const updatedData = await Enquiry.findByIdAndUpdate(
-    // DTODO: here use _id jii => Done
-    req.body._id,
+    _id,
     { ...data },
     {
       new: true,
@@ -76,11 +71,9 @@ export const updateEnquiry = async (req: AuthenticatedRequest, res: Response) =>
     message: 'Enquiry updated successfully',
     data: updatedData
   });
-};
+});
 
-
-
-export const getEnquiryData = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+export const getEnquiryData = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const search = (req.query.search as string) || '';
   const page = parseInt(req.query.page as string, 10) || 1;
   const limit = parseInt(req.query.limit as string, 10) || 10;
@@ -106,4 +99,4 @@ export const getEnquiryData = async (req: AuthenticatedRequest, res: Response): 
     totalPages: Math.ceil(totalItems / limit),
     currentPage: page
   });
-};
+});

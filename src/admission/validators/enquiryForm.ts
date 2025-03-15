@@ -41,12 +41,19 @@ export const enquiryRequestSchema = z
     motherName: z.string().min(1, "Mother's Name is required"),
     motherPhoneNumber: contactNumberSchema,
     motherOccupation: z.string().min(1, 'Mother occupation is required'),
-    category: z.nativeEnum(Category),
+    category: z.nativeEnum(Category, {
+      errorMap: () => ({ message: "Invalid category selected" }),
+    }),
     address: z.string().min(5, 'Address is required'),
     emailId: z.string().email('Invalid email format').optional(),
-    reference: z.nativeEnum(AdmissionReference),
-    course: z.nativeEnum(Course),
-    counsellor: z.union([objectIdSchema, z.enum(['other'])]),
+    reference: z.nativeEnum(AdmissionReference, {
+      errorMap: () => ({ message: "Invalid admission reference" }),
+    }),
+    // DTODO: here we need to add msg for enums [do this in marketing module also]
+    course: z.nativeEnum(Course, {
+      errorMap: () => ({ message: "Invalid course selected" }),
+    }),    
+    counsellor: z.union([objectIdSchema, z.enum(['other'])]), // DTODO: here error msg is not coming up properly but fine this is not our current prioriy
     remarks: z.string().optional(),
     academicDetails: academicDetailsArraySchema.optional()
   })
