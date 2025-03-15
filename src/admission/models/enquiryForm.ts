@@ -181,17 +181,13 @@ const getPrefixForCourse = (course: Course): ApplicationIdPrefix => {
 
 enquiryFormSchema.pre<IEnquiryFormDocument>('save', async function (next) {
   const doc = this as IEnquiryFormDocument;
+  // DTODO: just take a look at user [pre save middleware] first will check if course is modified or not. if its not modified then will skip this process. if its modified they will execute this. [will discuss it on call if required]
   if (doc) {
-    // console.log(doc);
     const prefix = getPrefixForCourse(doc.course);
-    console.log(prefix);
 
     // Find existing serial number for the prefix
     let serial = await EnquiryApplicationId.findOne({ prefix: prefix });
 
-    console.log(serial);
-
-    console.log(serial!.lastSerialNumber);
     serial!.lastSerialNumber += 1;
     // await serial.save(); => We will not do this here, as this can get updated even if validation of enquirySchema are failing, so we will update lastSerialNumber after the enquiry object is saved successfully.
 

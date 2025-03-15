@@ -31,9 +31,8 @@ export const createEnquiry = async (req: Request, res: Response, next: NextFunct
       ...data
     });
 
+    // DTODO: why we are not using create here? lets use that only [to make things identical - as we already used it in marketing module]
     let savedResult = await newEnquiry.save();
-
-    // console.log(savedResult)
 
     //Save the status of updated serial number in db once enquiry object insertion is successful.
     let { prefix, serialNumber } = extractParts(savedResult.applicationId);
@@ -51,8 +50,10 @@ export const createEnquiry = async (req: Request, res: Response, next: NextFunct
       }
     });
   } catch (error) {
+    // DTODO: do you think here catch is required? we are handling this error with handleMongooseError middleware so just do one thing write this meaning full msg there and lets remove this catch from here
     if ((error as any).code === 11000) {
       // console.log(error);
+      // DTODO: same as below
       return next(
         createHttpError(
           400,
@@ -62,6 +63,7 @@ export const createEnquiry = async (req: Request, res: Response, next: NextFunct
     }
 
     console.log(error);
+    // DTODO: same as below
     return next(createHttpError(500, 'Failed to create enquiry', { error }));
   }
 };
@@ -76,14 +78,10 @@ export const updateEnquiry = async (req: Request, res: Response, next: NextFunct
 
     const { _id, ...data } = validation.data;
 
-    //No need to check ID here because we will get it for sure.
-    //   if (!_id) {
-    //     throw createHttpError(400, '_id is required for updating an enquiry');
-    //   }
-
     const updatedData = await Enquiry.findByIdAndUpdate(
+      // DTODO: here use _id jii
       req.body._id,
-      { ...req.body },
+      { ...req.body }, // we alread have name data then put that one here [reason: body will _id also. yes i know it will be same any way we have variable so lets use it 😊]
       {
         new: true,
         runValidators: true
@@ -96,8 +94,9 @@ export const updateEnquiry = async (req: Request, res: Response, next: NextFunct
       data: updatedData
     });
   } catch (error) {
+    // DTODO: do you think here catch is required? we are handling this error with handleMongooseError middleware so just do one thing write this meaning full msg there and lets remove this catch from here
     if ((error as any).code === 11000) {
-      // console.log(error);
+      // DTODO: why next? just throw createHttpError
       return next(
         createHttpError(
           400,
@@ -106,16 +105,17 @@ export const updateEnquiry = async (req: Request, res: Response, next: NextFunct
       );
     }
 
-    console.log(error);
+    // D-TODO: here next is not required also don't give 500. just have throw error.
+    //  reason: because we are not whay went wrong so just throw error global handler will manage it
     return next(createHttpError(500, 'Failed to create enquiry', { error }));
   }
 };
 
 export const getEnquiryData = async (req: Request, res: Response, next: NextFunction) => {
-    const enquiryData = await Enquiry.find();
+  const enquiryData = await Enquiry.find();
 
-    res.status(200).json({
-      data: enquiryData
-    });
-  
+  res.status(200).json({
+    data: enquiryData
+  });
+
 };
