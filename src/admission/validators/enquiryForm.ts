@@ -4,30 +4,13 @@ import {
   objectIdSchema,
   requestDateSchema
 } from '../../validators/commonSchema'; // Import the date validation schema
-import { AcademicDetails, AdmissionReference, Category, Course } from '../../config/constants';
+import { AdmissionReference, AdmittedThrough, ApplicationStatus, BloodGroup, Category, Course, DocumentType, Religion } from '../../config/constants';
 import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
+import { academicDetailsArraySchema } from './academicDetailSchema';
+import { previousCollegeDataSchema } from './previousCollegeDataSchema';
+import { addressSchema } from './addressSchema';
+import { singleDocumentSchema } from './singleDocumentSchema';
 
-export const academicDetailSchema = z.object({
-  academicDetails: z.nativeEnum(AcademicDetails), // Only allows fixed values
-  schoolCollegeName: z.string().min(1, 'School/College Name is required'),
-  universityBoardName: z.string().min(1, 'University/Board Name is required'),
-  passingYear: z
-    .number()
-    .int()
-    .refine((year) => year.toString().length === 4, {
-      message: 'Passing Year must be a valid 4-digit year'
-    }),
-  percentageObtained: z
-    .number()
-    .min(0, 'Percentage must be at least 0')
-    .max(100, 'Percentage cannot exceed 100'),
-  subjects: z
-    .array(z.string().min(1, 'Subject name is required'))
-    .nonempty('Subjects cannot be empty')
-});
-
-// Array schema
-export const academicDetailsArraySchema = z.array(academicDetailSchema);
 
 export const enquiryRequestSchema = z
   .object({
@@ -42,24 +25,30 @@ export const enquiryRequestSchema = z
     motherPhoneNumber: contactNumberSchema,
     motherOccupation: z.string().min(1, 'Mother occupation is required'),
     category: z.nativeEnum(Category, {
-      errorMap: () => ({ message: "Invalid category selected" }),
+      errorMap: () => ({ message: 'Invalid category selected' })
     }),
-    address: z.string().min(5, 'Address is required'),
+    // address: z.string().min(5, 'Address is required'),
+    address: addressSchema,
     emailId: z.string().email('Invalid email format').optional(),
     reference: z.nativeEnum(AdmissionReference, {
-      errorMap: () => ({ message: "Invalid admission reference" }),
+      errorMap: () => ({ message: 'Invalid admission reference' })
     }),
-    // DTODO: here we need to add msg for enums [do this in marketing module also]
+    // DATODO: here we need to add msg for enums [do this in marketing module also] : The value here would be coming from dropdown, so do you think that error ke chances hai?
     course: z.nativeEnum(Course, {
-      errorMap: () => ({ message: "Invalid course selected" }),
-    }),    
+      errorMap: () => ({ message: 'Invalid course selected' })
+    }),
     counsellor: z.union([objectIdSchema, z.enum(['other'])]), // DTODO: here error msg is not coming up properly but fine this is not our current prioriy
     remarks: z.string().optional(),
-    academicDetails: academicDetailsArraySchema.optional()
+    academicDetails: academicDetailsArraySchema.optional(),
+    applicationStatus : z.nativeEnum(ApplicationStatus, {
+      errorMap : () => ({message : 'Invalid Application Status'})
+    }).default(ApplicationStatus.STEP_1)
   })
   .strict();
 
-export const enquiryUpdateSchema = z
+
+
+  export const enquiryUpdateSchema = z
   .object({
     _id: objectIdSchema,
     studentName: z.string().optional(),
@@ -72,16 +61,35 @@ export const enquiryUpdateSchema = z
     motherPhoneNumber: contactNumberSchema.optional(),
     motherOccupation: z.string().optional(),
     category: z.nativeEnum(Category).optional(),
-    address: z.string().optional(),
+    // address: z.string().optional(),
     emailId: z.string().email('Invalid email format').optional(),
     reference: z.nativeEnum(AdmissionReference).optional(),
+    dateOfAdmission: requestDateSchema
+      .transform((date) => convertToMongoDate(date) as Date)
+      .optional(),
     course: z.nativeEnum(Course).optional(),
     counsellor: z.union([objectIdSchema, z.enum(['other'])]).optional(),
     remarks: z.string().optional(),
-    academicDetails: academicDetailsArraySchema.optional()
+    academicDetails: academicDetailsArraySchema.optional(),
+    previousCollegeData: previousCollegeDataSchema.optional(),
+    address: addressSchema.optional(),
+    aadharNumber: z.string().regex(/^\d{12}$/, 'Aadhar Number must be exactly 12 digits').optional(),
+    religion : z.nativeEnum(Religion, {
+      errorMap: () => ({ message: 'Invalid religion selected' }),
+    }).optional(),
+    bloodGroup: z.nativeEnum(BloodGroup, {
+      errorMap: () => ({ message: 'Invalid blood group selected' }),
+    }).optional(),
+    admittedThrough : z.nativeEnum(AdmittedThrough,{
+      errorMap : () => ({message : ' Invalid Admitted Through selected' }),
+    }),
+    documents : z.array(singleDocumentSchema).optional(),
+    preRegNumber : z.string().optional(),
+    applicationStatus : z.nativeEnum(ApplicationStatus, {
+      errorMap : () => ({message : 'Invalid Application Status'})
+    })
   })
   .strict();
 
 export type IEnquiryUpdateSchema = z.infer<typeof enquiryUpdateSchema>;
 export type IEnquiryRequestSchema = z.infer<typeof enquiryRequestSchema>;
-export type IAcademicDetailSchema = z.infer<typeof academicDetailSchema>;

@@ -20,7 +20,7 @@ const extractParts = (applicationId: string) => {
   throw new Error('Invalid applicationId format');
 };
 
-// DTODO: here you forgot to add expressAsyncHandler
+// DTODO: here you forgot to add expressAsyncHandler => I guess now its done, right? => Sorted now
 export const createEnquiry = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const data: IEnquiryRequestSchema = req.body;
   const validation = enquiryRequestSchema.safeParse(data);
