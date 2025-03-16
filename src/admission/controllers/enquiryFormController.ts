@@ -9,9 +9,8 @@ import {
   IEnquiryRequestSchema
 } from '../validators/enquiryForm';
 import expressAsyncHandler from 'express-async-handler';
-import { uploadToS3 } from '../lib/s3Upload';
+import { uploadToS3 } from '../../config/s3Upload';
 import { ADMISSION, DocumentType } from '../../config/constants';
-import * as fileType from 'file-type';
 import { singleDocumentSchema } from '../validators/singleDocumentSchema';
 
 const extractParts = (applicationId: string) => {

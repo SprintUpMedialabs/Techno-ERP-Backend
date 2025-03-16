@@ -4,9 +4,9 @@ import {
   AWS_BUCKET_NAME,
   AWS_REGION,
   AWS_SECRET_ACCESS_KEY
-} from '../../secrets';
+} from '../secrets';
 
-import { DocumentType } from '../../config/constants';
+import { DocumentType } from './constants';
 
 
 const s3Client = new S3Client({
