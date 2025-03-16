@@ -125,27 +125,28 @@ export enum AdmittedThrough {
 
 
 export enum DocumentType {
-  TENTH_MARKSHEET = '10th Marksheet',
-  TENTH_CERTIFICATE = '10th Certificate',
-  TWELFTH_MARKSHEET = '12th Marksheet',
-  TWELFTH_CERTIFICATE = '12th Certificate',
-  GRADUATION_FINAL_YEAR_MARKSHEET = 'Graduation Final Year Marksheet',
-  CHARACTER_CERTIFICATE = 'Character Certificate',
-  TC_MIGRATION = 'T.C./Migration',
-  MEDICAL_CERTIFICATE = 'Medical Certificate',
-  ANTI_RAGGING_BY_STUDENT = 'Anti Ragging by Student',
-  ANTI_RAGGING_BY_PARENT = 'Anti Ragging by Parent',
-  ALLOTMENT_LETTER = 'Allotment Letter',
+  TENTH_MARKSHEET = '10th_Marksheet',
+  TENTH_CERTIFICATE = '10th_Certificate',
+  TWELFTH_MARKSHEET = '12th_Marksheet',
+  TWELFTH_CERTIFICATE = '12th_Certificate',
+  GRADUATION_FINAL_YEAR_MARKSHEET = 'Graduation_Final_Year_Marksheet',
+  CHARACTER_CERTIFICATE = 'Character_Certificate',
+  TC_MIGRATION = 'TC_Migration',
+  MEDICAL_CERTIFICATE = 'Medical_Certificate',
+  ANTI_RAGGING_BY_STUDENT = 'Anti_Ragging_by_Student',
+  ANTI_RAGGING_BY_PARENT = 'Anti_Ragging_by_Parent',
+  ALLOTMENT_LETTER = 'Allotment_Letter',
   PHOTO = 'Photo',
-  CASTE_CERTIFICATE = 'Caste Certificate',
-  INCOME_CERTIFICATE = 'Income Certificate',
-  NIVAS_CERTIFICATE = 'Nivas Certificate',
-  GAP_AFFIDAVIT = 'Gap Affidavit',
+  CASTE_CERTIFICATE = 'Caste_Certificate',
+  INCOME_CERTIFICATE = 'Income_Certificate',
+  NIVAS_CERTIFICATE = 'Nivas_Certificate',
+  GAP_AFFIDAVIT = 'Gap_Affidavit',
   AADHAR = 'Aadhar',
-  DECLARATION_FILLED = 'Declaration Filled',
-  PHYSICALLY_HANDICAPPED_CERTIFICATE = 'Physically Handicapped Certificate',
-  EWS_CERTIFICATE = 'EWS Certificate'
+  DECLARATION_FILLED = 'Declaration_Filled',
+  PHYSICALLY_HANDICAPPED_CERTIFICATE = 'Physically_Handicapped_Certificate',
+  EWS_CERTIFICATE = 'EWS_Certificate'
 }
+
 
 
 export enum ApplicationStatus {
@@ -154,6 +155,17 @@ export enum ApplicationStatus {
   STEP_3 = 'Step_3',
   STEP_4 = 'Step_4'
 }
+
+
+export enum MimeType {
+  PNG = 'image/png',
+  JPG = 'image/jpeg',
+  JPEG = 'image/jpeg',
+  PDF = 'application/pdf',
+}
+
+
+export const ADMISSION = 'admissions'
 
 
 

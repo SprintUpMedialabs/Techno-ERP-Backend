@@ -169,10 +169,7 @@ enquiryFormSchema.pre<IEnquiryFormDocument>('save', async function (next) {
 });
 
 const handleMongooseError = (error: any, next: Function) => {
-  //DATODO : I guess the 11000 code will never occur now so we can remove as there is no longer a restriction of uniquess
-  if (error.code === 11000) {
-    throw createHttpError(400, 'Student Phone Number already exists');
-  } else if (error.name === 'ValidationError') {
+  if (error.name === 'ValidationError') {
     const firstError = error.errors[Object.keys(error.errors)[0]];
     throw createHttpError(400, firstError.message);
   } else if (error.name == 'MongooseError') {
