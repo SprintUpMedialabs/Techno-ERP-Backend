@@ -3,6 +3,7 @@ import { IUser } from '../validators/user';
 import { UserRoles } from '../../config/constants';
 import createHttpError from 'http-errors';
 import bcrypt from 'bcrypt';
+import { emailSchema } from '../../validators/commonSchema';
 
 interface IUserDocument extends IUser, Document { }
 
@@ -12,7 +13,10 @@ const userSchema = new Schema<IUserDocument>(
       type: String,
       required: [true, 'Email is required'],
       unique: [true, 'Email should be unique'],
-      match: [/^\S+@\S+\.\S+$/, 'Please enter a valid email address']
+      validate: {
+        validator: (email: string) => emailSchema.safeParse(email).success,
+        message: 'Invalid email format'
+      }
     },
     firstName: {
       type: String,

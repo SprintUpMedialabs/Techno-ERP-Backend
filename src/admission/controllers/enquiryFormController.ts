@@ -83,28 +83,22 @@ export const updateEnquiryData = expressAsyncHandler(
 );
 
 
-
-
+// DTODO : 1 -> [1,1] => Resolved
 export const updateEnquiryDocuments = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
-
     const { _id, type } = req.body;
     const file = req.file as Express.Multer.File;
 
-    //Check validation here with the single document schema, if the file size is greater then 5MB or the file formats are not supported, it would be detected here.
-    const validation = singleDocumentSchema.safeParse(
-      {
-        studentId: _id,
-        type,
-        documentBuffer: file
-      }
-    );
+    const validation = singleDocumentSchema.safeParse({
+      studentId: _id,
+      type,
+      documentBuffer: file
+    });
 
     if (!validation.success) {
-      throw createHttpError(400, validation.error.errors[0])
+      throw createHttpError(400, validation.error.errors[0]);
     }
 
-    // Upload to S3
     const fileUrl = await uploadToS3(
       _id.toString(),
       ADMISSION,
@@ -112,28 +106,54 @@ export const updateEnquiryDocuments = expressAsyncHandler(
       file
     );
 
-    console.log(`Uploaded file: ${fileUrl}`);
+    //Free memory
+    if(req.file)
+      req.file.buffer = null as unknown as Buffer;
 
-    const updatedData = await Enquiry.findByIdAndUpdate(
-      // DTODO: [1] => [1,1]
-      _id,
+
+    // console.log(`Uploaded file: ${fileUrl}`);
+
+    const updatedData = await Enquiry.findOneAndUpdate(
+      { _id, 'documents.type': type },
       {
-        $push: { documents: { type, fileUrl } }
+        $set: { 'documents.$[elem].fileUrl': fileUrl },
       },
-      { new: true, runValidators: true }
+      {
+        new: true,
+        runValidators: true,
+        arrayFilters: [{ 'elem.type': type }],
+      }
     );
 
     if (!updatedData) {
-      throw createHttpError(404, 'Enquiry not found');
-    }
+      const newData = await Enquiry.findByIdAndUpdate(
+        _id,
+        {
+          $push: { documents: { type, fileUrl } }
+        },
+        { new: true, runValidators: true }
+      );
 
-    res.status(200).json({
-      success: true,
-      message: 'Document uploaded successfully',
-      data: updatedData
-    });
+      if (!newData) {
+        throw createHttpError(404, 'Enquiry not found');
+      }
+
+      res.status(200).json({
+        success: true,
+        message: 'Document uploaded successfully',
+        data: newData
+      });
+    } 
+    else {
+      res.status(200).json({
+        success: true,
+        message: 'Document updated successfully',
+        data: updatedData
+      });
+    }
   }
 );
+
 
 export const getEnquiryData = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response): Promise<void> => {

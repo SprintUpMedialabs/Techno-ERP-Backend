@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-// DTODO: shift it to the common
+// DTODO: shift it to the common => As of now, common mai aur koi folders nahi hai so lets keep this one here as of now.
 export const addressSchema = z.object({
   permanentAddress: z.string().min(5, 'Permanent address must be at least 5 characters'),
   district: z.string(),
