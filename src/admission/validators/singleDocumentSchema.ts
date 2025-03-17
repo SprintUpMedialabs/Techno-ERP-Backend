@@ -18,5 +18,4 @@ export const singleDocumentSchema = z.object({
   )
 });
 
-
 export type ISingleDocumentSchema = z.infer<typeof singleDocumentSchema>;

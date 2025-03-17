@@ -23,7 +23,6 @@ const extractParts = (applicationId: string) => {
   throw new Error('Invalid applicationId format');
 };
 
-// DTODO: here you forgot to add expressAsyncHandler => I guess now its done, right? => Sorted now
 export const createEnquiry = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const data: IEnquiryRequestSchema = req.body;
@@ -116,6 +115,7 @@ export const updateEnquiryDocuments = expressAsyncHandler(
     console.log(`Uploaded file: ${fileUrl}`);
 
     const updatedData = await Enquiry.findByIdAndUpdate(
+      // DTODO: [1] => [1,1]
       _id,
       {
         $push: { documents: { type, fileUrl } }
@@ -134,9 +134,6 @@ export const updateEnquiryDocuments = expressAsyncHandler(
     });
   }
 );
-
-
-
 
 export const getEnquiryData = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response): Promise<void> => {

@@ -1,14 +1,14 @@
 import { z } from 'zod';
+import { AdmissionReference, AdmittedThrough, ApplicationStatus, BloodGroup, Category, Course, Religion } from '../../config/constants';
+import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import {
   contactNumberSchema,
   objectIdSchema,
   requestDateSchema
 } from '../../validators/commonSchema'; // Import the date validation schema
-import { AdmissionReference, AdmittedThrough, ApplicationStatus, BloodGroup, Category, Course, DocumentType, Religion } from '../../config/constants';
-import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import { academicDetailsArraySchema } from './academicDetailSchema';
-import { previousCollegeDataSchema } from './previousCollegeDataSchema';
 import { addressSchema } from './addressSchema';
+import { previousCollegeDataSchema } from './previousCollegeDataSchema';
 import { singleDocumentSchema } from './singleDocumentSchema';
 
 
@@ -33,22 +33,17 @@ export const enquiryRequestSchema = z
     reference: z.nativeEnum(AdmissionReference, {
       errorMap: () => ({ message: 'Invalid admission reference' })
     }),
-    // DATODO: here we need to add msg for enums [do this in marketing module also] : The value here would be coming from dropdown, so do you think that error ke chances hai?
-    course: z.nativeEnum(Course, {
-      errorMap: () => ({ message: 'Invalid course selected' })
-    }),
-    counsellor: z.union([objectIdSchema, z.enum(['other'])]), // DTODO: here error msg is not coming up properly but fine this is not our current prioriy
+    course: z.nativeEnum(Course),
+    counsellor: z.union([objectIdSchema, z.enum(['other'])]),
     remarks: z.string().optional(),
     academicDetails: academicDetailsArraySchema.optional(),
-    applicationStatus : z.nativeEnum(ApplicationStatus, {
-      errorMap : () => ({message : 'Invalid Application Status'})
+    applicationStatus: z.nativeEnum(ApplicationStatus, {
+      errorMap: () => ({ message: 'Invalid Application Status' })
     }).default(ApplicationStatus.STEP_1)
   })
   .strict();
 
-
-
-  export const enquiryUpdateSchema = z
+export const enquiryUpdateSchema = z
   .object({
     _id: objectIdSchema,
     studentName: z.string().optional(),
@@ -61,7 +56,6 @@ export const enquiryRequestSchema = z
     motherPhoneNumber: contactNumberSchema.optional(),
     motherOccupation: z.string().optional(),
     category: z.nativeEnum(Category).optional(),
-    // address: z.string().optional(),
     emailId: z.string().email('Invalid email format').optional(),
     reference: z.nativeEnum(AdmissionReference).optional(),
     dateOfAdmission: requestDateSchema
@@ -74,19 +68,19 @@ export const enquiryRequestSchema = z
     previousCollegeData: previousCollegeDataSchema.optional(),
     address: addressSchema.optional(),
     aadharNumber: z.string().regex(/^\d{12}$/, 'Aadhar Number must be exactly 12 digits').optional(),
-    religion : z.nativeEnum(Religion, {
+    religion: z.nativeEnum(Religion, {
       errorMap: () => ({ message: 'Invalid religion selected' }),
     }).optional(),
     bloodGroup: z.nativeEnum(BloodGroup, {
       errorMap: () => ({ message: 'Invalid blood group selected' }),
     }).optional(),
-    admittedThrough : z.nativeEnum(AdmittedThrough,{
-      errorMap : () => ({message : ' Invalid Admitted Through selected' }),
+    admittedThrough: z.nativeEnum(AdmittedThrough, {
+      errorMap: () => ({ message: ' Invalid Admitted Through selected' }),
     }),
-    documents : z.array(singleDocumentSchema).optional(),
-    preRegNumber : z.string().optional(),
-    applicationStatus : z.nativeEnum(ApplicationStatus, {
-      errorMap : () => ({message : 'Invalid Application Status'})
+    documents: z.array(singleDocumentSchema).optional(),
+    preRegNumber: z.string().optional(),
+    applicationStatus: z.nativeEnum(ApplicationStatus, {
+      errorMap: () => ({ message: 'Invalid Application Status' })
     })
   })
   .strict();
