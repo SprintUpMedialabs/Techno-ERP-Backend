@@ -164,9 +164,13 @@ export enum MimeType {
   PDF = 'application/pdf',
 }
 
+export enum ModuleNames { 
+  MARKETING = "MARKETING"
+}
+
 
 export const ADMISSION = 'admissions'
 
 
-
 export const MARKETING_SHEET = 'Marketing Sheet'
+

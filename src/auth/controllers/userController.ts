@@ -5,6 +5,10 @@ import { AuthenticatedRequest } from '../validators/authenticatedRequest';
 import logger from '../../config/logger';
 import createHttpError from 'http-errors';
 import { roleSchema } from '../../validators/commonSchema';
+import { ModuleNames, UserRoles } from '../../config/constants';
+import { dropdownSchema } from '../validators/dropdownSchema';
+import { decodeToken } from '../../utils/jwtHelper';
+import { formatName } from '../../utils/formatName';
 
 export const userProfile = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const decodedData = req.data;
@@ -65,3 +69,45 @@ export const getUserByRole = expressAsyncHandler(async (req: AuthenticatedReques
   res.status(200).json({ users: formattedUsers });
 
 });
+
+export const fetchDropdownsBasedOnPage = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const { moduleName } = req.query;
+
+  const id = req.data?.id;
+  const roles = req.data?.roles!;
+
+  const validation = dropdownSchema.safeParse({ roles, moduleName });
+  if (!validation.success) {
+    throw createHttpError(400, "Invalid role or module name");
+  }
+
+  let users;
+
+  if (moduleName === ModuleNames.MARKETING) {
+    // If the user is ADMIN or LEAD_MARKETING (and not only marketing employee)
+    if (roles.includes(UserRoles.ADMIN) || roles.includes(UserRoles.LEAD_MARKETING)) {
+      users = await User.find({ roles: UserRoles.EMPLOYEE_MARKETING });
+    } 
+    // If the user is only a MARKETING_EMPLOYEE
+    else if (roles.includes(UserRoles.EMPLOYEE_MARKETING)) {
+      users = await User.findOne({ _id: id });
+      if (!users) {
+        throw createHttpError(404, "User not found");
+      }
+      users = [users]; 
+    }
+
+    if (users) {
+      const formattedUsers = users.map((user) => ({
+        _id: user._id,
+        name: formatName(user.firstName, user.lastName),
+        email: user.email
+      }));
+      res.status(200).json(formattedUsers);
+    }
+  }
+
+
+  //throw createHttpError(400, "Invalid module name");
+});
+
