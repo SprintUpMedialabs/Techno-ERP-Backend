@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+// DTODO: shift it to the common
 export const addressSchema = z.object({
   permanentAddress: z.string().min(5, 'Permanent address must be at least 5 characters'),
   district: z.string(),

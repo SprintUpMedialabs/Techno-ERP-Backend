@@ -28,7 +28,7 @@ enquiryFromRoute.get('/get',
 
 enquiryFromRoute.put('/update-document', 
     authenticate, 
-    authorize([UserRoles.BASIC_USER]), 
+    authorize([UserRoles.BASIC_USER]),  // yes i know that every one has this basic user role so in a way its available to ALL.
     upload.single('document'), 
     updateEnquiryDocuments
 );
