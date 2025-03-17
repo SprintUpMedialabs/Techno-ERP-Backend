@@ -168,6 +168,17 @@ export enum ModuleNames {
   MARKETING = "MARKETING"
 }
 
+export enum Locations {
+  KNP = "Kanpur",
+  UNA = "Unnao",
+  STP = "Sitapur",
+  HRD = "Hardoi",
+  BBK = "Barabanki",
+  AMT = "Amethi",
+  FTP = "Fatehpur",
+  LKO = "Lucknow"
+}
+
 
 export const ADMISSION = 'admissions'
 

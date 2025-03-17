@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Course, Gender, LeadType } from '../../config/constants';
+import { Course, Gender, LeadType, Locations } from '../../config/constants';
 import { contactNumberSchema, objectIdSchema, requestDateSchema } from '../../validators/commonSchema';
 
 export const leadSchema = z.object({
@@ -13,7 +13,7 @@ export const leadSchema = z.object({
     .optional(),
   email: z.string().email('Invalid Email Format').optional(),
   gender: z.nativeEnum(Gender).default(Gender.NOT_TO_MENTION),
-  location: z.string().optional(),
+  location: z.nativeEnum(Locations).optional(),
   course: z.nativeEnum(Course).optional(),
   assignedTo: objectIdSchema, // TODO: need to test this
   leadType: z.nativeEnum(LeadType).default(LeadType.ORANGE),
@@ -35,7 +35,7 @@ export const leadRequestSchema = z.object({
     .optional(),
   email: z.string().email('Invalid Email Format').optional(),
   gender: z.nativeEnum(Gender).default(Gender.NOT_TO_MENTION),
-  location: z.string().optional(),
+  location: z.nativeEnum(Locations).optional(),
   course: z.nativeEnum(Course).optional(),
   assignedTo: objectIdSchema, // TODO: need to test this
   leadType: z.nativeEnum(LeadType).default(LeadType.ORANGE),
@@ -56,7 +56,7 @@ export const updateLeadRequestSchema = z.object({
     .optional(),
   email: z.string().email('Invalid Email Format').optional(),
   gender: z.nativeEnum(Gender).optional(),
-  location: z.string().optional(),
+  location: z.nativeEnum(Locations).optional(),
   course: z.nativeEnum(Course).optional(),
   leadType: z.nativeEnum(LeadType).optional(),
   remarks: z.string().optional(),
