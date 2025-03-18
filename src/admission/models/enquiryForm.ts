@@ -1,54 +1,23 @@
 import mongoose, { Schema } from 'mongoose';
-import { IAcademicDetailSchema, IEnquiryRequestSchema } from '../validators/enquiryForm';
+import { IEnquiryRequestSchema } from '../validators/enquiryForm';
 import { convertToDDMMYYYY, convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import { contactNumberSchema, emailSchema } from '../../validators/commonSchema';
-import {
-  AcademicDetails,
-  AdmissionReference,
-  ApplicationIdPrefix,
-  Category,
-  Course
-} from '../../config/constants';
+import { AdmissionReference, ApplicationIdPrefix, Category, Course } from '../../config/constants';
 import { EnquiryApplicationId } from './enquiryApplicationIdSchema';
 import createHttpError from 'http-errors';
+
+import { IAddressSchema } from '../validators/addressSchema';
+import { singleDocumentSchema } from './singleDocument';
+import { academicDetailFormSchema } from './academicDetail';
+import { previousCollegeDataSchema } from './previousCollegeData';
+import { addressSchema } from './address';
 
 export interface IEnquiryFormDocument extends IEnquiryRequestSchema, Document {
   applicationId: string;
   date: Date;
 }
-export interface IAcademicDetailDocument extends IAcademicDetailSchema, Document {}
 
-const academicDetailFormSchema = new Schema<IAcademicDetailDocument>({
-  academicDetails: {
-    type: String,
-    enum: Object.values(AcademicDetails)
-  },
-  schoolCollegeName: {
-    type: String
-  },
-  universityBoardName: {
-    type: String
-  },
-  passingYear: {
-    type: Number,
-    validate: {
-      validator: (year: number) => year.toString().length === 4,
-      message: 'Passing Year must be a valid 4-digit year'
-    }
-  },
-  percentageObtained: {
-    type: Number,
-    min: [0, 'Percentage must be at least 0'],
-    max: [100, 'Percentage cannot exceed 100']
-  },
-  subjects: {
-    type: [String]
-  }
-});
-
-// export const AcademicDetailForm = mongoose.model<IAcademicDetailDocument>('AcademicDetailEnquiryForm', academicDetailFormSchema);
-
-const enquiryFormSchema = new Schema<IEnquiryFormDocument>(
+const enquiryFormSchema = new Schema(
   {
     applicationId: {
       type: String,
@@ -131,7 +100,7 @@ const enquiryFormSchema = new Schema<IEnquiryFormDocument>(
       required: true
     },
     address: {
-      type: String,
+      type: addressSchema,
       required: [true, 'Address is required'],
       minlength: [5, 'Address must be at least 5 characters long']
     },
@@ -160,11 +129,17 @@ const enquiryFormSchema = new Schema<IEnquiryFormDocument>(
       required: true
     },
     remarks: {
-      type: String,
+      type: String
     },
     academicDetails: {
       type: [academicDetailFormSchema],
       default: []
+    },
+    previousCollegeData: {
+      type: previousCollegeDataSchema
+    },
+    documents: {
+      type: [singleDocumentSchema]
     }
   },
   { timestamps: true }
@@ -177,7 +152,7 @@ const getPrefixForCourse = (course: Course): ApplicationIdPrefix => {
 };
 
 enquiryFormSchema.pre<IEnquiryFormDocument>('save', async function (next) {
-  const doc = this as IEnquiryFormDocument;
+  const doc = this as IEnquiryFormDocument & Document;
   // DTODO: just take a look at user [pre save middleware] first will check if course is modified or not. if its not modified then will skip this process. if its modified they will execute this. [will discuss it on call if required]
   if (doc) {
     const prefix = getPrefixForCourse(doc.course);
@@ -194,9 +169,7 @@ enquiryFormSchema.pre<IEnquiryFormDocument>('save', async function (next) {
 });
 
 const handleMongooseError = (error: any, next: Function) => {
-  if (error.code === 11000) {
-    throw createHttpError(400, 'Student Phone Number already exists');
-  } else if (error.name === 'ValidationError') {
+  if (error.name === 'ValidationError') {
     const firstError = error.errors[Object.keys(error.errors)[0]];
     throw createHttpError(400, firstError.message);
   } else if (error.name == 'MongooseError') {
@@ -215,7 +188,6 @@ enquiryFormSchema.post('findOneAndUpdate', function (error: any, doc: any, next:
 });
 
 const transformDates = (_: any, ret: any) => {
-  
   ['date', 'dateOfBirth'].forEach((key) => {
     if (ret[key]) {
       ret[key] = convertToDDMMYYYY(ret[key]);

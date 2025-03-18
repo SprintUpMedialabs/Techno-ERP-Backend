@@ -11,13 +11,16 @@ export const requestDateSchema = z
   .string()
   .regex(/^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/, 'Date must be in DD/MM/YYYY format');
 
-export const contactNumberSchema = z
+  // DTODO: update regex => Resolved
+  export const contactNumberSchema = z
   .string()
-  .regex(/^\d{10}$/, 'Invalid contact number format. Expected: 1234567890');
+  .regex(/^[1-9]\d{9}$/, 'Invalid contact number format. Expected: 1234567890');
 
+
+  // DTODO: make emailSchema uniform
 export const emailSchema = z
   .string()
-  .regex(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, 'Invalid email format');
+  .email( );
 
 
 export const roleSchema = z.nativeEnum(UserRoles);

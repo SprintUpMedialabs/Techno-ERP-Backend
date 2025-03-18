@@ -1,6 +1,6 @@
 import createHttpError from 'http-errors';
 import mongoose, { Document, HydratedDocument, Schema, Types } from 'mongoose';
-import { Course, Gender, LeadType } from '../../config/constants';
+import { Course, Gender, LeadType, Locations } from '../../config/constants';
 import logger from '../../config/logger';
 import { convertToDDMMYYYY, convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import { ILead } from '../validators/leads';
@@ -54,7 +54,12 @@ const leadSchema = new Schema<ILeadDocument>(
       }
     },
 
-    location: { type: String },
+    location: { type: String, 
+      enum : {
+        values : Object.values(Locations),
+        message : 'Invalid Location Value'
+      }
+     },
     course: { type: String,enum:{
       values: Object.values(Course),
       message: 'Invalid Course Value'

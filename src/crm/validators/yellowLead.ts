@@ -1,5 +1,5 @@
 import { object, z } from 'zod';
-import { Gender, FinalConversionType, Course } from '../../config/constants';
+import { Gender, FinalConversionType, Course, Locations } from '../../config/constants';
 import { contactNumberSchema, objectIdSchema, requestDateSchema } from '../../validators/commonSchema';
 
 export const yellowLeadSchema = z
@@ -12,7 +12,7 @@ export const yellowLeadSchema = z
     email: z.string().email('Invalid Email Format').optional(),
     gender: z.nativeEnum(Gender).default(Gender.NOT_TO_MENTION),
     assignedTo: objectIdSchema,
-    location: z.string().optional(),
+    location: z.nativeEnum(Locations).optional(),
     course: z.nativeEnum(Course).optional(),
     campusVisit: z.boolean().default(false),
     nextDueDate: z.date().optional(),
@@ -31,7 +31,7 @@ export const yellowLeadUpdateSchema = z
       .optional(),
     email: z.string().email('Invalid Email Format').optional(),
     gender: z.nativeEnum(Gender).optional(),
-    location: z.string().optional(),
+    location: z.nativeEnum(Locations).optional(),
     course: z.nativeEnum(Course).optional(),
     campusVisit: z.boolean().optional(),
     nextDueDate: requestDateSchema
