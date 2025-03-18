@@ -4,6 +4,7 @@ import { authenticate, authorize } from '../../middleware/jwtAuthenticationMiddl
 import {
   getAllLeadAnalytics,
   getFilteredLeadData,
+  getLeadInformationById,
   updateData,
   uploadData
 } from '../controllers/crmController';
@@ -73,3 +74,5 @@ crmRoute.post('/admin/analytics',
   authorize([UserRoles.ADMIN]), 
   adminAnalytics
 );
+
+crmRoute.post('/get-by-id', authenticate, authorize([UserRoles.ADMIN, UserRoles.EMPLOYEE_MARKETING, UserRoles.LEAD_MARKETING]), getLeadInformationById);

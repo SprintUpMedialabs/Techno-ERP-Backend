@@ -126,3 +126,10 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
     throw createHttpError(404, 'Lead does not found with the given ID.');
   }
 });
+
+export const getLeadInformationById = expressAsyncHandler(async (req: AuthenticatedRequest, res : Response) => {
+  const { id } = req.body;
+  const lead = await Lead.findById(id);
+
+  res.status(200).json({lead : lead});
+})
