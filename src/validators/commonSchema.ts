@@ -16,7 +16,7 @@ export const contactNumberSchema = z
   .regex(/^[1-9]\d{9}$/, 'Invalid contact number format. Expected: 1234567890');
 
 
-// DTODO: make emailSchema uniform
+// DTODO: make emailSchema uniform => Isko abhi pending hee rakho
 export const emailSchema = z
   .string()
   .email();

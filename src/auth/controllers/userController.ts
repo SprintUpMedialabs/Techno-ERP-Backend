@@ -43,14 +43,14 @@ export const userProfile = expressAsyncHandler(async (req: AuthenticatedRequest,
   }
 });
 
-// DTODO: lets rename this? something like getUserList! fetch fetchDropdownsBasedOnPage thodu ajib lage 6e.
-export const fetchDropdownsBasedOnPage = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+// DTODO: lets rename this? something like getUserList! fetch fetchDropdownsBasedOnPage thodu ajib lage 6e. => Done
+export const getUserList = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const { moduleName } = req.query;
 
   const id = req.data?.id;
   const roles = req.data?.roles!;
 
-  const validation = dropdownSchema.safeParse({ roles, moduleName }); // DTODO: here no need safeprase roles it extracted from token only right?
+  const validation = dropdownSchema.safeParse({ roles, moduleName }); // DTODO: here no need safeprase roles it extracted from token only right? => But my mistake token ma wrong set thayu hoy to kept it with module name.
   if (!validation.success) {
     throw createHttpError(400, "Invalid role or module name");
   }
@@ -61,23 +61,23 @@ export const fetchDropdownsBasedOnPage = expressAsyncHandler(async (req: Authent
     // If the user is ADMIN or LEAD_MARKETING (and not only marketing employee)
     if (roles.includes(UserRoles.ADMIN) || roles.includes(UserRoles.LEAD_MARKETING)) {
       users = await User.find({ roles: UserRoles.EMPLOYEE_MARKETING });
-    } 
+    }
     // If the user is only a MARKETING_EMPLOYEE
     else if (roles.includes(UserRoles.EMPLOYEE_MARKETING)) {
-      users = await User.findOne({ _id: id }); // DTODO: use findById directly 😊
-      if (!users) { // DTODO: do you think this can happen? secret is never gonna leak from .env and token verified so there is not any possibiblity that token is verified but user is not exists
-        throw createHttpError(404, "User not found");
-      }
-      users = [users]; 
+      users = await User.findById(id); // DTODO: use findById directly 😊 => Done
+      // if (!users) { // DTODO: do you think this can happen? secret is never gonna leak from .env and token verified so there is not any possibiblity that token is verified but user is not exists => AGREED
+      //   throw createHttpError(404, "User not found");
+      // }
+      users = [users];
     }
 
     if (users) {
       const formattedUsers = users.map((user) => ({
-        _id: user._id,
-        name: formatName(user.firstName, user.lastName),
-        email: user.email
+        _id: user?._id,
+        name: formatName(user?.firstName, user?.lastName),
+        email: user?.email
       }));
-      res.status(200).json(formattedUsers); // DTODO: .json({user:formattedUsers})
+      res.status(200).json({ user: formattedUsers }); // DTODO: .json({user:formattedUsers}) => Done
     }
   }
 });

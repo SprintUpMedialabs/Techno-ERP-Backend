@@ -1,4 +1,5 @@
-export const formatName = (firstName: String, lastName: String) => {
+export const formatName = (firstName?: String, lastName?: String) => {
+  if(firstName && lastName)
   return (
     firstName.charAt(0).toUpperCase() +
     firstName.slice(1).toLowerCase() +
