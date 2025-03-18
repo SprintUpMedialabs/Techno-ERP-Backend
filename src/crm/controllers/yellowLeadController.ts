@@ -90,9 +90,10 @@ export const getFilteredYellowLeads = expressAsyncHandler(
       leadsQuery = leadsQuery.sort(sort);
     }
 
-    const yellowLeads = await leadsQuery.skip(skip).limit(limit);
-
-    const totalLeads = await YellowLead.countDocuments(query);
+    const [yellowLeads, totalLeads] = await Promise.all([
+      YellowLead.find(query).sort(sort).skip(skip).limit(limit),
+      YellowLead.countDocuments(query),
+    ]);
 
     res.status(200).json({
       yellowLeads,

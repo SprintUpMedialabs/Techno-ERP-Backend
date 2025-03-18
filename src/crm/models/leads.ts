@@ -1,6 +1,6 @@
 import createHttpError from 'http-errors';
-import mongoose, { Document, HydratedDocument, Schema } from 'mongoose';
-import { Gender, LeadType } from '../../config/constants';
+import mongoose, { Document, HydratedDocument, Schema, Types } from 'mongoose';
+import { Course, Gender, LeadType } from '../../config/constants';
 import logger from '../../config/logger';
 import { convertToDDMMYYYY, convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import { ILead } from '../validators/leads';
@@ -55,11 +55,14 @@ const leadSchema = new Schema<ILeadDocument>(
     },
 
     location: { type: String },
-    course: { type: String },
+    course: { type: String,enum:{
+      values: Object.values(Course),
+      message: 'Invalid Course Value'
+    } }, // TODO: need to test this as we added enum
 
     // Required field with a custom validation error message
     assignedTo: {
-      type: String,
+      type: Schema.Types.ObjectId, // TODO: this need to be tested
       required: [true, 'Assigned To is required']
     },
 
@@ -79,7 +82,6 @@ const leadSchema = new Schema<ILeadDocument>(
     nextDueDate: {
       type: Date,
       set: (value: string) => {
-        // console.log(value);
         return convertToMongoDate(value);
       }
     }
@@ -88,7 +90,6 @@ const leadSchema = new Schema<ILeadDocument>(
 );
 
 const handleMongooseError = (error: any, next: Function) => {
-  logger.error(error);
   if (error.code === 11000) {
     throw createHttpError(400, 'Phone Number already exists');
   } else if (error.name === 'ValidationError') {

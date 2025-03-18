@@ -1,22 +1,22 @@
+import { Types } from 'mongoose';
+import { User } from '../../auth/models/user';
 import { Gender, UserRoles } from '../../config/constants';
 import logger from '../../config/logger';
-import {  ILeadRequest, leadRequestSchema } from '../validators/leads';
-import { Lead } from '../models/leads';
-import { User } from '../../auth/models/user';
-import { IMarketingSpreadsheetProcessReport } from '../types/marketingSpreadsheet';
-import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
-import { MarketingsheetHeaders } from '../enums/marketingSheetHeader';
-import { updateStatusForMarketingSheet } from './googleSheetOperations';
 import { sendEmail } from '../../config/mailer';
 import { LEAD_MARKETING_EMAIL } from '../../secrets';
+import { MarketingsheetHeaders } from '../enums/marketingSheetHeader';
+import { Lead } from '../models/leads';
+import { IMarketingSpreadsheetProcessReport } from '../types/marketingSpreadsheet';
+import { ILeadRequest, leadRequestSchema } from '../validators/leads';
 import { formatReport } from './formatReport';
+import { updateStatusForMarketingSheet } from './googleSheetOperations';
 
 const leadsToBeInserted = async (
   latestData: any[],
   report: IMarketingSpreadsheetProcessReport,
   lastSavedIndex: number
 ) => {
-  let MarketingEmployees: Map<string, string> = new Map();
+  let MarketingEmployees: Map<string, Types.ObjectId> = new Map();
 
   const dataToInsert: ILeadRequest[] = [];
 
@@ -48,8 +48,8 @@ const leadsToBeInserted = async (
       if (!assignedToID) {
         const existingUser = await User.findOne({ email: assignedToEmail });
         if (existingUser && existingUser.roles.includes(UserRoles.EMPLOYEE_MARKETING)) {
-          assignedToID = existingUser?._id?.toString() || '';
-          MarketingEmployees.set(assignedToEmail, assignedToID);
+          assignedToID = existingUser._id as Types.ObjectId;
+          MarketingEmployees.set(assignedToEmail, assignedToID!);
         } else {
           if (!existingUser) {
             report.otherIssue.push({
@@ -121,9 +121,8 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) =>
     assignedToNotFound: [],
     emptyRows: []
   };
-  // console.log(latestData);
+  
   const dataToInsert = await leadsToBeInserted(latestData, report, lastSavedIndex);
-  // console.log(dataToInsert);
   if (!dataToInsert || dataToInsert.length === 0) {
     if (report.rowsFailed != 0) {
       sendEmail(LEAD_MARKETING_EMAIL, 'Lead Processing Report', formatReport(report));
@@ -139,7 +138,6 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) =>
     const insertedData = await Lead.insertMany(dataToInsert, { ordered: false, throwOnValidationError: true });
     report.actullyProcessedRows = insertedData.length;
   } catch (error: any) {
-    console.log(error);
     report.actullyProcessedRows = error.result.insertedCount;
 
     error.writeErrors.map((e: any) => {

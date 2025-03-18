@@ -1,24 +1,19 @@
-import { z } from 'zod';
-import { Gender, FinalConversionType, CourseType } from '../../config/constants';
-import { objectIdSchema } from '../../validators/objectIdSchema';
+import { object, z } from 'zod';
+import { Gender, FinalConversionType, Course } from '../../config/constants';
+import { contactNumberSchema, objectIdSchema, requestDateSchema } from '../../validators/commonSchema';
 
 export const yellowLeadSchema = z
   .object({
     date: z.date(),
     name: z.string(),
-    phoneNumber: z
-      .string()
-      .regex(/^\d{10}$/, 'Invalid contact number format. Expected: 1234567890'),
-      altPhoneNumber: z
-      .string()
-      .regex(/^\d{10}$/, 'Invalid contact number format. Expected: 1234567890')
-
+    phoneNumber: contactNumberSchema,
+    altPhoneNumber: contactNumberSchema
       .optional(),
     email: z.string().email('Invalid Email Format').optional(),
     gender: z.nativeEnum(Gender).default(Gender.NOT_TO_MENTION),
-    assignedTo: z.string(),
+    assignedTo: objectIdSchema,
     location: z.string().optional(),
-    course: z.nativeEnum(CourseType).optional(),
+    course: z.nativeEnum(Course).optional(),
     campusVisit: z.boolean().default(false),
     nextDueDate: z.date().optional(),
     finalConversion: z.nativeEnum(FinalConversionType).optional(),
@@ -30,22 +25,16 @@ export const yellowLeadUpdateSchema = z
   .object({
     _id: objectIdSchema,
     name: z.string().optional(),
-    phoneNumber: z
-      .string()
-      .regex(/^\d{10}$/, 'Invalid contact number format. Expected: 1234567890')
+    phoneNumber: contactNumberSchema
       .optional(),
-    altPhoneNumber: z
-      .string()
-      .regex(/^\d{10}$/, 'Invalid contact number format. Expected: 1234567890')
+    altPhoneNumber: contactNumberSchema
       .optional(),
     email: z.string().email('Invalid Email Format').optional(),
     gender: z.nativeEnum(Gender).optional(),
     location: z.string().optional(),
-    course: z.nativeEnum(CourseType).optional(),
+    course: z.nativeEnum(Course).optional(),
     campusVisit: z.boolean().optional(),
-    nextDueDate: z
-      .string()
-      .regex(/^\d{2}\/\d{2}\/\d{4}$/, 'Invalid nextDueDate date format, expected DD/MM/YYYY')
+    nextDueDate: requestDateSchema
       .optional(),
     finalConversion: z.nativeEnum(FinalConversionType).optional(),
     remarks: z.string().optional()

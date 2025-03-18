@@ -44,9 +44,10 @@ export const getFilteredLeadData = expressAsyncHandler(
       leadsQuery = leadsQuery.sort(sort);
     }
 
-    const leads = await leadsQuery.skip(skip).limit(limit);
-
-    const totalLeads = await Lead.countDocuments(query);
+    const [leads, totalLeads] = await Promise.all([
+      leadsQuery.skip(skip).limit(limit),
+      Lead.countDocuments(query),
+    ]);
 
     res.status(200).json({
       leads,
