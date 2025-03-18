@@ -6,7 +6,8 @@ import { AdmissionReference, ApplicationIdPrefix, Category, Course } from '../..
 import { EnquiryApplicationId } from './enquiryApplicationIdSchema';
 import createHttpError from 'http-errors';
 
-import { IAddressSchema } from '../validators/addressSchema';
+import { IAddressSchema } from '../../validators/commonSchema';
+
 import { singleDocumentSchema } from './singleDocument';
 import { academicDetailFormSchema } from './academicDetail';
 import { previousCollegeDataSchema } from './previousCollegeData';
@@ -155,7 +156,7 @@ enquiryFormSchema.pre<IEnquiryFormDocument>('save', async function (next) {
   const doc = this as IEnquiryFormDocument & Document;
   // DTODO: just take a look at user [pre save middleware] first will check if course is modified or not. if its not modified then will skip this process. if its modified they will execute this. [will discuss it on call if required]
   if (doc) {
-    const prefix = getPrefixForCourse(doc.course);
+    const prefix = getPrefixForCourse(doc.course!);
 
     // Find existing serial number for the prefix
     let serial = await EnquiryApplicationId.findOne({ prefix: prefix });

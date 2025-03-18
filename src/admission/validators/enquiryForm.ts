@@ -7,7 +7,9 @@ import {
   requestDateSchema
 } from '../../validators/commonSchema'; // Import the date validation schema
 import { academicDetailsArraySchema } from './academicDetailSchema';
-import { addressSchema } from './addressSchema';
+
+import { addressSchema } from '../../validators/commonSchema';
+
 import { previousCollegeDataSchema } from './previousCollegeDataSchema';
 import { singleDocumentSchema } from './singleDocumentSchema';
 
