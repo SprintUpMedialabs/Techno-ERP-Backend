@@ -43,40 +43,14 @@ export const userProfile = expressAsyncHandler(async (req: AuthenticatedRequest,
   }
 });
 
-
-
-export const getUserByRole = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-
-  const { role } = req.query;
-
-  // Validate role using Zod
-  const parsedRole = roleSchema.safeParse(role);
-
-  if (!parsedRole.success) {
-    throw createHttpError(400, 'Invalid role provided');
-  }
-
-  // Fetch users and project only required fields
-  const users = await User.find({ roles: parsedRole.data }).select("_id firstName lastName email");
-
-  // Transform the response to include only required fields
-  const formattedUsers = users.map(user => ({
-    id: user._id,
-    name: `${user.firstName} ${user.lastName}`,
-    email: user.email
-  }));
-
-  res.status(200).json({ users: formattedUsers });
-
-});
-
+// DTODO: lets rename this? something like getUserList! fetch fetchDropdownsBasedOnPage thodu ajib lage 6e.
 export const fetchDropdownsBasedOnPage = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const { moduleName } = req.query;
 
   const id = req.data?.id;
   const roles = req.data?.roles!;
 
-  const validation = dropdownSchema.safeParse({ roles, moduleName });
+  const validation = dropdownSchema.safeParse({ roles, moduleName }); // DTODO: here no need safeprase roles it extracted from token only right?
   if (!validation.success) {
     throw createHttpError(400, "Invalid role or module name");
   }
@@ -90,8 +64,8 @@ export const fetchDropdownsBasedOnPage = expressAsyncHandler(async (req: Authent
     } 
     // If the user is only a MARKETING_EMPLOYEE
     else if (roles.includes(UserRoles.EMPLOYEE_MARKETING)) {
-      users = await User.findOne({ _id: id });
-      if (!users) {
+      users = await User.findOne({ _id: id }); // DTODO: use findById directly 😊
+      if (!users) { // DTODO: do you think this can happen? secret is never gonna leak from .env and token verified so there is not any possibiblity that token is verified but user is not exists
         throw createHttpError(404, "User not found");
       }
       users = [users]; 
@@ -103,11 +77,8 @@ export const fetchDropdownsBasedOnPage = expressAsyncHandler(async (req: Authent
         name: formatName(user.firstName, user.lastName),
         email: user.email
       }));
-      res.status(200).json(formattedUsers);
+      res.status(200).json(formattedUsers); // DTODO: .json({user:formattedUsers})
     }
   }
-
-
-  //throw createHttpError(400, "Invalid module name");
 });
 

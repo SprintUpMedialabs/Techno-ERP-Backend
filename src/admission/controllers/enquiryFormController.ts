@@ -83,7 +83,7 @@ export const updateEnquiryData = expressAsyncHandler(
 );
 
 
-// DTODO : 1 -> [1,1] => Resolved
+// DTODO : just test this. if you already did then remove this cmnt 😊
 export const updateEnquiryDocuments = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const { _id, type } = req.body;
