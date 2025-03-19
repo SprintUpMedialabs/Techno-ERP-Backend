@@ -236,3 +236,20 @@ export const updatePassword = expressAsyncHandler(async (req: Request, res: Resp
 
   return formatResponse(res, 200, 'Password updated successfully', true);
 });
+
+
+export const isAuthenticated = expressAsyncHandler(async (req: Request, res: Response) => {
+  const token = req.cookies.token;
+
+  if (!token) {
+    throw createHttpError(404, 'User not authenticated.');
+  }
+
+  const decoded = verifyToken(token) as { id: string };
+
+  const user = await User.findById(decoded.id);
+  if (!user) {
+    throw createHttpError(404, 'User not found.');
+  }
+  return formatResponse(res, 200, 'User is authenticated', true,);
+});
