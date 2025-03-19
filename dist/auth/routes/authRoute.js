@@ -36,3 +36,4 @@ exports.authRouter.post('/forgot-password', authController_1.forgotPassword);
  * Update Password : Use token, input : new password
  */
 exports.authRouter.post('/update-password', authController_1.updatePassword);
+exports.authRouter.get('/is-authenticated', authController_1.isAuthenticated);

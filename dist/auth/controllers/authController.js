@@ -45,7 +45,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updatePassword = exports.forgotPassword = exports.logout = exports.login = exports.register = exports.validateAndVerifyOtp = exports.sendOtpToEmail = void 0;
+exports.isAuthenticated = exports.updatePassword = exports.forgotPassword = exports.logout = exports.login = exports.register = exports.validateAndVerifyOtp = exports.sendOtpToEmail = void 0;
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const http_errors_1 = __importDefault(require("http-errors"));
@@ -212,4 +212,16 @@ exports.updatePassword = (0, express_async_handler_1.default)((req, res) => __aw
     const decoded = (0, jwtHelper_1.verifyToken)(token);
     yield user_1.User.findByIdAndUpdate(decoded.userId, { password: data.password });
     return (0, formatResponse_1.formatResponse)(res, 200, 'Password updated successfully', true);
+}));
+exports.isAuthenticated = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const token = req.cookies.token;
+    if (!token) {
+        throw (0, http_errors_1.default)(404, 'User not authenticated.');
+    }
+    const decoded = (0, jwtHelper_1.verifyToken)(token);
+    const user = yield user_1.User.findById(decoded.id);
+    if (!user) {
+        throw (0, http_errors_1.default)(404, 'User not found.');
+    }
+    return (0, formatResponse_1.formatResponse)(res, 200, 'User is authenticated', true);
 }));
