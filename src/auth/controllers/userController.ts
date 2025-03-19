@@ -43,14 +43,13 @@ export const userProfile = expressAsyncHandler(async (req: AuthenticatedRequest,
   }
 });
 
-// DTODO: lets rename this? something like getUserList! fetch fetchDropdownsBasedOnPage thodu ajib lage 6e. => Done
 export const getUserList = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const { moduleName } = req.query;
 
   const id = req.data?.id;
   const roles = req.data?.roles!;
 
-  const validation = dropdownSchema.safeParse({ roles, moduleName }); // DTODO: here no need safeprase roles it extracted from token only right? => But my mistake token ma wrong set thayu hoy to kept it with module name.
+  const validation = dropdownSchema.safeParse({ roles, moduleName });
   if (!validation.success) {
     throw createHttpError(400, "Invalid role or module name");
   }
@@ -64,10 +63,7 @@ export const getUserList = expressAsyncHandler(async (req: AuthenticatedRequest,
     }
     // If the user is only a MARKETING_EMPLOYEE
     else if (roles.includes(UserRoles.EMPLOYEE_MARKETING)) {
-      users = await User.findById(id); // DTODO: use findById directly 😊 => Done
-      // if (!users) { // DTODO: do you think this can happen? secret is never gonna leak from .env and token verified so there is not any possibiblity that token is verified but user is not exists => AGREED
-      //   throw createHttpError(404, "User not found");
-      // }
+      users = await User.findById(id);
       users = [users];
     }
 
@@ -77,7 +73,7 @@ export const getUserList = expressAsyncHandler(async (req: AuthenticatedRequest,
         name: formatName(user?.firstName, user?.lastName),
         email: user?.email
       }));
-      res.status(200).json({ user: formattedUsers }); // DTODO: .json({user:formattedUsers}) => Done
+      res.status(200).json({ user: formattedUsers });
     }
   }
 });
