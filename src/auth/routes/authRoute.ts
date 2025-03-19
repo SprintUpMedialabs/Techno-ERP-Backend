@@ -1,6 +1,7 @@
 import express from 'express';
 import {
   forgotPassword,
+  isAuthenticated,
   login,
   logout,
   register,
@@ -46,3 +47,6 @@ authRouter.post('/forgot-password', forgotPassword);
  * Update Password : Use token, input : new password
  */
 authRouter.post('/update-password', updatePassword);
+
+
+authRouter.get('/is-authenticated', isAuthenticated);
