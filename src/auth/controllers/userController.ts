@@ -19,21 +19,16 @@ export const userProfile = expressAsyncHandler(async (req: AuthenticatedRequest,
     return;
   }
 
-  const { id, roles } = decodedData;
-  // console.log('User ID:', id, 'Roles:', roles);
+  const { id } = decodedData;
 
   const user = await User.findById(id);
-  if (!user) {
-    throw createHttpError(404, 'User not found');
-  }
 
   return formatResponse(res, 200, 'Profile retrieved successfully', true, {
-    message: 'User profile retrieved successfully.',
     userData: {
-      id: user._id,
-      name: `${user.firstName} ${user.lastName}`,
-      email: user.email,
-      roles: user.roles
+      id: user?._id,
+      name: `${user?.firstName} ${user?.lastName}`,
+      email: user?.email,
+      roles: user?.roles
     }
   })
 });

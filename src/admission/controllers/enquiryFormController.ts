@@ -76,8 +76,6 @@ export const updateEnquiryData = expressAsyncHandler(
   }
 );
 
-
-// DTODO : 1 -> [1,1] => Resolved
 export const updateEnquiryDocuments = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const { _id, type } = req.body;
@@ -105,8 +103,6 @@ export const updateEnquiryDocuments = expressAsyncHandler(
       req.file.buffer = null as unknown as Buffer;
 
 
-    // console.log(`Uploaded file: ${fileUrl}`);
-
     const updatedData = await Enquiry.findOneAndUpdate(
       { _id, 'documents.type': type },
       {
@@ -131,12 +127,8 @@ export const updateEnquiryDocuments = expressAsyncHandler(
       if (!newData) {
         throw createHttpError(404, 'Enquiry not found');
       }
-
-      return formatResponse(res, 200, 'Document uploaded successfully', true, newData);
     }
-    else {
-      return formatResponse(res, 200, 'Document uploaded successfully', true, updatedData);
-    }
+    return formatResponse(res, 200, 'Document uploaded successfully', true, updatedData);
   }
 );
 
