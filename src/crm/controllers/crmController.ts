@@ -9,14 +9,15 @@ import { saveDataToDb } from '../helpers/updateAndSaveToDb';
 import { Lead } from '../models/leads';
 import { IUpdateLeadRequestSchema, updateLeadRequestSchema } from '../validators/leads';
 import { createYellowLead } from './yellowLeadController';
+import { formatResponse } from '../../utils/formatResponse';
 
 export const uploadData = expressAsyncHandler(async (_: AuthenticatedRequest, res: Response) => {
   const latestData = await readFromGoogleSheet();
   if (!latestData) {
-    res.status(200).json({ message: 'There is no data to update :)' });
+    return formatResponse(res, 200, 'There is no data to update.', true);
   } else {
     await saveDataToDb(latestData.RowData, latestData.LastSavedIndex);
-    res.status(200).json({ message: 'Data updated in database' });
+    return formatResponse(res, 200, 'Data updated in Database!', true);
   }
 });
 
@@ -49,12 +50,12 @@ export const getFilteredLeadData = expressAsyncHandler(
       Lead.countDocuments(query),
     ]);
 
-    res.status(200).json({
+    return formatResponse(res, 200, 'Filtered leads fetched successfully', true, {
       leads,
       total: totalLeads,
       totalPages: Math.ceil(totalLeads / limit),
       currentPage: page
-    });
+    }); 
   }
 );
 
@@ -76,7 +77,7 @@ export const getAllLeadAnalytics = expressAsyncHandler(
       }
     ]);
 
-    res.status(200).json({
+    return formatResponse(res, 200, 'Lead analytics fetched successfully', true, {
       totalLeads: analytics[0]?.totalLeads ?? 0,
       openLeads: analytics[0]?.openLeads ?? 0,
       interestedLeads: analytics[0]?.interestedLeads ?? 0,
@@ -103,6 +104,7 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
         'Sorry, this lead can only be updated from the yellow leads tracker!'
       );
     }
+
     let leadTypeModifiedDate = existingLead.leadTypeModifiedDate;
 
     const updatedData = await Lead.findByIdAndUpdate(
@@ -121,8 +123,9 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
       leadTypeModifiedDate = new Date();
     }
 
-    res.status(200).json({ message: 'Data Updated Successfully!', data: updatedData });
-  } else {
+    return formatResponse(res, 200, 'Data Updated Successfully!', true, updatedData);
+  } 
+  else {
     throw createHttpError(404, 'Lead does not found with the given ID.');
   }
 });

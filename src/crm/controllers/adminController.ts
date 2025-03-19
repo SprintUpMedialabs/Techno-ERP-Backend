@@ -6,6 +6,7 @@ import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
 import { Lead } from "../models/leads";
 import { YellowLead } from "../models/yellowLead";
 import { IAdminAnalyticsFilter } from "../types/marketingSpreadsheet";
+import { formatResponse } from '../../utils/formatResponse';
 
 export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const {
@@ -73,10 +74,9 @@ export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedReque
         ])
     ]);
 
-    res.status(200).json({
-        success: true,
-        message: "Admin analytics fetched successfully",
-        data: {
+    return formatResponse(res, 200, 'Analytics fetched successfully',
+        true,
+        {
             allLeadsAnalytics: allLeadAnalytics.length > 0 ? allLeadAnalytics[0] : {
                 allLeads: 0,
                 reached: 0,
@@ -94,7 +94,5 @@ export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedReque
                 declined: 0,
                 finalConversion: 0
             }
-        }
-    });
-
+        });
 });

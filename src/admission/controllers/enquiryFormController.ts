@@ -12,6 +12,7 @@ import expressAsyncHandler from 'express-async-handler';
 import { uploadToS3 } from '../../config/s3Upload';
 import { ADMISSION, DocumentType } from '../../config/constants';
 import { singleDocumentSchema } from '../validators/singleDocumentSchema';
+import { formatResponse } from '../../utils/formatResponse';
 
 const extractParts = (applicationId: string) => {
   const match = applicationId.match(/^([A-Za-z]+)(\d+)$/);
@@ -43,13 +44,10 @@ export const createEnquiry = expressAsyncHandler(
     serial!.lastSerialNumber = serialNumber;
     await serial!.save();
 
-    res.status(201).json({
-      success: true,
-      message: 'Enquiry created successfully',
-      data: {
-        applicationId: savedResult.applicationId
-      }
+    return formatResponse(res, 201, 'Enquiry created successfully', true, {
+      applicationId: savedResult.applicationId
     });
+
   }
 );
 
@@ -74,11 +72,7 @@ export const updateEnquiryData = expressAsyncHandler(
       throw createHttpError(404, 'Enquiry not found');
     }
 
-    res.status(200).json({
-      success: true,
-      message: 'Enquiry data updated successfully',
-      data: updatedData
-    });
+    return formatResponse(res, 200, 'Enquiry data updated successfully', true, updatedData);
   }
 );
 
@@ -107,7 +101,7 @@ export const updateEnquiryDocuments = expressAsyncHandler(
     );
 
     //Free memory
-    if(req.file)
+    if (req.file)
       req.file.buffer = null as unknown as Buffer;
 
 
@@ -138,18 +132,10 @@ export const updateEnquiryDocuments = expressAsyncHandler(
         throw createHttpError(404, 'Enquiry not found');
       }
 
-      res.status(200).json({
-        success: true,
-        message: 'Document uploaded successfully',
-        data: newData
-      });
-    } 
+      return formatResponse(res, 200, 'Document uploaded successfully', true, newData);
+    }
     else {
-      res.status(200).json({
-        success: true,
-        message: 'Document updated successfully',
-        data: updatedData
-      });
+      return formatResponse(res, 200, 'Document uploaded successfully', true, updatedData);
     }
   }
 );
@@ -176,7 +162,7 @@ export const getEnquiryData = expressAsyncHandler(
       Enquiry.countDocuments(query)
     ]);
 
-    res.status(200).json({
+    return formatResponse(res, 200, 'Enquiry data fetched successfully', true, {
       enquiry: results,
       total: totalItems,
       totalPages: Math.ceil(totalItems / limit),

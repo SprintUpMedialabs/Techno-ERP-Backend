@@ -23,6 +23,7 @@ import {
   IEmail,
   emailSchema
 } from '../validators/authRequest';
+import { formatResponse } from '../../utils/formatResponse';
 
 // TODO: will apply rate limit here
 export const sendOtpToEmail = expressAsyncHandler(async (req: Request, res: Response) => {
@@ -52,7 +53,7 @@ export const sendOtpToEmail = expressAsyncHandler(async (req: Request, res: Resp
     verifyOtpExpireAt: otp.otpExpiryTime
   });
 
-  res.status(201).json({ message: 'OTP sent to your email.' });
+  return formatResponse(res, 201, "OTP sent to your email", true);
 });
 
 export const validateAndVerifyOtp = expressAsyncHandler(async (req: Request, res: Response) => {
@@ -81,10 +82,7 @@ export const validateAndVerifyOtp = expressAsyncHandler(async (req: Request, res
 
   VerifyOtp.deleteOne({ email: data.email });
 
-  res.status(200).json({
-    token,
-    message: 'Email Verified successfully.'
-  });
+  return formatResponse(res, 200, "Email verified successfully", true, token);
 });
 
 export const register = expressAsyncHandler(async (req: Request, res: Response) => {
@@ -120,7 +118,7 @@ export const register = expressAsyncHandler(async (req: Request, res: Response) 
 
   await sendEmail(email, 'Your Account Password', emailBody);
 
-  res.status(201).json({ message: 'Account created successfully.', newUser });
+  return formatResponse(res, 201, 'Account created successfully', true, newUser);
 });
 
 export const login = expressAsyncHandler(async (req: Request, res: Response) => {
@@ -158,15 +156,15 @@ export const login = expressAsyncHandler(async (req: Request, res: Response) => 
 
   res.cookie('token', token, options);
 
-  res.status(200).json({
-    message: 'Login successful.',
+
+  return formatResponse(res, 200, 'Logged in successfully', true, {
     token: token,
     roles: user.roles,
     userData: {
       name: `${user.firstName} ${user.lastName}`,
       email: user.email
     }
-  });
+  })
 });
 
 export const logout = (req: Request, res: Response) => {
@@ -176,7 +174,8 @@ export const logout = (req: Request, res: Response) => {
     secure: true,
     sameSite: 'none'
   });
-  res.status(200).json({ message: 'Logged out successfully.' });
+
+  return formatResponse(res, 200, 'Logged out successfully', true);
 };
 
 // TODO: will apply rate limit here
@@ -214,7 +213,7 @@ export const forgotPassword = expressAsyncHandler(async (req: Request, res: Resp
   `
   );
 
-  res.status(200).json({ message: 'Reset password email sent successfully.' });
+  return formatResponse(res, 200, 'Reset password sent successfully', true);
 });
 
 export const updatePassword = expressAsyncHandler(async (req: Request, res: Response) => {
@@ -235,5 +234,5 @@ export const updatePassword = expressAsyncHandler(async (req: Request, res: Resp
 
   await User.findByIdAndUpdate(decoded.userId, { password: data.password });
 
-  res.status(200).json({ message: 'Password updated successfully.' });
+  return formatResponse(res, 200, 'Password updated successfully', true);
 });
