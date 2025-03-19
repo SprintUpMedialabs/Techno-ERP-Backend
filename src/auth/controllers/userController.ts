@@ -9,38 +9,28 @@ import { ModuleNames, UserRoles } from '../../config/constants';
 import { dropdownSchema } from '../validators/dropdownSchema';
 import { decodeToken } from '../../utils/jwtHelper';
 import { formatName } from '../../utils/formatName';
+import { formatResponse } from '../../utils/formatResponse';
 
 export const userProfile = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const decodedData = req.data;
 
   if (!decodedData) {
-    res.status(404).json({ message: "Profile couldn't be displayed." });
+    throw createHttpError(404, 'Profile could not be fetched');
     return;
   }
 
-  const { id, roles } = decodedData;
-  // console.log('User ID:', id, 'Roles:', roles);
+  const { id } = decodedData;
 
-  try {
-    const user = await User.findById(id);
-    if (!user) {
-      res.status(404).json({ message: 'User not found.' });
-      return;
+  const user = await User.findById(id);
+
+  return formatResponse(res, 200, 'Profile retrieved successfully', true, {
+    userData: {
+      id: user?._id,
+      name: `${user?.firstName} ${user?.lastName}`,
+      email: user?.email,
+      roles: user?.roles
     }
-
-    res.status(200).json({
-      message: 'User profile retrieved successfully.',
-      userData: {
-        id: user._id,
-        name: `${user.firstName} ${user.lastName}`,
-        email: user.email,
-        roles: user.roles
-      }
-    });
-  } catch (error) {
-    logger.error('Error in userProfile:', error);
-    res.status(500).json({ message: 'An unexpected error occurred.' });
-  }
+  })
 });
 
 
@@ -66,7 +56,7 @@ export const getUserByRole = expressAsyncHandler(async (req: AuthenticatedReques
     email: user.email
   }));
 
-  res.status(200).json({ users: formattedUsers });
+  return formatResponse(res, 200, 'Fetching successful', true, formattedUsers)
 
 });
 
@@ -87,14 +77,14 @@ export const fetchDropdownsBasedOnPage = expressAsyncHandler(async (req: Authent
     // If the user is ADMIN or LEAD_MARKETING (and not only marketing employee)
     if (roles.includes(UserRoles.ADMIN) || roles.includes(UserRoles.LEAD_MARKETING)) {
       users = await User.find({ roles: UserRoles.EMPLOYEE_MARKETING });
-    } 
+    }
     // If the user is only a MARKETING_EMPLOYEE
     else if (roles.includes(UserRoles.EMPLOYEE_MARKETING)) {
       users = await User.findOne({ _id: id });
       if (!users) {
         throw createHttpError(404, "User not found");
       }
-      users = [users]; 
+      users = [users];
     }
 
     if (users) {
@@ -103,7 +93,8 @@ export const fetchDropdownsBasedOnPage = expressAsyncHandler(async (req: Authent
         name: formatName(user.firstName, user.lastName),
         email: user.email
       }));
-      res.status(200).json(formattedUsers);
+
+      return formatResponse(res, 200, 'Fetching successful', true, formattedUsers)
     }
   }
 

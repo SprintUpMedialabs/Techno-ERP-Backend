@@ -14,6 +14,7 @@ import {
   yellowLeadSchema,
   yellowLeadUpdateSchema
 } from '../validators/yellowLead';
+import { formatResponse } from '../../utils/formatResponse';
 
 export const createYellowLead = async (leadData: ILead) => {
   const yellowLead: IYellowLead = {
@@ -59,10 +60,7 @@ export const updateYellowLead = expressAsyncHandler(async (req: Request, res: Re
     throw createHttpError(404, 'Yellow lead not found.');
   }
 
-  res.status(200).json({
-    message: 'Yellow lead updated successfully.',
-    data: updatedYellowLead
-  });
+  return formatResponse(res, 200, 'Yellow lead updated successfully', true, updatedYellowLead);
 });
 
 export const getFilteredYellowLeads = expressAsyncHandler(
@@ -95,7 +93,7 @@ export const getFilteredYellowLeads = expressAsyncHandler(
       YellowLead.countDocuments(query),
     ]);
 
-    res.status(200).json({
+    return formatResponse(res, 200, 'Filtered yellow leads fetched successfully', true, {
       yellowLeads,
       total: totalLeads,
       totalPages: Math.ceil(totalLeads / limit),
@@ -156,8 +154,5 @@ export const getYellowLeadsAnalytics = expressAsyncHandler(async (req: Request, 
         deadLeadCount: 0
       };
 
-  res.status(200).json({
-    message: 'Yellow leads analytics fetched successfully.',
-    data: result
-  });
+  return formatResponse(res, 200, 'Yellow leads analytics fetched successfully', true, result);
 });
