@@ -15,40 +15,28 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.fetchDropdownsBasedOnPage = exports.getUserByRole = exports.userProfile = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const user_1 = require("../models/user");
-const logger_1 = __importDefault(require("../../config/logger"));
 const http_errors_1 = __importDefault(require("http-errors"));
 const commonSchema_1 = require("../../validators/commonSchema");
 const constants_1 = require("../../config/constants");
 const dropdownSchema_1 = require("../validators/dropdownSchema");
 const formatName_1 = require("../../utils/formatName");
+const formatResponse_1 = require("../../utils/formatResponse");
 exports.userProfile = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const decodedData = req.data;
     if (!decodedData) {
-        res.status(404).json({ message: "Profile couldn't be displayed." });
+        throw (0, http_errors_1.default)(404, 'Profile could not be fetched');
         return;
     }
-    const { id, roles } = decodedData;
-    // console.log('User ID:', id, 'Roles:', roles);
-    try {
-        const user = yield user_1.User.findById(id);
-        if (!user) {
-            res.status(404).json({ message: 'User not found.' });
-            return;
+    const { id } = decodedData;
+    const user = yield user_1.User.findById(id);
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Profile retrieved successfully', true, {
+        userData: {
+            id: user === null || user === void 0 ? void 0 : user._id,
+            name: `${user === null || user === void 0 ? void 0 : user.firstName} ${user === null || user === void 0 ? void 0 : user.lastName}`,
+            email: user === null || user === void 0 ? void 0 : user.email,
+            roles: user === null || user === void 0 ? void 0 : user.roles
         }
-        res.status(200).json({
-            message: 'User profile retrieved successfully.',
-            userData: {
-                id: user._id,
-                name: `${user.firstName} ${user.lastName}`,
-                email: user.email,
-                roles: user.roles
-            }
-        });
-    }
-    catch (error) {
-        logger_1.default.error('Error in userProfile:', error);
-        res.status(500).json({ message: 'An unexpected error occurred.' });
-    }
+    });
 }));
 exports.getUserByRole = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { role } = req.query;
@@ -65,7 +53,7 @@ exports.getUserByRole = (0, express_async_handler_1.default)((req, res) => __awa
         name: `${user.firstName} ${user.lastName}`,
         email: user.email
     }));
-    res.status(200).json({ users: formattedUsers });
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Fetching successful', true, formattedUsers);
 }));
 exports.fetchDropdownsBasedOnPage = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
@@ -96,7 +84,7 @@ exports.fetchDropdownsBasedOnPage = (0, express_async_handler_1.default)((req, r
                 name: (0, formatName_1.formatName)(user.firstName, user.lastName),
                 email: user.email
             }));
-            res.status(200).json(formattedUsers);
+            return (0, formatResponse_1.formatResponse)(res, 200, 'Fetching successful', true, formattedUsers);
         }
     }
     //throw createHttpError(400, "Invalid module name");

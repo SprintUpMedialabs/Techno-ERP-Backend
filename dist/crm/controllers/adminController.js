@@ -18,6 +18,7 @@ const constants_1 = require("../../config/constants");
 const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
 const leads_1 = require("../models/leads");
 const yellowLead_1 = require("../models/yellowLead");
+const formatResponse_1 = require("../../utils/formatResponse");
 exports.adminAnalytics = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { startDate, endDate, location = [], assignedTo = [], source = [], } = req.body;
     const query = {};
@@ -71,27 +72,23 @@ exports.adminAnalytics = (0, express_async_handler_1.default)((req, res) => __aw
             }
         ])
     ]);
-    res.status(200).json({
-        success: true,
-        message: "Admin analytics fetched successfully",
-        data: {
-            allLeadsAnalytics: allLeadAnalytics.length > 0 ? allLeadAnalytics[0] : {
-                allLeads: 0,
-                reached: 0,
-                notReached: 0,
-                white: 0,
-                black: 0,
-                red: 0,
-                blue: 0,
-                yellow: 0
-            },
-            yellowLeadsAnalytics: yellowLeadAnalytics.length > 0 ? yellowLeadAnalytics[0] : {
-                campusVisit: 0,
-                noCampusVisit: 0,
-                unconfirmed: 0,
-                declined: 0,
-                finalConversion: 0
-            }
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Analytics fetched successfully', true, {
+        allLeadsAnalytics: allLeadAnalytics.length > 0 ? allLeadAnalytics[0] : {
+            allLeads: 0,
+            reached: 0,
+            notReached: 0,
+            white: 0,
+            black: 0,
+            red: 0,
+            blue: 0,
+            yellow: 0
+        },
+        yellowLeadsAnalytics: yellowLeadAnalytics.length > 0 ? yellowLeadAnalytics[0] : {
+            campusVisit: 0,
+            noCampusVisit: 0,
+            unconfirmed: 0,
+            declined: 0,
+            finalConversion: 0
         }
     });
 }));

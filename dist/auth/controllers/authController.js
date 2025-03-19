@@ -57,6 +57,7 @@ const user_1 = require("../models/user");
 const verifyOtp_1 = require("../models/verifyOtp");
 const otpGenerator_1 = require("../utils/otpGenerator");
 const authRequest_1 = require("../validators/authRequest");
+const formatResponse_1 = require("../../utils/formatResponse");
 // TODO: will apply rate limit here
 exports.sendOtpToEmail = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const data = req.body;
@@ -79,7 +80,7 @@ exports.sendOtpToEmail = (0, express_async_handler_1.default)((req, res) => __aw
         verifyOtp: parseInt(otp.otpValue),
         verifyOtpExpireAt: otp.otpExpiryTime
     });
-    res.status(201).json({ message: 'OTP sent to your email.' });
+    return (0, formatResponse_1.formatResponse)(res, 201, "OTP sent to your email", true);
 }));
 exports.validateAndVerifyOtp = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const data = req.body;
@@ -99,10 +100,7 @@ exports.validateAndVerifyOtp = (0, express_async_handler_1.default)((req, res) =
     }
     const token = (0, jwtHelper_1.createToken)({ email: data.email }, { expiresIn: '30m' });
     verifyOtp_1.VerifyOtp.deleteOne({ email: data.email });
-    res.status(200).json({
-        token,
-        message: 'Email Verified successfully.'
-    });
+    return (0, formatResponse_1.formatResponse)(res, 200, "Email verified successfully", true, token);
 }));
 exports.register = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const data = req.body;
@@ -129,7 +127,7 @@ exports.register = (0, express_async_handler_1.default)((req, res) => __awaiter(
       </html>
     `;
     yield (0, mailer_1.sendEmail)(email, 'Your Account Password', emailBody);
-    res.status(201).json({ message: 'Account created successfully.', newUser });
+    return (0, formatResponse_1.formatResponse)(res, 201, 'Account created successfully', true, newUser);
 }));
 exports.login = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const data = req.body;
@@ -157,8 +155,7 @@ exports.login = (0, express_async_handler_1.default)((req, res) => __awaiter(voi
         sameSite: 'none'
     };
     res.cookie('token', token, options);
-    res.status(200).json({
-        message: 'Login successful.',
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Logged in successfully', true, {
         token: token,
         roles: user.roles,
         userData: {
@@ -174,7 +171,7 @@ const logout = (req, res) => {
         secure: true,
         sameSite: 'none'
     });
-    res.status(200).json({ message: 'Logged out successfully.' });
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Logged out successfully', true);
 };
 exports.logout = logout;
 // TODO: will apply rate limit here
@@ -200,7 +197,7 @@ exports.forgotPassword = (0, express_async_handler_1.default)((req, res) => __aw
       </body>
     </html>
   `);
-    res.status(200).json({ message: 'Reset password email sent successfully.' });
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Reset password sent successfully', true);
 }));
 exports.updatePassword = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const token = req.query.token;
@@ -214,5 +211,5 @@ exports.updatePassword = (0, express_async_handler_1.default)((req, res) => __aw
     }
     const decoded = (0, jwtHelper_1.verifyToken)(token);
     yield user_1.User.findByIdAndUpdate(decoded.userId, { password: data.password });
-    res.status(200).json({ message: 'Password updated successfully.' });
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Password updated successfully', true);
 }));

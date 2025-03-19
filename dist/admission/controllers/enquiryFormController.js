@@ -32,6 +32,7 @@ const express_async_handler_1 = __importDefault(require("express-async-handler")
 const s3Upload_1 = require("../../config/s3Upload");
 const constants_1 = require("../../config/constants");
 const singleDocumentSchema_1 = require("../validators/singleDocumentSchema");
+const formatResponse_1 = require("../../utils/formatResponse");
 const extractParts = (applicationId) => {
     const match = applicationId.match(/^([A-Za-z]+)(\d+)$/);
     if (match) {
@@ -54,12 +55,8 @@ exports.createEnquiry = (0, express_async_handler_1.default)((req, res) => __awa
     let serial = yield enquiryApplicationIdSchema_1.EnquiryApplicationId.findOne({ prefix: prefix });
     serial.lastSerialNumber = serialNumber;
     yield serial.save();
-    res.status(201).json({
-        success: true,
-        message: 'Enquiry created successfully',
-        data: {
-            applicationId: savedResult.applicationId
-        }
+    return (0, formatResponse_1.formatResponse)(res, 201, 'Enquiry created successfully', true, {
+        applicationId: savedResult.applicationId
     });
 }));
 exports.updateEnquiryData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -72,13 +69,8 @@ exports.updateEnquiryData = (0, express_async_handler_1.default)((req, res) => _
     if (!updatedData) {
         throw (0, http_errors_1.default)(404, 'Enquiry not found');
     }
-    res.status(200).json({
-        success: true,
-        message: 'Enquiry data updated successfully',
-        data: updatedData
-    });
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Enquiry data updated successfully', true, updatedData);
 }));
-// DTODO : 1 -> [1,1] => Resolved
 exports.updateEnquiryDocuments = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { _id, type } = req.body;
     const file = req.file;
@@ -94,7 +86,6 @@ exports.updateEnquiryDocuments = (0, express_async_handler_1.default)((req, res)
     //Free memory
     if (req.file)
         req.file.buffer = null;
-    // console.log(`Uploaded file: ${fileUrl}`);
     const updatedData = yield enquiryForm_1.Enquiry.findOneAndUpdate({ _id, 'documents.type': type }, {
         $set: { 'documents.$[elem].fileUrl': fileUrl },
     }, {
@@ -109,19 +100,8 @@ exports.updateEnquiryDocuments = (0, express_async_handler_1.default)((req, res)
         if (!newData) {
             throw (0, http_errors_1.default)(404, 'Enquiry not found');
         }
-        res.status(200).json({
-            success: true,
-            message: 'Document uploaded successfully',
-            data: newData
-        });
     }
-    else {
-        res.status(200).json({
-            success: true,
-            message: 'Document updated successfully',
-            data: updatedData
-        });
-    }
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Document uploaded successfully', true, updatedData);
 }));
 exports.getEnquiryData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const search = req.query.search || '';
@@ -140,7 +120,7 @@ exports.getEnquiryData = (0, express_async_handler_1.default)((req, res) => __aw
         enquiryForm_1.Enquiry.find(query).skip(skip).limit(limit),
         enquiryForm_1.Enquiry.countDocuments(query)
     ]);
-    res.status(200).json({
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Enquiry data fetched successfully', true, {
         enquiry: results,
         total: totalItems,
         totalPages: Math.ceil(totalItems / limit),

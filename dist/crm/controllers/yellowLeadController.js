@@ -21,6 +21,7 @@ const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDa
 const parseFilter_1 = require("../helpers/parseFilter");
 const yellowLead_1 = require("../models/yellowLead");
 const yellowLead_2 = require("../validators/yellowLead");
+const formatResponse_1 = require("../../utils/formatResponse");
 const createYellowLead = (leadData) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const yellowLead = {
@@ -59,10 +60,7 @@ exports.updateYellowLead = (0, express_async_handler_1.default)((req, res) => __
     if (!updatedYellowLead) {
         throw (0, http_errors_1.default)(404, 'Yellow lead not found.');
     }
-    res.status(200).json({
-        message: 'Yellow lead updated successfully.',
-        data: updatedYellowLead
-    });
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Yellow lead updated successfully', true, updatedYellowLead);
 }));
 exports.getFilteredYellowLeads = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { query, search, page, limit, sort } = (0, parseFilter_1.parseFilter)(req);
@@ -87,7 +85,7 @@ exports.getFilteredYellowLeads = (0, express_async_handler_1.default)((req, res)
         yellowLead_1.YellowLead.find(query).sort(sort).skip(skip).limit(limit),
         yellowLead_1.YellowLead.countDocuments(query),
     ]);
-    res.status(200).json({
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Filtered yellow leads fetched successfully', true, {
         yellowLeads,
         total: totalLeads,
         totalPages: Math.ceil(totalLeads / limit),
@@ -142,8 +140,5 @@ exports.getYellowLeadsAnalytics = (0, express_async_handler_1.default)((req, res
             activeYellowLeadsCount: 0,
             deadLeadCount: 0
         };
-    res.status(200).json({
-        message: 'Yellow leads analytics fetched successfully.',
-        data: result
-    });
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Yellow leads analytics fetched successfully', true, result);
 }));

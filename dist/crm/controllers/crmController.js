@@ -22,14 +22,15 @@ const updateAndSaveToDb_1 = require("../helpers/updateAndSaveToDb");
 const leads_1 = require("../models/leads");
 const leads_2 = require("../validators/leads");
 const yellowLeadController_1 = require("./yellowLeadController");
+const formatResponse_1 = require("../../utils/formatResponse");
 exports.uploadData = (0, express_async_handler_1.default)((_, res) => __awaiter(void 0, void 0, void 0, function* () {
     const latestData = yield (0, googleSheetOperations_1.readFromGoogleSheet)();
     if (!latestData) {
-        res.status(200).json({ message: 'There is no data to update :)' });
+        return (0, formatResponse_1.formatResponse)(res, 200, 'There is no data to update.', true);
     }
     else {
         yield (0, updateAndSaveToDb_1.saveDataToDb)(latestData.RowData, latestData.LastSavedIndex);
-        res.status(200).json({ message: 'Data updated in database' });
+        return (0, formatResponse_1.formatResponse)(res, 200, 'Data updated in Database!', true);
     }
 }));
 exports.getFilteredLeadData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -54,7 +55,7 @@ exports.getFilteredLeadData = (0, express_async_handler_1.default)((req, res) =>
         leadsQuery.skip(skip).limit(limit),
         leads_1.Lead.countDocuments(query),
     ]);
-    res.status(200).json({
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Filtered leads fetched successfully', true, {
         leads,
         total: totalLeads,
         totalPages: Math.ceil(totalLeads / limit),
@@ -77,7 +78,7 @@ exports.getAllLeadAnalytics = (0, express_async_handler_1.default)((req, res) =>
             }
         }
     ]);
-    res.status(200).json({
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Lead analytics fetched successfully', true, {
         totalLeads: (_b = (_a = analytics[0]) === null || _a === void 0 ? void 0 : _a.totalLeads) !== null && _b !== void 0 ? _b : 0,
         openLeads: (_d = (_c = analytics[0]) === null || _c === void 0 ? void 0 : _c.openLeads) !== null && _d !== void 0 ? _d : 0,
         interestedLeads: (_f = (_e = analytics[0]) === null || _e === void 0 ? void 0 : _e.interestedLeads) !== null && _f !== void 0 ? _f : 0,
@@ -106,7 +107,7 @@ exports.updateData = (0, express_async_handler_1.default)((req, res) => __awaite
             }
             leadTypeModifiedDate = new Date();
         }
-        res.status(200).json({ message: 'Data Updated Successfully!', data: updatedData });
+        return (0, formatResponse_1.formatResponse)(res, 200, 'Data Updated Successfully!', true, updatedData);
     }
     else {
         throw (0, http_errors_1.default)(404, 'Lead does not found with the given ID.');
