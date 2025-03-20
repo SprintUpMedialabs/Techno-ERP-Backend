@@ -10,10 +10,12 @@ import { feesDraftSchema } from "../validators/feesDraftSchema";
 
 //Search in enquiry table using student name and student phone number
 //Get the enquiry using the _id, if the feesDraft_id exists, then it means that we just need to update the draft, else in other case, we need to create the feeDraftObject.
-
+// DTODO: shift this to getEnquiryData
 export const searchEnquiries = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    
     const { search } = req.body;
 
+    // DTODO: its not mandatory if its not there give all the queries. apply pagination and limit here as well.
     if (!search) {
         throw createHttpError(400, 'Please search by phone number or name!');
     }
@@ -23,7 +25,7 @@ export const searchEnquiries = expressAsyncHandler(async (req: AuthenticatedRequ
             { studentName: { $regex: search, $options: 'i' } },
             { studentPhoneNumber: { $regex: search, $options: 'i' } }
         ]
-    });
+    });// DTODO: name,mobileNo,applicationId,clgId,_id,feesDraftId ... other if you think IMP
 
     if (enquiries.length > 0) {
         return formatResponse(res, 200, 'Enquiries corresponding to your search', true, enquiries);
@@ -37,7 +39,7 @@ export const searchEnquiries = expressAsyncHandler(async (req: AuthenticatedRequ
 export const getFeesDraftByEnquiryId = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
 
     const { enquiryId } = req.body;
-
+    // DTODO: add validation
     if (!enquiryId) {
         throw createHttpError(400, 'Enquiry ID is required');
     }
@@ -66,20 +68,25 @@ export const getFeesDraftByEnquiryId = expressAsyncHandler(async (req: Authentic
 export const createFeesDraft = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { enquiryId, feesDraftData } = req.body;
 
+    // DTODO: give var name as createFeesDraftRequest and validate it using zod schema
     if (!enquiryId) {
         throw createHttpError(400, 'Enquiry ID is required');
     }
 
+    // DTODO: is this required?
     if (!feesDraftData) {
         throw createHttpError(400, 'Fees draft data is required');
     }
-    
+
     const validation = feesDraftSchema.safeParse(feesDraftData);
 
-    if(!validation.success)
+    if (!validation.success)
         throw createHttpError(400, validation.error.errors[0]);
 
+    // DTODO: use isExist
     const enquiry = await Enquiry.findById(enquiryId);
+    // DTODO: check here 1st enquiry is available or not
+    
     const feesDraft = await FeesDraftModel.create(validation.data);
 
     //There are no chances of enquiry being null, as we are getting from frontend.
@@ -96,17 +103,19 @@ export const createFeesDraft = expressAsyncHandler(async (req: AuthenticatedRequ
 export const updateFeesDraft = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { feeDraftId, feesDraftData } = req.body;
 
+    // DTODO: give var name as updateFeesDraftRequest and validate it using zod schema
     if (!feeDraftId) {
         throw createHttpError(400, 'Fee Draft ID is missing');
     }
 
+    // DTODO: is this required?
     if (!feesDraftData) {
         throw createHttpError(400, 'Fees draft data is required');
     }
 
     const validation = feesDraftSchema.safeParse(feesDraftData);
 
-    if(!validation.success)
+    if (!validation.success)
         throw createHttpError(404, validation.error.errors[0]);
 
     const feesDraft = await FeesDraftModel.findByIdAndUpdate(
@@ -120,30 +129,3 @@ export const updateFeesDraft = expressAsyncHandler(async (req: AuthenticatedRequ
     }
     return formatResponse(res, 200, 'Fees Draft updated successfully', true, feesDraft);
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
