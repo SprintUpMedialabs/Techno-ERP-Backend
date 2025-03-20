@@ -1,0 +1,79 @@
+import { Schema, model, Types } from 'mongoose';
+import { FeeStatus, TypeOfFee } from '../../config/constants';
+import { IFeesDraftSchema, IOtherFeesSchema, ISemWiseSchema, ISingleSemSchema } from '../validators/feesDraftSchema';
+
+export interface IOtherFeesDocument extends IOtherFeesSchema, Document {}
+export interface ISingleSemWiseDocument extends ISingleSemSchema, Document {}
+export interface IFeesDraftDocument extends IFeesDraftSchema, Document {}
+
+//Other fees schema
+const OtherFeesSchema = new Schema<IOtherFeesDocument>({
+    type: {
+        type: String,
+        enum: Object.values(TypeOfFee),
+        required: true
+    },
+    feeAmount: {
+        type: Number,
+        required: true
+    },
+    finalFee: {
+        type: Number,
+        required: true
+    },
+    feesDepositedTOA: {
+        type: Number,
+        default: 0
+    },
+    remarks: {
+        type: String
+    }
+});
+
+//Sem wise schema
+const SingleSemWiseFeesSchema = new Schema<ISingleSemWiseDocument>({
+    feeAmount: {
+        type: Number,
+        required: true
+    },
+    finalFee: {
+        type: Number,
+        required: true
+    }
+}, { _id: false });
+
+
+//Fees draft for entire student
+const FeesDraftSchema = new Schema<IFeesDraftDocument>(
+    {
+        // studentId: {
+        //     type: Schema.Types.ObjectId
+        // },
+        otherFees: {
+            type: [OtherFeesSchema],
+            validate: [
+                (value: any[]) => value.length <= 50,
+                'Cannot have more than 50 fee entries'
+            ]
+        },
+        semWiseFees: {
+            type: Map,
+            of: SingleSemWiseFeesSchema, // Map to store dynamic keys like sem_1, sem_2, etc.
+            validate: [
+                (value: Map<string, any>) => {
+                    return Array.from(value.keys()).every(key => /^sem_\d+$/.test(key));
+                },
+                'Semester keys must be in the format "sem_X"'
+            ]
+        },
+        status: {
+            type: String,
+            enum: Object.values(FeeStatus),
+            default: FeeStatus.DRAFT,
+            optional : true
+        }
+    },
+    { timestamps: true }
+);
+
+export const FeesDraftModel = model('FeesDraft', FeesDraftSchema);

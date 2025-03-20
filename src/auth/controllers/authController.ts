@@ -122,6 +122,7 @@ export const register = expressAsyncHandler(async (req: Request, res: Response) 
 });
 
 export const login = expressAsyncHandler(async (req: Request, res: Response) => {
+  console.log("In login controller function")
   const data: ILoginRequest = req.body;
 
   const validation = loginRequestSchema.safeParse(data);
@@ -155,7 +156,6 @@ export const login = expressAsyncHandler(async (req: Request, res: Response) => 
   };
 
   res.cookie('token', token, options);
-
 
   return formatResponse(res, 200, 'Logged in successfully', true, {
     token: token,

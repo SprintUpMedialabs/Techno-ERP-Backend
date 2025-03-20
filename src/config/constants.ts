@@ -6,7 +6,7 @@ export enum UserRoles {
   LEAD_MARKETING = 'LEAD_MARKETING',
   EMPLOYEE_MARKETING = 'EMPLOYEE_MARKETING',
   BASIC_USER = 'BASIC_USER',
-  COUNSELOR = 'COUNSELOR'
+  COUNSELOR = 'COUNSELOR',
 }
 
 export enum Gender {
@@ -179,6 +179,23 @@ export enum Locations {
   LKO = "Lucknow"
 }
 
+
+export enum TypeOfFee{
+  HOSTEL = "HOSTEL",
+  TRANSPORT = "TRANSPORT",
+  PROSPECTUS = "PROSPECTUS",
+  STUDENTID = "STUDENTID",
+  UNIFORM = "UNIFORM",
+  STUDENTWELFARE = "STUDENTWELFARE",
+  BOOKBANK = "BOOKBANK",
+  EXAMFEES = "EXAMFEES"
+}
+
+
+export enum FeeStatus{
+  FINAL = "FINAL",
+  DRAFT = "DRAFT"
+}
 
 export const ADMISSION = 'admissions'
 

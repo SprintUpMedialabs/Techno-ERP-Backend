@@ -7,8 +7,10 @@ import { verifyToken } from '../utils/jwtHelper';
 
 export const authenticate = expressAsyncHandler(
   async (req: AuthenticatedRequest, _: Response, next: NextFunction) => {
+    console.log(req.cookies);
     const token = req.cookies?.token;
 
+    console.log("Token is : ", token);
     if (!token) {
       throw createHttpError(401, 'Unauthorized. Please log in again');
     }
@@ -23,6 +25,8 @@ export const authenticate = expressAsyncHandler(
 
 export const authorize = (allowedRoles: UserRoles[]) =>
   expressAsyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    
+    console.log(req.data);
     if (!req.data) {
       throw createHttpError(401, 'Unauthorized. Please log in again');
     }

@@ -39,13 +39,14 @@ export const enquiryRequestSchema = z
     academicDetails: academicDetailsArraySchema.optional(),
     applicationStatus: z.nativeEnum(ApplicationStatus, {
       errorMap: () => ({ message: 'Invalid Application Status' })
-    }).default(ApplicationStatus.STEP_1)
+    }).default(ApplicationStatus.STEP_1),
+    feesDraftId: objectIdSchema.optional()
   })
   .strict();
 
 export const enquiryUpdateSchema = z
   .object({
-    _id: objectIdSchema,
+    _id: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid ObjectId'),
     studentName: z.string().optional(),
     dateOfBirth: requestDateSchema.transform((date) => convertToMongoDate(date) as Date).optional(),
     studentPhoneNumber: contactNumberSchema.optional(),
@@ -81,7 +82,8 @@ export const enquiryUpdateSchema = z
     preRegNumber: z.string().optional(),
     applicationStatus: z.nativeEnum(ApplicationStatus, {
       errorMap: () => ({ message: 'Invalid Application Status' })
-    })
+    }),
+    feesDraftId: objectIdSchema.optional()
   })
   .strict();
 

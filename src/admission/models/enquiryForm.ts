@@ -22,6 +22,7 @@ const enquiryFormSchema = new Schema(
     applicationId: {
       type: String,
       unique: true,
+      required: false, 
       // required: true,
       //We will not use required here as application Id is created in pre('save') hook so as order of execution the enquiry object is created first, which might fail as part of validation, the application ID is required which is created after the validations are done. Hence save is getting executed after validation, so we have the validator and not required as true.
       validate: {
@@ -140,6 +141,11 @@ const enquiryFormSchema = new Schema(
     },
     documents: {
       type: [singleDocumentSchema]
+    },
+    feesDraftId: {
+      type: Schema.Types.ObjectId,
+      ref: 'FeesDraft', // Refer to FeesDraft model
+      optional : true
     }
   },
   { timestamps: true }
