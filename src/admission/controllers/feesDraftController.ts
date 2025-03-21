@@ -9,34 +9,29 @@ import { ApplicationStatus } from "../../config/constants";
 import { feesDraftRequestSchema, feesDraftUpdateSchema, IFeesDraftRequestSchema, IFeesDraftUpdateSchema } from "../validators/feesDraftSchema";
 import { objectIdSchema } from "../../validators/commonSchema";
 
-//Search in enquiry table using student name and student phone number
-//Get the enquiry using the _id, if the feesDraft_id exists, then it means that we just need to update the draft, else in other case, we need to create the feeDraftObject.
-// DTODO: shift this to getEnquiryData => Done
-
-
 //Out of all enquiry IDs, we will select one enquiry ID to check for fee draft data.
 export const getFeesDraftByEnquiryId = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
 
     const { enquiryId } = req.body;
 
-    // DTODO: add validation => Done
     const validation = objectIdSchema.safeParse(enquiryId);
     if (!validation.success) {
         throw createHttpError(400, 'Invalid Enquiry Id');
     }
 
+    // // DTODO: remove this
     const isFeeDraftExist = await Enquiry.exists({
         _id: enquiryId,
         feesDraftId: { $exists: true, $ne: null }
-    })
-
+    });
 
     let feesDraft;
     if (!isFeeDraftExist) {
         throw createHttpError(404, 'No fee draft exists, please create one!');
     }
     else {
-        const enquiry = await Enquiry.findById(enquiryId);
+        // DTODO: correct this
+        const enquiry = await Enquiry.findById(enquiryId).select("feesDraftId");
         feesDraft = await FeesDraftModel.findById(enquiry!.feesDraftId);
     }
 
@@ -51,10 +46,10 @@ export const createFeesDraft = expressAsyncHandler(async (req: AuthenticatedRequ
 
     const validation = feesDraftRequestSchema.safeParse(feesDraftData);
 
-    if (!validation.success)
+    if (!validation.success){
         throw createHttpError(400, validation.error.errors[0]);
+    }
 
-    // DTODO: check here 1st enquiry is available or not => Done
     const isExist = await Enquiry.exists({
         _id: feesDraftData.enquiryId
     });
@@ -87,12 +82,11 @@ export const createFeesDraft = expressAsyncHandler(async (req: AuthenticatedRequ
 export const updateFeesDraft = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const feesDraftUpdateData: IFeesDraftUpdateSchema = req.body;
 
-    // DTODO: give var name as updateFeesDraftRequest and validate it using zod schema => Changed
-    // DTODO: is this required?
     const validation = feesDraftUpdateSchema.safeParse(feesDraftUpdateData);
 
-    if (!validation.success)
+    if (!validation.success){
         throw createHttpError(404, validation.error.errors[0]);
+    }
 
     const feesDraft = await FeesDraftModel.findByIdAndUpdate(
         feesDraftUpdateData.feesDraftId,
@@ -115,8 +109,9 @@ export const getEnquiryDataForApproval = expressAsyncHandler(async (req: Authent
             path: 'feesDraftId',
         });
 
-    if (!enquiry)
+    if (!enquiry){
         throw createHttpError(404, 'Cannot get enquiry');
+    }
 
     return formatResponse(res, 200, 'Approved Enquiry', true, enquiry);
 });

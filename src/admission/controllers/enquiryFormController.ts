@@ -146,55 +146,25 @@ export const updateEnquiryDocuments = expressAsyncHandler(
 
 export const getEnquiryData = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    // DTODO: pls take it from the body => Done
-    // const search = (req.query.search as string) || '';
-    // const page = parseInt(req.query.page as string, 10) || 1;
-    // const limit = parseInt(req.query.limit as string, 10) || 10;
-
-    // const { search, page, limit } = req.body;
-
-    // const skip = (page - 1) * limit;
-    // const query = search
-    //   ? {
-    //     $or: [
-    //       { studentName: { $regex: search, $options: 'i' } },
-    //       { studentPhoneNumber: { $regex: search, $options: 'i' } }
-    //     ]
-    //   }
-    //   : {};
-
-    // const [results, totalItems] = await Promise.all([
-    //   Enquiry.find(query).skip(skip).limit(limit),
-    //   Enquiry.countDocuments(query)
-    // ]);
-
-    // return formatResponse(res, 200, 'Enquiry data fetched successfully', true, {
-    //   enquiry: results,
-    //   total: totalItems,
-    //   totalPages: Math.ceil(totalItems / limit),
-    //   currentPage: page
-    // });
-
     let { search } = req.body;
 
-    // DTODO: its not mandatory if its not there give all the queries. apply pagination and limit here as well. => Done
-    // if (!search) {
-    //     throw createHttpError(400, 'Please search by phone number or name!');
-    // }
-
-    if(!search)
+    if (!search) {
       search = "";
+    }
+
     const enquiries = await Enquiry.find({
-        $or: [
-            { studentName: { $regex: search, $options: 'i' } },
-            { studentPhoneNumber: { $regex: search, $options: 'i' } }
-        ]
+      $or: [
+        { studentName: { $regex: search, $options: 'i' } },
+        { studentPhoneNumber: { $regex: search, $options: 'i' } }
+      ]
     });// DTODO: name,mobileNo,applicationId,clgId,_id,feesDraftId ... other if you think IMP => Need to discuss once.
 
     if (enquiries.length > 0) {
-        return formatResponse(res, 200, 'Enquiries corresponding to your search', true, enquiries);
+      return formatResponse(res, 200, 'Enquiries corresponding to your search', true, enquiries);
     } else {
-        return formatResponse(res, 200, 'No enquiries found with this information', true);
+      return formatResponse(res, 200, 'No enquiries found with this information', true);
     }
   }
 );
+
+// DTODO: make simillar using status
