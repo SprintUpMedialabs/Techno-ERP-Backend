@@ -56,7 +56,7 @@ export const updateEnquiryData = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     console.log(req.body);
     const validation = enquiryUpdateSchema.safeParse(req.body);
-    
+
     if (!validation.success) {
       console.log(validation.error.errors[0]);
       // console.log(validation.error);
@@ -81,11 +81,11 @@ export const updateEnquiryData = expressAsyncHandler(
 
 export const updateEnquiryDocuments = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
-    const { _id, type } = req.body;
+    const { id, type } = req.body;
     const file = req.file as Express.Multer.File;
 
     const validation = singleDocumentSchema.safeParse({
-      studentId: _id,
+      enquiryId: id,
       type,
       documentBuffer: file
     });
@@ -95,7 +95,7 @@ export const updateEnquiryDocuments = expressAsyncHandler(
     }
 
     const fileUrl = await uploadToS3(
-      _id.toString(),
+      id.toString(),
       ADMISSION,
       type as DocumentType,
       file
@@ -105,32 +105,40 @@ export const updateEnquiryDocuments = expressAsyncHandler(
     if (req.file)
       req.file.buffer = null as unknown as Buffer;
 
+    const isExists = await Enquiry.exists({
+      _id: id,
+      'documents.type': type,
+    });
 
-    const updatedData = await Enquiry.findOneAndUpdate(
-      { _id, 'documents.type': type },
-      {
-        $set: { 'documents.$[elem].fileUrl': fileUrl },
-      },
-      {
-        new: true,
-        runValidators: true,
-        arrayFilters: [{ 'elem.type': type }],
-      }
-    );
-
-    if (!updatedData) {
-      const newData = await Enquiry.findByIdAndUpdate(
-        _id,
+    console.log("Is Exists : ", isExists);
+    let updatedData;
+    if (isExists) {
+      updatedData = await Enquiry.findOneAndUpdate(
+        { _id: id, 'documents.type': type },
         {
-          $push: { documents: { type, fileUrl } }
+          $set: { 'documents.$[elem].fileUrl': fileUrl },
+        },
+        {
+          new: true,
+          runValidators: true,
+          arrayFilters: [{ 'elem.type': type }],
+        }
+      );
+    }
+    else {
+      updatedData = await Enquiry.findByIdAndUpdate(
+        id,
+        {
+          $push: { documents: { type, fileUrl } },
         },
         { new: true, runValidators: true }
       );
-
-      if (!newData) {
-        throw createHttpError(404, 'Enquiry not found');
-      }
     }
+    console.log(updatedData);
+    if (!updatedData) {
+      throw createHttpError(400, 'Could not upload documents');
+    }
+
     return formatResponse(res, 200, 'Document uploaded successfully', true, updatedData);
   }
 );
@@ -138,31 +146,55 @@ export const updateEnquiryDocuments = expressAsyncHandler(
 
 export const getEnquiryData = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    // DTODO: pls take it from the body
-    const search = (req.query.search as string) || '';
-    const page = parseInt(req.query.page as string, 10) || 1;
-    const limit = parseInt(req.query.limit as string, 10) || 10;
+    // DTODO: pls take it from the body => Done
+    // const search = (req.query.search as string) || '';
+    // const page = parseInt(req.query.page as string, 10) || 1;
+    // const limit = parseInt(req.query.limit as string, 10) || 10;
 
-    const skip = (page - 1) * limit;
-    const query = search
-      ? {
+    // const { search, page, limit } = req.body;
+
+    // const skip = (page - 1) * limit;
+    // const query = search
+    //   ? {
+    //     $or: [
+    //       { studentName: { $regex: search, $options: 'i' } },
+    //       { studentPhoneNumber: { $regex: search, $options: 'i' } }
+    //     ]
+    //   }
+    //   : {};
+
+    // const [results, totalItems] = await Promise.all([
+    //   Enquiry.find(query).skip(skip).limit(limit),
+    //   Enquiry.countDocuments(query)
+    // ]);
+
+    // return formatResponse(res, 200, 'Enquiry data fetched successfully', true, {
+    //   enquiry: results,
+    //   total: totalItems,
+    //   totalPages: Math.ceil(totalItems / limit),
+    //   currentPage: page
+    // });
+
+    let { search } = req.body;
+
+    // DTODO: its not mandatory if its not there give all the queries. apply pagination and limit here as well. => Done
+    // if (!search) {
+    //     throw createHttpError(400, 'Please search by phone number or name!');
+    // }
+
+    if(!search)
+      search = "";
+    const enquiries = await Enquiry.find({
         $or: [
-          { studentName: { $regex: search, $options: 'i' } },
-          { studentPhoneNumber: { $regex: search, $options: 'i' } }
+            { studentName: { $regex: search, $options: 'i' } },
+            { studentPhoneNumber: { $regex: search, $options: 'i' } }
         ]
-      }
-      : {};
+    });// DTODO: name,mobileNo,applicationId,clgId,_id,feesDraftId ... other if you think IMP => Need to discuss once.
 
-    const [results, totalItems] = await Promise.all([
-      Enquiry.find(query).skip(skip).limit(limit),
-      Enquiry.countDocuments(query)
-    ]);
-
-    return formatResponse(res, 200, 'Enquiry data fetched successfully', true, {
-      enquiry: results,
-      total: totalItems,
-      totalPages: Math.ceil(totalItems / limit),
-      currentPage: page
-    });
+    if (enquiries.length > 0) {
+        return formatResponse(res, 200, 'Enquiries corresponding to your search', true, enquiries);
+    } else {
+        return formatResponse(res, 200, 'No enquiries found with this information', true);
+    }
   }
 );

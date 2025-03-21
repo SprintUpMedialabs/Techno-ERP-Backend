@@ -3,7 +3,7 @@ import { DocumentType } from '../../config/constants';
 import { objectIdSchema } from '../../validators/commonSchema';
 
 export const singleDocumentSchema = z.object({
-  studentId: objectIdSchema,
+  enquiryId : objectIdSchema,
   type: z.nativeEnum(DocumentType),
   documentBuffer: z.object({
     buffer: z.instanceof(Buffer),

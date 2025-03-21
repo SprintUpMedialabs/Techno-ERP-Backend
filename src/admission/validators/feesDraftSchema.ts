@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { FeeStatus, TypeOfFee } from "../../config/constants";
+import { objectIdSchema } from "../../validators/commonSchema";
 
 export const otherFeesSchema = z.object({
     type : z.nativeEnum(TypeOfFee),
@@ -19,16 +20,23 @@ export const singleSemSchema = z.object({
 //This will accept key to be as sem_1, sem_2, sem_3, etc.
 export const semWiseSchema = z.record(z.string().regex(/^sem_\d+$/, 'Semester key must be in the format "sem_X"'), singleSemSchema);
 
+const baseFeesDraftSchema = z.object({
+    otherFees: z.array(otherFeesSchema).optional(),
+    semWiseFees: semWiseSchema.optional(),
+    status: z.nativeEnum(FeeStatus).default(FeeStatus.DRAFT).optional(),
+});
 
-export const feesDraftSchema = z.object({
-    // studentId : objectIdSchema,
-    otherFees : z.array(otherFeesSchema),
-    semWiseFees : semWiseSchema,
-    status : z.nativeEnum(FeeStatus).default(FeeStatus.DRAFT).optional()
+export const feesDraftRequestSchema = baseFeesDraftSchema.extend({
+    enquiryId: objectIdSchema
+});
+
+export const feesDraftUpdateSchema = baseFeesDraftSchema.extend({
+    feesDraftId: objectIdSchema
 });
 
 
 export type IOtherFeesSchema = z.infer<typeof otherFeesSchema>;
 export type ISingleSemSchema = z.infer<typeof singleSemSchema>;
 export type ISemWiseSchema = z.infer<typeof semWiseSchema>;
-export type IFeesDraftSchema = z.infer<typeof feesDraftSchema>;
+export type IFeesDraftRequestSchema = z.infer<typeof feesDraftRequestSchema>;
+export type IFeesDraftUpdateSchema = z.infer<typeof feesDraftUpdateSchema>;

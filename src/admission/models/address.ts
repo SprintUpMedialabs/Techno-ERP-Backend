@@ -1,5 +1,5 @@
 import { Schema } from "mongoose";
-import { IAddressSchema } from "../validators/addressSchema";
+import { IAddressSchema } from "../../validators/commonSchema";
 
 export interface IAddressDocument extends IAddressSchema, Document {}
 

@@ -1,10 +1,10 @@
 import { Schema, model, Types } from 'mongoose';
 import { FeeStatus, TypeOfFee } from '../../config/constants';
-import { IFeesDraftSchema, IOtherFeesSchema, ISemWiseSchema, ISingleSemSchema } from '../validators/feesDraftSchema';
+import { IFeesDraftRequestSchema, IOtherFeesSchema, ISemWiseSchema, ISingleSemSchema } from '../validators/feesDraftSchema';
 
 export interface IOtherFeesDocument extends IOtherFeesSchema, Document {}
 export interface ISingleSemWiseDocument extends ISingleSemSchema, Document {}
-export interface IFeesDraftDocument extends IFeesDraftSchema, Document {}
+export interface IFeesDraftDocument extends IFeesDraftRequestSchema, Document {}
 
 //Other fees schema
 const OtherFeesSchema = new Schema<IOtherFeesDocument>({

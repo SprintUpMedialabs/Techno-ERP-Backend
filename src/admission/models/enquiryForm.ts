@@ -5,8 +5,7 @@ import { contactNumberSchema, emailSchema } from '../../validators/commonSchema'
 import { AdmissionReference, ApplicationIdPrefix, Category, Course } from '../../config/constants';
 import { EnquiryApplicationId } from './enquiryApplicationIdSchema';
 import createHttpError from 'http-errors';
-
-import { IAddressSchema } from '../validators/addressSchema';
+import { IAddressSchema } from '../../validators/commonSchema';
 import { singleDocumentSchema } from './singleDocument';
 import { academicDetailFormSchema } from './academicDetail';
 import { previousCollegeDataSchema } from './previousCollegeData';
@@ -22,7 +21,6 @@ const enquiryFormSchema = new Schema(
     applicationId: {
       type: String,
       unique: true,
-      required: false, 
       // required: true,
       //We will not use required here as application Id is created in pre('save') hook so as order of execution the enquiry object is created first, which might fail as part of validation, the application ID is required which is created after the validations are done. Hence save is getting executed after validation, so we have the validator and not required as true.
       validate: {
@@ -145,7 +143,7 @@ const enquiryFormSchema = new Schema(
     feesDraftId: {
       type: Schema.Types.ObjectId,
       ref: 'FeesDraft', // Refer to FeesDraft model
-      optional : true
+      optional: true
     }
   },
   { timestamps: true }
@@ -157,20 +155,22 @@ const getPrefixForCourse = (course: Course): ApplicationIdPrefix => {
   return ApplicationIdPrefix.TIHS;
 };
 
-enquiryFormSchema.pre<IEnquiryFormDocument>('save', async function (next) {
-  const doc = this as IEnquiryFormDocument & Document;
-  // DTODO: just take a look at user [pre save middleware] first will check if course is modified or not. if its not modified then will skip this process. if its modified they will execute this. [will discuss it on call if required]
-  if (doc) {
-    const prefix = getPrefixForCourse(doc.course);
 
-    // Find existing serial number for the prefix
+enquiryFormSchema.pre<IEnquiryFormDocument>('save', async function (next) {
+  // DTODO: just take a look at user [pre save middleware] first will check if course is modified or not. if its not modified then will skip this process. if its modified they will execute this. [will discuss it on call if required]
+  const doc = this as IEnquiryFormDocument & Document;
+
+  if (doc) {
+    const prefix = getPrefixForCourse(doc.course as Course);
+
     let serial = await EnquiryApplicationId.findOne({ prefix: prefix });
 
     serial!.lastSerialNumber += 1;
-    // await serial.save(); => We will not do this here, as this can get updated even if validation of enquirySchema are failing, so we will update lastSerialNumber after the enquiry object is saved successfully.
+
 
     doc.applicationId = `${prefix}${serial!.lastSerialNumber}`;
   }
+
   next();
 });
 

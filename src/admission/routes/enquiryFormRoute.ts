@@ -6,20 +6,20 @@ import upload from '../../config/multerConfig';
 
 export const enquiryFromRoute = express.Router();
 
-enquiryFromRoute.post('/create',
+enquiryFromRoute.post('/create-enquiry',
     authenticate,
     authorize([UserRoles.COUNSELOR, UserRoles.BASIC_USER]), // yes i know that every one has this basic user role so in a way its available to ALL.
     createEnquiry
 );
 
-enquiryFromRoute.put('/update',
+enquiryFromRoute.put('/update-enquiry',
     authenticate,
     authorize([UserRoles.COUNSELOR, UserRoles.BASIC_USER]), // yes i know that every one has this basic user role so in a way its available to ALL.
     updateEnquiryData
 );
 
 
-enquiryFromRoute.get('/get',
+enquiryFromRoute.post('/get-enquiry',
     authenticate,
     authorize([UserRoles.COUNSELOR, UserRoles.BASIC_USER]),   // yes i know that every one has this basic user role so in a way its available to ALL.
     getEnquiryData
