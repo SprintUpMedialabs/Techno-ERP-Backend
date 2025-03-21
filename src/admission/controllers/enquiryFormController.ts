@@ -54,19 +54,19 @@ export const createEnquiry = expressAsyncHandler(
 
 export const updateEnquiryData = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
-
     console.log(req.body);
     const validation = enquiryUpdateSchema.safeParse(req.body);
     
     if (!validation.success) {
       console.log(validation.error.errors[0]);
+      // console.log(validation.error);
       throw createHttpError(400, validation.error.errors[0]);
     }
 
-    const { _id, ...data } = validation.data;
+    const { id, ...data } = validation.data;
 
     const updatedData = await Enquiry.findByIdAndUpdate(
-      _id,
+      id,
       { ...data },
       { new: true, runValidators: true }
     );
@@ -138,6 +138,7 @@ export const updateEnquiryDocuments = expressAsyncHandler(
 
 export const getEnquiryData = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    // DTODO: pls take it from the body
     const search = (req.query.search as string) || '';
     const page = parseInt(req.query.page as string, 10) || 1;
     const limit = parseInt(req.query.limit as string, 10) || 10;

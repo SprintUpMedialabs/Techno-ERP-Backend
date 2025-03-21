@@ -40,13 +40,14 @@ export const enquiryRequestSchema = z
     applicationStatus: z.nativeEnum(ApplicationStatus, {
       errorMap: () => ({ message: 'Invalid Application Status' })
     }).default(ApplicationStatus.STEP_1),
+    // DTODO: this is not required here isn't it?
     feesDraftId: objectIdSchema.optional()
   })
   .strict();
 
 export const enquiryUpdateSchema = z
   .object({
-    _id: objectIdSchema,
+    id: objectIdSchema,
     studentName: z.string().optional(),
     dateOfBirth: requestDateSchema.transform((date) => convertToMongoDate(date) as Date).optional(),
     studentPhoneNumber: contactNumberSchema.optional(),
@@ -83,6 +84,7 @@ export const enquiryUpdateSchema = z
     applicationStatus: z.nativeEnum(ApplicationStatus, {
       errorMap: () => ({ message: 'Invalid Application Status' })
     }),
+    // DTODO: this is not required here isn't it?
     feesDraftId: objectIdSchema.optional()
   })
   .strict();

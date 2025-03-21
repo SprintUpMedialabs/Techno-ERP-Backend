@@ -6,4 +6,5 @@ export const admissionRoute = express.Router();
 
 admissionRoute.use('/enquiry-form', enquiryFromRoute);
 
+// DTODO: lets keep here just '/fee'
 admissionRoute.use('/fee-draft', feeRoute);

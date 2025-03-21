@@ -122,7 +122,6 @@ export const register = expressAsyncHandler(async (req: Request, res: Response) 
 });
 
 export const login = expressAsyncHandler(async (req: Request, res: Response) => {
-  console.log("In login controller function")
   const data: ILoginRequest = req.body;
 
   const validation = loginRequestSchema.safeParse(data);
