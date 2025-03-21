@@ -55,8 +55,11 @@ export const createEnquiry = expressAsyncHandler(
 export const updateEnquiryData = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
 
+    console.log(req.body);
     const validation = enquiryUpdateSchema.safeParse(req.body);
+    
     if (!validation.success) {
+      console.log(validation.error.errors[0]);
       throw createHttpError(400, validation.error.errors[0]);
     }
 

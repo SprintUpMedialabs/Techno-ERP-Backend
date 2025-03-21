@@ -46,7 +46,7 @@ export const enquiryRequestSchema = z
 
 export const enquiryUpdateSchema = z
   .object({
-    _id: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid ObjectId'),
+    _id: objectIdSchema,
     studentName: z.string().optional(),
     dateOfBirth: requestDateSchema.transform((date) => convertToMongoDate(date) as Date).optional(),
     studentPhoneNumber: contactNumberSchema.optional(),
