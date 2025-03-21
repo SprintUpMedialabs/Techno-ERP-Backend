@@ -18,7 +18,7 @@ import { objectIdSchema } from "../../validators/commonSchema";
 export const getFeesDraftByEnquiryId = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
 
     const { enquiryId } = req.body;
-    
+
     // DTODO: add validation => Done
     const validation = objectIdSchema.safeParse(enquiryId);
     if (!validation.success) {
@@ -26,18 +26,16 @@ export const getFeesDraftByEnquiryId = expressAsyncHandler(async (req: Authentic
     }
 
     const isFeeDraftExist = await Enquiry.exists({
-        _id: enquiryId, 
+        _id: enquiryId,
         feesDraftId: { $exists: true, $ne: null }
     })
 
 
     let feesDraft;
-    if(!isFeeDraftExist)
-    {
+    if (!isFeeDraftExist) {
         throw createHttpError(404, 'No fee draft exists, please create one!');
     }
-    else
-    {
+    else {
         const enquiry = await Enquiry.findById(enquiryId);
         feesDraft = await FeesDraftModel.findById(enquiry!.feesDraftId);
     }
@@ -87,7 +85,7 @@ export const createFeesDraft = expressAsyncHandler(async (req: AuthenticatedRequ
 
 
 export const updateFeesDraft = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const feesDraftUpdateData : IFeesDraftUpdateSchema = req.body; 
+    const feesDraftUpdateData: IFeesDraftUpdateSchema = req.body;
 
     // DTODO: give var name as updateFeesDraftRequest and validate it using zod schema => Changed
     // DTODO: is this required?
@@ -107,3 +105,78 @@ export const updateFeesDraft = expressAsyncHandler(async (req: AuthenticatedRequ
     }
     return formatResponse(res, 200, 'Fees Draft updated successfully', true, feesDraft);
 });
+
+
+
+export const getEnquiryDataForApproval = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const { enquiryId } = req.body;
+    const enquiry = await Enquiry.findById(enquiryId)
+        .populate({
+            path: 'feesDraftId',
+        });
+
+    if (!enquiry)
+        throw createHttpError(404, 'Cannot get enquiry');
+
+    return formatResponse(res, 200, 'Approved Enquiry', true, enquiry);
+});
+
+
+
+// export const updateEnquiryAndApprove = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    
+//     const { enquiryId, feesDraftId, ...data } = req.body;
+
+//     const existingEnquiry = await Enquiry.findById(enquiryId).populate('feesDraftId');
+//     if (!existingEnquiry) 
+//         throw createHttpError(404, 'Enquiry not found');
+
+//     
+//     const enquiryFields = Object.keys(Enquiry.schema.paths);
+//     const feesDraftFields = Object.keys(FeesDraftModel.schema.paths);
+
+//     const updateData = Object.fromEntries(
+//         Object.entries(data).filter(([key]) => enquiryFields.includes(key))
+//     );
+
+//     const feesDraftData = Object.fromEntries(
+//         Object.entries(data).filter(([key]) => feesDraftFields.includes(key))
+//     );
+
+//     
+//     const modifiedEnquiryData = Object.fromEntries(
+//         Object.entries(updateData).filter(
+//             ([key, value]) => existingEnquiry[key] !== value
+//         )
+//     );
+
+//     if (Object.keys(modifiedEnquiryData).length > 0) {
+//         await Enquiry.findByIdAndUpdate(
+//             enquiryId,
+//             { ...modifiedEnquiryData, applicationStatus: 'STEP_4' },
+//             { new: true, runValidators: true }
+//         );
+//     }
+
+//  
+//     if (feesDraftId && existingEnquiry.feesDraftId) {
+//         const existingFeesDraft = await FeesDraftModel.findById(feesDraftId);
+//         if (!existingFeesDraft) throw createHttpError(404, 'FeesDraft not found');
+
+//         const modifiedFeesDraftData = Object.fromEntries(
+//             Object.entries(feesDraftData).filter(
+//                 ([key, value]) => existingFeesDraft[key] !== value
+//             )
+//         );
+
+//         if (Object.keys(modifiedFeesDraftData).length > 0) {
+//             await FeesDraftModel.findByIdAndUpdate(
+//                 feesDraftId,
+//                 { $set: modifiedFeesDraftData },
+//                 { new: true, runValidators: true }
+//             );
+//         }
+//     }
+
+//     return formatResponse(res, 200, 'Approved Enquiry', true);
+// });
