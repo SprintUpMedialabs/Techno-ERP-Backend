@@ -23,10 +23,10 @@ const singleSemSchemaWithoutFeeAmount = singleSemSchema.omit({ feeAmount: true }
 const studentFeesSchema = z.object({
     otherFees: z.array(otherFeesSchema).optional(),
     semWiseFees: z.array(singleSemSchema),
-    status: z.nativeEnum(FeeStatus).default(FeeStatus.DRAFT).optional(),
+    feeStatus: z.nativeEnum(FeeStatus).default(FeeStatus.DRAFT).optional(),
 });
 
-export const feesDraftRequestSchema = studentFeesSchema.omit({ status: true }).extend({
+export const feesDraftRequestSchema = studentFeesSchema.omit({ feeStatus: true }).extend({
     otherFees: z.array(otherFeesSchemaWithoutFeeAmount),
     semWiseFees: z.array(singleSemSchemaWithoutFeeAmount),
     enquiryId: objectIdSchema

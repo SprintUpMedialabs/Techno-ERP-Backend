@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AdmissionReference, AdmittedThrough, ApplicationStatus, BloodGroup, Category, Course, Gender, Religion } from '../../config/constants';
+import { AdmissionMode, AdmissionReference, AdmittedThrough, ApplicationStatus, BloodGroup, Category, Course, Gender, Religion } from '../../config/constants';
 import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import {
   addressSchema,
@@ -12,6 +12,7 @@ import { previousCollegeDataSchema } from './previousCollegeDataSchema';
 import { singleDocumentSchema } from './singleDocumentSchema';
 
 const enquirySchema = z.object({
+  admissionMode : z.nativeEnum(AdmissionMode).default(AdmissionMode.OFFLINE).optional(),
   studentName: z.string().min(1, 'Student Name is required'),
 
   dateOfBirth: requestDateSchema.transform((date) =>
@@ -21,10 +22,10 @@ const enquirySchema = z.object({
     convertToMongoDate(date) as Date
   ),
   studentPhoneNumber: contactNumberSchema,
+  gender: z.nativeEnum(Gender).default(Gender.NOT_TO_MENTION),
 
   fatherName: z.string().min(1, "Father's Name is required"),
   fatherPhoneNumber: contactNumberSchema,
-  gender: z.nativeEnum(Gender).default(Gender.NOT_TO_MENTION),
   fatherOccupation: z.string().min(1, 'Father occupation is required'),
 
   motherName: z.string().min(1, "Mother's Name is required"),
@@ -65,11 +66,10 @@ export const enquiryStep1RequestSchema = enquirySchema
 
 export const enquiryStep1UpdateRequestSchema = enquiryStep1RequestSchema.extend({
   id: objectIdSchema
-})
-  .strict();
+}).strict();
 
-
-export const enquiryStep3UpdateRequestSchema = enquirySchema.omit({ documents: true,studentFee:true }).extend({
+//DATODO : Why the documents and student fee are omitted here? We are uploading documents here only for first time.
+export const enquiryStep3UpdateRequestSchema = enquirySchema.omit({ documents: true, studentFee: true }).extend({
   id: objectIdSchema,
 }).strict();
 

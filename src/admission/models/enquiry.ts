@@ -1,38 +1,39 @@
 import createHttpError from 'http-errors';
 import mongoose, { Schema } from 'mongoose';
-import { AdmissionReference, ApplicationIdPrefix, ApplicationStatus, Category, Course, Gender } from '../../config/constants';
+import { AdmissionReference, ApplicationStatus, Category, Course, Gender } from '../../config/constants';
 import { convertToDDMMYYYY } from '../../utils/convertDateToFormatedDate';
 import { contactNumberSchema, emailSchema } from '../../validators/commonSchema';
 import { IEnquirySchema } from '../validators/enquiry';
 import { academicDetailFormSchema } from './academicDetail';
 import { addressSchema } from './address';
-import { EnquiryApplicationId } from './enquiryApplicationIdSchema';
 import { previousCollegeDataSchema } from './previousCollegeData';
 import { singleDocumentSchema } from './singleDocument';
 
 export interface IEnquiryDocument extends IEnquirySchema, Document {
-  applicationId: string;
+  formNo: string;
   date: Date;
+  photoNo : number;
+  universityId : string; 
 }
 
 const enquirySchema = new Schema<IEnquiryDocument>(
   {
-    applicationId: {
+    universityId : {
+      type : String,
+      unique : true
+    },
+    photoNo : {
+      type : Number,
+      unique : true
+    },
+    formNo: {
       type: String,
       unique: true,
-      // required: true,
-      //We will not use required here as application Id is created in pre('save') hook so as order of execution the enquiry object is created first, which might fail as part of validation, the application ID is required which is created after the validations are done. Hence save is getting executed after validation, so we have the validator and not required as true.
-      validate: {
-        validator: function (value: string) {
-          return !!value;
-        },
-        message: 'ApplicationId is required'
-      },
-      index: true
     },
     dateOfEnquiry: {
       type: Date,
       required: true,
+      default : new Date(),   // DA Check : This won't come from input hence initialised it to new date.
     },
     dateOfAdmission: {
       type: Date,
@@ -163,27 +164,27 @@ const enquirySchema = new Schema<IEnquiryDocument>(
   { timestamps: true }
 );
 
-const getPrefixForCourse = (course: Course): ApplicationIdPrefix => {
-  if (course === Course.MBA) return ApplicationIdPrefix.TIMS;
-  if (course === Course.LLB) return ApplicationIdPrefix.TCL;
-  return ApplicationIdPrefix.TIHS;
-};
+
 
 
 enquirySchema.pre<IEnquiryDocument>('save', async function (next) {
+  //This will be removed from here as we are no longer creating the IDs here, they all are created in step 4 on approval.
+
+
+  // DA CHECK
   // DTODO: just take a look at user [pre save middleware] first will check if course is modified or not. if its not modified then will skip this process. if its modified they will execute this. [will discuss it on call if required]
-  const doc = this as IEnquiryDocument & Document;
+  // const doc = this as IEnquiryDocument & Document;
 
-  if (doc) {
-    const prefix = getPrefixForCourse(doc.course as Course);
+  // if (doc) {
+  //   const prefix = getPrefixForCourse(doc.course as Course);
 
-    let serial = await EnquiryApplicationId.findOne({ prefix: prefix });
+  //   let serial = await EnquiryApplicationId.findOne({ prefix: prefix });
 
-    serial!.lastSerialNumber += 1;
+  //   serial!.lastSerialNumber += 1;
 
 
-    doc.applicationId = `${prefix}${serial!.lastSerialNumber}`;
-  }
+  //   doc.formNo = `${prefix}${serial!.lastSerialNumber}`;
+  // }
 
   next();
 });
@@ -208,7 +209,7 @@ enquirySchema.post('findOneAndUpdate', function (error: any, doc: any, next: Fun
 });
 
 const transformDates = (_: any, ret: any) => {
-  ['dateOfEnquiry', 'dateOfBirth'].forEach((key) => {
+  ['dateOfEnquiry', 'dateOfAdmission', 'dateOfBirth'].forEach((key) => {
     if (ret[key]) {
       ret[key] = convertToDDMMYYYY(ret[key]);
     }

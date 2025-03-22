@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import createHttpError from 'http-errors';
 import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
-import { EnquiryApplicationId } from '../models/enquiryApplicationIdSchema';
+import { EnquiryApplicationId } from '../models/enquiryIdMetaDataSchema';
 import { Enquiry } from '../models/enquiry';
 import {
   enquiryStep1RequestSchema,
@@ -11,13 +11,15 @@ import {
 } from '../validators/enquiry';
 import expressAsyncHandler from 'express-async-handler';
 import { uploadToS3 } from '../../config/s3Upload';
-import { ADMISSION, ApplicationStatus, DocumentType } from '../../config/constants';
+import { ADMISSION, FormNoPrefixes, ApplicationStatus, ApplicationStatusScore, Course, DocumentType, PHOTO, TGI } from '../../config/constants';
 import { singleDocumentSchema } from '../validators/singleDocumentSchema';
 import { formatResponse } from '../../utils/formatResponse';
 import { feesDraftRequestSchema, feesDraftUpdateSchema, IFeesDraftRequestSchema, IFeesDraftUpdateSchema, IStudentFeesSchema } from '../validators/studentFees';
 import { FeesDraftModel } from '../models/studentFees';
 import { fetchCourseFeeByCourse, fetchOtherFees } from '../../fees/courseAndOtherFees.controller';
 import mongoose from 'mongoose';
+import { approveEnquirySchema, IApproveEnquirySchema } from '../validators/approveEnquiry';
+import { enquiryStatusUpdateSchema, IEnquiryStatusUpdateSchema } from '../validators/enquiryStatusUpdateSchema';
 
 const extractParts = (applicationId: string) => {
   const match = applicationId.match(/^([A-Za-z]+)(\d+)$/);
@@ -28,6 +30,8 @@ const extractParts = (applicationId: string) => {
   }
   throw new Error('Invalid applicationId format');
 };
+
+
 
 export const createEnquiry = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
@@ -40,20 +44,26 @@ export const createEnquiry = expressAsyncHandler(
 
     let savedResult = await Enquiry.create({ ...validation.data });
 
+    // DA CHECK
+    //Below logic is no longer needed here as we are creating that ID wala part in step 4 so let's omit it from step 1.
     //Save the status of updated serial number in db once enquiry object insertion is successful.
-    let { prefix, serialNumber } = extractParts(savedResult.applicationId);
+    // let { prefix, serialNumber } = extractParts(savedResult.applicationId);
 
-    let serial = await EnquiryApplicationId.findOne({ prefix: prefix });
+    // let serial = await EnquiryApplicationId.findOne({ prefix: prefix });
 
-    serial!.lastSerialNumber = serialNumber;
-    await serial!.save();
-
-    return formatResponse(res, 201, 'Enquiry created successfully', true, {
-      applicationId: savedResult.applicationId
-    });
+    // serial!.lastSerialNumber = serialNumber;
+    // await serial!.save();
+    if (savedResult) {
+      return formatResponse(res, 201, 'Enquiry created successfully', true);
+    }
+    else {
+      throw createHttpError(404, 'Error occurred creating enquiry');
+    }
 
   }
 );
+
+
 
 export const updateEnquiryStep1ById = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const validation = enquiryStep1UpdateRequestSchema.safeParse(req.body);
@@ -69,11 +79,14 @@ export const updateEnquiryStep1ById = expressAsyncHandler(async (req: Authentica
     { new: true, runValidators: true }
   );
   if (!updatedData) {
-    throw createHttpError(404, 'Enquiry not found');
+    throw createHttpError(404, 'Enquiry occurred in updating data');
   }
 
   return formatResponse(res, 200, 'Enquiry data updated successfully', true, updatedData);
 });
+
+
+
 
 // TODO : Here we need to add the feeAmount as metadata.
 export const createEnquiryStep2 = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
@@ -144,6 +157,8 @@ export const updateEnquiryStep2ById = expressAsyncHandler(async (req: Authentica
   return formatResponse(res, 200, 'Fees Draft updated successfully', true, feesDraft);
 });
 
+
+
 const updateFeeDetails = async (applicationStatusList: ApplicationStatus[], feesDraftUpdateData: IFeesDraftUpdateSchema, finalApplicationStatus?: ApplicationStatus) => {
   const validation = feesDraftUpdateSchema.safeParse(feesDraftUpdateData);
 
@@ -151,6 +166,7 @@ const updateFeeDetails = async (applicationStatusList: ApplicationStatus[], fees
     throw createHttpError(400, validation.error.errors[0]);
   }
 
+  // DA CHECK : What are we doing here with student fee?
   const enquiry = await Enquiry.findOne({
     studentFee: feesDraftUpdateData.id,
     applicationStatus: { $nin: [...applicationStatusList] }
@@ -211,7 +227,7 @@ export const updateEnquiryStep3ById = expressAsyncHandler(
 
     const enquiry = await Enquiry.findOne({
       _id: id,
-      applicationStatus: { $ne: ApplicationStatus.STEP_1 }
+      applicationStatus: { $ne: ApplicationStatus.STEP_1 }  // DA CHECK : Application status mai step 4 kar diya ho then also yeh nahi chalega right or will we allow edits?
     }, {
       applicationStatus: 1
     });
@@ -225,8 +241,8 @@ export const updateEnquiryStep3ById = expressAsyncHandler(
       id,
       {
         ...data,
-        // DTODO: should we manage application status in this way or it should be seperate button upon clicking on it status will change?
-        applicationStatus: enquiry.applicationStatus == ApplicationStatus.STEP_2 ? ApplicationStatus.STEP_3 : enquiry.applicationStatus
+        // DTODO: should we manage application status in this way or it should be seperate button upon clicking on it status will change? => Added separate endpoint
+        // applicationStatus: enquiry.applicationStatus == ApplicationStatus.STEP_2 ? ApplicationStatus.STEP_3 : enquiry.applicationStatus
       },
       { new: true, runValidators: true }
     );
@@ -239,7 +255,7 @@ export const updateEnquiryStep3ById = expressAsyncHandler(
   }
 );
 
-// DTODO: there are few documents which are IMP need to think that how will handle those
+// DTODO: there are few documents which are IMP need to think that how will handle those => Make them mandate from the UI side.
 export const updateEnquiryDocuments = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const { id, type } = req.body;
@@ -304,12 +320,14 @@ export const updateEnquiryDocuments = expressAsyncHandler(
   }
 );
 
+
 export const updateEnquiryStep4ById = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const feesDraftUpdateData: IFeesDraftUpdateSchema = req.body;
 
   const feesDraft = await updateFeeDetails([ApplicationStatus.STEP_3, ApplicationStatus.STEP_4], feesDraftUpdateData, ApplicationStatus.STEP_4);
   return formatResponse(res, 200, 'Fees Draft updated successfully', true, feesDraft);
 });
+
 
 export const getEnquiryData = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
@@ -369,3 +387,82 @@ export const getEnquiryById = expressAsyncHandler(
   }
 );
 
+
+
+export const approveEnquiry = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+
+  //We are taking course from input as we already have data populated so we have details in that one.
+  const approveEnquiryData: IApproveEnquirySchema = req.body;
+
+  const validation = approveEnquirySchema.safeParse(approveEnquiryData);
+
+  if (!validation.success) {
+    throw createHttpError(404, validation.error.errors[0]);
+  }
+
+  // For this enquiry Id, we will set the university ID, form no and the photo number. 
+  const prefix = getPrefixForCourse(approveEnquiryData.course as Course)
+  let serial = await EnquiryApplicationId.findOne({ prefix: prefix });
+  serial!.lastSerialNumber += 1;
+  await serial!.save();
+
+  let formNo = `${prefix}${serial!.lastSerialNumber}`
+
+  let photoSerial = await EnquiryApplicationId.findOne({ prefix: PHOTO });
+  photoSerial!.lastSerialNumber += 1;
+  await photoSerial!.save();
+
+  let universityId = generateUniversityId(approveEnquiryData.course, photoSerial!.lastSerialNumber);
+
+  let approvedEnquiry = await Enquiry.findByIdAndUpdate(approveEnquiryData.id,
+    {
+      $set: { formNo: formNo, photoNo: photoSerial!.lastSerialNumber, universityId: universityId, applicationStatus: ApplicationStatus.STEP_4 }
+    },
+    { runValidators: true });
+
+  if (!approvedEnquiry) {
+    throw createHttpError(404, 'Failed to approve enquiry!');
+  }
+  else {
+    return formatResponse(res, 200, 'Enquiry Approved Successfully', true);
+  }
+
+});
+
+
+
+export const updateStatus = (async (req: AuthenticatedRequest, res: Response) => {
+  const updateStatusData: IEnquiryStatusUpdateSchema = req.body;
+
+  const validation = enquiryStatusUpdateSchema.safeParse(updateStatusData);
+
+  if (!validation.success) {
+    throw createHttpError(404, validation.error.errors[0]);
+  }
+
+
+  if (ApplicationStatusScore.indexOf(updateStatusData.newStatus) <= ApplicationStatusScore.indexOf(updateStatusData.oldStatus)) {
+    throw createHttpError(404, 'Cannot update the status');
+  }
+
+  let updateEnquiryStatus = await Enquiry.findByIdAndUpdate(updateStatusData.id, { $set: { applicationStatus: updateStatusData.newStatus } }, { runValidators: true });
+
+  if (!updateEnquiryStatus) {
+    throw createHttpError(404, 'Could not update the enquiry status');
+  }
+  else {
+    return formatResponse(res, 200, 'Enquiry Status Updated Successfully', true);
+  }
+
+})
+
+const generateUniversityId = (course: Course, photoSerialNumber: number) => {
+  return `${TGI}${new Date().getFullYear().toString()}${course.toString()}${photoSerialNumber.toString()}`
+}
+
+
+const getPrefixForCourse = (course: Course): FormNoPrefixes => {
+  if (course === Course.MBA) return FormNoPrefixes.TIMS;
+  if (course === Course.LLB) return FormNoPrefixes.TCL;
+  return FormNoPrefixes.TIHS;
+};

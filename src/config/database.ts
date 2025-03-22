@@ -1,9 +1,9 @@
 import mongoose from 'mongoose';
 import { SpreadSheetMetaData } from '../crm/models/spreadSheet';
 import logger from './logger';
-import { ApplicationIdPrefix, MARKETING_SHEET } from './constants';
+import { FormNoPrefixes, MARKETING_SHEET, PHOTO } from './constants';
 import { MONGODB_DATABASE_NAME, MONGODB_DATABASE_URL } from '../secrets';
-import { EnquiryApplicationId } from '../admission/models/enquiryApplicationIdSchema';
+import { EnquiryApplicationId } from '../admission/models/enquiryIdMetaDataSchema';
 
 const connectToDatabase = async (): Promise<void> => {
   try {
@@ -32,7 +32,7 @@ export const initializeDB = async () => {
       logger.debug('Marketing Sheet entry already exists.');
     }
 
-    const prefixes = [ApplicationIdPrefix.TIHS, ApplicationIdPrefix.TCL, ApplicationIdPrefix.TIMS];
+    const prefixes = [FormNoPrefixes.TIHS, FormNoPrefixes.TCL, FormNoPrefixes.TIMS, PHOTO];
 
     for (const prefix of prefixes) {
       const existingEntry = await EnquiryApplicationId.findOne({ prefix });

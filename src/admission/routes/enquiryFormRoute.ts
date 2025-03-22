@@ -1,8 +1,9 @@
 import express from 'express';
 import { authenticate, authorize } from '../../middleware/jwtAuthenticationMiddleware';
 import { UserRoles } from '../../config/constants';
-import { createEnquiry, getEnquiryData, updateEnquiryStep3ById, updateEnquiryDocuments, updateEnquiryStep1ById, updateEnquiryStep2ById, createEnquiryStep2, getEnquiryById } from '../controllers/enquiryFormController';
+import { createEnquiry, getEnquiryData, updateEnquiryStep3ById, updateEnquiryDocuments, updateEnquiryStep1ById, updateEnquiryStep2ById, createEnquiryStep2, getEnquiryById, approveEnquiry, updateStatus } from '../controllers/enquiryFormController';
 import upload from '../../config/multerConfig';
+import { User } from '../../auth/models/user';
 
 
 export const enquiryRoute = express.Router();
@@ -39,7 +40,6 @@ enquiryRoute.post('/search',
     getEnquiryData
 )
 
-
 enquiryRoute.put('/update-document',
     authenticate,
     authorize([UserRoles.BASIC_USER, UserRoles.COUNSELOR]),  // yes i know that every one has this basic user role so in a way its available to ALL.
@@ -52,3 +52,15 @@ enquiryRoute.get('/:id',
     authorize([UserRoles.BASIC_USER, UserRoles.COUNSELOR]),
     getEnquiryById
 );
+
+enquiryRoute.put('/approveEnquiry', 
+    authenticate,
+    authorize([UserRoles.REGISTAR]),
+    approveEnquiry
+);
+
+enquiryRoute.put('/update-status',
+    authenticate, 
+    authorize([UserRoles.COUNSELOR, UserRoles.REGISTAR, UserRoles.BASIC_USER]),
+    updateStatus
+)

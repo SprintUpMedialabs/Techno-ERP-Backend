@@ -90,7 +90,7 @@ export enum EducationLevel {
 }
 
 
-export enum ApplicationIdPrefix {
+export enum FormNoPrefixes {
   "TIHS" = "TIHS",
   "TIMS" = "TIMS",
   "TCL" = "TCL"
@@ -201,8 +201,17 @@ export enum FeeStatus {
 }
 
 
+export enum AdmissionMode{
+  ONLINE = "ONLINE",
+  OFFLINE = "OFFLINE"
+}
+
+export const ApplicationStatusScore = ['STEP_1', 'STEP_2', 'STEP_3', 'STEP_4'];
+
 export const ADMISSION = 'admissions'
 
+export const TGI = "TGI";
+export const PHOTO = "PHOTO";
 
 export const MARKETING_SHEET = 'Marketing Sheet'
 
