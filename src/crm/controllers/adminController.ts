@@ -15,6 +15,7 @@ export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedReque
         location = [],
         assignedTo = [],
         source = [],
+        gender = []
     } = req.body as IAdminAnalyticsFilter;
 
     const query: Record<string, any> = {};
@@ -38,9 +39,12 @@ export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedReque
     }
 
     // TODO: will discuss this in future and apply it here
-    // if (filters.source.length > 0) {
-    //     query.source = { $in: filters.source }
-    // }
+    if (source.length > 0) {
+        query.source = { $in: source }
+    }
+    if (gender.length > 0) {
+        query.gender = { $in: gender };
+    }
 
     const [allLeadAnalytics, yellowLeadAnalytics] = await Promise.all([
         Lead.aggregate([

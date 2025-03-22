@@ -7,6 +7,7 @@ export enum UserRoles {
   EMPLOYEE_MARKETING = 'EMPLOYEE_MARKETING',
   BASIC_USER = 'BASIC_USER',
   COUNSELOR = 'COUNSELOR',
+  REGISTAR = 'REGISTAR'
 }
 
 export enum Gender {
@@ -81,7 +82,7 @@ export enum Course {
 }
 
 
-export enum AcademicDetails {
+export enum EducationLevel {
   Tenth = "10th",
   Twelfth = "12th",
   Graduation = "Graduation",
@@ -89,7 +90,7 @@ export enum AcademicDetails {
 }
 
 
-export enum ApplicationIdPrefix{
+export enum ApplicationIdPrefix {
   "TIHS" = "TIHS",
   "TIMS" = "TIMS",
   "TCL" = "TCL"
@@ -120,7 +121,7 @@ export enum BloodGroup {
 
 
 export enum AdmittedThrough {
-  DIRECT = 'Direct', 
+  DIRECT = 'Direct',
   COUNSELLING = 'Counselling'
 }
 
@@ -165,7 +166,7 @@ export enum MimeType {
 }
 
 
-export enum ModuleNames { 
+export enum ModuleNames {
   MARKETING = "MARKETING"
 }
 
@@ -182,7 +183,7 @@ export enum Locations {
 }
 
 
-export enum TypeOfFee{
+export enum FeeType {
   HOSTEL = "HOSTEL",
   TRANSPORT = "TRANSPORT",
   PROSPECTUS = "PROSPECTUS",
@@ -194,7 +195,7 @@ export enum TypeOfFee{
 }
 
 
-export enum FeeStatus{
+export enum FeeStatus {
   FINAL = "FINAL",
   DRAFT = "DRAFT"
 }

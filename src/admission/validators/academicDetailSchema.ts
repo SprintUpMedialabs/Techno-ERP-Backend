@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import { AcademicDetails } from '../../config/constants';
+import { EducationLevel } from '../../config/constants';
 
 export const academicDetailSchema = z.object({
-  academicDetails: z.nativeEnum(AcademicDetails), // Only allows fixed values
+  educationLevel : z.nativeEnum(EducationLevel), // Only allows fixed values
   schoolCollegeName: z.string().min(1, 'School/College Name is required'),
   universityBoardName: z.string().min(1, 'University/Board Name is required'),
   passingYear: z

@@ -1,22 +1,21 @@
-import mongoose, { Schema } from 'mongoose';
-import { IEnquiryRequestSchema } from '../validators/enquiryForm';
-import { convertToDDMMYYYY, convertToMongoDate } from '../../utils/convertDateToFormatedDate';
-import { contactNumberSchema, emailSchema } from '../../validators/commonSchema';
-import { AdmissionReference, ApplicationIdPrefix, Category, Course } from '../../config/constants';
-import { EnquiryApplicationId } from './enquiryApplicationIdSchema';
 import createHttpError from 'http-errors';
-import { IAddressSchema } from '../../validators/commonSchema';
-import { singleDocumentSchema } from './singleDocument';
+import mongoose, { Schema } from 'mongoose';
+import { AdmissionReference, ApplicationIdPrefix, ApplicationStatus, Category, Course, Gender } from '../../config/constants';
+import { convertToDDMMYYYY } from '../../utils/convertDateToFormatedDate';
+import { contactNumberSchema, emailSchema } from '../../validators/commonSchema';
+import { IEnquirySchema } from '../validators/enquiry';
 import { academicDetailFormSchema } from './academicDetail';
-import { previousCollegeDataSchema } from './previousCollegeData';
 import { addressSchema } from './address';
+import { EnquiryApplicationId } from './enquiryApplicationIdSchema';
+import { previousCollegeDataSchema } from './previousCollegeData';
+import { singleDocumentSchema } from './singleDocument';
 
-export interface IEnquiryFormDocument extends IEnquiryRequestSchema, Document {
+export interface IEnquiryDocument extends IEnquirySchema, Document {
   applicationId: string;
   date: Date;
 }
 
-const enquiryFormSchema = new Schema(
+const enquirySchema = new Schema<IEnquiryDocument>(
   {
     applicationId: {
       type: String,
@@ -31,10 +30,12 @@ const enquiryFormSchema = new Schema(
       },
       index: true
     },
-    date: {
+    dateOfEnquiry: {
       type: Date,
       required: true,
-      default: Date.now
+    },
+    dateOfAdmission: {
+      type: Date,
     },
     studentName: {
       type: String,
@@ -43,13 +44,11 @@ const enquiryFormSchema = new Schema(
     dateOfBirth: {
       type: Date,
       required: [true, 'Date is required'],
-      set: (value: string) => {
-        console.log(value);
-        let convertedDate = convertToMongoDate(value);
-        console.log(convertedDate);
-        if (!convertedDate) throw new Error('Invalid date format, expected DD-MM-YYYY');
-        return convertedDate;
-      }
+      // set: (value: string) => {
+      //   let convertedDate = convertToMongoDate(value);
+      //   if (!convertedDate) throw createHttpError(400,'Invalid date format, expected DD-MM-YYYY');
+      //   return convertedDate;
+      // }
     },
     studentPhoneNumber: {
       type: String,
@@ -140,11 +139,26 @@ const enquiryFormSchema = new Schema(
     documents: {
       type: [singleDocumentSchema]
     },
-    feesDraftId: {
+    studentFee: {
       type: Schema.Types.ObjectId,
-      ref: 'FeesDraft', // Refer to FeesDraft model
+      ref: 'studentFee', // Refer to FeesDraft model
       optional: true
-    }
+    },
+    gender: {
+      type: String,
+      enum: {
+        values: Object.values(Gender),
+        message: 'Invalid gender value'
+      }
+    },
+    applicationStatus: {
+      type: String,
+      enum: {
+        values: Object.values(ApplicationStatus),
+        message: 'Invalid Course value'
+      },
+      required: true
+    },
   },
   { timestamps: true }
 );
@@ -156,9 +170,9 @@ const getPrefixForCourse = (course: Course): ApplicationIdPrefix => {
 };
 
 
-enquiryFormSchema.pre<IEnquiryFormDocument>('save', async function (next) {
+enquirySchema.pre<IEnquiryDocument>('save', async function (next) {
   // DTODO: just take a look at user [pre save middleware] first will check if course is modified or not. if its not modified then will skip this process. if its modified they will execute this. [will discuss it on call if required]
-  const doc = this as IEnquiryFormDocument & Document;
+  const doc = this as IEnquiryDocument & Document;
 
   if (doc) {
     const prefix = getPrefixForCourse(doc.course as Course);
@@ -185,25 +199,24 @@ const handleMongooseError = (error: any, next: Function) => {
   }
 };
 
-enquiryFormSchema.post('save', function (error: any, doc: any, next: Function) {
+enquirySchema.post('save', function (error: any, doc: any, next: Function) {
   handleMongooseError(error, next);
 });
 
-enquiryFormSchema.post('findOneAndUpdate', function (error: any, doc: any, next: Function) {
+enquirySchema.post('findOneAndUpdate', function (error: any, doc: any, next: Function) {
   handleMongooseError(error, next);
 });
 
 const transformDates = (_: any, ret: any) => {
-  ['date', 'dateOfBirth'].forEach((key) => {
+  ['dateOfEnquiry', 'dateOfBirth'].forEach((key) => {
     if (ret[key]) {
       ret[key] = convertToDDMMYYYY(ret[key]);
     }
   });
-  // console.log("TRansforming date")
   return ret;
 };
 
-enquiryFormSchema.set('toJSON', { transform: transformDates });
-enquiryFormSchema.set('toObject', { transform: transformDates });
+enquirySchema.set('toJSON', { transform: transformDates });
+enquirySchema.set('toObject', { transform: transformDates });
 
-export const Enquiry = mongoose.model<IEnquiryFormDocument>('Enquiry', enquiryFormSchema);
+export const Enquiry = mongoose.model<IEnquiryDocument>('Enquiry', enquirySchema);
