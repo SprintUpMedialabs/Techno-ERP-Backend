@@ -3,17 +3,17 @@ import { FeeStatus, TypeOfFee } from "../../config/constants";
 import { objectIdSchema } from "../../validators/commonSchema";
 
 export const otherFeesSchema = z.object({
-    type : z.nativeEnum(TypeOfFee),
+    type: z.nativeEnum(TypeOfFee),
     // DTODO: this will be read from the metadata
-    feeAmount : z.number().min(0, 'Fee amount must be greater than 0'),
-    finalFee : z.number().min(0, 'Final fees to be paid must be greater than 0'),
-    feesDepositedTOA : z.number().min(0, 'Fees to be deposited must be greater then 0').default(0),
-    remarks : z.string()
+    // feeAmount : z.number().min(0, 'Fee amount must be greater than 0'),
+    finalFee: z.number().min(0, 'Final fees to be paid must be greater than 0'),
+    feesDepositedTOA: z.number().min(0, 'Fees to be deposited must be greater then 0').default(0),
+    remarks: z.string()
 });
 
 export const singleSemSchema = z.object({
     // DTODO: this will be read from the metadata
-    feeAmount: z.number().min(0, 'Fee amount must be greater than 0'),
+    // feeAmount: z.number().min(0, 'Fee amount must be greater than 0'),
     finalFee: z.number().min(0, 'Final fees to be paid must be greater than 0')
 });
 

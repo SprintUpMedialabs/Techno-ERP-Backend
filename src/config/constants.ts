@@ -35,10 +35,9 @@ export enum FinalConversionType {
 }
 
 
-/**
+/*
  * Admission Module Enums
 */
-
 export enum Category {
   SC = "SC",
   ST = "ST",
@@ -47,6 +46,7 @@ export enum Category {
   EWS = "EWS",
   OTHER = "Other"
 };
+
 
 export enum AdmissionReference {
   Advertising = "Advertising",
@@ -58,6 +58,7 @@ export enum AdmissionReference {
   TechnoligenceStaffCalling = "Technoligence/Staff Calling",
   Other = "Other"
 };
+
 
 export enum Course {
   BCOM = "BCOM",
@@ -148,7 +149,6 @@ export enum DocumentType {
 }
 
 
-
 export enum ApplicationStatus {
   STEP_1 = 'Step_1',
   STEP_2 = 'Step_2',
@@ -164,9 +164,11 @@ export enum MimeType {
   PDF = 'application/pdf',
 }
 
+
 export enum ModuleNames { 
   MARKETING = "MARKETING"
 }
+
 
 export enum Locations {
   KNP = "Kanpur",
@@ -196,6 +198,7 @@ export enum FeeStatus{
   FINAL = "FINAL",
   DRAFT = "DRAFT"
 }
+
 
 export const ADMISSION = 'admissions'
 

@@ -2,8 +2,13 @@ import { Schema, model, Types } from 'mongoose';
 import { FeeStatus, TypeOfFee } from '../../config/constants';
 import { IFeesDraftRequestSchema, IOtherFeesSchema, ISemWiseSchema, ISingleSemSchema } from '../validators/feesDraftSchema';
 
-export interface IOtherFeesDocument extends IOtherFeesSchema, Document {}
-export interface ISingleSemWiseDocument extends ISingleSemSchema, Document {}
+export interface IOtherFeesDocument extends IOtherFeesSchema, Document {
+    feeAmount : number
+}
+
+export interface ISingleSemWiseDocument extends ISingleSemSchema, Document {
+    feeAmount : number
+}
 export interface IFeesDraftDocument extends IFeesDraftRequestSchema, Document {}
 
 //Other fees schema
@@ -46,9 +51,6 @@ const SingleSemWiseFeesSchema = new Schema<ISingleSemWiseDocument>({
 //Fees draft for entire student
 const FeesDraftSchema = new Schema<IFeesDraftDocument>(
     {
-        // studentId: {
-        //     type: Schema.Types.ObjectId
-        // },
         otherFees: {
             type: [OtherFeesSchema],
             validate: [
