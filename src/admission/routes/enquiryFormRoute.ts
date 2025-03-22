@@ -53,9 +53,9 @@ enquiryRoute.get('/:id',
     getEnquiryById
 );
 
-enquiryRoute.put('/approveEnquiry', 
+enquiryRoute.post('/approve-enquiry', 
     authenticate,
-    authorize([UserRoles.REGISTAR]),
+    authorize([UserRoles.REGISTAR, UserRoles.BASIC_USER]),
     approveEnquiry
 );
 

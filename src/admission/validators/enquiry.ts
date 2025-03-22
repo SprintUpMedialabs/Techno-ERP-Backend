@@ -12,7 +12,7 @@ import { previousCollegeDataSchema } from './previousCollegeDataSchema';
 import { singleDocumentSchema } from './singleDocumentSchema';
 
 const enquirySchema = z.object({
-  admissionMode : z.nativeEnum(AdmissionMode).default(AdmissionMode.OFFLINE).optional(),
+  admissionMode : z.nativeEnum(AdmissionMode).default(AdmissionMode.OFFLINE),
   studentName: z.string().min(1, 'Student Name is required'),
 
   dateOfBirth: requestDateSchema.transform((date) =>
@@ -20,7 +20,7 @@ const enquirySchema = z.object({
   ),
   dateOfEnquiry: requestDateSchema.transform((date) =>
     convertToMongoDate(date) as Date
-  ),
+  ),         //DACheck : Should this one be new Date by default?
   studentPhoneNumber: contactNumberSchema,
   gender: z.nativeEnum(Gender).default(Gender.NOT_TO_MENTION),
 
@@ -57,6 +57,7 @@ const enquirySchema = z.object({
   religion: z.nativeEnum(Religion).optional(),
   bloodGroup: z.nativeEnum(BloodGroup).optional(),
   admittedThrough: z.nativeEnum(AdmittedThrough),
+  approvedBy : objectIdSchema.optional()
 });
 
 // Final schema for request (omitting feesDraftId and making it strict)

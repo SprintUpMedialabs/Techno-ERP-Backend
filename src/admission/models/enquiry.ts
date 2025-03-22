@@ -1,6 +1,6 @@
 import createHttpError from 'http-errors';
 import mongoose, { Schema } from 'mongoose';
-import { AdmissionReference, ApplicationStatus, Category, Course, Gender } from '../../config/constants';
+import { AdmissionMode, AdmissionReference, ApplicationStatus, Category, Course, Gender } from '../../config/constants';
 import { convertToDDMMYYYY } from '../../utils/convertDateToFormatedDate';
 import { contactNumberSchema, emailSchema } from '../../validators/commonSchema';
 import { IEnquirySchema } from '../validators/enquiry';
@@ -20,15 +20,12 @@ const enquirySchema = new Schema<IEnquiryDocument>(
   {
     universityId : {
       type : String,
-      unique : true
     },
     photoNo : {
       type : Number,
-      unique : true
     },
     formNo: {
       type: String,
-      unique: true,
     },
     dateOfEnquiry: {
       type: Date,
@@ -37,6 +34,13 @@ const enquirySchema = new Schema<IEnquiryDocument>(
     },
     dateOfAdmission: {
       type: Date,
+    },
+    admissionMode : {
+      type: String,
+      enum: {
+        values: Object.values(AdmissionMode),
+        message: 'Invalid Admission Mode value'
+      }
     },
     studentName: {
       type: String,
@@ -160,6 +164,10 @@ const enquirySchema = new Schema<IEnquiryDocument>(
       },
       required: true
     },
+    approvedBy : {
+      type : Schema.Types.ObjectId,
+      optional : true
+    }
   },
   { timestamps: true }
 );

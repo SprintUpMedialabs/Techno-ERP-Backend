@@ -4,7 +4,6 @@ import { ApplicationStatus } from "../../config/constants";
 
 export const enquiryStatusUpdateSchema = z.object({
     id : objectIdSchema,
-    oldStatus : z.nativeEnum(ApplicationStatus),
     newStatus : z.nativeEnum(ApplicationStatus)
 })
 
