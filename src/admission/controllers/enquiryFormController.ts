@@ -384,7 +384,7 @@ export const getEnquiryById = expressAsyncHandler(
 );
 
 
-
+// DTODO: lets just take _id from the frontend
 export const approveEnquiry = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
 
   //We are taking course from input as we already have data populated so we have details in that one.
@@ -393,17 +393,20 @@ export const approveEnquiry = expressAsyncHandler(async (req: AuthenticatedReque
   const validation = approveEnquirySchema.safeParse(approveEnquiryData);
 
   if (!validation.success) {
-    throw createHttpError(404, validation.error.errors[0]);
+    throw createHttpError(400, validation.error.errors[0]);
   }
 
   // For this enquiry Id, we will set the university ID, form no and the photo number. 
   const prefix = getPrefixForCourse(approveEnquiryData.course as Course)
+
+  // DTODO: findOneAndUpdate
   let serial = await EnquiryApplicationId.findOne({ prefix: prefix });
   serial!.lastSerialNumber += 1;
   await serial!.save();
 
   let formNo = `${prefix}${serial!.lastSerialNumber}`
 
+  // DTODO: findOneAndUpdate
   let photoSerial = await EnquiryApplicationId.findOne({ prefix: PHOTO });
   photoSerial!.lastSerialNumber += 1;
   await photoSerial!.save();
@@ -436,7 +439,7 @@ export const updateStatus = (async (req: AuthenticatedRequest, res: Response) =>
     throw createHttpError(404, validation.error.errors[0]);
   }
 
-
+  // DTODO: lets remove for now.
   if (ApplicationStatusScore.indexOf(updateStatusData.newStatus) <= ApplicationStatusScore.indexOf(updateStatusData.oldStatus)) {
     throw createHttpError(404, 'Cannot update the status');
   }

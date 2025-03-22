@@ -61,7 +61,7 @@ const StudentFeesSchema = new Schema<IStudentFeesDocument>(
         semWiseFees: {
             type: [SingleSemWiseFeesSchema],
         },
-        status: {
+        feeStatus: {
             type: String,
             enum: Object.values(FeeStatus),
             default: FeeStatus.DRAFT,
