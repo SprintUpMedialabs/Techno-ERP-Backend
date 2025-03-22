@@ -85,10 +85,6 @@ export const updateEnquiryStep1ById = expressAsyncHandler(async (req: Authentica
   return formatResponse(res, 200, 'Enquiry data updated successfully', true, updatedData);
 });
 
-
-
-
-// TODO : Here we need to add the feeAmount as metadata.
 export const createEnquiryStep2 = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
 
   const feesDraftData: IFeesDraftRequestSchema = req.body;
@@ -153,7 +149,7 @@ export const createEnquiryStep2 = expressAsyncHandler(async (req: AuthenticatedR
 export const updateEnquiryStep2ById = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const feesDraftUpdateData: IFeesDraftUpdateSchema = req.body;
 
-  const feesDraft = await updateFeeDetails([ApplicationStatus.STEP_2], feesDraftUpdateData);
+  const feesDraft = await updateFeeDetails([ApplicationStatus.STEP_1,ApplicationStatus.STEP_3,ApplicationStatus.STEP_4], feesDraftUpdateData);
   return formatResponse(res, 200, 'Fees Draft updated successfully', true, feesDraft);
 });
 
@@ -324,7 +320,7 @@ export const updateEnquiryDocuments = expressAsyncHandler(
 export const updateEnquiryStep4ById = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const feesDraftUpdateData: IFeesDraftUpdateSchema = req.body;
 
-  const feesDraft = await updateFeeDetails([ApplicationStatus.STEP_3, ApplicationStatus.STEP_4], feesDraftUpdateData, ApplicationStatus.STEP_4);
+  const feesDraft = await updateFeeDetails([ApplicationStatus.STEP_1, ApplicationStatus.STEP_2], feesDraftUpdateData, ApplicationStatus.STEP_4);
   return formatResponse(res, 200, 'Fees Draft updated successfully', true, feesDraft);
 });
 

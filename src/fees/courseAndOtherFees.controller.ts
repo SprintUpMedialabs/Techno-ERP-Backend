@@ -1,8 +1,6 @@
 import { Request, Response } from 'express';
-import { CourseAndOtherFeesModel } from './courseAndOtherFees.model';
-import { Course } from '../config/constants';
-import { createHash } from 'crypto';
 import createHttpError from 'http-errors';
+import { CourseAndOtherFeesModel } from './courseAndOtherFees.model';
 
 export const createFeesStructure = async (req: Request, res: Response) => {
     const newDoc = await CourseAndOtherFeesModel.create(req.body);
