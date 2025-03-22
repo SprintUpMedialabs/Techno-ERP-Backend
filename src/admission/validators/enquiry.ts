@@ -20,7 +20,7 @@ const enquirySchema = z.object({
   ),
   dateOfEnquiry: requestDateSchema.transform((date) =>
     convertToMongoDate(date) as Date
-  ),         //DACheck : Should this one be new Date by default?
+  ),     
   studentPhoneNumber: contactNumberSchema,
   gender: z.nativeEnum(Gender).default(Gender.NOT_TO_MENTION),
 
@@ -69,7 +69,6 @@ export const enquiryStep1UpdateRequestSchema = enquiryStep1RequestSchema.extend(
   id: objectIdSchema
 }).strict();
 
-//DATODO : Why the documents and student fee are omitted here? We are uploading documents here only for first time.
 export const enquiryStep3UpdateRequestSchema = enquirySchema.omit({ documents: true, studentFee: true }).extend({
   id: objectIdSchema,
 }).strict();
