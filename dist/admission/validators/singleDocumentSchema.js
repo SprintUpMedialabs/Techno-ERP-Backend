@@ -5,7 +5,7 @@ const zod_1 = require("zod");
 const constants_1 = require("../../config/constants");
 const commonSchema_1 = require("../../validators/commonSchema");
 exports.singleDocumentSchema = zod_1.z.object({
-    studentId: commonSchema_1.objectIdSchema,
+    enquiryId: commonSchema_1.objectIdSchema,
     type: zod_1.z.nativeEnum(constants_1.DocumentType),
     documentBuffer: zod_1.z.object({
         buffer: zod_1.z.instanceof(Buffer),

@@ -20,7 +20,7 @@ const leads_1 = require("../models/leads");
 const yellowLead_1 = require("../models/yellowLead");
 const formatResponse_1 = require("../../utils/formatResponse");
 exports.adminAnalytics = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { startDate, endDate, location = [], assignedTo = [], source = [], } = req.body;
+    const { startDate, endDate, location = [], assignedTo = [], source = [], gender = [] } = req.body;
     const query = {};
     if (location.length > 0) {
         query.location = { $in: location };
@@ -38,9 +38,12 @@ exports.adminAnalytics = (0, express_async_handler_1.default)((req, res) => __aw
         query.assignedTo = { $in: assignedTo };
     }
     // TODO: will discuss this in future and apply it here
-    // if (filters.source.length > 0) {
-    //     query.source = { $in: filters.source }
-    // }
+    if (source.length > 0) {
+        query.source = { $in: source };
+    }
+    if (gender.length > 0) {
+        query.gender = { $in: gender };
+    }
     const [allLeadAnalytics, yellowLeadAnalytics] = yield Promise.all([
         leads_1.Lead.aggregate([
             { $match: query }, // Apply Filters

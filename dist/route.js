@@ -9,6 +9,7 @@ const authRoute_1 = require("./auth/routes/authRoute");
 const userRoute_1 = require("./auth/routes/userRoute");
 const crmRoute_1 = require("./crm/routes/crmRoute");
 const routes_1 = require("./admission/routes");
+const courseAndOtherFees_routes_1 = __importDefault(require("./fees/courseAndOtherFees.routes"));
 exports.apiRouter = express_1.default.Router();
 /**
  * Contains the router for Authentication
@@ -23,3 +24,4 @@ exports.apiRouter.use('/user', userRoute_1.userRouter);
  */
 exports.apiRouter.use('/crm', crmRoute_1.crmRoute);
 exports.apiRouter.use('/admission', routes_1.admissionRoute);
+exports.apiRouter.use('/fees-structure', courseAndOtherFees_routes_1.default);

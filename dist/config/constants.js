@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MARKETING_SHEET = exports.ADMISSION = exports.Locations = exports.ModuleNames = exports.MimeType = exports.ApplicationStatus = exports.DocumentType = exports.AdmittedThrough = exports.BloodGroup = exports.Religion = exports.ApplicationIdPrefix = exports.AcademicDetails = exports.Course = exports.AdmissionReference = exports.Category = exports.FinalConversionType = exports.LeadType = exports.Gender = exports.UserRoles = void 0;
+exports.MARKETING_SHEET = exports.PHOTO = exports.TGI = exports.ADMISSION = exports.AdmissionMode = exports.FeeStatus = exports.FeeType = exports.Locations = exports.ModuleNames = exports.MimeType = exports.ApplicationStatus = exports.DocumentType = exports.AdmittedThrough = exports.BloodGroup = exports.Religion = exports.FormNoPrefixes = exports.EducationLevel = exports.Course = exports.AdmissionReference = exports.Category = exports.FinalConversionType = exports.LeadType = exports.Gender = exports.UserRoles = void 0;
 /**
  * Marketing Module Enums
 */
@@ -11,6 +11,7 @@ var UserRoles;
     UserRoles["EMPLOYEE_MARKETING"] = "EMPLOYEE_MARKETING";
     UserRoles["BASIC_USER"] = "BASIC_USER";
     UserRoles["COUNSELOR"] = "COUNSELOR";
+    UserRoles["REGISTAR"] = "REGISTAR";
 })(UserRoles || (exports.UserRoles = UserRoles = {}));
 var Gender;
 (function (Gender) {
@@ -35,7 +36,7 @@ var FinalConversionType;
     FinalConversionType["GREEN"] = "CONVERTED";
     FinalConversionType["RED"] = "NOT_CONVERTED";
 })(FinalConversionType || (exports.FinalConversionType = FinalConversionType = {}));
-/**
+/*
  * Admission Module Enums
 */
 var Category;
@@ -80,19 +81,20 @@ var Course;
     Course["MVAP"] = "MVAP";
     Course["MSCC"] = "MSCC";
 })(Course || (exports.Course = Course = {}));
-var AcademicDetails;
-(function (AcademicDetails) {
-    AcademicDetails["Tenth"] = "10th";
-    AcademicDetails["Twelfth"] = "12th";
-    AcademicDetails["Graduation"] = "Graduation";
-    AcademicDetails["Others"] = "Others";
-})(AcademicDetails || (exports.AcademicDetails = AcademicDetails = {}));
-var ApplicationIdPrefix;
-(function (ApplicationIdPrefix) {
-    ApplicationIdPrefix["TIHS"] = "TIHS";
-    ApplicationIdPrefix["TIMS"] = "TIMS";
-    ApplicationIdPrefix["TCL"] = "TCL";
-})(ApplicationIdPrefix || (exports.ApplicationIdPrefix = ApplicationIdPrefix = {}));
+var EducationLevel;
+(function (EducationLevel) {
+    EducationLevel["Tenth"] = "10th";
+    EducationLevel["Twelfth"] = "12th";
+    EducationLevel["Graduation"] = "Graduation";
+    EducationLevel["Others"] = "Others";
+})(EducationLevel || (exports.EducationLevel = EducationLevel = {}));
+var FormNoPrefixes;
+(function (FormNoPrefixes) {
+    FormNoPrefixes["TIHS"] = "TIHS";
+    FormNoPrefixes["TIMS"] = "TIMS";
+    FormNoPrefixes["TCL"] = "TCL";
+    FormNoPrefixes["PHOTO"] = "PHOTO";
+})(FormNoPrefixes || (exports.FormNoPrefixes = FormNoPrefixes = {}));
 var Religion;
 (function (Religion) {
     Religion["HINDUISM"] = "Hinduism";
@@ -171,5 +173,28 @@ var Locations;
     Locations["FTP"] = "Fatehpur";
     Locations["LKO"] = "Lucknow";
 })(Locations || (exports.Locations = Locations = {}));
+var FeeType;
+(function (FeeType) {
+    FeeType["HOSTEL"] = "HOSTEL";
+    FeeType["TRANSPORT"] = "TRANSPORT";
+    FeeType["PROSPECTUS"] = "PROSPECTUS";
+    FeeType["STUDENTID"] = "STUDENTID";
+    FeeType["UNIFORM"] = "UNIFORM";
+    FeeType["STUDENTWELFARE"] = "STUDENTWELFARE";
+    FeeType["BOOKBANK"] = "BOOKBANK";
+    FeeType["EXAMFEES"] = "EXAMFEES";
+})(FeeType || (exports.FeeType = FeeType = {}));
+var FeeStatus;
+(function (FeeStatus) {
+    FeeStatus["FINAL"] = "FINAL";
+    FeeStatus["DRAFT"] = "DRAFT";
+})(FeeStatus || (exports.FeeStatus = FeeStatus = {}));
+var AdmissionMode;
+(function (AdmissionMode) {
+    AdmissionMode["ONLINE"] = "ONLINE";
+    AdmissionMode["OFFLINE"] = "OFFLINE";
+})(AdmissionMode || (exports.AdmissionMode = AdmissionMode = {}));
 exports.ADMISSION = 'admissions';
+exports.TGI = "TGI";
+exports.PHOTO = "PHOTO";
 exports.MARKETING_SHEET = 'Marketing Sheet';

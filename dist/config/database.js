@@ -18,7 +18,7 @@ const spreadSheet_1 = require("../crm/models/spreadSheet");
 const logger_1 = __importDefault(require("./logger"));
 const constants_1 = require("./constants");
 const secrets_1 = require("../secrets");
-const enquiryApplicationIdSchema_1 = require("../admission/models/enquiryApplicationIdSchema");
+const enquiryIdMetaDataSchema_1 = require("../admission/models/enquiryIdMetaDataSchema");
 const connectToDatabase = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield mongoose_1.default.connect(secrets_1.MONGODB_DATABASE_URL, {
@@ -46,11 +46,11 @@ const initializeDB = () => __awaiter(void 0, void 0, void 0, function* () {
         else {
             logger_1.default.debug('Marketing Sheet entry already exists.');
         }
-        const prefixes = [constants_1.ApplicationIdPrefix.TIHS, constants_1.ApplicationIdPrefix.TCL, constants_1.ApplicationIdPrefix.TIMS];
+        const prefixes = [constants_1.FormNoPrefixes.TIHS, constants_1.FormNoPrefixes.TCL, constants_1.FormNoPrefixes.TIMS, constants_1.PHOTO];
         for (const prefix of prefixes) {
-            const existingEntry = yield enquiryApplicationIdSchema_1.EnquiryApplicationId.findOne({ prefix });
+            const existingEntry = yield enquiryIdMetaDataSchema_1.EnquiryApplicationId.findOne({ prefix });
             if (!existingEntry) {
-                yield enquiryApplicationIdSchema_1.EnquiryApplicationId.create({
+                yield enquiryIdMetaDataSchema_1.EnquiryApplicationId.create({
                     prefix,
                     lastSerialNumber: 100
                 });

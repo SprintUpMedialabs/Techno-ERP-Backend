@@ -25,10 +25,12 @@ exports.userProfile = (0, express_async_handler_1.default)((req, res) => __await
     const decodedData = req.data;
     if (!decodedData) {
         throw (0, http_errors_1.default)(404, 'Profile could not be fetched');
-        return;
     }
     const { id } = decodedData;
+    // console.log("Decoded data is : ", decodedData)
+    // console.log("ID is : ", id);
     const user = yield user_1.User.findById(id);
+    console.log("User is : ", user);
     return (0, formatResponse_1.formatResponse)(res, 200, 'Profile retrieved successfully', true, {
         userData: {
             id: user === null || user === void 0 ? void 0 : user._id,

@@ -4,7 +4,7 @@ exports.academicDetailsArraySchema = exports.academicDetailSchema = void 0;
 const zod_1 = require("zod");
 const constants_1 = require("../../config/constants");
 exports.academicDetailSchema = zod_1.z.object({
-    academicDetails: zod_1.z.nativeEnum(constants_1.AcademicDetails), // Only allows fixed values
+    educationLevel: zod_1.z.nativeEnum(constants_1.EducationLevel), // Only allows fixed values
     schoolCollegeName: zod_1.z.string().min(1, 'School/College Name is required'),
     universityBoardName: zod_1.z.string().min(1, 'University/Board Name is required'),
     passingYear: zod_1.z

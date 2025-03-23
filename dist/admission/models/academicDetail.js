@@ -4,9 +4,9 @@ exports.academicDetailFormSchema = void 0;
 const mongoose_1 = require("mongoose");
 const constants_1 = require("../../config/constants");
 exports.academicDetailFormSchema = new mongoose_1.Schema({
-    academicDetails: {
+    educationLevel: {
         type: String,
-        enum: Object.values(constants_1.AcademicDetails)
+        enum: Object.values(constants_1.EducationLevel)
     },
     schoolCollegeName: {
         type: String
