@@ -36,7 +36,12 @@ const yellowLeadSchema = new Schema<IYellowLeadDocument>(
     location: { type: String },
     course: { type: String },
     campusVisit: { type: Boolean, default: false },
-    nextDueDate: { type: Date },
+    nextDueDate: {
+      type: Date,
+      set: (value: string) => {
+        return convertToMongoDate(value);
+      }
+    },
     finalConversion: { type: String, enum: Object.values(FinalConversionType) },
     remarks: { type: String }
   },

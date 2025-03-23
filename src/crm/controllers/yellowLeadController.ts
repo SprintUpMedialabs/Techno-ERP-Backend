@@ -46,6 +46,7 @@ export const createYellowLead = async (leadData: ILead) => {
 export const updateYellowLead = expressAsyncHandler(async (req: Request, res: Response) => {
   const updateData: IYellowLeadUpdate = req.body;
 
+  // console.log(updateData);
   const validation = yellowLeadUpdateSchema.safeParse(updateData);
   if (!validation.success) {
     throw createHttpError(400, validation.error.errors[0]);

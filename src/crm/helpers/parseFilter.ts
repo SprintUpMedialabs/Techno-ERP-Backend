@@ -38,7 +38,7 @@ export const parseFilter = (req: AuthenticatedRequest) => {
   const query: any = {};
 
   if (finalConversionType.length > 0) {
-    query.finalConversion = { $in: filters.leadType };
+    query.finalConversion = { $in: filters.finalConversionType };
   }
 
   if (leadType.length > 0) {
