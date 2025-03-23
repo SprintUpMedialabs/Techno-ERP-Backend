@@ -1,5 +1,6 @@
 import { Types } from 'mongoose';
 import { Course, FinalConversionType, LeadType, Locations } from '../../config/constants';
+import { Gender } from 'aws-sdk/clients/polly';
 
 export interface IMarketingSpreadsheetProcessReport {
   rowsToBeProcessed: number;
@@ -30,4 +31,5 @@ export interface IAdminAnalyticsFilter {
   startDate?: string; // Date range start
   endDate?: string; // Date range end
   source: [];
+  gender: Gender[]
 }

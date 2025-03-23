@@ -1,13 +1,13 @@
 import { Schema } from 'mongoose';
-import { AcademicDetails } from '../../config/constants';
+import { EducationLevel } from '../../config/constants';
 import { IAcademicDetailSchema } from '../validators/academicDetailSchema';
 
 export interface IAcademicDetailDocument extends IAcademicDetailSchema, Document {}
 
 export const academicDetailFormSchema = new Schema<IAcademicDetailDocument>({
-  academicDetails: {
+  educationLevel : {
     type: String,
-    enum: Object.values(AcademicDetails)
+    enum: Object.values(EducationLevel)
   },
   schoolCollegeName: {
     type: String

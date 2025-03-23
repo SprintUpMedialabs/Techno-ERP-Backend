@@ -23,6 +23,7 @@ export const authenticate = expressAsyncHandler(
 
 export const authorize = (allowedRoles: UserRoles[]) =>
   expressAsyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    
     if (!req.data) {
       throw createHttpError(401, 'Unauthorized. Please log in again');
     }

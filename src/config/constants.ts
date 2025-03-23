@@ -6,7 +6,8 @@ export enum UserRoles {
   LEAD_MARKETING = 'LEAD_MARKETING',
   EMPLOYEE_MARKETING = 'EMPLOYEE_MARKETING',
   BASIC_USER = 'BASIC_USER',
-  COUNSELOR = 'COUNSELOR'
+  COUNSELOR = 'COUNSELOR',
+  REGISTAR = 'REGISTAR'
 }
 
 export enum Gender {
@@ -35,10 +36,9 @@ export enum FinalConversionType {
 }
 
 
-/**
+/*
  * Admission Module Enums
 */
-
 export enum Category {
   SC = "SC",
   ST = "ST",
@@ -47,6 +47,7 @@ export enum Category {
   EWS = "EWS",
   OTHER = "Other"
 };
+
 
 export enum AdmissionReference {
   Advertising = "Advertising",
@@ -58,6 +59,7 @@ export enum AdmissionReference {
   TechnoligenceStaffCalling = "Technoligence/Staff Calling",
   Other = "Other"
 };
+
 
 export enum Course {
   BCOM = "BCOM",
@@ -80,7 +82,7 @@ export enum Course {
 }
 
 
-export enum AcademicDetails {
+export enum EducationLevel {
   Tenth = "10th",
   Twelfth = "12th",
   Graduation = "Graduation",
@@ -88,10 +90,11 @@ export enum AcademicDetails {
 }
 
 
-export enum ApplicationIdPrefix{
+export enum FormNoPrefixes {
   "TIHS" = "TIHS",
   "TIMS" = "TIMS",
-  "TCL" = "TCL"
+  "TCL" = "TCL",
+  "PHOTO" = "PHOTO"
 }
 
 
@@ -119,7 +122,7 @@ export enum BloodGroup {
 
 
 export enum AdmittedThrough {
-  DIRECT = 'Direct', 
+  DIRECT = 'Direct',
   COUNSELLING = 'Counselling'
 }
 
@@ -148,7 +151,6 @@ export enum DocumentType {
 }
 
 
-
 export enum ApplicationStatus {
   STEP_1 = 'Step_1',
   STEP_2 = 'Step_2',
@@ -164,9 +166,11 @@ export enum MimeType {
   PDF = 'application/pdf',
 }
 
-export enum ModuleNames { 
+
+export enum ModuleNames {
   MARKETING = "MARKETING"
 }
+
 
 export enum Locations {
   KNP = "Kanpur",
@@ -180,8 +184,33 @@ export enum Locations {
 }
 
 
+export enum FeeType {
+  HOSTEL = "HOSTEL",
+  TRANSPORT = "TRANSPORT",
+  PROSPECTUS = "PROSPECTUS",
+  STUDENTID = "STUDENTID",
+  UNIFORM = "UNIFORM",
+  STUDENTWELFARE = "STUDENTWELFARE",
+  BOOKBANK = "BOOKBANK",
+  EXAMFEES = "EXAMFEES"
+}
+
+
+export enum FeeStatus {
+  FINAL = "FINAL",
+  DRAFT = "DRAFT"
+}
+
+
+export enum AdmissionMode{
+  ONLINE = "ONLINE",
+  OFFLINE = "OFFLINE"
+}
+
 export const ADMISSION = 'admissions'
 
+export const TGI = "TGI";
+export const PHOTO = "PHOTO";
 
 export const MARKETING_SHEET = 'Marketing Sheet'
 

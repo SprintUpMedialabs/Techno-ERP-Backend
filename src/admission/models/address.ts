@@ -1,10 +1,10 @@
 import { Schema } from "mongoose";
-import { IAddressSchema } from "../validators/addressSchema";
+import { IAddressSchema } from "../../validators/commonSchema";
 
 export interface IAddressDocument extends IAddressSchema, Document {}
 
 export const addressSchema = new Schema<IAddressDocument>({
-  permanentAddress: { type: String },
+  landmark: { type: String },
   district: { type: String },
   pincode: {
     type: String,
