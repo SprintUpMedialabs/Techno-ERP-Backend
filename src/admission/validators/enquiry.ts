@@ -11,26 +11,30 @@ import { academicDetailsArraySchema } from './academicDetailSchema';
 import { previousCollegeDataSchema } from './previousCollegeDataSchema';
 import { singleDocumentSchema } from './singleDocumentSchema';
 
-const enquirySchema = z.object({
-  admissionMode : z.nativeEnum(AdmissionMode).default(AdmissionMode.OFFLINE),
-  studentName: z.string().min(1, 'Student Name is required'),
+export const tempSchema = z.object({
+  firstname: z.string({ required_error: "Name is required", }).nonempty("here we ar")
+});
+
+export const enquirySchema = z.object({
+  admissionMode: z.nativeEnum(AdmissionMode).default(AdmissionMode.OFFLINE),
+  studentName: z.string({ required_error: "Student Name is required", }).nonempty('Student Name is required'),
 
   dateOfBirth: requestDateSchema.transform((date) =>
     convertToMongoDate(date) as Date
   ),
   dateOfEnquiry: requestDateSchema.transform((date) =>
     convertToMongoDate(date) as Date
-  ),     
+  ),
   studentPhoneNumber: contactNumberSchema,
   gender: z.nativeEnum(Gender).default(Gender.NOT_TO_MENTION),
 
-  fatherName: z.string().min(1, "Father's Name is required"),
+  fatherName: z.string({ required_error: "Father Name is required", }).nonempty("Father's Name is required"),
   fatherPhoneNumber: contactNumberSchema,
-  fatherOccupation: z.string().min(1, 'Father occupation is required'),
+  fatherOccupation: z.string({ required_error: "Father occupation is required", }).nonempty('Father occupation is required'),
 
-  motherName: z.string().min(1, "Mother's Name is required"),
+  motherName: z.string({ required_error: "Mother's Name is required", }).nonempty("Mother's Name is required"),
   motherPhoneNumber: contactNumberSchema,
-  motherOccupation: z.string().min(1, 'Mother occupation is required'),
+  motherOccupation: z.string({ required_error: "Mother occupation is required", }).nonempty('Mother occupation is required'),
 
   category: z.nativeEnum(Category),
   address: addressSchema,
@@ -57,7 +61,7 @@ const enquirySchema = z.object({
   religion: z.nativeEnum(Religion).optional(),
   bloodGroup: z.nativeEnum(BloodGroup).optional(),
   admittedThrough: z.nativeEnum(AdmittedThrough),
-  approvedBy : objectIdSchema.optional()
+  approvedBy: objectIdSchema.optional()
 });
 
 // Final schema for request (omitting feesDraftId and making it strict)

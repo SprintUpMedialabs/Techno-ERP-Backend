@@ -113,7 +113,6 @@ export const createEnquiryStep2 = expressAsyncHandler(async (req: AuthenticatedR
       {
         $set: {
           studentFee: feesDraft._id,
-          // applicationStatus: ApplicationStatus.STEP_2
         }
       },
     );
@@ -152,8 +151,6 @@ const updateFeeDetails = async (applicationStatusList: ApplicationStatus[], fees
     course: 1 // Only return course field
   }
   ).lean();
-
-  console.log(enquiry);
 
   if (!enquiry) {
     throw createHttpError(404, 'please contact finance team to change the information');
