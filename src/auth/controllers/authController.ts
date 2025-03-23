@@ -156,7 +156,6 @@ export const login = expressAsyncHandler(async (req: Request, res: Response) => 
 
   res.cookie('token', token, options);
 
-
   return formatResponse(res, 200, 'Logged in successfully', true, {
     token: token,
     roles: user.roles,

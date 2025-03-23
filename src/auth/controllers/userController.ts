@@ -12,17 +12,21 @@ import { formatName } from '../../utils/formatName';
 import { formatResponse } from '../../utils/formatResponse';
 
 export const userProfile = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  
   const decodedData = req.data;
 
   if (!decodedData) {
     throw createHttpError(404, 'Profile could not be fetched');
-    return;
+
   }
 
   const { id } = decodedData;
 
+  // console.log("Decoded data is : ", decodedData)
+  // console.log("ID is : ", id);
   const user = await User.findById(id);
 
+  console.log("User is : ", user);
   return formatResponse(res, 200, 'Profile retrieved successfully', true, {
     userData: {
       id: user?._id,

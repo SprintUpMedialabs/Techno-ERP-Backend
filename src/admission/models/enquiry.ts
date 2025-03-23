@@ -1,41 +1,46 @@
-import mongoose, { Schema } from 'mongoose';
-import { IEnquiryRequestSchema } from '../validators/enquiryForm';
-import { convertToDDMMYYYY, convertToMongoDate } from '../../utils/convertDateToFormatedDate';
-import { contactNumberSchema, emailSchema } from '../../validators/commonSchema';
-import { AdmissionReference, ApplicationIdPrefix, Category, Course } from '../../config/constants';
-import { EnquiryApplicationId } from './enquiryApplicationIdSchema';
 import createHttpError from 'http-errors';
-
-import { IAddressSchema } from '../validators/addressSchema';
-import { singleDocumentSchema } from './singleDocument';
+import mongoose, { Schema } from 'mongoose';
+import { AdmissionMode, AdmissionReference, ApplicationStatus, Category, Course, Gender } from '../../config/constants';
+import { convertToDDMMYYYY } from '../../utils/convertDateToFormatedDate';
+import { contactNumberSchema, emailSchema } from '../../validators/commonSchema';
+import { IEnquirySchema } from '../validators/enquiry';
 import { academicDetailFormSchema } from './academicDetail';
-import { previousCollegeDataSchema } from './previousCollegeData';
 import { addressSchema } from './address';
+import { previousCollegeDataSchema } from './previousCollegeData';
+import { singleDocumentSchema } from './singleDocument';
 
-export interface IEnquiryFormDocument extends IEnquiryRequestSchema, Document {
-  applicationId: string;
+export interface IEnquiryDocument extends IEnquirySchema, Document {
+  formNo: string;
   date: Date;
+  photoNo : number;
+  universityId : string; 
 }
 
-const enquiryFormSchema = new Schema(
+const enquirySchema = new Schema<IEnquiryDocument>(
   {
-    applicationId: {
-      type: String,
-      unique: true,
-      // required: true,
-      //We will not use required here as application Id is created in pre('save') hook so as order of execution the enquiry object is created first, which might fail as part of validation, the application ID is required which is created after the validations are done. Hence save is getting executed after validation, so we have the validator and not required as true.
-      validate: {
-        validator: function (value: string) {
-          return !!value;
-        },
-        message: 'ApplicationId is required'
-      },
-      index: true
+    universityId : {
+      type : String,
     },
-    date: {
+    photoNo : {
+      type : Number,
+    },
+    formNo: {
+      type: String,
+    },
+    dateOfEnquiry: {
       type: Date,
       required: true,
-      default: Date.now
+      default : new Date(),   // DA Check : This won't come from input hence initialised it to new date.
+    },
+    dateOfAdmission: {
+      type: Date,
+    },
+    admissionMode : {
+      type: String,
+      enum: {
+        values: Object.values(AdmissionMode),
+        message: 'Invalid Admission Mode value'
+      }
     },
     studentName: {
       type: String,
@@ -44,13 +49,11 @@ const enquiryFormSchema = new Schema(
     dateOfBirth: {
       type: Date,
       required: [true, 'Date is required'],
-      set: (value: string) => {
-        console.log(value);
-        let convertedDate = convertToMongoDate(value);
-        console.log(convertedDate);
-        if (!convertedDate) throw new Error('Invalid date format, expected DD-MM-YYYY');
-        return convertedDate;
-      }
+      // set: (value: string) => {
+      //   let convertedDate = convertToMongoDate(value);
+      //   if (!convertedDate) throw createHttpError(400,'Invalid date format, expected DD-MM-YYYY');
+      //   return convertedDate;
+      // }
     },
     studentPhoneNumber: {
       type: String,
@@ -140,31 +143,57 @@ const enquiryFormSchema = new Schema(
     },
     documents: {
       type: [singleDocumentSchema]
+    },
+    studentFee: {
+      type: Schema.Types.ObjectId,
+      ref: 'studentFee', // Refer to FeesDraft model
+      optional: true
+    },
+    gender: {
+      type: String,
+      enum: {
+        values: Object.values(Gender),
+        message: 'Invalid gender value'
+      }
+    },
+    applicationStatus: {
+      type: String,
+      enum: {
+        values: Object.values(ApplicationStatus),
+        message: 'Invalid Course value'
+      },
+      required: true
+    },
+    approvedBy : {
+      type : Schema.Types.ObjectId,
+      optional : true
     }
   },
   { timestamps: true }
 );
 
-const getPrefixForCourse = (course: Course): ApplicationIdPrefix => {
-  if (course === Course.MBA) return ApplicationIdPrefix.TIMS;
-  if (course === Course.LLB) return ApplicationIdPrefix.TCL;
-  return ApplicationIdPrefix.TIHS;
-};
 
-enquiryFormSchema.pre<IEnquiryFormDocument>('save', async function (next) {
-  const doc = this as IEnquiryFormDocument & Document;
+
+
+enquirySchema.pre<IEnquiryDocument>('save', async function (next) {
+  //This will be removed from here as we are no longer creating the IDs here, they all are created in step 4 on approval.
+
+
+  // DA CHECK
   // DTODO: just take a look at user [pre save middleware] first will check if course is modified or not. if its not modified then will skip this process. if its modified they will execute this. [will discuss it on call if required]
-  if (doc) {
-    const prefix = getPrefixForCourse(doc.course);
+  // const doc = this as IEnquiryDocument & Document;
 
-    // Find existing serial number for the prefix
-    let serial = await EnquiryApplicationId.findOne({ prefix: prefix });
+  // if (doc) {
+  //   const prefix = getPrefixForCourse(doc.course as Course);
 
-    serial!.lastSerialNumber += 1;
-    // await serial.save(); => We will not do this here, as this can get updated even if validation of enquirySchema are failing, so we will update lastSerialNumber after the enquiry object is saved successfully.
+  //   let serial = await EnquiryApplicationId.findOne({ prefix: prefix });
 
-    doc.applicationId = `${prefix}${serial!.lastSerialNumber}`;
-  }
+  //   serial!.lastSerialNumber += 1;
+
+
+  //   doc.formNo = `${prefix}${serial!.lastSerialNumber}`;
+  // }
+
   next();
 });
 
@@ -179,25 +208,24 @@ const handleMongooseError = (error: any, next: Function) => {
   }
 };
 
-enquiryFormSchema.post('save', function (error: any, doc: any, next: Function) {
+enquirySchema.post('save', function (error: any, doc: any, next: Function) {
   handleMongooseError(error, next);
 });
 
-enquiryFormSchema.post('findOneAndUpdate', function (error: any, doc: any, next: Function) {
+enquirySchema.post('findOneAndUpdate', function (error: any, doc: any, next: Function) {
   handleMongooseError(error, next);
 });
 
 const transformDates = (_: any, ret: any) => {
-  ['date', 'dateOfBirth'].forEach((key) => {
+  ['dateOfEnquiry', 'dateOfAdmission', 'dateOfBirth'].forEach((key) => {
     if (ret[key]) {
       ret[key] = convertToDDMMYYYY(ret[key]);
     }
   });
-  // console.log("TRansforming date")
   return ret;
 };
 
-enquiryFormSchema.set('toJSON', { transform: transformDates });
-enquiryFormSchema.set('toObject', { transform: transformDates });
+enquirySchema.set('toJSON', { transform: transformDates });
+enquirySchema.set('toObject', { transform: transformDates });
 
-export const Enquiry = mongoose.model<IEnquiryFormDocument>('Enquiry', enquiryFormSchema);
+export const Enquiry = mongoose.model<IEnquiryDocument>('Enquiry', enquirySchema);
