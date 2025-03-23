@@ -49,6 +49,7 @@ const createYellowLead = (leadData) => __awaiter(void 0, void 0, void 0, functio
 exports.createYellowLead = createYellowLead;
 exports.updateYellowLead = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const updateData = req.body;
+    // console.log(updateData);
     const validation = yellowLead_2.yellowLeadUpdateSchema.safeParse(updateData);
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);

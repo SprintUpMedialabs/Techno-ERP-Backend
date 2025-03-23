@@ -2,12 +2,18 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.convertToDDMMYYYY = exports.convertToMongoDate = void 0;
 const convertToMongoDate = (dateString) => {
+    // console.log("In conversion date");
+    // console.log(dateString);
     if (dateString instanceof Date) {
         return dateString;
     }
     // Split the date string into day, month, and year
     const [day, month, year] = dateString.split('/').map(Number);
+    // console.log(day)
+    // console.log(month)
+    // console.log(year)
     // Create a JavaScript Date object (Months are 0-based in JavaScript)
+    console.log(new Date(Date.UTC(year, month - 1, day)));
     return new Date(Date.UTC(year, month - 1, day));
 };
 exports.convertToMongoDate = convertToMongoDate;

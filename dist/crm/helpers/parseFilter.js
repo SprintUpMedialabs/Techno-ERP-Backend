@@ -23,7 +23,7 @@ const parseFilter = (req) => {
     };
     const query = {};
     if (finalConversionType.length > 0) {
-        query.finalConversion = { $in: filters.leadType };
+        query.finalConversion = { $in: filters.finalConversionType };
     }
     if (leadType.length > 0) {
         query.leadType = { $in: filters.leadType };

@@ -70,7 +70,12 @@ const yellowLeadSchema = new mongoose_1.Schema({
     location: { type: String },
     course: { type: String },
     campusVisit: { type: Boolean, default: false },
-    nextDueDate: { type: Date },
+    nextDueDate: {
+        type: Date,
+        set: (value) => {
+            return (0, convertDateToFormatedDate_1.convertToMongoDate)(value);
+        }
+    },
     finalConversion: { type: String, enum: Object.values(constants_1.FinalConversionType) },
     remarks: { type: String }
 }, { timestamps: true });
