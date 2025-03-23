@@ -1,6 +1,6 @@
 import express from 'express';
-import { enquiryFromRoute } from './enquiryFormRoute';
+import { enquiryRoute } from './enquiryFormRoute';
 
 export const admissionRoute = express.Router();
 
-admissionRoute.use('/enquiry-form', enquiryFromRoute);
+admissionRoute.use('/enquiry', enquiryRoute);
