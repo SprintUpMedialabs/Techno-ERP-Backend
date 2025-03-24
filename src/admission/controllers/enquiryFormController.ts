@@ -329,15 +329,20 @@ export const getEnquiryData = expressAsyncHandler(
       }
       filter.applicationStatus = applicationStatus;
     }
-
-    const enquiries = await Enquiry.find(filter, {
+    
+    const enquiries = await Enquiry.find(filter)
+    .select({
+      _id : 1,
+      dateOfEnquiry: 1,
       studentName: 1,
       studentPhoneNumber: 1,
-      applicationId: 1,
-      _id: 1,
-      studentFee: 1,
-      applicationStatus: 1
-    });
+      gender: 1,
+      address : 1,
+      course: 1,
+      applicationStatus: 1,
+      fatherPhoneNumber: 1, 
+      motherPhoneNumber: 1 
+    })
 
     if (enquiries.length > 0) {
       return formatResponse(res, 200, 'Enquiries corresponding to your search', true, enquiries);
