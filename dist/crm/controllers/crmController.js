@@ -35,6 +35,7 @@ exports.uploadData = (0, express_async_handler_1.default)((_, res) => __awaiter(
 }));
 exports.getFilteredLeadData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { query, search, page, limit, sort } = (0, parseFilter_1.parseFilter)(req);
+    console.log(query);
     if (search.trim()) {
         query.$and = [
             ...(query.$and || []),
@@ -65,6 +66,7 @@ exports.getFilteredLeadData = (0, express_async_handler_1.default)((req, res) =>
 exports.getAllLeadAnalytics = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c, _d, _e, _f, _g, _h;
     const { query } = (0, parseFilter_1.parseFilter)(req);
+    console.log(query);
     // 🔹 Running Aggregate Pipeline
     const analytics = yield leads_1.Lead.aggregate([
         { $match: query }, // Apply Filters
@@ -78,6 +80,7 @@ exports.getAllLeadAnalytics = (0, express_async_handler_1.default)((req, res) =>
             }
         }
     ]);
+    console.log(analytics);
     return (0, formatResponse_1.formatResponse)(res, 200, 'Lead analytics fetched successfully', true, {
         totalLeads: (_b = (_a = analytics[0]) === null || _a === void 0 ? void 0 : _a.totalLeads) !== null && _b !== void 0 ? _b : 0,
         openLeads: (_d = (_c = analytics[0]) === null || _c === void 0 ? void 0 : _c.openLeads) !== null && _d !== void 0 ? _d : 0,

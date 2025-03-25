@@ -1,6 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.parseFilter = void 0;
+const mongoose_1 = __importDefault(require("mongoose"));
 const constants_1 = require("../../config/constants");
 const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
 //We need to add here one for LTC of yellow leads for allowing analytics of yellow leads table on that => createdAt pe kaam kar raha hai ab
@@ -34,19 +38,20 @@ const parseFilter = (req) => {
     if (filters.location.length > 0) {
         query.location = { $in: filters.location };
     }
+    filters.assignedTo = filters.assignedTo.map(id => new mongoose_1.default.Types.ObjectId(id));
     if (((_a = req.data) === null || _a === void 0 ? void 0 : _a.roles.includes(constants_1.UserRoles.EMPLOYEE_MARKETING)) &&
         !((_b = req.data) === null || _b === void 0 ? void 0 : _b.roles.includes(constants_1.UserRoles.LEAD_MARKETING)) &&
         !((_c = req.data) === null || _c === void 0 ? void 0 : _c.roles.includes(constants_1.UserRoles.ADMIN))) {
-        query.assignedTo = { $in: [req.data.id] };
+        query.assignedTo = { $in: [new mongoose_1.default.Types.ObjectId(req.data.id)] };
     }
     else if (((_d = req.data) === null || _d === void 0 ? void 0 : _d.roles.includes(constants_1.UserRoles.ADMIN)) ||
         ((_e = req.data) === null || _e === void 0 ? void 0 : _e.roles.includes(constants_1.UserRoles.LEAD_MARKETING))) {
         if (filters.assignedTo.length > 0) {
             query.assignedTo = { $in: filters.assignedTo };
         }
-        else {
-            query.assignedTo = { $exists: true };
-        }
+        // else {
+        //   query.assignedTo = { $exists: true };
+        // }
     }
     if (filters.startDate || filters.endDate) {
         query.date = {};
