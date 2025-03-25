@@ -4,6 +4,7 @@ import { userRouter } from './auth/routes/userRoute';
 import { crmRoute } from './crm/routes/crmRoute';
 import { admissionRoute } from './admission/routes';
 import feesRouter from './fees/courseAndOtherFees.routes';
+import { studentDataRoute } from './student-data/routes/studentRoute';
 
 export const apiRouter = express.Router();
 
@@ -25,5 +26,8 @@ apiRouter.use('/crm', crmRoute);
 
 apiRouter.use('/admission',admissionRoute);
 
+
 apiRouter.use('/fees-structure',feesRouter);
 
+
+apiRouter.use('/student-data', studentDataRoute);

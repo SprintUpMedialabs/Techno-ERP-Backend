@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
 import { UserRoles } from '../../config/constants';
 import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
@@ -53,22 +54,26 @@ export const parseFilter = (req: AuthenticatedRequest) => {
     query.location = { $in: filters.location };
   }
 
+  filters.assignedTo = filters.assignedTo.map(id => new mongoose.Types.ObjectId(id));
+
   if (
     req.data?.roles.includes(UserRoles.EMPLOYEE_MARKETING) &&
     !req.data?.roles.includes(UserRoles.LEAD_MARKETING) &&
     !req.data?.roles.includes(UserRoles.ADMIN)
   ) {
-    query.assignedTo = { $in: [req.data.id] };
+    query.assignedTo = { $in: [new mongoose.Types.ObjectId(req.data.id)] };
   } else if (
     req.data?.roles.includes(UserRoles.ADMIN) ||
     req.data?.roles.includes(UserRoles.LEAD_MARKETING)
   ) {
     if (filters.assignedTo.length > 0) {
       query.assignedTo = { $in: filters.assignedTo };
-    } else {
-      query.assignedTo = { $exists: true };
-    }
+    } 
+    // else {
+    //   query.assignedTo = { $exists: true };
+    // }
   }
+
 
   if (filters.startDate || filters.endDate) {
     query.date = {};

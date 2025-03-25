@@ -7,7 +7,8 @@ export enum UserRoles {
   EMPLOYEE_MARKETING = 'EMPLOYEE_MARKETING',
   BASIC_USER = 'BASIC_USER',
   COUNSELOR = 'COUNSELOR',
-  REGISTAR = 'REGISTAR'
+  REGISTAR = 'REGISTAR',
+  
 }
 
 export enum Gender {
