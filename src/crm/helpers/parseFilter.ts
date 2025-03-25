@@ -21,7 +21,7 @@ export const parseFilter = (req: AuthenticatedRequest) => {
     limit = 10,
     sortBy,
     orderBy = OrderBy.ASC,
-    search = ''
+    search = '',
   } = req.body;
 
   const filters: IAllLeadFilter = {
@@ -33,7 +33,7 @@ export const parseFilter = (req: AuthenticatedRequest) => {
     location,
     assignedTo,
     startLTCDate,
-    endLTCDate
+    endLTCDate,
   };
 
   const query: any = {};

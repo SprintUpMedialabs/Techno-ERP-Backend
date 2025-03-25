@@ -19,6 +19,11 @@ export enum Gender {
 }
 
 
+export enum Source {
+  SCHOOL = 'School'
+}
+
+
 export enum LeadType {
   ORANGE = 'OPEN',
   RED = 'NOT_INTERESTED',
@@ -36,6 +41,11 @@ export enum FinalConversionType {
   RED = 'NOT_CONVERTED'
 }
 
+
+export enum Marketing_Source{
+  SCHOOL = 'School',
+  DIGITAL_MARKETING = 'Digital_Marketing'
+}
 
 /*
  * Admission Module Enums
