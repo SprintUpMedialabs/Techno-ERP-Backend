@@ -46,6 +46,8 @@ export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedReque
         query.gender = { $in: gender };
     }
 
+    console.log(query);
+
     const [allLeadAnalytics, yellowLeadAnalytics] = await Promise.all([
         Lead.aggregate([
             { $match: query }, // Apply Filters

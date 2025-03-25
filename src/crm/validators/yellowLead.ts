@@ -1,11 +1,12 @@
 import { object, z } from 'zod';
-import { Gender, FinalConversionType, Course, Locations } from '../../config/constants';
+import { Gender, FinalConversionType, Course, Locations, Marketing_Source } from '../../config/constants';
 import { contactNumberSchema, objectIdSchema, requestDateSchema } from '../../validators/commonSchema';
 
 export const yellowLeadSchema = z
   .object({
     date: z.date(),
     name: z.string(),
+    source : z.nativeEnum(Marketing_Source),
     phoneNumber: contactNumberSchema,
     altPhoneNumber: contactNumberSchema
       .optional(),
