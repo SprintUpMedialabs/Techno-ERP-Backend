@@ -23,7 +23,7 @@ const yellowLead_1 = require("../models/yellowLead");
 const yellowLead_2 = require("../validators/yellowLead");
 const formatResponse_1 = require("../../utils/formatResponse");
 const createYellowLead = (leadData) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _a, _b;
     const yellowLead = {
         date: leadData.date,
         name: leadData.name,
@@ -32,6 +32,7 @@ const createYellowLead = (leadData) => __awaiter(void 0, void 0, void 0, functio
         gender: leadData.gender,
         campusVisit: false,
         assignedTo: leadData.assignedTo,
+        source: (_b = leadData.source) !== null && _b !== void 0 ? _b : constants_1.Marketing_Source.SCHOOL
     };
     if (leadData.nextDueDate && (0, convertDateToFormatedDate_1.convertToMongoDate)(leadData.nextDueDate) > new Date()) {
         yellowLead.nextDueDate = (0, convertDateToFormatedDate_1.convertToMongoDate)(leadData.nextDueDate);

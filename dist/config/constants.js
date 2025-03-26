@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MARKETING_SHEET = exports.PHOTO = exports.TGI = exports.ADMISSION = exports.AdmissionMode = exports.FeeStatus = exports.FeeType = exports.Locations = exports.ModuleNames = exports.MimeType = exports.ApplicationStatus = exports.DocumentType = exports.AdmittedThrough = exports.BloodGroup = exports.Religion = exports.FormNoPrefixes = exports.EducationLevel = exports.Course = exports.AdmissionReference = exports.Category = exports.FinalConversionType = exports.LeadType = exports.Gender = exports.UserRoles = void 0;
+exports.MARKETING_SHEET = exports.PHOTO = exports.TGI = exports.ADMISSION = exports.AdmissionMode = exports.FeeStatus = exports.FeeType = exports.Locations = exports.ModuleNames = exports.MimeType = exports.ApplicationStatus = exports.DocumentType = exports.AdmittedThrough = exports.BloodGroup = exports.Religion = exports.FormNoPrefixes = exports.EducationLevel = exports.Course = exports.AdmissionReference = exports.Category = exports.Marketing_Source = exports.FinalConversionType = exports.LeadType = exports.Source = exports.Gender = exports.UserRoles = void 0;
 /**
  * Marketing Module Enums
 */
@@ -20,6 +20,10 @@ var Gender;
     Gender["OTHER"] = "OTHERS";
     Gender["NOT_TO_MENTION"] = "NOT_TO_MENTION";
 })(Gender || (exports.Gender = Gender = {}));
+var Source;
+(function (Source) {
+    Source["SCHOOL"] = "School";
+})(Source || (exports.Source = Source = {}));
 var LeadType;
 (function (LeadType) {
     LeadType["ORANGE"] = "OPEN";
@@ -36,6 +40,11 @@ var FinalConversionType;
     FinalConversionType["GREEN"] = "CONVERTED";
     FinalConversionType["RED"] = "NOT_CONVERTED";
 })(FinalConversionType || (exports.FinalConversionType = FinalConversionType = {}));
+var Marketing_Source;
+(function (Marketing_Source) {
+    Marketing_Source["SCHOOL"] = "School";
+    Marketing_Source["DIGITAL_MARKETING"] = "Digital_Marketing";
+})(Marketing_Source || (exports.Marketing_Source = Marketing_Source = {}));
 /*
  * Admission Module Enums
 */

@@ -6,7 +6,7 @@ const constants_1 = require("../../config/constants");
 const commonSchema_1 = require("../../validators/commonSchema");
 exports.leadSchema = zod_1.z.object({
     date: zod_1.z.date(),
-    source: zod_1.z.string().optional(),
+    source: zod_1.z.nativeEnum(constants_1.Marketing_Source).optional(),
     name: zod_1.z.string().min(1, 'Name field is required'),
     phoneNumber: commonSchema_1.contactNumberSchema,
     altPhoneNumber: commonSchema_1.contactNumberSchema

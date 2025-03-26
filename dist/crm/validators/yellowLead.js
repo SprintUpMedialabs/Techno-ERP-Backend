@@ -8,6 +8,7 @@ exports.yellowLeadSchema = zod_1.z
     .object({
     date: zod_1.z.date(),
     name: zod_1.z.string(),
+    source: zod_1.z.nativeEnum(constants_1.Marketing_Source),
     phoneNumber: commonSchema_1.contactNumberSchema,
     altPhoneNumber: commonSchema_1.contactNumberSchema
         .optional(),

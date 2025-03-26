@@ -44,6 +44,7 @@ exports.adminAnalytics = (0, express_async_handler_1.default)((req, res) => __aw
     if (gender.length > 0) {
         query.gender = { $in: gender };
     }
+    console.log(query);
     const [allLeadAnalytics, yellowLeadAnalytics] = yield Promise.all([
         leads_1.Lead.aggregate([
             { $match: query }, // Apply Filters

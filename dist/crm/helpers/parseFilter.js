@@ -13,7 +13,7 @@ const parseFilter = (req) => {
     const { startDate, endDate, startLTCDate, // related to yellow lead table
     endLTCDate, // related to yellow lead table
     leadType = [], finalConversionType = [], // related to yellow lead table
-    course = [], location = [], assignedTo = [], page = 1, limit = 10, sortBy, orderBy = "asc" /* OrderBy.ASC */, search = '' } = req.body;
+    course = [], location = [], assignedTo = [], page = 1, limit = 10, sortBy, orderBy = "asc" /* OrderBy.ASC */, search = '', } = req.body;
     const filters = {
         startDate,
         endDate,
@@ -23,7 +23,7 @@ const parseFilter = (req) => {
         location,
         assignedTo,
         startLTCDate,
-        endLTCDate
+        endLTCDate,
     };
     const query = {};
     if (finalConversionType.length > 0) {
