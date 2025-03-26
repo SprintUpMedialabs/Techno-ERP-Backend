@@ -20,6 +20,8 @@ import { fetchCourseFeeByCourse, fetchOtherFees } from '../../fees/courseAndOthe
 import mongoose from 'mongoose';
 import { enquiryStatusUpdateSchema, IEnquiryStatusUpdateSchema } from '../validators/enquiryStatusUpdateSchema';
 import { objectIdSchema } from '../../validators/commonSchema';
+import { Student } from '../../student-data/models/student';
+import { studentSchema } from '../../student-data/validators/student';
 
 
 
@@ -53,13 +55,14 @@ export const updateEnquiryStep1ById = expressAsyncHandler(async (req: Authentica
     throw createHttpError(400, validation.error.errors[0]);
   }
   const { id, ...data } = validation.data;
+
   const updatedData = await Enquiry.findByIdAndUpdate(
-    id,
+    { _id: id, applicationStatus: { $ne: ApplicationStatus.STEP_4 } },
     { $set: data },
     { new: true, runValidators: true }
   );
   if (!updatedData) {
-    throw createHttpError(404, 'Enquiry occurred in updating data');
+    throw createHttpError(404, 'Enquiry occurred in updating data, this can be an approved enquiry, try updating from student');
   }
 
   return formatResponse(res, 200, 'Enquiry data updated successfully', true, updatedData);
@@ -214,6 +217,11 @@ export const updateEnquiryStep3ById = expressAsyncHandler(
       throw createHttpError(400, "Please complete step 2 first");
     }
 
+    if(enquiry.applicationStatus == ApplicationStatus.STEP_4)
+    {
+      throw createHttpError(400, 'Sorry, this is approved enquiry, please go to student module to update this!');
+    }
+
     const updatedData = await Enquiry.findByIdAndUpdate(
       id,
       {
@@ -236,13 +244,20 @@ export const updateEnquiryStep3ById = expressAsyncHandler(
 // DTODO: there are few documents which are IMP need to think that how will handle those => Make them mandate from the UI side.
 export const updateEnquiryDocuments = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
-    const { id, type } = req.body;
+    const { id, type, dueBy } = req.body;
+
+    const enquiry = await Enquiry.findById(id).select('applicationStatus');
+
+    if(enquiry && enquiry.applicationStatus == ApplicationStatus.STEP_4)
+      throw createHttpError(404, 'This is an approved enquiry, please go to student module to update this!');
+
     const file = req.file as Express.Multer.File;
 
     const validation = singleDocumentSchema.safeParse({
       enquiryId: id,
       type,
-      documentBuffer: file
+      documentBuffer: file,
+      dueBy : dueBy
     });
 
     if (!validation.success) {
@@ -302,7 +317,7 @@ export const updateEnquiryDocuments = expressAsyncHandler(
 export const updateEnquiryStep4ById = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const feesDraftUpdateData: IFeesDraftUpdateSchema = req.body;
 
-  const feesDraft = await updateFeeDetails([ApplicationStatus.STEP_1, ApplicationStatus.STEP_2], feesDraftUpdateData, ApplicationStatus.STEP_4);
+  const feesDraft = await updateFeeDetails([ApplicationStatus.STEP_1, ApplicationStatus.STEP_2, ApplicationStatus.STEP_4], feesDraftUpdateData, ApplicationStatus.STEP_4);
   return formatResponse(res, 200, 'Fees Draft updated successfully', true, feesDraft);
 });
 
@@ -388,6 +403,8 @@ export const approveEnquiry = expressAsyncHandler(async (req: AuthenticatedReque
     throw createHttpError(404, 'Please create the enquiry first!');
 
 
+  // DTODO : Here, the prefixes will get increamented even if the update of enquiry fails or student creation fails.
+
   // For this enquiry Id, we will set the university ID, form no and the photo number. 
   const prefix = getPrefixForCourse(enquiry.course as Course)
 
@@ -407,30 +424,50 @@ export const approveEnquiry = expressAsyncHandler(async (req: AuthenticatedReque
   );
 
 
-
   let universityId = generateUniversityId(enquiry.course, photoSerial!.lastSerialNumber);
 
   const approvedById = req.data?.id;
 
+
   if (approvedById) {
-    let approvedEnquiry = await Enquiry.findByIdAndUpdate(id,
+    let approvedEnquiry = await Enquiry.findByIdAndUpdate(
+      id,
       {
-        $set: { formNo: formNo, photoNo: photoSerial!.lastSerialNumber, universityId: universityId, applicationStatus: ApplicationStatus.STEP_4, approvedBy: approvedById }
+        $set: {
+          formNo: formNo,
+          photoNo: photoSerial!.lastSerialNumber,
+          universityId: universityId,
+          applicationStatus: ApplicationStatus.STEP_4,
+          approvedBy: approvedById
+        }
       },
-      { runValidators: true });
+      { runValidators: true, new: true, projection: { createdAt: 0, updatedAt: 0, __v: 0 } }
+    );
 
     if (!approvedEnquiry) {
       throw createHttpError(404, 'Failed to approve enquiry!');
     }
-    else {
-      return formatResponse(res, 200, 'Enquiry Approved Successfully', true);
-    }
+
+    // console.log(approvedEnquiry);
+
+    const validation = studentSchema.safeParse(approvedEnquiry);
+    
+    console.log('Validation Result of Approved Enquiry to Student:', validation.error);
+
+    if(!validation.success)
+      throw createHttpError(400, validation.error.errors[0]);
+
+    const student = await Student.create({
+      ...validation.data, 
+      preRegNumber: `PRE-${Date.now()}` 
+    });
+
+    return formatResponse(res, 200, 'Student created successfully with this information', true, student);
+    
   }
   else {
     throw createHttpError(404, 'Invalid user logged in!');
   }
-
-
 });
 
 

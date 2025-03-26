@@ -11,13 +11,12 @@ import { singleDocumentSchema } from "../../admission/validators/singleDocumentS
 import { DocumentType } from "../../config/constants";
 import { studentFilterSchema } from "../validators/studentFilterSchema";
 import { buildStudentFilter } from "../utils/buildStudentFilter";
+import { Student } from "../models/student";
+import { IStudentUpdateSchema, updateStudentSchema } from "../validators/student";
 
 export const getStudentData = expressAsyncHandler(
     async (req: AuthenticatedRequest, res: Response) => {
         let { search, studentFilter } = req.body;
-
-        // console.log(search);
-        // console.log(studentFilter);
 
         if(!studentFilter)
         {
@@ -44,7 +43,7 @@ export const getStudentData = expressAsyncHandler(
             ...buildStudentFilter(validation.data)
         };
 
-        const enquiries = await Enquiry.find(filter)
+        const students = await Student.find(filter)
             .select({
                 universityId: 1,
                 studentName: 1,
@@ -55,10 +54,10 @@ export const getStudentData = expressAsyncHandler(
                 semester : 1
             });
 
-        if (enquiries.length > 0) {
-            return formatResponse(res, 200, 'Enquiries corresponding to your search', true, enquiries);
+        if (students.length > 0) {
+            return formatResponse(res, 200, 'Students corresponding to your search', true, students);
         } else {
-            return formatResponse(res, 200, 'No enquiries found with this information', true);
+            return formatResponse(res, 200, 'No students found with this information', true);
         }
 });
 
@@ -71,32 +70,51 @@ export const getStudentDataById = expressAsyncHandler(
             throw createHttpError(400, 'Invalid ID');
         }
 
-        const enquiry = await Enquiry.findById(id)
-            .populate('studentFee');
-        if (!enquiry) {
+        const student = await Student.findById(id);
+        if (!student) {
             throw createHttpError(404, 'Student Details not found');
         }
 
-        return formatResponse(res, 200, 'Student details fetched successfully', true, enquiry);
+        return formatResponse(res, 200, 'Student details fetched successfully', true, student);
 });
 
 
 export const updateStudentById = expressAsyncHandler(
     async (req: AuthenticatedRequest, res: Response) => {
+        const { id } = req.params;
+        const studentUpdateData : IStudentUpdateSchema = req.body;
+        const validation = updateStudentSchema.safeParse(studentUpdateData);
+        if(!validation.success)
+        {
+            throw createHttpError(400, validation.error.errors[0]);
+        }
 
+    const updatedStudent = await Student.findByIdAndUpdate(
+      { _id : id} , 
+      { $set: validation.data },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedStudent) {
+      throw createHttpError(404, 'Error occurred updating student');
+    }
+
+    return formatResponse(res, 200, 'Student Updated Successfully', true, updatedStudent);
 });
 
 
 
-export const updateEnquiryDocuments = expressAsyncHandler(
+// DATODO : Need to see where the student documents should be stored.
+export const updateStudentDocuments = expressAsyncHandler(
     async (req: AuthenticatedRequest, res: Response) => {
-        const { id, type } = req.body;
+        const { id, type, dueBy } = req.body;
         const file = req.file as Express.Multer.File;
 
         const validation = singleDocumentSchema.safeParse({
             enquiryId: id,
             type,
-            documentBuffer: file
+            documentBuffer: file,
+            dueBy : dueBy
         });
 
         if (!validation.success) {
@@ -105,7 +123,7 @@ export const updateEnquiryDocuments = expressAsyncHandler(
 
         const fileUrl = await uploadToS3(
             id.toString(),
-            ADMISSION,
+            ADMISSION,      //DTODO : Should we change folder here as it is now Student so.
             type as DocumentType,
             file
         );
@@ -114,7 +132,7 @@ export const updateEnquiryDocuments = expressAsyncHandler(
         if (req.file)
             req.file.buffer = null as unknown as Buffer;
 
-        const isExists = await Enquiry.exists({
+        const isExists = await Student.exists({
             _id: id,
             'documents.type': type,
         });
@@ -122,10 +140,10 @@ export const updateEnquiryDocuments = expressAsyncHandler(
         console.log("Is Exists : ", isExists);
         let updatedData;
         if (isExists) {
-            updatedData = await Enquiry.findOneAndUpdate(
+            updatedData = await Student.findOneAndUpdate(
                 { _id: id, 'documents.type': type, },
                 {
-                    $set: { 'documents.$[elem].fileUrl': fileUrl },
+                    $set: { 'documents.$[elem].fileUrl': fileUrl, dueBy : dueBy },
                 },
                 {
                     new: true,
@@ -135,10 +153,10 @@ export const updateEnquiryDocuments = expressAsyncHandler(
             );
         }
         else {
-            updatedData = await Enquiry.findByIdAndUpdate(
+            updatedData = await Student.findByIdAndUpdate(
                 id,
                 {
-                    $push: { documents: { type, fileUrl } },
+                    $push: { documents: { type, fileUrl, dueBy } },
                 },
                 { new: true, runValidators: true }
             );

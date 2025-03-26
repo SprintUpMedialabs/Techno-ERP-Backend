@@ -2,21 +2,23 @@ import createHttpError from 'http-errors';
 import mongoose, { Schema, Types } from 'mongoose';
 import { AdmissionMode, AdmissionReference, AdmittedThrough, ApplicationStatus, Category, Course, Gender } from '../../config/constants';
 import { convertToDDMMYYYY } from '../../utils/convertDateToFormatedDate';
-import { contactNumberSchema, emailSchema, objectIdSchema } from '../../validators/commonSchema';
-import { IEnquirySchema } from '../validators/enquiry';
-import { academicDetailFormSchema } from './academicDetail';
-import { addressSchema } from './address';
-import { previousCollegeDataSchema } from './previousCollegeData';
-import { singleDocumentSchema } from './singleDocument';
+import { contactNumberSchema, emailSchema } from '../../validators/commonSchema';
+import { IStudentSchema } from '../validators/student';
+import { addressSchema } from '../../admission/models/address';
+import { academicDetailFormSchema } from '../../admission/models/academicDetail';
+import { singleDocumentSchema } from '../../admission/models/singleDocument';
+import { previousCollegeDataSchema } from '../../admission/models/previousCollegeData';
 
-export interface IEnquiryDocument extends IEnquirySchema, Document {
-  formNo: string;
-  date: Date;
-  photoNo : number;
-  universityId : string; 
+
+export interface IStudentDocument extends IStudentSchema, Document {
+  // formNo: string;
+  // date: Date;
+  // photoNo : number;
+  // universityId : string; 
+  preRegNumber : string;
 }
 
-const enquirySchema = new Schema<IEnquiryDocument>(
+const studentSchema = new Schema<IStudentDocument>(
   {
     universityId : {
       type : String,
@@ -168,6 +170,10 @@ const enquirySchema = new Schema<IEnquiryDocument>(
       type : Schema.Types.ObjectId,
       optional : true
     },
+    preRegNumber : {
+      type : String,
+      optional : true
+    },
     counsellor : {
       type: Schema.Types.Mixed,
       validate: {
@@ -183,6 +189,9 @@ const enquirySchema = new Schema<IEnquiryDocument>(
     admittedThrough : {
       type : String,
       enum : Object.values(AdmittedThrough)
+    },
+    semester : {
+      type : String
     }
   },
   { timestamps: true }
@@ -191,7 +200,7 @@ const enquirySchema = new Schema<IEnquiryDocument>(
 
 
 
-enquirySchema.pre<IEnquiryDocument>('save', async function (next) {
+studentSchema.pre<IStudentDocument>('save', async function (next) {
   next();
 });
 
@@ -206,11 +215,11 @@ const handleMongooseError = (error: any, next: Function) => {
   }
 };
 
-enquirySchema.post('save', function (error: any, doc: any, next: Function) {
+studentSchema.post('save', function (error: any, doc: any, next: Function) {
   handleMongooseError(error, next);
 });
 
-enquirySchema.post('findOneAndUpdate', function (error: any, doc: any, next: Function) {
+studentSchema.post('findOneAndUpdate', function (error: any, doc: any, next: Function) {
   handleMongooseError(error, next);
 });
 
@@ -223,7 +232,7 @@ const transformDates = (_: any, ret: any) => {
   return ret;
 };
 
-enquirySchema.set('toJSON', { transform: transformDates });
-enquirySchema.set('toObject', { transform: transformDates });
+studentSchema.set('toJSON', { transform: transformDates });
+studentSchema.set('toObject', { transform: transformDates });
 
-export const Enquiry = mongoose.model<IEnquiryDocument>('Enquiry', enquirySchema);
+export const Student = mongoose.model<IStudentDocument>('Student', studentSchema);

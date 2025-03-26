@@ -1,6 +1,8 @@
 export const convertToMongoDate = (dateString: string | Date): Date => {
   // console.log("In conversion date");
   // console.log(dateString);
+  // console.log(dateString);
+  // console.log("We are here");
   if (dateString instanceof Date) {
     return dateString;
   }
