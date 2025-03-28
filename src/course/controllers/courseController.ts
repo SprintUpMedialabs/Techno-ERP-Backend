@@ -15,6 +15,7 @@ export const createCourse = expressAsyncHandler(async (req: AuthenticatedRequest
 
     const newCourse = await CourseModel.create(validation.data);
 
+    // DTODO: no need of this.
     if (!newCourse)
         throw createHttpError(404, 'Could not create the course!');
 
@@ -49,10 +50,10 @@ export const updateCourse = expressAsyncHandler(async (req: AuthenticatedRequest
 export const searchCourse = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { courseCode, courseName } = req.body;
 
-    // DTODO : Add validation using course code here.
     const filter: any = {};
 
     if (courseCode) {
+        // DTODO: need to remove empty string
         filter.courseCode = {
             $regex: courseCode ?? "",
             $options: "i"
@@ -60,12 +61,14 @@ export const searchCourse = expressAsyncHandler(async (req: AuthenticatedRequest
     }
 
     if (courseName) {
+        // DTODO: need to remove empty string
         filter.courseName = {
             $regex: courseName ?? "",
             $options: "i"
         };
     }
 
+    
     const courses = await CourseModel.find(filter)
         .populate({
             path: "semester.semesterDetails.schedule",

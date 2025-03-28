@@ -15,7 +15,7 @@ export const semesterSchema = new Schema<ISemesterDocument>({
         max: [10, "Semester number cannot exceed 10"],
         unique: true        //More than one entries with same semester nahi chalega.
     },
-    semesterDetails: {
+    subjectDetails: {
         type: [subjectDetailsSchema],
         default : []
     }

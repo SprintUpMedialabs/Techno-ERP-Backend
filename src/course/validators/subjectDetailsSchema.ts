@@ -9,13 +9,15 @@ export const subjectDetailsSchema = z.object({
     schedule: z.array(scheduleSchema).optional()
 });
 
-export const subjectDetailsRequestSchema = subjectDetailsSchema.extend({
-    semesterId : objectIdSchema
+export const subjectDetailsRequestSchema = subjectDetailsSchema.omit({
+    schedule: true
+}).extend({
+    semesterId: objectIdSchema
 });
 
-export const subjectDetailsUpdateSchema = subjectDetailsSchema.extend({
-    subjectId : objectIdSchema
-}).omit({ subjectCode : true});
+export const subjectDetailsUpdateSchema = subjectDetailsRequestSchema.extend({
+    subjectId: objectIdSchema
+});
 
 export type ISubjectDetailsSchema = z.infer<typeof subjectDetailsSchema>;
 export type ISubjectDetailsRequestSchema = z.infer<typeof subjectDetailsUpdateSchema>;

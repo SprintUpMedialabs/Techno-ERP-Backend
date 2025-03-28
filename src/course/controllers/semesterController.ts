@@ -1,89 +1,86 @@
+import { Response } from "express";
 import expressAsyncHandler from "express-async-handler";
-import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
-import { Response } from "express"
 import createHttpError from "http-errors";
-import { ISemesterSchema, ISemesterUpdateSchema, semesterRequestSchema, semesterSchema, semesterUpdateSchema } from "../validators/semesterSchema";
+import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
 import { CourseModel } from "../models/course";
-import { ISubjectDetailsSchema, subjectDetailsSchema } from "../validators/subjectDetailsSchema";
-import { formatResponse } from "../../utils/formatResponse";
 
 
-export const createSemester = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    
-    const validation = semesterRequestSchema.safeParse(req.body);
+// export const createSemester = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
 
-    if(!validation.success)
-        throw createHttpError(400, validation.error.errors[0]);
+//     const validation = semesterRequestSchema.safeParse(req.body);
 
-    const {courseId, semesterNumber, semesterDetails} = validation.data;
+//     if(!validation.success)
+//         throw createHttpError(400, validation.error.errors[0]);
 
-    const existingSemester = await CourseModel.findOne({
-        _id: courseId,
-        'semester.semesterNumber': semesterNumber
-    });
+//     const {courseId, semesterNumber, subjectDetails: semesterDetails} = validation.data;
 
-    if (existingSemester) {
-        throw createHttpError(400, `Semester with number ${semesterNumber} already exists`);
-    }
+//     const existingSemester = await CourseModel.findOne({
+//         _id: courseId,
+//         'semester.semesterNumber': semesterNumber
+//     });
 
-    const updatedCourse = await CourseModel.findByIdAndUpdate(
-        courseId,
-        {
-            $push: {
-                semester: {
-                    semesterNumber,
-                    semesterDetails
-                }
-            }
-        },
-        { new: true, runValidators: true }
-    );
+//     if (existingSemester) {
+//         throw createHttpError(400, `Semester with number ${semesterNumber} already exists`);
+//     }
 
-    if (!updatedCourse) {
-        throw createHttpError(404, 'Error occurred in creating the semester');
-    }
+//     const updatedCourse = await CourseModel.findByIdAndUpdate(
+//         courseId,
+//         {
+//             $push: {
+//                 semester: {
+//                     semesterNumber,
+//                     semesterDetails
+//                 }
+//             }
+//         },
+//         { new: true, runValidators: true }
+//     );
 
-    return formatResponse(res, 200, 'Semester created successfully', true, updatedCourse);
-});
+//     if (!updatedCourse) {
+//         throw createHttpError(404, 'Error occurred in creating the semester');
+//     }
+
+//     return formatResponse(res, 200, 'Semester created successfully', true, updatedCourse);
+// });
 
 
 
-export const updateSemester = expressAsyncHandler(async (req : AuthenticatedRequest, res : Response)=>{
-    
-    const semesterUpdateData : ISemesterUpdateSchema = req.body; 
-    
-    const validation = semesterUpdateSchema.safeParse(semesterUpdateData);
+// export const updateSemester = expressAsyncHandler(async (req : AuthenticatedRequest, res : Response)=>{
 
-    if(!validation.success)
-        throw createHttpError(400, validation.error.errors[0]);
+//     const semesterUpdateData : ISemesterUpdateSchema = req.body; 
 
-    const { semesterId, semesterNumber} = validation.data;
+//     const validation = semesterUpdateSchema.safeParse(semesterUpdateData);
 
-    const updatedCourseSemester = await CourseModel.findOneAndUpdate(
-        {
-            'semester._id': semesterId
-        },
-        {
-            $set: {
-                'semester.$.semesterNumber': semesterNumber,
-            }
-        },
-        { new: true, runValidators: true }
-    );
+//     if(!validation.success)
+//         throw createHttpError(400, validation.error.errors[0]);
 
-    if (!updatedCourseSemester) {
-        throw createHttpError(404, 'Error occurred in updating course');
-    }
+//     const { semesterId, semesterNumber} = validation.data;
 
-    return formatResponse(res, 200, 'Semester updated successfully', true, updatedCourseSemester);
+//     const updatedCourseSemester = await CourseModel.findOneAndUpdate(
+//         {
+//             'semester._id': semesterId
+//         },
+//         {
+//             $set: {
+//                 'semester.$.semesterNumber': semesterNumber,
+//             }
+//         },
+//         { new: true, runValidators: true }
+//     );
 
-});
+//     if (!updatedCourseSemester) {
+//         throw createHttpError(404, 'Error occurred in updating course');
+//     }
+
+//     return formatResponse(res, 200, 'Semester updated successfully', true, updatedCourseSemester);
+
+// });
 
 
 
 //ID comes from req params
-export const deleteSemester = expressAsyncHandler(async (req : AuthenticatedRequest, res : Response)=>{
-    
+export const deleteSemester = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+
     const { id } = req.params;
 
     const deletedCourseSemester = await CourseModel.findOneAndUpdate(
@@ -94,7 +91,7 @@ export const deleteSemester = expressAsyncHandler(async (req : AuthenticatedRequ
         { new: true }
     );
 
-    if (!deletedCourseSemester) 
+    if (!deletedCourseSemester)
         throw createHttpError(404, 'Error occurred deleting the semester.');
 
     res.status(200).json({

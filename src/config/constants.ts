@@ -61,7 +61,7 @@ export enum AdmissionReference {
 };
 
 
-export enum Course {
+export enum   Course {
   BCOM = "BCOM",
   BCOMH = "BCOMH",
   BAJMC = "BAJMC",

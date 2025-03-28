@@ -7,14 +7,14 @@ import { CourseModel } from "../models/course";
 import { formatResponse } from "../../utils/formatResponse";
 import { format } from "winston";
 
-export const createSubject = expressAsyncHandler(async (req : AuthenticatedRequest, res : Response)=>{
-    const subjectData : ISubjectDetailsRequestSchema = req.body;
+export const createSubject = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const subjectData: ISubjectDetailsRequestSchema = req.body;
     const validation = subjectDetailsRequestSchema.safeParse(subjectData);
 
-    if(!validation.success)
+    if (!validation.success)
         throw createHttpError(400, validation.error.errors[0]);
 
-    const { semesterId, subjectName, instructorName, subjectCode, schedule } = validation.data;
+    const { semesterId, subjectName, instructorName, subjectCode } = validation.data;
 
     const isExists = await CourseModel.exists({
         "semester._id": semesterId,
@@ -31,37 +31,35 @@ export const createSubject = expressAsyncHandler(async (req : AuthenticatedReque
                     subjectName,
                     instructorName,
                     subjectCode,
-                    schedule
                 }
             }
         },
         { new: true, runValidators: true }
     );
 
-    if(!updatedSemesterSubject)
+    if (!updatedSemesterSubject)
         throw createHttpError(404, 'Could not create the subject in this semester!');
 
-    return formatResponse(res, 200, 'Subject created successfully', true, updatedSemesterSubject);
+    return formatResponse(res, 201, 'Subject created successfully', true, updatedSemesterSubject);
 
 });
 
 
-export const updateSubject = expressAsyncHandler(async (req : AuthenticatedRequest, res : Response)=>{
-    const updateSubjectData : ISubjectDetailsUpdateSchema = req.body;
-    
+export const updateSubject = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const updateSubjectData: ISubjectDetailsUpdateSchema = req.body;
+
     const validation = subjectDetailsUpdateSchema.safeParse(updateSubjectData);
-    
-    if(!validation.success)
+
+    if (!validation.success)
         throw createHttpError(400, validation.error.errors[0]);
 
-    const { subjectId, subjectName, instructorName, schedule} = validation.data;
+    const { subjectId, subjectName, instructorName } = validation.data;
     const updatedSemesterSubject = await CourseModel.findOneAndUpdate(
         { "semester.subjects._id": subjectId },
         {
             $set: {
                 "semester.$.subjects.$[subject].subjectName": subjectName,
-                "semester.$.subjects.$[subject].instructorName": instructorName,
-                "semester.$.subjects.$[subject].schedule": schedule
+                "semester.$.subjects.$[subject].instructorName": instructorName
             }
         },
         {
@@ -70,7 +68,7 @@ export const updateSubject = expressAsyncHandler(async (req : AuthenticatedReque
         }
     );
 
-    if(!updatedSemesterSubject)
+    if (!updatedSemesterSubject)
         throw createHttpError(404, 'Error occurred updating subject information!');
 
     return formatResponse(res, 200, 'Subject Information updated successfully', true, updatedSemesterSubject);
@@ -79,7 +77,7 @@ export const updateSubject = expressAsyncHandler(async (req : AuthenticatedReque
 
 
 export const deleteSubject = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    
+
     const { id } = req.params;
 
     if (!id) {
@@ -100,6 +98,7 @@ export const deleteSubject = expressAsyncHandler(async (req: AuthenticatedReques
 
     if (!updatedCourse) throw createHttpError(404, 'Error occurred deleting subject');
 
+    // DOTOD: formate change
     res.status(200).json({
         message: 'Subject deleted successfully',
         course: updatedCourse
