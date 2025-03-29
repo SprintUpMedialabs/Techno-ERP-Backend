@@ -1,7 +1,7 @@
 import express from 'express';
 import { authenticate, authorize } from '../../middleware/jwtAuthenticationMiddleware';
 import { UserRoles } from '../../config/constants';
-import { createEnquiry, getEnquiryData, updateEnquiryStep3ById, updateEnquiryDocuments, updateEnquiryStep1ById, updateEnquiryStep2ById, createEnquiryStep2, getEnquiryById, approveEnquiry, updateStatus } from '../controllers/enquiryFormController';
+import { createEnquiry, getEnquiryData, updateEnquiryStep3ById, updateEnquiryDocuments, updateEnquiryStep1ById, updateEnquiryStep2ById, createEnquiryStep2, getEnquiryById, approveEnquiry, updateStatus, createEnquiryDraftStep1, updateEnquiryDraftStep1, createFeeDraft } from '../controllers/enquiryFormController';
 import upload from '../../config/multerConfig';
 import { User } from '../../auth/models/user';
 
@@ -64,3 +64,21 @@ enquiryRoute.put('/update-status',
     authorize([UserRoles.COUNSELOR, UserRoles.REGISTAR, UserRoles.BASIC_USER]),
     updateStatus
 )
+
+enquiryRoute.post('/create-draft-step-1', 
+    authenticate,
+    authorize([UserRoles.REGISTAR, UserRoles.BASIC_USER]),
+    createEnquiryDraftStep1
+);
+
+enquiryRoute.put('/update-draft-step-1', 
+    authenticate,
+    authorize([UserRoles.REGISTAR, UserRoles.BASIC_USER]),
+    updateEnquiryDraftStep1
+);
+
+enquiryRoute.post('/create-draft-step-2', 
+    authenticate,
+    authorize([UserRoles.REGISTAR, UserRoles.BASIC_USER]),
+    createFeeDraft
+);

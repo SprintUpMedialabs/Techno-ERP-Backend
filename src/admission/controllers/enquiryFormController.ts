@@ -4,9 +4,13 @@ import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest
 import { EnquiryApplicationId } from '../models/enquiryIdMetaDataSchema';
 import { Enquiry } from '../models/enquiry';
 import {
+  enquiryDraftStep1RequestSchema,
+  enquiryDraftStep1UpdateSchema,
   enquiryStep1RequestSchema,
   enquiryStep1UpdateRequestSchema,
   enquiryStep3UpdateRequestSchema,
+  IEnquiryDraftStep1RequestSchema,
+  IEnquiryDraftStep1UpdateSchema,
   IEnquiryStep1RequestSchema
 } from '../validators/enquiry';
 import expressAsyncHandler from 'express-async-handler';
@@ -14,32 +18,49 @@ import { uploadToS3 } from '../../config/s3Upload';
 import { ADMISSION, FormNoPrefixes, ApplicationStatus, Course, DocumentType, PHOTO, TGI } from '../../config/constants';
 import { singleDocumentSchema } from '../validators/singleDocumentSchema';
 import { formatResponse } from '../../utils/formatResponse';
-import { feesDraftRequestSchema, feesDraftUpdateSchema, IFeesDraftRequestSchema, IFeesDraftUpdateSchema, IStudentFeesSchema } from '../validators/studentFees';
+import { feesDraftRequestSchema, feesDraftUpdateSchema, feesRequestSchema, feesUpdateSchema, IFeesDraftRequestSchema, IFeesDraftUpdateSchema, IFeesRequestSchema, IFeesUpdateSchema, IStudentFeesSchema } from '../validators/studentFees';
 import { FeesDraftModel } from '../models/studentFees';
 import { fetchCourseFeeByCourse, fetchOtherFees } from '../../fees/courseAndOtherFees.controller';
 import mongoose from 'mongoose';
 import { enquiryStatusUpdateSchema, IEnquiryStatusUpdateSchema } from '../validators/enquiryStatusUpdateSchema';
 import { objectIdSchema } from '../../validators/commonSchema';
+import { EnquiryDraft } from '../models/enquiryDraft';
+import { StudentFeesDraftModel } from '../models/studentFeesDraft';
 
 
 
 export const createEnquiry = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
+    
     const data: IEnquiryStep1RequestSchema = req.body;
     const validation = enquiryStep1RequestSchema.safeParse(data);
 
+    console.log(validation.error)
     if (!validation.success) {
       throw createHttpError(400, validation.error.errors[0]);
     }
 
-    let savedResult = await Enquiry.create({ ...validation.data });
+    const { draftId , ...enquiryData } = data; 
+
+    
+    console.log(enquiryData)
+    //Create the enquiry
+    let savedResult = await Enquiry.create({ ...enquiryData });
     if (savedResult) {
+      //Delete enquiry draft
+      if(draftId)
+      {
+        const deletedDraft = await EnquiryDraft.findByIdAndDelete(draftId);
+        if (!deletedDraft) {
+          throw createHttpError(404, 'Draft not found');
+        }
+    
+      }
       return formatResponse(res, 201, 'Enquiry created successfully', true);
     }
     else {
       throw createHttpError(404, 'Error occurred creating enquiry');
     }
-
   }
 );
 
@@ -70,9 +91,9 @@ export const updateEnquiryStep1ById = expressAsyncHandler(async (req: Authentica
 
 export const createEnquiryStep2 = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
 
-  const feesDraftData: IFeesDraftRequestSchema = req.body;
+  const feesDraftData: IFeesRequestSchema = req.body;
 
-  const validation = feesDraftRequestSchema.safeParse(feesDraftData);
+  const validation = feesRequestSchema.safeParse(feesDraftData);
 
   if (!validation.success) {
     throw createHttpError(400, validation.error.errors[0]);
@@ -87,6 +108,11 @@ export const createEnquiryStep2 = expressAsyncHandler(async (req: AuthenticatedR
       course: 1 // Only return course field
     }
   ).lean();
+
+  if(enquiry?.studentFeeDraft)
+  {
+    await StudentFeesDraftModel.findByIdAndDelete(enquiry.studentFeeDraft);
+  }
 
   let feesDraft;
   if (enquiry) {
@@ -129,7 +155,7 @@ export const createEnquiryStep2 = expressAsyncHandler(async (req: AuthenticatedR
 
 
 export const updateEnquiryStep2ById = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  const feesDraftUpdateData: IFeesDraftUpdateSchema = req.body;
+  const feesDraftUpdateData: IFeesUpdateSchema = req.body;
 
   const feesDraft = await updateFeeDetails([ApplicationStatus.STEP_1, ApplicationStatus.STEP_3, ApplicationStatus.STEP_4], feesDraftUpdateData);
   return formatResponse(res, 200, 'Fees Draft updated successfully', true, feesDraft);
@@ -137,8 +163,8 @@ export const updateEnquiryStep2ById = expressAsyncHandler(async (req: Authentica
 
 
 
-const updateFeeDetails = async (applicationStatusList: ApplicationStatus[], feesDraftUpdateData: IFeesDraftUpdateSchema, finalApplicationStatus?: ApplicationStatus) => {
-  const validation = feesDraftUpdateSchema.safeParse(feesDraftUpdateData);
+const updateFeeDetails = async (applicationStatusList: ApplicationStatus[], feesDraftUpdateData: IFeesUpdateSchema, finalApplicationStatus?: ApplicationStatus) => {
+  const validation = feesUpdateSchema.safeParse(feesDraftUpdateData);
 
   if (!validation.success) {
     throw createHttpError(400, validation.error.errors[0]);
@@ -300,7 +326,7 @@ export const updateEnquiryDocuments = expressAsyncHandler(
 
 
 export const updateEnquiryStep4ById = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  const feesDraftUpdateData: IFeesDraftUpdateSchema = req.body;
+  const feesDraftUpdateData: IFeesUpdateSchema = req.body;
 
   const feesDraft = await updateFeeDetails([ApplicationStatus.STEP_1, ApplicationStatus.STEP_2], feesDraftUpdateData, ApplicationStatus.STEP_4);
   return formatResponse(res, 200, 'Fees Draft updated successfully', true, feesDraft);
@@ -466,3 +492,99 @@ const getPrefixForCourse = (course: Course): FormNoPrefixes => {
   if (course === Course.LLB) return FormNoPrefixes.TCL;
   return FormNoPrefixes.TIHS;
 };
+
+
+export const createEnquiryDraftStep1 = expressAsyncHandler(async (req : AuthenticatedRequest, res : Response) => {
+    const enquiryDraftStep1Data : IEnquiryDraftStep1RequestSchema = req.body;
+
+    const validation = enquiryDraftStep1RequestSchema.safeParse(enquiryDraftStep1Data);
+    console.log(validation.error)
+    //This will be used for checking other validations like length of pincode, format of date, etc
+    if(!validation.success)
+      throw createHttpError(400, validation.error.errors[0]);
+
+    const enquiryDraft = await EnquiryDraft.create(validation.data);
+
+    return formatResponse(res, 200, 'Draft created successfully', true, enquiryDraft);
+
+})
+
+
+export const updateEnquiryDraftStep1 = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+
+    const enquiryDraftStep1Data : IEnquiryDraftStep1UpdateSchema = req.body;
+
+    const validation = enquiryDraftStep1UpdateSchema.safeParse(enquiryDraftStep1Data);
+    
+    if(!validation.success)
+      throw createHttpError(400, validation.error.errors[0]);
+
+    const { id, ...newData } = validation.data;
+
+    const updatedDraft = await EnquiryDraft.findByIdAndUpdate(
+      id,
+      { $set: newData }, 
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedDraft) {
+      throw createHttpError(404, 'Failed to update draft');
+    }
+
+    return formatResponse(res, 200, 'Draft updated successfully', true, updatedDraft)
+  }
+);
+
+
+
+export const createFeeDraft = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const feesDraftData: IFeesDraftRequestSchema = req.body;
+
+  const validation = feesDraftRequestSchema.safeParse(feesDraftData);
+
+  console.log("Validation Error")
+  console.log(validation.error)
+
+  if (!validation.success) {
+    throw createHttpError(400, validation.error.errors[0].message);
+  }
+  const enquiry = await Enquiry.findOne(
+    {
+      _id: feesDraftData.enquiryId,
+      applicationStatus: ApplicationStatus.STEP_1
+    },
+    {
+      course: 1 
+    }
+  ).lean();
+
+  if (!enquiry) {
+    throw createHttpError(400, 'Enquiry does not exist');
+  }
+
+
+  const otherFees = await fetchOtherFees();
+  const semWiseFee = await fetchCourseFeeByCourse(enquiry.course.toString());
+
+
+  const feeData = {
+    ...validation.data,
+    otherFees: validation.data.otherFees?.map(fee => ({
+      ...fee,
+      feeAmount: fee.feeAmount ?? otherFees?.find(otherFee => otherFee.type === fee.type)?.fee ?? 0
+    })) || [], 
+  
+    semWiseFees: validation.data.semWiseFees?.map((semFee, index) => ({
+      ...semFee,
+      feeAmount: semFee.feeAmount ?? semWiseFee?.fee[index] ?? 0
+    })) || []
+  };
+  
+  const feesDraft = await StudentFeesDraftModel.create(feeData);
+
+  await Enquiry.findByIdAndUpdate(
+    feesDraftData.enquiryId,
+    { $set: { studentFeeDraft: feesDraft._id } }
+  );
+  return formatResponse(res, 201, 'Fees Draft created successfully', true, feesDraft);
+});
