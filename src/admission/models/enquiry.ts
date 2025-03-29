@@ -16,25 +16,8 @@ export interface IEnquiryDocument extends IEnquirySchema, Document {
   universityId : string; 
 }
 
-const enquirySchema = new Schema<IEnquiryDocument>(
+export const enquirySchema = new Schema<IEnquiryDocument>(
   {
-    universityId : {
-      type : String,
-    },
-    photoNo : {
-      type : Number,
-    },
-    formNo: {
-      type: String,
-    },
-    dateOfEnquiry: {
-      type: Date,
-      required: true,
-      default : new Date(),   // DA Check : This won't come from input hence initialised it to new date.
-    },
-    dateOfAdmission: {
-      type: Date,
-    },
     admissionMode : {
       type: String,
       enum: {
@@ -42,24 +25,27 @@ const enquirySchema = new Schema<IEnquiryDocument>(
         message: 'Invalid Admission Mode value'
       }
     },
+    dateOfEnquiry: {
+      type: Date,
+      required: true,
+      default : new Date(),   
+    },
     studentName: {
       type: String,
       required: [true, 'Student Name is required']
-    },
-    dateOfBirth: {
-      type: Date,
-      required: [true, 'Date is required'],
-      // set: (value: string) => {
-      //   let convertedDate = convertToMongoDate(value);
-      //   if (!convertedDate) throw createHttpError(400,'Invalid date format, expected DD-MM-YYYY');
-      //   return convertedDate;
-      // }
     },
     studentPhoneNumber: {
       type: String,
       validate: {
         validator: (stuPhNum: string) => contactNumberSchema.safeParse(stuPhNum).success,
         message: 'Invalid Phone Number'
+      }
+    },
+    emailId: {
+      type: String,
+      validate: {
+        validator: (email: string) => emailSchema.safeParse(email).success,
+        message: 'Invalid email format'
       }
     },
     fatherName: {
@@ -94,32 +80,20 @@ const enquirySchema = new Schema<IEnquiryDocument>(
       type: String,
       required: [true, 'Mother occupation is required']
     },
+    dateOfBirth: {
+      type: Date,
+      required: [true, 'Date is required'],
+      // set: (value: string) => {
+      //   let convertedDate = convertToMongoDate(value);
+      //   if (!convertedDate) throw createHttpError(400,'Invalid date format, expected DD-MM-YYYY');
+      //   return convertedDate;
+      // }
+    },
     category: {
       type: String,
       enum: {
         values: Object.values(Category),
         message: 'Invalid Category value'
-      },
-      required: true
-    },
-    address: {
-      type: addressSchema,
-      required: [true, 'Address is required'],
-      minlength: [5, 'Address must be at least 5 characters long']
-    },
-
-    emailId: {
-      type: String,
-      validate: {
-        validator: (email: string) => emailSchema.safeParse(email).success,
-        message: 'Invalid email format'
-      }
-    },
-    reference: {
-      type: String,
-      enum: {
-        values: Object.values(AdmissionReference),
-        message: 'Invalid Admission Reference value'
       },
       required: true
     },
@@ -131,13 +105,44 @@ const enquirySchema = new Schema<IEnquiryDocument>(
       },
       required: true
     },
-    remarks: {
-      type: String
+    reference: {
+      type: String,
+      enum: {
+        values: Object.values(AdmissionReference),
+        message: 'Invalid Admission Reference value'
+      },
+      required: true
+    },
+    address: {
+      type: addressSchema,
+      minlength: [5, 'Address must be at least 5 characters long']
     },
     academicDetails: {
       type: [academicDetailFormSchema],
-      default: []
+      default: [],
+      required : false
     },
+    counsellorName : {
+      type: Schema.Types.ObjectId,
+      required : false
+    },
+    telecallerName : {
+      type: Schema.Types.ObjectId,
+      required: false
+    },
+    dateOfCounselling : {
+      type: Date,
+      required : false
+    },
+    remarks: {
+      type: String
+    },
+    
+    dateOfAdmission: {
+      type: Date,
+      required : false
+    },
+  
     previousCollegeData: {
       type: previousCollegeDataSchema
     },
@@ -147,7 +152,12 @@ const enquirySchema = new Schema<IEnquiryDocument>(
     studentFee: {
       type: Schema.Types.ObjectId,
       ref: 'studentFee', // Refer to FeesDraft model
-      optional: true
+      required: false
+    },
+    studentFeeDraft : {
+      type : Schema.Types.ObjectId,
+      ref : 'studentFeeDraft',
+      required : false
     },
     gender: {
       type: String,
@@ -160,15 +170,29 @@ const enquirySchema = new Schema<IEnquiryDocument>(
       type: String,
       enum: {
         values: Object.values(ApplicationStatus),
-        message: 'Invalid Course value'
+        message: 'Invalid Application Status value'
       },
+      default : ApplicationStatus.STEP_1,
       required: true
     },
     approvedBy : {
       type : Schema.Types.ObjectId,
-      optional : true
-    }
+      required : false
+    },
+    
+    //Below IDs will be system generated
+    universityId : {
+      type : String,
+    },
+    photoNo : {
+      type : Number,
+    },
+    formNo: {
+      type: String,
+    },
+    
   },
+  
   { timestamps: true }
 );
 
@@ -176,24 +200,6 @@ const enquirySchema = new Schema<IEnquiryDocument>(
 
 
 enquirySchema.pre<IEnquiryDocument>('save', async function (next) {
-  //This will be removed from here as we are no longer creating the IDs here, they all are created in step 4 on approval.
-
-
-  // DA CHECK
-  // DTODO: just take a look at user [pre save middleware] first will check if course is modified or not. if its not modified then will skip this process. if its modified they will execute this. [will discuss it on call if required]
-  // const doc = this as IEnquiryDocument & Document;
-
-  // if (doc) {
-  //   const prefix = getPrefixForCourse(doc.course as Course);
-
-  //   let serial = await EnquiryApplicationId.findOne({ prefix: prefix });
-
-  //   serial!.lastSerialNumber += 1;
-
-
-  //   doc.formNo = `${prefix}${serial!.lastSerialNumber}`;
-  // }
-
   next();
 });
 
@@ -217,7 +223,7 @@ enquirySchema.post('findOneAndUpdate', function (error: any, doc: any, next: Fun
 });
 
 const transformDates = (_: any, ret: any) => {
-  ['dateOfEnquiry', 'dateOfAdmission', 'dateOfBirth'].forEach((key) => {
+  ['dateOfEnquiry', 'dateOfAdmission', 'dateOfBirth', 'dateOfCounselling'].forEach((key) => {
     if (ret[key]) {
       ret[key] = convertToDDMMYYYY(ret[key]);
     }
