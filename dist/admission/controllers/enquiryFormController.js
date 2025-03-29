@@ -23,7 +23,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateStatus = exports.approveEnquiry = exports.getEnquiryById = exports.getEnquiryData = exports.updateEnquiryStep4ById = exports.updateEnquiryDocuments = exports.updateEnquiryStep3ById = exports.updateEnquiryStep2ById = exports.createEnquiryStep2 = exports.updateEnquiryStep1ById = exports.createEnquiry = void 0;
+exports.createFeeDraft = exports.updateEnquiryDraftStep1 = exports.createEnquiryDraftStep1 = exports.updateStatus = exports.approveEnquiry = exports.getEnquiryById = exports.getEnquiryData = exports.updateEnquiryStep4ById = exports.updateEnquiryDocuments = exports.updateEnquiryStep3ById = exports.updateEnquiryStep2ById = exports.createEnquiryStep2 = exports.updateEnquiryStep1ById = exports.createEnquiry = void 0;
 const http_errors_1 = __importDefault(require("http-errors"));
 const enquiryIdMetaDataSchema_1 = require("../models/enquiryIdMetaDataSchema");
 const enquiry_1 = require("../models/enquiry");
@@ -39,14 +39,27 @@ const courseAndOtherFees_controller_1 = require("../../fees/courseAndOtherFees.c
 const mongoose_1 = __importDefault(require("mongoose"));
 const enquiryStatusUpdateSchema_1 = require("../validators/enquiryStatusUpdateSchema");
 const commonSchema_1 = require("../../validators/commonSchema");
+const enquiryDraft_1 = require("../models/enquiryDraft");
+const studentFeesDraft_1 = require("../models/studentFeesDraft");
 exports.createEnquiry = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const data = req.body;
     const validation = enquiry_2.enquiryStep1RequestSchema.safeParse(data);
+    console.log(validation.error);
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }
-    let savedResult = yield enquiry_1.Enquiry.create(Object.assign({}, validation.data));
+    const { draftId } = data, enquiryData = __rest(data, ["draftId"]);
+    console.log(enquiryData);
+    //Create the enquiry
+    let savedResult = yield enquiry_1.Enquiry.create(Object.assign({}, enquiryData));
     if (savedResult) {
+        //Delete enquiry draft
+        if (draftId) {
+            const deletedDraft = yield enquiryDraft_1.EnquiryDraft.findByIdAndDelete(draftId);
+            if (!deletedDraft) {
+                throw (0, http_errors_1.default)(404, 'Draft not found');
+            }
+        }
         return (0, formatResponse_1.formatResponse)(res, 201, 'Enquiry created successfully', true);
     }
     else {
@@ -69,7 +82,7 @@ exports.updateEnquiryStep1ById = (0, express_async_handler_1.default)((req, res)
 exports.createEnquiryStep2 = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const feesDraftData = req.body;
-    const validation = studentFees_1.feesDraftRequestSchema.safeParse(feesDraftData);
+    const validation = studentFees_1.feesRequestSchema.safeParse(feesDraftData);
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }
@@ -79,6 +92,9 @@ exports.createEnquiryStep2 = (0, express_async_handler_1.default)((req, res) => 
     }, {
         course: 1 // Only return course field
     }).lean();
+    if (enquiry === null || enquiry === void 0 ? void 0 : enquiry.studentFeeDraft) {
+        yield studentFeesDraft_1.StudentFeesDraftModel.findByIdAndDelete(enquiry.studentFeeDraft);
+    }
     let feesDraft;
     if (enquiry) {
         const otherFees = yield (0, courseAndOtherFees_controller_1.fetchOtherFees)();
@@ -115,7 +131,7 @@ exports.updateEnquiryStep2ById = (0, express_async_handler_1.default)((req, res)
 }));
 const updateFeeDetails = (applicationStatusList, feesDraftUpdateData, finalApplicationStatus) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
-    const validation = studentFees_1.feesDraftUpdateSchema.safeParse(feesDraftUpdateData);
+    const validation = studentFees_1.feesUpdateSchema.safeParse(feesDraftUpdateData);
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }
@@ -327,3 +343,56 @@ const getPrefixForCourse = (course) => {
         return constants_1.FormNoPrefixes.TCL;
     return constants_1.FormNoPrefixes.TIHS;
 };
+exports.createEnquiryDraftStep1 = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const enquiryDraftStep1Data = req.body;
+    const validation = enquiry_2.enquiryDraftStep1RequestSchema.safeParse(enquiryDraftStep1Data);
+    console.log(validation.error);
+    //This will be used for checking other validations like length of pincode, format of date, etc
+    if (!validation.success)
+        throw (0, http_errors_1.default)(400, validation.error.errors[0]);
+    const enquiryDraft = yield enquiryDraft_1.EnquiryDraft.create(validation.data);
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Draft created successfully', true, enquiryDraft);
+}));
+exports.updateEnquiryDraftStep1 = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const enquiryDraftStep1Data = req.body;
+    const validation = enquiry_2.enquiryDraftStep1UpdateSchema.safeParse(enquiryDraftStep1Data);
+    if (!validation.success)
+        throw (0, http_errors_1.default)(400, validation.error.errors[0]);
+    const _a = validation.data, { id } = _a, newData = __rest(_a, ["id"]);
+    const updatedDraft = yield enquiryDraft_1.EnquiryDraft.findByIdAndUpdate(id, { $set: newData }, { new: true, runValidators: true });
+    if (!updatedDraft) {
+        throw (0, http_errors_1.default)(404, 'Failed to update draft');
+    }
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Draft updated successfully', true, updatedDraft);
+}));
+exports.createFeeDraft = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    const feesDraftData = req.body;
+    const validation = studentFees_1.feesDraftRequestSchema.safeParse(feesDraftData);
+    console.log("Validation Error");
+    console.log(validation.error);
+    if (!validation.success) {
+        throw (0, http_errors_1.default)(400, validation.error.errors[0].message);
+    }
+    const enquiry = yield enquiry_1.Enquiry.findOne({
+        _id: feesDraftData.enquiryId,
+        applicationStatus: constants_1.ApplicationStatus.STEP_1
+    }, {
+        course: 1
+    }).lean();
+    if (!enquiry) {
+        throw (0, http_errors_1.default)(400, 'Enquiry does not exist');
+    }
+    const otherFees = yield (0, courseAndOtherFees_controller_1.fetchOtherFees)();
+    const semWiseFee = yield (0, courseAndOtherFees_controller_1.fetchCourseFeeByCourse)(enquiry.course.toString());
+    const feeData = Object.assign(Object.assign({}, validation.data), { otherFees: ((_a = validation.data.otherFees) === null || _a === void 0 ? void 0 : _a.map(fee => {
+            var _a, _b, _c;
+            return (Object.assign(Object.assign({}, fee), { feeAmount: (_c = (_a = fee.feeAmount) !== null && _a !== void 0 ? _a : (_b = otherFees === null || otherFees === void 0 ? void 0 : otherFees.find(otherFee => otherFee.type === fee.type)) === null || _b === void 0 ? void 0 : _b.fee) !== null && _c !== void 0 ? _c : 0 }));
+        })) || [], semWiseFees: ((_b = validation.data.semWiseFees) === null || _b === void 0 ? void 0 : _b.map((semFee, index) => {
+            var _a, _b;
+            return (Object.assign(Object.assign({}, semFee), { feeAmount: (_b = (_a = semFee.feeAmount) !== null && _a !== void 0 ? _a : semWiseFee === null || semWiseFee === void 0 ? void 0 : semWiseFee.fee[index]) !== null && _b !== void 0 ? _b : 0 }));
+        })) || [] });
+    const feesDraft = yield studentFeesDraft_1.StudentFeesDraftModel.create(feeData);
+    yield enquiry_1.Enquiry.findByIdAndUpdate(feesDraftData.enquiryId, { $set: { studentFeeDraft: feesDraft._id } });
+    return (0, formatResponse_1.formatResponse)(res, 201, 'Fees Draft created successfully', true, feesDraft);
+}));

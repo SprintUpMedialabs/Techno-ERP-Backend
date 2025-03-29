@@ -1,9 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.feesDraftUpdateSchema = exports.feesDraftRequestSchema = exports.singleSemSchema = exports.otherFeesSchema = void 0;
+exports.feesDraftUpdateSchema = exports.feesDraftRequestSchema = exports.feesUpdateSchema = exports.feesRequestSchema = exports.singleSemSchema = exports.otherFeesSchema = void 0;
 const zod_1 = require("zod");
 const constants_1 = require("../../config/constants");
 const commonSchema_1 = require("../../validators/commonSchema");
+const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
 exports.otherFeesSchema = zod_1.z.object({
     type: zod_1.z.nativeEnum(constants_1.FeeType),
     feeAmount: zod_1.z.number().min(0, 'Fee amount must be greater than 0'),
@@ -21,12 +22,23 @@ const studentFeesSchema = zod_1.z.object({
     otherFees: zod_1.z.array(exports.otherFeesSchema).optional(),
     semWiseFees: zod_1.z.array(exports.singleSemSchema),
     feeStatus: zod_1.z.nativeEnum(constants_1.FeeStatus).default(constants_1.FeeStatus.DRAFT).optional(),
+    feesClearanceDate: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date))
 });
-exports.feesDraftRequestSchema = studentFeesSchema.omit({ feeStatus: true }).extend({
+exports.feesRequestSchema = studentFeesSchema.omit({ feeStatus: true }).extend({
     otherFees: zod_1.z.array(otherFeesSchemaWithoutFeeAmount),
     semWiseFees: zod_1.z.array(singleSemSchemaWithoutFeeAmount),
-    enquiryId: commonSchema_1.objectIdSchema
+    enquiryId: commonSchema_1.objectIdSchema,
+    draftId: commonSchema_1.objectIdSchema
 });
-exports.feesDraftUpdateSchema = exports.feesDraftRequestSchema.extend({
+exports.feesUpdateSchema = exports.feesRequestSchema.extend({
     id: commonSchema_1.objectIdSchema
-});
+}).omit({ draftId: true });
+exports.feesDraftRequestSchema = exports.feesRequestSchema.extend({
+    otherFees: zod_1.z.array(exports.otherFeesSchema.partial()).optional(),
+    semWiseFees: zod_1.z.array(exports.singleSemSchema.partial()).optional(),
+    enquiryId: commonSchema_1.objectIdSchema,
+    feesClearanceDate: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)).optional()
+}).omit({ draftId: true }).strict();
+exports.feesDraftUpdateSchema = exports.feesDraftRequestSchema.extend({
+    draftId: commonSchema_1.objectIdSchema
+}).omit({ enquiryId: true }).partial().strict();

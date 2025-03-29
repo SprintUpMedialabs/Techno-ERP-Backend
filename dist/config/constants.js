@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MARKETING_SHEET = exports.PHOTO = exports.TGI = exports.ADMISSION = exports.AdmissionMode = exports.FeeStatus = exports.FeeType = exports.Locations = exports.ModuleNames = exports.MimeType = exports.ApplicationStatus = exports.DocumentType = exports.AdmittedThrough = exports.BloodGroup = exports.Religion = exports.FormNoPrefixes = exports.EducationLevel = exports.Course = exports.AdmissionReference = exports.Category = exports.Marketing_Source = exports.FinalConversionType = exports.LeadType = exports.Source = exports.Gender = exports.UserRoles = void 0;
+exports.MARKETING_SHEET = exports.PHOTO = exports.TGI = exports.ADMISSION = exports.Districts = exports.Countries = exports.StatesOfIndia = exports.AdmissionMode = exports.FeeStatus = exports.FeeType = exports.Locations = exports.ModuleNames = exports.MimeType = exports.ApplicationStatus = exports.DocumentType = exports.AdmittedThrough = exports.BloodGroup = exports.Religion = exports.FormNoPrefixes = exports.EducationLevel = exports.Course = exports.AdmissionReference = exports.Category = exports.Marketing_Source = exports.FinalConversionType = exports.LeadType = exports.Source = exports.Gender = exports.UserRoles = void 0;
 /**
  * Marketing Module Enums
 */
@@ -203,6 +203,60 @@ var AdmissionMode;
     AdmissionMode["ONLINE"] = "ONLINE";
     AdmissionMode["OFFLINE"] = "OFFLINE";
 })(AdmissionMode || (exports.AdmissionMode = AdmissionMode = {}));
+var StatesOfIndia;
+(function (StatesOfIndia) {
+    StatesOfIndia["AndhraPradesh"] = "Andhra Pradesh";
+    StatesOfIndia["ArunachalPradesh"] = "Arunachal Pradesh";
+    StatesOfIndia["Assam"] = "Assam";
+    StatesOfIndia["Bihar"] = "Bihar";
+    StatesOfIndia["Chhattisgarh"] = "Chhattisgarh";
+    StatesOfIndia["Goa"] = "Goa";
+    StatesOfIndia["Gujarat"] = "Gujarat";
+    StatesOfIndia["Haryana"] = "Haryana";
+    StatesOfIndia["HimachalPradesh"] = "Himachal Pradesh";
+    StatesOfIndia["Jharkhand"] = "Jharkhand";
+    StatesOfIndia["Karnataka"] = "Karnataka";
+    StatesOfIndia["Kerala"] = "Kerala";
+    StatesOfIndia["MadhyaPradesh"] = "Madhya Pradesh";
+    StatesOfIndia["Maharashtra"] = "Maharashtra";
+    StatesOfIndia["Manipur"] = "Manipur";
+    StatesOfIndia["Meghalaya"] = "Meghalaya";
+    StatesOfIndia["Mizoram"] = "Mizoram";
+    StatesOfIndia["Nagaland"] = "Nagaland";
+    StatesOfIndia["Odisha"] = "Odisha";
+    StatesOfIndia["Punjab"] = "Punjab";
+    StatesOfIndia["Rajasthan"] = "Rajasthan";
+    StatesOfIndia["Sikkim"] = "Sikkim";
+    StatesOfIndia["TamilNadu"] = "Tamil Nadu";
+    StatesOfIndia["Telangana"] = "Telangana";
+    StatesOfIndia["Tripura"] = "Tripura";
+    StatesOfIndia["UttarPradesh"] = "Uttar Pradesh";
+    StatesOfIndia["Uttarakhand"] = "Uttarakhand";
+    StatesOfIndia["WestBengal"] = "West Bengal";
+})(StatesOfIndia || (exports.StatesOfIndia = StatesOfIndia = {}));
+var Countries;
+(function (Countries) {
+    Countries["India"] = "India";
+    Countries["Pakistan"] = "Pakistan";
+    Countries["China"] = "China";
+    Countries["Nepal"] = "Nepal";
+    Countries["Bhutan"] = "Bhutan";
+    Countries["Bangladesh"] = "Bangladesh";
+    Countries["Myanmar"] = "Myanmar";
+    Countries["SriLanka"] = "Sri Lanka";
+    Countries["Afghanistan"] = "Afghanistan";
+    Countries["Maldives"] = "Maldives";
+    Countries["Thailand"] = "Thailand";
+})(Countries || (exports.Countries = Countries = {}));
+var Districts;
+(function (Districts) {
+    Districts["Lucknow"] = "Lucknow";
+    Districts["Sitapur"] = "Sitapur";
+    Districts["Hardoi"] = "Hardoi";
+    Districts["Barabanki"] = "Barabanki";
+    Districts["Raebareli"] = "Raebareli";
+    Districts["Unnao"] = "Unnao";
+})(Districts || (exports.Districts = Districts = {}));
 exports.ADMISSION = 'admissions';
 exports.TGI = "TGI";
 exports.PHOTO = "PHOTO";

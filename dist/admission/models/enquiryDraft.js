@@ -32,30 +32,19 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Enquiry = exports.enquirySchema = void 0;
+exports.EnquiryDraft = exports.enquiryDraftSchema = void 0;
 const http_errors_1 = __importDefault(require("http-errors"));
 const mongoose_1 = __importStar(require("mongoose"));
-const constants_1 = require("../../config/constants");
 const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
+const constants_1 = require("../../config/constants");
 const commonSchema_1 = require("../../validators/commonSchema");
 const academicDetail_1 = require("./academicDetail");
 const address_1 = require("./address");
-const previousCollegeData_1 = require("./previousCollegeData");
-const singleDocument_1 = require("./singleDocument");
-exports.enquirySchema = new mongoose_1.Schema({
+exports.enquiryDraftSchema = new mongoose_1.Schema({
     admissionMode: {
         type: String,
         enum: {
@@ -123,23 +112,16 @@ exports.enquirySchema = new mongoose_1.Schema({
     },
     dateOfBirth: {
         type: Date,
-        required: [true, 'Date is required'],
         set: (value) => {
             return (0, convertDateToFormatedDate_1.convertToMongoDate)(value);
         }
-        // set: (value: string) => {
-        //   let convertedDate = convertToMongoDate(value);
-        //   if (!convertedDate) throw createHttpError(400,'Invalid date format, expected DD-MM-YYYY');
-        //   return convertedDate;
-        // }
     },
     category: {
         type: String,
         enum: {
             values: Object.values(constants_1.Category),
             message: 'Invalid Category value'
-        },
-        required: true
+        }
     },
     course: {
         type: String,
@@ -147,7 +129,6 @@ exports.enquirySchema = new mongoose_1.Schema({
             values: Object.values(constants_1.Course),
             message: 'Invalid Course value'
         },
-        required: true
     },
     reference: {
         type: String,
@@ -155,7 +136,6 @@ exports.enquirySchema = new mongoose_1.Schema({
             values: Object.values(constants_1.AdmissionReference),
             message: 'Invalid Admission Reference value'
         },
-        required: true
     },
     address: {
         type: address_1.addressSchema,
@@ -184,26 +164,6 @@ exports.enquirySchema = new mongoose_1.Schema({
     remarks: {
         type: String
     },
-    dateOfAdmission: {
-        type: Date,
-        required: false
-    },
-    previousCollegeData: {
-        type: previousCollegeData_1.previousCollegeDataSchema
-    },
-    documents: {
-        type: [singleDocument_1.singleDocumentSchema]
-    },
-    studentFee: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        ref: 'studentFee', // Refer to FeesDraft model
-        required: false
-    },
-    studentFeeDraft: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        ref: 'studentFeeDraft',
-        required: false
-    },
     gender: {
         type: String,
         enum: {
@@ -211,61 +171,34 @@ exports.enquirySchema = new mongoose_1.Schema({
             message: 'Invalid gender value'
         }
     },
-    applicationStatus: {
-        type: String,
-        enum: {
-            values: Object.values(constants_1.ApplicationStatus),
-            message: 'Invalid Application Status value'
-        },
-        default: constants_1.ApplicationStatus.STEP_1,
-        required: true
-    },
     approvedBy: {
         type: mongoose_1.Schema.Types.ObjectId,
         required: false
     },
-    //Below IDs will be system generated
-    universityId: {
-        type: String,
-    },
-    photoNo: {
-        type: Number,
-    },
-    formNo: {
-        type: String,
-    },
 }, { timestamps: true });
-exports.enquirySchema.pre('save', function (next) {
-    return __awaiter(this, void 0, void 0, function* () {
-        next();
-    });
-});
-const handleMongooseError = (error, next) => {
+const handleDraftMongooseError = (error, next) => {
     if (error.name === 'ValidationError') {
         const firstError = error.errors[Object.keys(error.errors)[0]];
         throw (0, http_errors_1.default)(400, firstError.message);
     }
-    else if (error.name == 'MongooseError') {
-        throw (0, http_errors_1.default)(400, `${error.message}`);
-    }
     else {
-        next(error); // Pass any other errors to the next middleware
+        next(error);
     }
 };
-exports.enquirySchema.post('save', function (error, doc, next) {
-    handleMongooseError(error, next);
+exports.enquiryDraftSchema.post('save', function (error, doc, next) {
+    handleDraftMongooseError(error, next);
 });
-exports.enquirySchema.post('findOneAndUpdate', function (error, doc, next) {
-    handleMongooseError(error, next);
+exports.enquiryDraftSchema.post('findOneAndUpdate', function (error, doc, next) {
+    handleDraftMongooseError(error, next);
 });
 const transformDates = (_, ret) => {
-    ['dateOfEnquiry', 'dateOfAdmission', 'dateOfBirth', 'dateOfCounselling'].forEach((key) => {
+    ['dateOfEnquiry', 'dateOfBirth', 'dateOfCounselling'].forEach((key) => {
         if (ret[key]) {
             ret[key] = (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(ret[key]);
         }
     });
     return ret;
 };
-exports.enquirySchema.set('toJSON', { transform: transformDates });
-exports.enquirySchema.set('toObject', { transform: transformDates });
-exports.Enquiry = mongoose_1.default.model('Enquiry', exports.enquirySchema);
+exports.enquiryDraftSchema.set('toJSON', { transform: transformDates });
+exports.enquiryDraftSchema.set('toObject', { transform: transformDates });
+exports.EnquiryDraft = mongoose_1.default.model('EnquiryDraft', exports.enquiryDraftSchema);

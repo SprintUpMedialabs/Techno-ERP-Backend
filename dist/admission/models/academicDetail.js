@@ -27,6 +27,6 @@ exports.academicDetailFormSchema = new mongoose_1.Schema({
         max: [100, 'Percentage cannot exceed 100']
     },
     subjects: {
-        type: [String]
+        type: [String],
     }
 });

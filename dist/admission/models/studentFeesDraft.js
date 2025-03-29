@@ -3,65 +3,34 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.FeesDraftModel = exports.SingleSemWiseFeesSchema = exports.OtherFeesSchema = void 0;
+exports.StudentFeesDraftModel = void 0;
 const mongoose_1 = require("mongoose");
 const constants_1 = require("../../config/constants");
 const http_errors_1 = __importDefault(require("http-errors"));
 const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
-//Other fees schema
-exports.OtherFeesSchema = new mongoose_1.Schema({
-    type: {
-        type: String,
-        enum: Object.values(constants_1.FeeType),
-        required: true
-    },
-    feeAmount: {
-        type: Number,
-        required: true
-    },
-    finalFee: {
-        type: Number,
-        required: true
-    },
-    feesDepositedTOA: {
-        type: Number,
-        default: 0
-    },
-    remarks: {
-        type: String
-    }
-});
-//Sem wise schema
-exports.SingleSemWiseFeesSchema = new mongoose_1.Schema({
-    feeAmount: {
-        type: Number,
-        required: true
-    },
-    finalFee: {
-        type: Number,
-        required: true
-    }
-}, { _id: false });
-//Fees draft for entire student
-const StudentFeesSchema = new mongoose_1.Schema({
+const studentFees_1 = require("./studentFees");
+const StudentFeesDraftSchema = new mongoose_1.Schema({
     otherFees: {
-        type: [exports.OtherFeesSchema],
+        type: [studentFees_1.OtherFeesSchema],
         validate: [
             (value) => value.length <= 50,
             'Cannot have more than 50 fee entries'
-        ]
+        ],
+        required: false
     },
     semWiseFees: {
-        type: [exports.SingleSemWiseFeesSchema],
+        type: [studentFees_1.SingleSemWiseFeesSchema],
+        required: false
     },
     feeStatus: {
         type: String,
         enum: Object.values(constants_1.FeeStatus),
         default: constants_1.FeeStatus.DRAFT,
-        optional: true
+        required: false
     },
     feesClearanceDate: {
-        type: Date
+        type: Date,
+        required: false
     }
 }, { timestamps: true });
 const handleMongooseError = (error, next) => {
@@ -76,10 +45,10 @@ const handleMongooseError = (error, next) => {
         next(error); // Pass any other errors to the next middleware
     }
 };
-StudentFeesSchema.post('save', function (error, doc, next) {
+StudentFeesDraftSchema.post('save', function (error, doc, next) {
     handleMongooseError(error, next);
 });
-StudentFeesSchema.post('findOneAndUpdate', function (error, doc, next) {
+StudentFeesDraftSchema.post('findOneAndUpdate', function (error, doc, next) {
     handleMongooseError(error, next);
 });
 const transformDates = (_, ret) => {
@@ -90,4 +59,4 @@ const transformDates = (_, ret) => {
     });
     return ret;
 };
-exports.FeesDraftModel = (0, mongoose_1.model)('studentFee', StudentFeesSchema);
+exports.StudentFeesDraftModel = (0, mongoose_1.model)('studentFeeDraft', StudentFeesDraftSchema);
