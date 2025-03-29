@@ -3,74 +3,34 @@ import { FeeStatus, FeeType } from '../../config/constants';
 import { IOtherFeesSchema, ISingleSemSchema, IStudentFeesSchema } from '../validators/studentFees';
 import createHttpError from 'http-errors';
 import { convertToDDMMYYYY } from '../../utils/convertDateToFormatedDate';
+import { OtherFeesSchema, SingleSemWiseFeesSchema } from './studentFees';
 
-export interface IOtherFeesDocument extends IOtherFeesSchema, Document {
-    feeAmount: number
-}
-
-export interface ISingleSemWiseDocument extends ISingleSemSchema, Document {
-    feeAmount: number
-}
 export interface IStudentFeesDocument extends IStudentFeesSchema, Document { }
 
-//Other fees schema
-export const OtherFeesSchema = new Schema<IOtherFeesDocument>({
-    type: {
-        type: String,
-        enum: Object.values(FeeType),
-        required: true
-    },
-    feeAmount: {
-        type: Number,
-        required: true
-    },
-    finalFee: {
-        type: Number,
-        required: true
-    },
-    feesDepositedTOA: {
-        type: Number,
-        default: 0
-    },
-    remarks: {
-        type: String
-    }
-});
 
-//Sem wise schema
-export const SingleSemWiseFeesSchema = new Schema<ISingleSemWiseDocument>({
-    feeAmount: {
-        type: Number,
-        required: true
-    },
-    finalFee: {
-        type: Number,
-        required: true
-    }
-}, { _id: false });
-
-
-//Fees draft for entire student
-const StudentFeesSchema = new Schema<IStudentFeesDocument>(
+const StudentFeesDraftSchema = new Schema<IStudentFeesDocument>(
     {
         otherFees: {
             type: [OtherFeesSchema],
             validate: [
                 (value: any[]) => value.length <= 50,
                 'Cannot have more than 50 fee entries'
-            ]
+            ],
+            required : false
         },
         semWiseFees: {
             type: [SingleSemWiseFeesSchema],
+            required : false
         },
         feeStatus: {
             type: String,
             enum: Object.values(FeeStatus),
             default: FeeStatus.DRAFT,
-            optional: true
+            required : false
         },
         feesClearanceDate : {
-            type : Date
+            type : Date,
+            required : false
         }
     },
     { timestamps: true }
@@ -88,11 +48,11 @@ const handleMongooseError = (error: any, next: Function) => {
     }
   };
   
-  StudentFeesSchema.post('save', function (error: any, doc: any, next: Function) {
+  StudentFeesDraftSchema.post('save', function (error: any, doc: any, next: Function) {
     handleMongooseError(error, next);
   });
   
-  StudentFeesSchema.post('findOneAndUpdate', function (error: any, doc: any, next: Function) {
+  StudentFeesDraftSchema.post('findOneAndUpdate', function (error: any, doc: any, next: Function) {
     handleMongooseError(error, next);
   });
   
@@ -105,4 +65,4 @@ const handleMongooseError = (error: any, next: Function) => {
     return ret;
   };
   
-export const FeesDraftModel = model('studentFee', StudentFeesSchema);
+export const StudentFeesDraftModel = model('studentFeeDraft', StudentFeesDraftSchema);

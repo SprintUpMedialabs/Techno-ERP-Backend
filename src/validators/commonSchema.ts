@@ -1,6 +1,6 @@
 import mongoose, { Types } from 'mongoose';
 import { z } from 'zod';
-import { UserRoles } from '../config/constants';
+import { Countries, Districts, StatesOfIndia, UserRoles } from '../config/constants';
 
 export const objectIdSchema = z.custom<Types.ObjectId>(
   (id) => {
@@ -26,13 +26,14 @@ export const emailSchema = z
   .email();
 
 export const addressSchema = z.object({
-  landmark: z.string().min(5, 'Permanent address must be at least 5 characters'),
-  district: z.string(),
+  addressLine1: z.string().min(5, 'Permanent address must be at least 5 characters'),
+  addressLine2: z.string().min(5, 'Permanent address must be at least 5 characters'),  
+  district: z.nativeEnum(Districts),
   pincode: z
     .string()
     .regex(/^[1-9][0-9]{5}$/, 'Pincode must be a 6-digit number starting with a non-zero digit'),
-  state: z.string(),
-  country: z.string()
+  state: z.nativeEnum(StatesOfIndia),
+  country: z.nativeEnum(Countries)
 });
 
 export type IAddressSchema = z.infer<typeof addressSchema>;
