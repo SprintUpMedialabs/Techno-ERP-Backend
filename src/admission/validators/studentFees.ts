@@ -34,7 +34,6 @@ export const feesRequestSchema = studentFeesSchema.omit({ feeStatus: true }).ext
     otherFees: z.array(otherFeesSchemaWithoutFeeAmount),
     semWiseFees: z.array(singleSemSchemaWithoutFeeAmount),
     enquiryId: objectIdSchema,
-    // draftId : objectIdSchema,
     feesClearanceDate : requestDateSchema.transform((date) =>
         convertToMongoDate(date) as Date
     )
@@ -55,7 +54,7 @@ export const feesDraftRequestSchema = feesRequestSchema.extend({
 }).strict();
 
 
-export const feesDraftUpdateSchema = feesDraftRequestSchema.omit({ enquiryId : true }).partial().strict()
+export const feesDraftUpdateSchema = feesDraftRequestSchema.extend({id : objectIdSchema}).omit({ enquiryId : true }).partial().strict()
 
 
 export type IOtherFeesSchema = z.infer<typeof otherFeesSchema>;
