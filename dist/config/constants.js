@@ -170,6 +170,7 @@ var MimeType;
 var ModuleNames;
 (function (ModuleNames) {
     ModuleNames["MARKETING"] = "MARKETING";
+    ModuleNames["ADMISSION"] = "ADMISSION";
 })(ModuleNames || (exports.ModuleNames = ModuleNames = {}));
 var Locations;
 (function (Locations) {

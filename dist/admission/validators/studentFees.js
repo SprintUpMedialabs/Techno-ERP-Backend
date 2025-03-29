@@ -28,17 +28,15 @@ exports.feesRequestSchema = studentFeesSchema.omit({ feeStatus: true }).extend({
     otherFees: zod_1.z.array(otherFeesSchemaWithoutFeeAmount),
     semWiseFees: zod_1.z.array(singleSemSchemaWithoutFeeAmount),
     enquiryId: commonSchema_1.objectIdSchema,
-    draftId: commonSchema_1.objectIdSchema
+    feesClearanceDate: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date))
 });
 exports.feesUpdateSchema = exports.feesRequestSchema.extend({
-    id: commonSchema_1.objectIdSchema
-}).omit({ draftId: true });
+    id: commonSchema_1.objectIdSchema //This is referring to the fees table _id
+}).omit({ enquiryId: true });
 exports.feesDraftRequestSchema = exports.feesRequestSchema.extend({
     otherFees: zod_1.z.array(exports.otherFeesSchema.partial()).optional(),
     semWiseFees: zod_1.z.array(exports.singleSemSchema.partial()).optional(),
     enquiryId: commonSchema_1.objectIdSchema,
     feesClearanceDate: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)).optional()
-}).omit({ draftId: true }).strict();
-exports.feesDraftUpdateSchema = exports.feesDraftRequestSchema.extend({
-    draftId: commonSchema_1.objectIdSchema
-}).omit({ enquiryId: true }).partial().strict();
+}).strict();
+exports.feesDraftUpdateSchema = exports.feesDraftRequestSchema.extend({ id: commonSchema_1.objectIdSchema }).omit({ enquiryId: true }).partial().strict();

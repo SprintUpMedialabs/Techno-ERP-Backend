@@ -61,7 +61,8 @@ exports.enquirySchema = new mongoose_1.Schema({
         enum: {
             values: Object.values(constants_1.AdmissionMode),
             message: 'Invalid Admission Mode value'
-        }
+        },
+        default: constants_1.AdmissionMode.OFFLINE
     },
     dateOfEnquiry: {
         type: Date,

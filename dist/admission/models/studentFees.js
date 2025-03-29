@@ -13,15 +13,12 @@ exports.OtherFeesSchema = new mongoose_1.Schema({
     type: {
         type: String,
         enum: Object.values(constants_1.FeeType),
-        required: true
     },
     feeAmount: {
         type: Number,
-        required: true
     },
     finalFee: {
         type: Number,
-        required: true
     },
     feesDepositedTOA: {
         type: Number,
@@ -35,11 +32,9 @@ exports.OtherFeesSchema = new mongoose_1.Schema({
 exports.SingleSemWiseFeesSchema = new mongoose_1.Schema({
     feeAmount: {
         type: Number,
-        required: true
     },
     finalFee: {
         type: Number,
-        required: true
     }
 }, { _id: false });
 //Fees draft for entire student
@@ -58,7 +53,6 @@ const StudentFeesSchema = new mongoose_1.Schema({
         type: String,
         enum: Object.values(constants_1.FeeStatus),
         default: constants_1.FeeStatus.DRAFT,
-        optional: true
     },
     feesClearanceDate: {
         type: Date

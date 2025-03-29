@@ -50,78 +50,84 @@ exports.enquiryDraftSchema = new mongoose_1.Schema({
         enum: {
             values: Object.values(constants_1.AdmissionMode),
             message: 'Invalid Admission Mode value'
-        }
+        },
+        required: false,
+        default: constants_1.AdmissionMode.OFFLINE
     },
     dateOfEnquiry: {
         type: Date,
-        required: true,
         default: new Date(),
         set: (value) => {
             return (0, convertDateToFormatedDate_1.convertToMongoDate)(value);
-        }
+        },
+        required: false
     },
     studentName: {
         type: String,
-        required: [true, 'Student Name is required']
+        required: true
     },
     studentPhoneNumber: {
         type: String,
+        required: true,
         validate: {
             validator: (stuPhNum) => commonSchema_1.contactNumberSchema.safeParse(stuPhNum).success,
             message: 'Invalid Phone Number'
-        }
+        },
     },
     emailId: {
         type: String,
         validate: {
             validator: (email) => commonSchema_1.emailSchema.safeParse(email).success,
             message: 'Invalid email format'
-        }
+        },
+        required: false
     },
     fatherName: {
         type: String,
-        required: [true, "Father's Name is required"]
+        required: false
     },
     fatherPhoneNumber: {
         type: String,
-        required: [true, 'Father Phone Number is required.'],
         validate: {
             validator: (stuPhNum) => commonSchema_1.contactNumberSchema.safeParse(stuPhNum).success,
             message: 'Invalid Father Phone Number'
-        }
+        },
+        required: false
     },
     fatherOccupation: {
         type: String,
-        required: [true, 'Father occupation is required']
+        required: false
     },
     motherName: {
         type: String,
-        required: [true, "Mother's Name is required"]
+        required: false
     },
     motherPhoneNumber: {
         type: String,
-        required: [true, 'Mother Phone Number is required.'],
         validate: {
             validator: (stuPhNum) => commonSchema_1.contactNumberSchema.safeParse(stuPhNum).success,
             message: 'Invalid Mother Phone Number'
-        }
+        },
+        required: false
     },
     motherOccupation: {
         type: String,
-        required: [true, 'Mother occupation is required']
+        required: false
     },
     dateOfBirth: {
         type: Date,
         set: (value) => {
             return (0, convertDateToFormatedDate_1.convertToMongoDate)(value);
-        }
+        },
+        required: false
     },
     category: {
         type: String,
         enum: {
             values: Object.values(constants_1.Category),
             message: 'Invalid Category value'
-        }
+        },
+        required: false
     },
     course: {
         type: String,
@@ -129,6 +135,7 @@ exports.enquiryDraftSchema = new mongoose_1.Schema({
             values: Object.values(constants_1.Course),
             message: 'Invalid Course value'
         },
+        required: false
     },
     reference: {
         type: String,
@@ -136,10 +143,12 @@ exports.enquiryDraftSchema = new mongoose_1.Schema({
             values: Object.values(constants_1.AdmissionReference),
             message: 'Invalid Admission Reference value'
         },
+        required: false
     },
     address: {
         type: address_1.addressSchema,
-        minlength: [5, 'Address must be at least 5 characters long']
+        minlength: [5, 'Address must be at least 5 characters long'],
+        required: false
     },
     academicDetails: {
         type: [academicDetail_1.academicDetailFormSchema],
@@ -170,10 +179,6 @@ exports.enquiryDraftSchema = new mongoose_1.Schema({
             values: Object.values(constants_1.Gender),
             message: 'Invalid gender value'
         }
-    },
-    approvedBy: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        required: false
     },
 }, { timestamps: true });
 const handleDraftMongooseError = (error, next) => {

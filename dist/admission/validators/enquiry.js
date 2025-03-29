@@ -47,8 +47,8 @@ exports.enquirySchema = zod_1.z.object({
 });
 // Final schema for request (omitting feesDraftId and making it strict)
 exports.enquiryStep1RequestSchema = exports.enquirySchema
-    .omit({ studentFee: true, dateOfAdmission: true, bloodGroup: true, admittedThrough: true, aadharNumber: true, religion: true, previousCollegeData: true, documents: true })
-    .extend({ draftId: commonSchema_1.objectIdSchema.optional() })
+    .omit({ studentFee: true, studentFeeDraft: true, dateOfAdmission: true, bloodGroup: true, admittedThrough: true, aadharNumber: true, religion: true, previousCollegeData: true, documents: true, approvedBy: true, applicationStatus: true })
+    .extend({ id: commonSchema_1.objectIdSchema.optional() })
     .strict();
 exports.enquiryStep1UpdateRequestSchema = exports.enquiryStep1RequestSchema.extend({
     id: commonSchema_1.objectIdSchema
@@ -58,15 +58,16 @@ exports.enquiryStep3UpdateRequestSchema = exports.enquirySchema.omit({ documents
 }).strict();
 exports.enquiryDraftStep1RequestSchema = exports.enquiryStep1RequestSchema
     .extend({
+    studentName: zod_1.z.string({ required_error: "Student Name is required", }).nonempty('Student Name is required'),
+    studentPhoneNumber: commonSchema_1.contactNumberSchema,
     counsellorName: zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])]).optional(),
     telecallerName: zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])]).optional(),
     dateOfCounselling: commonSchema_1.requestDateSchema
         .transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date))
         .optional(),
-    approvedBy: commonSchema_1.objectIdSchema.optional(),
-    address: commonSchema_1.addressSchema.partial(),
+    address: commonSchema_1.addressSchema.partial().optional(),
     academicDetails: zod_1.z.array(academicDetailSchema_1.academicDetailSchema.partial()).optional(),
-}).omit({ draftId: true }).partial().strict();
+}).omit({ id: true }).partial().strict();
 exports.enquiryDraftStep1UpdateSchema = exports.enquiryDraftStep1RequestSchema.extend({
-    id: commonSchema_1.objectIdSchema
+    id: commonSchema_1.objectIdSchema // This is referring to _id in the enquiryDraftsTable
 }).partial().strict();
