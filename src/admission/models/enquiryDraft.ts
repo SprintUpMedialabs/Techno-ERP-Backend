@@ -1,6 +1,6 @@
 import createHttpError from "http-errors";
 import mongoose, { Schema } from "mongoose"
-import { convertToDDMMYYYY } from "../../utils/convertDateToFormatedDate";
+import { convertToDDMMYYYY, convertToMongoDate } from "../../utils/convertDateToFormatedDate";
 import { AdmissionMode, AdmissionReference, Category, Course, Gender } from "../../config/constants";
 import { IEnquirySchema } from "../validators/enquiry";
 import { contactNumberSchema, emailSchema } from "../../validators/commonSchema";
@@ -23,6 +23,9 @@ export const enquiryDraftSchema = new Schema<IEnquiryDraftDocument>(
             type: Date,
             required: true,
             default: new Date(),
+            set: (value: string) => {
+                return convertToMongoDate(value);
+            }
         },
         studentName: {
             type: String,
@@ -76,6 +79,9 @@ export const enquiryDraftSchema = new Schema<IEnquiryDraftDocument>(
         },
         dateOfBirth: {
             type: Date,
+            set: (value: string) => {
+                return convertToMongoDate(value);
+            }
         },
         category: {
             type: String,
@@ -117,7 +123,10 @@ export const enquiryDraftSchema = new Schema<IEnquiryDraftDocument>(
         },
         dateOfCounselling: {
             type: Date,
-            required: false
+            required: false,
+            set: (value: string) => {
+                return convertToMongoDate(value);
+            }
         },
         remarks: {
             type: String

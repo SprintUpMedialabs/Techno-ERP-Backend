@@ -7,7 +7,7 @@ import {
   objectIdSchema,
   requestDateSchema
 } from '../../validators/commonSchema';
-import { academicDetailsArraySchema } from './academicDetailSchema';
+import { academicDetailsArraySchema, academicDetailSchema } from './academicDetailSchema';
 import { previousCollegeDataSchema } from './previousCollegeDataSchema';
 import { singleDocumentSchema } from './singleDocumentSchema';
 
@@ -97,7 +97,8 @@ export const enquiryDraftStep1RequestSchema = enquiryStep1RequestSchema
       .transform((date) => convertToMongoDate(date) as Date)
       .optional(),
     approvedBy: objectIdSchema.optional(),
-    address: addressSchema.partial()
+    address: addressSchema.partial(),
+    academicDetails: z.array(academicDetailSchema.partial()).optional(),
   }).omit({draftId : true}).partial().strict();
 
 export const enquiryDraftStep1UpdateSchema = enquiryDraftStep1RequestSchema.extend({

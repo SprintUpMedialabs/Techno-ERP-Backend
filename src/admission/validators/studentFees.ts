@@ -44,8 +44,11 @@ export const feesUpdateSchema = feesRequestSchema.extend({
 export const feesDraftRequestSchema = feesRequestSchema.extend({
     otherFees: z.array(otherFeesSchema.partial()).optional(),
     semWiseFees: z.array(singleSemSchema.partial()).optional(),
-    enquiryId : objectIdSchema
-}).omit({ draftId : true}).partial().strict();
+    enquiryId : objectIdSchema,
+    feesClearanceDate : requestDateSchema.transform((date) =>
+        convertToMongoDate(date) as Date
+    ).optional()
+}).omit({ draftId : true}).strict();
 
 export const feesDraftUpdateSchema = feesDraftRequestSchema.extend({
     draftId : objectIdSchema

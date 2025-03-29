@@ -1,7 +1,7 @@
 import createHttpError from 'http-errors';
 import mongoose, { Schema } from 'mongoose';
 import { AdmissionMode, AdmissionReference, ApplicationStatus, Category, Course, Gender } from '../../config/constants';
-import { convertToDDMMYYYY } from '../../utils/convertDateToFormatedDate';
+import { convertToDDMMYYYY, convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import { contactNumberSchema, emailSchema } from '../../validators/commonSchema';
 import { IEnquirySchema } from '../validators/enquiry';
 import { academicDetailFormSchema } from './academicDetail';
@@ -28,7 +28,10 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
     dateOfEnquiry: {
       type: Date,
       required: true,
-      default : new Date(),   
+      default : new Date(),
+      set: (value: string) => {
+        return convertToMongoDate(value);
+      }   
     },
     studentName: {
       type: String,
@@ -83,6 +86,9 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
     dateOfBirth: {
       type: Date,
       required: [true, 'Date is required'],
+      set: (value: string) => {
+        return convertToMongoDate(value);
+      }
       // set: (value: string) => {
       //   let convertedDate = convertToMongoDate(value);
       //   if (!convertedDate) throw createHttpError(400,'Invalid date format, expected DD-MM-YYYY');
@@ -132,7 +138,10 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
     },
     dateOfCounselling : {
       type: Date,
-      required : false
+      required : false,
+      set: (value: string) => {
+        return convertToMongoDate(value);
+      }
     },
     remarks: {
       type: String

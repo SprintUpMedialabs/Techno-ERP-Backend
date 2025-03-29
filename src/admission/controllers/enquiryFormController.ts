@@ -35,26 +35,27 @@ export const createEnquiry = expressAsyncHandler(
     const data: IEnquiryStep1RequestSchema = req.body;
     const validation = enquiryStep1RequestSchema.safeParse(data);
 
+    console.log(validation.error)
     if (!validation.success) {
       throw createHttpError(400, validation.error.errors[0]);
     }
 
     const { draftId , ...enquiryData } = data; 
 
-    //Delete enquiry draft
-    if(draftId)
-    {
-      const deletedDraft = await EnquiryDraft.findByIdAndDelete(draftId);
-      if (!deletedDraft) {
-        throw createHttpError(404, 'Draft not found');
-      }
-  
-    }
     
-
+    console.log(enquiryData)
     //Create the enquiry
     let savedResult = await Enquiry.create({ ...enquiryData });
     if (savedResult) {
+      //Delete enquiry draft
+      if(draftId)
+      {
+        const deletedDraft = await EnquiryDraft.findByIdAndDelete(draftId);
+        if (!deletedDraft) {
+          throw createHttpError(404, 'Draft not found');
+        }
+    
+      }
       return formatResponse(res, 201, 'Enquiry created successfully', true);
     }
     else {
@@ -497,7 +498,7 @@ export const createEnquiryDraftStep1 = expressAsyncHandler(async (req : Authenti
     const enquiryDraftStep1Data : IEnquiryDraftStep1RequestSchema = req.body;
 
     const validation = enquiryDraftStep1RequestSchema.safeParse(enquiryDraftStep1Data);
-    
+    console.log(validation.error)
     //This will be used for checking other validations like length of pincode, format of date, etc
     if(!validation.success)
       throw createHttpError(400, validation.error.errors[0]);
@@ -540,6 +541,10 @@ export const createFeeDraft = expressAsyncHandler(async (req: AuthenticatedReque
   const feesDraftData: IFeesDraftRequestSchema = req.body;
 
   const validation = feesDraftRequestSchema.safeParse(feesDraftData);
+
+  console.log("Validation Error")
+  console.log(validation.error)
+
   if (!validation.success) {
     throw createHttpError(400, validation.error.errors[0].message);
   }
@@ -575,7 +580,7 @@ export const createFeeDraft = expressAsyncHandler(async (req: AuthenticatedReque
     })) || []
   };
   
-  const feesDraft = await FeesDraftModel.create(feeData);
+  const feesDraft = await StudentFeesDraftModel.create(feeData);
 
   await Enquiry.findByIdAndUpdate(
     feesDraftData.enquiryId,
