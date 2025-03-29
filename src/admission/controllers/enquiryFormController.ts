@@ -184,10 +184,12 @@ export const createFeeDraft = expressAsyncHandler(async (req: AuthenticatedReque
 
 
 export const updateFeeDraft = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  const { id } = req.params;
-  const feesDraftData: IFeesDraftUpdateSchema = req.body;
 
-  const validation = feesDraftUpdateSchema.safeParse(feesDraftData);
+  let feesDraftData: IFeesDraftUpdateSchema = req.body;
+
+  let { id , ...feesDraftUpdateData} = feesDraftData;
+
+  const validation = feesDraftUpdateSchema.safeParse(feesDraftUpdateData);
 
   console.log("Validation Error");
   console.log(validation.error);
@@ -527,7 +529,7 @@ export const getEnquiryData = expressAsyncHandler(
 
     const combinedResults = [...enquiries, ...enquiryDrafts];
 
-    if (enquiries.length > 0) {
+    if (combinedResults.length > 0) {
       return formatResponse(res, 200, 'Enquiries corresponding to your search', true, combinedResults);
     } else {
       return formatResponse(res, 200, 'No enquiries found with this information', true);
@@ -547,10 +549,13 @@ export const getEnquiryById = expressAsyncHandler(
     let enquiry = await Enquiry.findById(id).populate('studentFee');
 
     if (!enquiry) {
-      throw createHttpError(404, 'Enquiry not found');
+      const enquiryDraft = await EnquiryDraft.findById(id);
+      if (enquiryDraft) {
+        return formatResponse(res, 200, 'Enquiry draft details', true, enquiryDraft);
+      }  
     }
 
-    if (!enquiry.studentFee) {
+    if (!enquiry!.studentFee) {
       enquiry = await Enquiry.findById(id).populate('studentFeeDraft');
     }
 

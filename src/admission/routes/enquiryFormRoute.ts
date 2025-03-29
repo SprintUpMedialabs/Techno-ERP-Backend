@@ -83,7 +83,7 @@ enquiryRoute.post('/create-draft-step-2',
     createFeeDraft
 );
 
-enquiryRoute.put('/update-draft-step-2/:id', 
+enquiryRoute.put('/update-draft-step-2', 
     authenticate,
     authorize([UserRoles.REGISTAR, UserRoles.BASIC_USER]),
     updateFeeDraft
