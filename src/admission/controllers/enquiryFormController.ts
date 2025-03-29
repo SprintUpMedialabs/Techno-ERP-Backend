@@ -28,6 +28,47 @@ import { EnquiryDraft } from '../models/enquiryDraft';
 import { StudentFeesDraftModel } from '../models/studentFeesDraft';
 
 
+export const createEnquiryDraftStep1 = expressAsyncHandler(async (req : AuthenticatedRequest, res : Response) => {
+  const enquiryDraftStep1Data : IEnquiryDraftStep1RequestSchema = req.body;
+
+  const validation = enquiryDraftStep1RequestSchema.safeParse(enquiryDraftStep1Data);
+  console.log(validation.error)
+  //This will be used for checking other validations like length of pincode, format of date, etc
+  if(!validation.success)
+    throw createHttpError(400, validation.error.errors[0]);
+
+  const enquiryDraft = await EnquiryDraft.create(validation.data);
+
+  return formatResponse(res, 200, 'Draft created successfully', true, enquiryDraft);
+
+})
+
+
+export const updateEnquiryDraftStep1 = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+
+  const enquiryDraftStep1Data : IEnquiryDraftStep1UpdateSchema = req.body;
+
+  const validation = enquiryDraftStep1UpdateSchema.safeParse(enquiryDraftStep1Data);
+  
+  if(!validation.success)
+    throw createHttpError(400, validation.error.errors[0]);
+
+  const { id, ...newData } = validation.data;
+
+  const updatedDraft = await EnquiryDraft.findByIdAndUpdate(
+    id,
+    { $set: newData }, 
+    { new: true, runValidators: true }
+  );
+
+  if (!updatedDraft) {
+    throw createHttpError(404, 'Failed to update draft');
+  }
+
+  return formatResponse(res, 200, 'Draft updated successfully', true, updatedDraft)
+}
+);
+
 
 export const createEnquiry = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
@@ -40,23 +81,25 @@ export const createEnquiry = expressAsyncHandler(
       throw createHttpError(400, validation.error.errors[0]);
     }
 
-    const { draftId , ...enquiryData } = data; 
+    const { id , ...enquiryData } = data; 
 
     
-    console.log(enquiryData)
+    console.log(enquiryData);
+
     //Create the enquiry
     let savedResult = await Enquiry.create({ ...enquiryData });
+
     if (savedResult) {
-      //Delete enquiry draft
-      if(draftId)
+      //Delete enquiry draft only if the save of enquiry is successful.
+      if(id)
       {
-        const deletedDraft = await EnquiryDraft.findByIdAndDelete(draftId);
-        if (!deletedDraft) {
-          throw createHttpError(404, 'Draft not found');
+        const deletedDraft = await EnquiryDraft.findByIdAndDelete(id);
+        if (deletedDraft) {
+          throw formatResponse(res, 201, 'Draft deleted successfully', true);
         }
-    
+        //DA Check : There are 2 possibilities here, either draft deletion is unsuccessful or the draft doesn't exists only, so what should we do here? => isExists ka check lagana hai?
       }
-      return formatResponse(res, 201, 'Enquiry created successfully', true);
+      return formatResponse(res, 201, 'Enquiry created successfully', true, savedResult);
     }
     else {
       throw createHttpError(404, 'Error occurred creating enquiry');
@@ -492,49 +535,6 @@ const getPrefixForCourse = (course: Course): FormNoPrefixes => {
   if (course === Course.LLB) return FormNoPrefixes.TCL;
   return FormNoPrefixes.TIHS;
 };
-
-
-export const createEnquiryDraftStep1 = expressAsyncHandler(async (req : AuthenticatedRequest, res : Response) => {
-    const enquiryDraftStep1Data : IEnquiryDraftStep1RequestSchema = req.body;
-
-    const validation = enquiryDraftStep1RequestSchema.safeParse(enquiryDraftStep1Data);
-    console.log(validation.error)
-    //This will be used for checking other validations like length of pincode, format of date, etc
-    if(!validation.success)
-      throw createHttpError(400, validation.error.errors[0]);
-
-    const enquiryDraft = await EnquiryDraft.create(validation.data);
-
-    return formatResponse(res, 200, 'Draft created successfully', true, enquiryDraft);
-
-})
-
-
-export const updateEnquiryDraftStep1 = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-
-    const enquiryDraftStep1Data : IEnquiryDraftStep1UpdateSchema = req.body;
-
-    const validation = enquiryDraftStep1UpdateSchema.safeParse(enquiryDraftStep1Data);
-    
-    if(!validation.success)
-      throw createHttpError(400, validation.error.errors[0]);
-
-    const { id, ...newData } = validation.data;
-
-    const updatedDraft = await EnquiryDraft.findByIdAndUpdate(
-      id,
-      { $set: newData }, 
-      { new: true, runValidators: true }
-    );
-
-    if (!updatedDraft) {
-      throw createHttpError(404, 'Failed to update draft');
-    }
-
-    return formatResponse(res, 200, 'Draft updated successfully', true, updatedDraft)
-  }
-);
-
 
 
 export const createFeeDraft = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {

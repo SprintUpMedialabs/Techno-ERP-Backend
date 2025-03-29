@@ -39,7 +39,7 @@ export const feesRequestSchema = studentFeesSchema.omit({ feeStatus: true }).ext
 
 export const feesUpdateSchema = feesRequestSchema.extend({
     id: objectIdSchema
-}).omit({draftId : true});
+}).omit({ draftId : true });
 
 export const feesDraftRequestSchema = feesRequestSchema.extend({
     otherFees: z.array(otherFeesSchema.partial()).optional(),
@@ -48,11 +48,11 @@ export const feesDraftRequestSchema = feesRequestSchema.extend({
     feesClearanceDate : requestDateSchema.transform((date) =>
         convertToMongoDate(date) as Date
     ).optional()
-}).omit({ draftId : true}).strict();
+}).omit({ draftId : true }).strict();
 
 export const feesDraftUpdateSchema = feesDraftRequestSchema.extend({
     draftId : objectIdSchema
-}).omit({ enquiryId : true}).partial().strict()
+}).omit({ enquiryId : true }).partial().strict()
 
 export type IOtherFeesSchema = z.infer<typeof otherFeesSchema>;
 export type ISingleSemSchema = z.infer<typeof singleSemSchema>;
