@@ -23,7 +23,8 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
       enum: {
         values: Object.values(AdmissionMode),
         message: 'Invalid Admission Mode value'
-      }
+      },
+      default : AdmissionMode.OFFLINE
     },
     dateOfEnquiry: {
       type: Date,

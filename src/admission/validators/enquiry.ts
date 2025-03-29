@@ -13,6 +13,7 @@ import { singleDocumentSchema } from './singleDocumentSchema';
 
 
 export const enquirySchema = z.object({
+
   admissionMode: z.nativeEnum(AdmissionMode).default(AdmissionMode.OFFLINE),
 
   studentName: z.string({ required_error: "Student Name is required", }).nonempty('Student Name is required'),
@@ -38,6 +39,7 @@ export const enquirySchema = z.object({
 
 
   address: addressSchema,
+
   academicDetails: academicDetailsArraySchema.optional(),
 
 
@@ -76,8 +78,8 @@ export const enquirySchema = z.object({
 
 // Final schema for request (omitting feesDraftId and making it strict)
 export const enquiryStep1RequestSchema = enquirySchema
-  .omit({ studentFee: true, dateOfAdmission: true, bloodGroup: true, admittedThrough: true, aadharNumber: true, religion: true, previousCollegeData: true, documents: true })
-  .extend({ draftId: objectIdSchema.optional() })
+  .omit({ studentFee: true, studentFeeDraft : true,dateOfAdmission: true, bloodGroup: true, admittedThrough: true, aadharNumber: true, religion: true, previousCollegeData: true, documents: true, approvedBy : true, applicationStatus : true })
+  .extend({ id: objectIdSchema.optional() })
   .strict();
 
 export const enquiryStep1UpdateRequestSchema = enquiryStep1RequestSchema.extend({
@@ -91,18 +93,19 @@ export const enquiryStep3UpdateRequestSchema = enquirySchema.omit({ documents: t
 
 export const enquiryDraftStep1RequestSchema = enquiryStep1RequestSchema
   .extend({
+    studentName: z.string({ required_error: "Student Name is required", }).nonempty('Student Name is required'),
+    studentPhoneNumber: contactNumberSchema,
     counsellorName: z.union([objectIdSchema, z.enum(['other'])]).optional(),
     telecallerName: z.union([objectIdSchema, z.enum(['other'])]).optional(),
     dateOfCounselling: requestDateSchema
       .transform((date) => convertToMongoDate(date) as Date)
       .optional(),
-    approvedBy: objectIdSchema.optional(),
-    address: addressSchema.partial(),
+    address: addressSchema.partial().optional(),
     academicDetails: z.array(academicDetailSchema.partial()).optional(),
-  }).omit({draftId : true}).partial().strict();
+  }).omit({id : true}).partial().strict();
 
 export const enquiryDraftStep1UpdateSchema = enquiryDraftStep1RequestSchema.extend({
-  id: objectIdSchema
+  id: objectIdSchema      // This is referring to _id in the enquiryDraftsTable
 }).partial().strict();
 
 export type IEnquiryUpdateSchema = z.infer<typeof enquiryStep3UpdateRequestSchema>;

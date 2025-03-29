@@ -18,15 +18,12 @@ export const OtherFeesSchema = new Schema<IOtherFeesDocument>({
     type: {
         type: String,
         enum: Object.values(FeeType),
-        required: true
     },
     feeAmount: {
         type: Number,
-        required: true
     },
     finalFee: {
         type: Number,
-        required: true
     },
     feesDepositedTOA: {
         type: Number,
@@ -41,11 +38,9 @@ export const OtherFeesSchema = new Schema<IOtherFeesDocument>({
 export const SingleSemWiseFeesSchema = new Schema<ISingleSemWiseDocument>({
     feeAmount: {
         type: Number,
-        required: true
     },
     finalFee: {
         type: Number,
-        required: true
     }
 }, { _id: false });
 
@@ -67,7 +62,6 @@ const StudentFeesSchema = new Schema<IStudentFeesDocument>(
             type: String,
             enum: Object.values(FeeStatus),
             default: FeeStatus.DRAFT,
-            optional: true
         },
         feesClearanceDate : {
             type : Date
