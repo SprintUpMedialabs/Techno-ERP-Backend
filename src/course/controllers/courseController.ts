@@ -10,13 +10,14 @@ export const createCourse = expressAsyncHandler(async (req: AuthenticatedRequest
 
     const { createCourseData } = req.body;
     const validation = courseSchema.safeParse(createCourseData);
+    console.log(validation.error?.errors);
     if (!validation.success)
         throw createHttpError(400, validation.error.errors[0]);
 
     const newCourse = await CourseModel.create(validation.data);
 
-    if (!newCourse)
-        throw createHttpError(404, 'Could not create the course!');
+    // if (!newCourse)
+    //     throw createHttpError(404, 'Could not create the course!');
 
     return formatResponse(res, 200, 'Course created successfully', true, newCourse);
 
