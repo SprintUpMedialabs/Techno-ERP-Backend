@@ -513,9 +513,9 @@ export const getEnquiryData = expressAsyncHandler(
 
     const enquiryDrafts = await EnquiryDraft.find(filter).select({
       _id: 1,
-      draftDate: 1,
-      draftName: 1,
-      draftPhoneNumber: 1,
+      dateOfEnquiry: 1,
+      studentName: 1,
+      studentPhoneNumber: 1,
       gender: 1,
       address: 1,
       course: 1,
