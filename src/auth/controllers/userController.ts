@@ -12,7 +12,7 @@ import { formatName } from '../../utils/formatName';
 import { formatResponse } from '../../utils/formatResponse';
 
 export const userProfile = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  
+
   const decodedData = req.data;
 
   if (!decodedData) {
@@ -65,42 +65,64 @@ export const getUserByRole = expressAsyncHandler(async (req: AuthenticatedReques
 });
 
 export const fetchDropdownsBasedOnPage = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  const { moduleName } = req.query;
-
-  const id = req.data?.id;
-  const roles = req.data?.roles!;
-
-  const validation = dropdownSchema.safeParse({ roles, moduleName });
-  if (!validation.success) {
-    throw createHttpError(400, "Invalid role or module name");
+  const { role } = req.query;
+  if (Object.values(UserRoles).includes(role as UserRoles)) {
+    const users = await User.find({ roles: role as UserRoles });
+    const formattedUsers = users.map((user) => ({
+      _id: user?._id,
+      name: formatName(user?.firstName ?? '', user?.lastName ?? ''),
+      email: user?.email
+    }));
+    return formatResponse(res, 200, 'Fetching successful', true, formattedUsers);
+  } else {
+    throw createHttpError(400, "Invalid role");
   }
+  // const { moduleName } = req.query;
+  // const id = req.data?.id;
+  // const roles = req.data?.roles!;
 
-  let users;
+  // const validation = dropdownSchema.safeParse({ roles, moduleName });
+  // if (!validation.success) {
+  //   throw createHttpError(400, "Invalid role or module name");
+  // }
 
-  if (moduleName === ModuleNames.MARKETING) {
-    // If the user is ADMIN or LEAD_MARKETING (and not only marketing employee)
-    if (roles.includes(UserRoles.ADMIN) || roles.includes(UserRoles.LEAD_MARKETING)) {
-      users = await User.find({ roles: UserRoles.EMPLOYEE_MARKETING });
-    }
-    // If the user is only a MARKETING_EMPLOYEE
-    else if (roles.includes(UserRoles.EMPLOYEE_MARKETING)) {
-      users = await User.findOne({ _id: id });
-      if (!users) {
-        throw createHttpError(404, "User not found");
-      }
-      users = [users];
-    }
+  // let users;
 
-    if (users) {
-      const formattedUsers = users.map((user) => ({
-        _id: user._id,
-        name: formatName(user.firstName, user.lastName),
-        email: user.email
-      }));
+  // if (moduleName === ModuleNames.MARKETING) {
+  //   // If the user is ADMIN or LEAD_MARKETING (and not only marketing employee)
+  //   if (roles.includes(UserRoles.ADMIN) || roles.includes(UserRoles.LEAD_MARKETING)) {
+  //     users = await User.find({ roles: UserRoles.EMPLOYEE_MARKETING });
+  //   }
+  //   // If the user is only a MARKETING_EMPLOYEE
+  //   else if (roles.includes(UserRoles.EMPLOYEE_MARKETING)) {
+  //     users = await User.findOne({ _id: id });
+  //     users = [users];
+  //   }
 
-      return formatResponse(res, 200, 'Fetching successful', true, formattedUsers)
-    }
-  }
+  //   if (users) {
+  //     const formattedUsers = users.map((user) => ({
+  //       _id: user?._id,
+  //       name: formatName(user?.firstName ?? '', user?.lastName ?? ''),
+  //       email: user?.email
+  //     }));
+
+  //     return formatResponse(res, 200, 'Fetching successful', true, formattedUsers)
+  //   }
+  // } else if (moduleName === ModuleNames.ADMISSION) {
+  //   if (roles.includes(UserRoles.COUNSELOR)) {
+  //     users = await User.findOne({ _id: id });
+  //     users = [users];
+  //   }
+  //   if (users) {
+  //     const formattedUsers = users.map((user) => ({
+  //       _id: user?._id,
+  //       name: formatName(user?.firstName ?? '', user?.lastName ?? ''),
+  //       email: user?.email
+  //     }));
+
+  //     return formatResponse(res, 200, 'Fetching successful', true, formattedUsers)
+  //   }
+  // }
 
 
   //throw createHttpError(400, "Invalid module name");

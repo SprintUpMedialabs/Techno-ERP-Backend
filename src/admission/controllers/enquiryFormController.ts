@@ -510,7 +510,7 @@ export const getEnquiryData = expressAsyncHandler(
       fatherPhoneNumber: 1, 
       motherPhoneNumber: 1 
     })
-
+    
     const enquiryDrafts = await EnquiryDraft.find(filter).select({
       _id: 1,
       dateOfEnquiry: 1,
@@ -524,10 +524,9 @@ export const getEnquiryData = expressAsyncHandler(
       motherPhoneNumber: 1
     });
 
-
     const combinedResults = [...enquiries, ...enquiryDrafts];
 
-    if (enquiries.length > 0) {
+    if (combinedResults.length > 0) {
       return formatResponse(res, 200, 'Enquiries corresponding to your search', true, combinedResults);
     } else {
       return formatResponse(res, 200, 'No enquiries found with this information', true);

@@ -168,7 +168,8 @@ export enum MimeType {
 
 
 export enum ModuleNames {
-  MARKETING = "MARKETING"
+  MARKETING = "MARKETING",
+  ADMISSION = "ADMISSION"
 }
 
 
