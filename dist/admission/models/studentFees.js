@@ -107,6 +107,11 @@ const transformDates = (_, ret) => {
             ret[key] = (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(ret[key]);
         }
     });
+    delete ret.createdAt;
+    delete ret.updatedAt;
+    delete ret.__v;
     return ret;
 };
+StudentFeesSchema.set('toJSON', { transform: transformDates });
+StudentFeesSchema.set('toObject', { transform: transformDates });
 exports.FeesDraftModel = (0, mongoose_1.model)('studentFee', StudentFeesSchema);

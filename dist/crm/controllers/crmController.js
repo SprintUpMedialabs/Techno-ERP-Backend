@@ -100,15 +100,22 @@ exports.updateData = (0, express_async_handler_1.default)((req, res) => __awaite
             throw (0, http_errors_1.default)(400, 'Sorry, this lead can only be updated from the yellow leads tracker!');
         }
         let leadTypeModifiedDate = existingLead.leadTypeModifiedDate;
+        if (leadRequestData.leadType && existingLead.leadType != leadRequestData.leadType) {
+            leadTypeModifiedDate = new Date();
+        }
+        console.log('before updating from controller');
+        console.log(leadRequestData);
         const updatedData = yield leads_1.Lead.findByIdAndUpdate(existingLead._id, Object.assign(Object.assign({}, leadRequestData), { leadTypeModifiedDate }), {
             new: true,
             runValidators: true
         });
+        console.log('after updating from controller');
+        console.log(updatedData);
         if (leadRequestData.leadType && existingLead.leadType != leadRequestData.leadType) {
             if (leadRequestData.leadType === constants_1.LeadType.YELLOW) {
                 (0, yellowLeadController_1.createYellowLead)(updatedData);
+                console.log('Yellow lead created successfully');
             }
-            leadTypeModifiedDate = new Date();
         }
         return (0, formatResponse_1.formatResponse)(res, 200, 'Data Updated Successfully!', true, updatedData);
     }

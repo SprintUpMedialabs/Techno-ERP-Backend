@@ -231,6 +231,9 @@ const transformDates = (_, ret) => {
             ret[key] = (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(ret[key]);
         }
     });
+    delete ret.createdAt;
+    delete ret.updatedAt;
+    delete ret.__v;
     return ret;
 };
 exports.enquiryDraftSchema.set('toJSON', { transform: transformDates });
