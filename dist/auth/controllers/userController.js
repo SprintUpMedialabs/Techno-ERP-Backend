@@ -102,12 +102,7 @@ exports.fetchDropdownsBasedOnPage = (0, express_async_handler_1.default)((req, r
         }
     }
     else if (moduleName === constants_1.ModuleNames.ADMISSION) {
-        if (roles.includes(constants_1.UserRoles.COUNSELOR)) {
-            users = yield user_1.User.find({ roles: constants_1.UserRoles.COUNSELOR });
-        }
-        else if (roles.includes(constants_1.UserRoles.EMPLOYEE_MARKETING)) {
-            users = yield user_1.User.find({ roles: constants_1.UserRoles.EMPLOYEE_MARKETING });
-        }
+        users = yield user_1.User.find({ roles: role });
         if (users) {
             const formattedUsers = users.map((user) => {
                 var _a, _b;
