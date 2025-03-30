@@ -90,7 +90,13 @@ const transformDates = (_: any, ret: any) => {
       ret[key] = convertToDDMMYYYY(ret[key]);
     }
   });
+  delete ret.createdAt;
+  delete ret.updatedAt;
+  delete ret.__v;
   return ret;
 };
+
+StudentFeesDraftSchema.set('toJSON', { transform: transformDates });
+StudentFeesDraftSchema.set('toObject', { transform: transformDates });
 
 export const StudentFeesDraftModel = model('studentFeeDraft', StudentFeesDraftSchema);

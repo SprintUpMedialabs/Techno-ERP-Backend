@@ -103,6 +103,9 @@ userSchema.post('findOneAndUpdate', function (error: any, doc: any, next: Functi
 
 const transformDates = (_: any, ret: any) => {
   delete ret.password; 
+  delete ret.createdAt;
+  delete ret.updatedAt;
+  delete ret.__v;
   return ret;
 };
 

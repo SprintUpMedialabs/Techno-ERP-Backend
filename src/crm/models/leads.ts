@@ -5,7 +5,7 @@ import logger from '../../config/logger';
 import { convertToDDMMYYYY, convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import { ILead } from '../validators/leads';
 
-export interface ILeadDocument extends ILead, Document {}
+export interface ILeadDocument extends ILead, Document { }
 
 const leadSchema = new Schema<ILeadDocument>(
   {
@@ -54,16 +54,19 @@ const leadSchema = new Schema<ILeadDocument>(
       }
     },
 
-    location: { type: String, 
-      enum : {
-        values : Object.values(Locations),
-        message : 'Invalid Location Value'
+    location: {
+      type: String,
+      enum: {
+        values: Object.values(Locations),
+        message: 'Invalid Location Value'
       }
-     },
-    course: { type: String,enum:{
-      values: Object.values(Course),
-      message: 'Invalid Course Value'
-    } }, // TODO: need to test this as we added enum
+    },
+    course: {
+      type: String, enum: {
+        values: Object.values(Course),
+        message: 'Invalid Course Value'
+      }
+    }, // TODO: need to test this as we added enum
 
     // Required field with a custom validation error message
     assignedTo: {
@@ -121,6 +124,9 @@ const transformDates = (_: any, ret: any) => {
       ret[key] = convertToDDMMYYYY(ret[key]);
     }
   });
+  delete ret.createdAt;
+  delete ret.updatedAt;
+  delete ret.__v;
   return ret;
 };
 

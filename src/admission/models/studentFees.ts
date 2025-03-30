@@ -1,4 +1,4 @@
-import { model, Schema,Types } from 'mongoose';
+import { model, Schema, Types } from 'mongoose';
 import { FeeStatus, FeeType } from '../../config/constants';
 import { IOtherFeesSchema, ISingleSemSchema, IStudentFeesSchema } from '../validators/studentFees';
 import createHttpError from 'http-errors';
@@ -70,19 +70,19 @@ const StudentFeesSchema = new Schema<IStudentFeesDocument>(
         counsellor: {
             type: Schema.Types.Mixed, // Allows ObjectId or String
             validate: {
-              validator: function (value) {
-                // Allow null or undefined
-                if (value === null || value === undefined) return true;
-        
-                // Check for valid ObjectId
-                const isObjectId = Types.ObjectId.isValid(value);
-        
-                // Allow string 'other'
-                const isOther = value === 'other';
-        
-                return isObjectId || isOther;
-              },
-              message: props => `'${props.value}' is not a valid counsellor (must be ObjectId or 'other')`
+                validator: function (value) {
+                    // Allow null or undefined
+                    if (value === null || value === undefined) return true;
+
+                    // Check for valid ObjectId
+                    const isObjectId = Types.ObjectId.isValid(value);
+
+                    // Allow string 'other'
+                    const isOther = value === 'other';
+
+                    return isObjectId || isOther;
+                },
+                message: props => `'${props.value}' is not a valid counsellor (must be ObjectId or 'other')`
             },
             required: true,
         },
@@ -123,7 +123,13 @@ const transformDates = (_: any, ret: any) => {
             ret[key] = convertToDDMMYYYY(ret[key]);
         }
     });
+    delete ret.createdAt;
+    delete ret.updatedAt;
+    delete ret.__v;
     return ret;
 };
+
+StudentFeesSchema.set('toJSON', { transform: transformDates });
+StudentFeesSchema.set('toObject', { transform: transformDates });
 
 export const FeesDraftModel = model('studentFee', StudentFeesSchema);

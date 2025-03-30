@@ -212,6 +212,9 @@ const transformDates = (_: any, ret: any) => {
             ret[key] = convertToDDMMYYYY(ret[key]);
         }
     });
+    delete ret.createdAt;
+    delete ret.updatedAt;
+    delete ret.__v;
     return ret;
 };
 

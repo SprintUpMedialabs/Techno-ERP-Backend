@@ -56,7 +56,7 @@ export const getFilteredLeadData = expressAsyncHandler(
       total: totalLeads,
       totalPages: Math.ceil(totalLeads / limit),
       currentPage: page
-    }); 
+    });
   }
 );
 
@@ -111,6 +111,11 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
 
     let leadTypeModifiedDate = existingLead.leadTypeModifiedDate;
 
+    if (leadRequestData.leadType && existingLead.leadType != leadRequestData.leadType) {
+      leadTypeModifiedDate = new Date();
+    }
+    console.log('before updating from controller');
+    console.log(leadRequestData);
     const updatedData = await Lead.findByIdAndUpdate(
       existingLead._id,
       { ...leadRequestData, leadTypeModifiedDate },
@@ -119,16 +124,18 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
         runValidators: true
       }
     );
+    console.log('after updating from controller');
+    console.log(updatedData);
 
     if (leadRequestData.leadType && existingLead.leadType != leadRequestData.leadType) {
       if (leadRequestData.leadType === LeadType.YELLOW) {
         createYellowLead(updatedData!);
+        console.log('Yellow lead created successfully');
       }
-      leadTypeModifiedDate = new Date();
     }
 
     return formatResponse(res, 200, 'Data Updated Successfully!', true, updatedData);
-  } 
+  }
   else {
     throw createHttpError(404, 'Lead does not found with the given ID.');
   }
