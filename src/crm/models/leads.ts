@@ -1,7 +1,6 @@
 import createHttpError from 'http-errors';
-import mongoose, { Document, HydratedDocument, Schema, Types } from 'mongoose';
+import mongoose, { Document, Schema } from 'mongoose';
 import { Course, Gender, LeadType, Locations } from '../../config/constants';
-import logger from '../../config/logger';
 import { convertToDDMMYYYY, convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import { ILead } from '../validators/leads';
 

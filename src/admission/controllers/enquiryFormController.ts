@@ -76,15 +76,11 @@ export const createEnquiry = expressAsyncHandler(
     const data: IEnquiryStep1RequestSchema = req.body;
     const validation = enquiryStep1RequestSchema.safeParse(data);
 
-    console.log(validation.error)
     if (!validation.success) {
       throw createHttpError(400, validation.error.errors[0]);
     }
 
     const { id , ...enquiryData } = data; 
-
-    
-    console.log(enquiryData);
 
     //Create the enquiry
     let savedResult = await Enquiry.create({ ...enquiryData });

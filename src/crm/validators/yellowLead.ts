@@ -1,5 +1,5 @@
-import { object, z } from 'zod';
-import { Gender, FinalConversionType, Course, Locations, Marketing_Source } from '../../config/constants';
+import { z } from 'zod';
+import { Course, FinalConversionType, Gender, Locations, Marketing_Source } from '../../config/constants';
 import { contactNumberSchema, objectIdSchema, requestDateSchema } from '../../validators/commonSchema';
 
 export const yellowLeadSchema = z

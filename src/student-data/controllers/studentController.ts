@@ -9,25 +9,26 @@ import { ADMISSION } from "../../config/constants";
 import { uploadToS3 } from "../../config/s3Upload";
 import { singleDocumentSchema } from "../../admission/validators/singleDocumentSchema";
 import { DocumentType } from "../../config/constants";
-import { studentFilterSchema } from "../validators/studentFilterSchema";
+import { studentFilterSchema, IStudentFilter } from "../validators/studentFilterSchema";
 import { buildStudentFilter } from "../utils/buildStudentFilter";
 
 export const getStudentData = expressAsyncHandler(
     async (req: AuthenticatedRequest, res: Response) => {
-        let { search, studentFilter } = req.body;
+        let { search, semester, course } = req.body;
 
-        // console.log(search);
-        // console.log(studentFilter);
+        const studentFilter: IStudentFilter = {}
 
-        if(!studentFilter)
-        {
-            studentFilter = {}
+        if (semester) {
+            studentFilter.semester = semester;
+        }
+
+        if (course) {
+            studentFilter.course = course;
         }
 
         const validation = studentFilterSchema.safeParse(studentFilter);
 
-        if(!validation.success)
-        {
+        if (!validation.success) {
             throw createHttpError(400, validation.error.errors[0]);
         }
 
@@ -36,15 +37,14 @@ export const getStudentData = expressAsyncHandler(
                 { studentName: { $regex: search || "", $options: 'i' } },
                 { universityId: { $regex: search || "", $options: 'i' } }
             ],
-            applicationStatus: 'Step_4'
         };
 
         const filter = {
             ...baseFilter,
-            ...buildStudentFilter(validation.data)
+            ...studentFilter
         };
 
-        const enquiries = await Enquiry.find(filter)
+        const enquiries = await Student.find(filter)
             .select({
                 universityId: 1,
                 studentName: 1,
@@ -52,7 +52,7 @@ export const getStudentData = expressAsyncHandler(
                 fatherName: 1,
                 fatherPhoneNumber: 1,
                 course: 1,
-                semester : 1
+                semester: 1
             });
 
         if (enquiries.length > 0) {
@@ -60,7 +60,7 @@ export const getStudentData = expressAsyncHandler(
         } else {
             return formatResponse(res, 200, 'No enquiries found with this information', true);
         }
-});
+    });
 
 
 export const getStudentDataById = expressAsyncHandler(
@@ -78,13 +78,13 @@ export const getStudentDataById = expressAsyncHandler(
         }
 
         return formatResponse(res, 200, 'Student details fetched successfully', true, enquiry);
-});
+    });
 
 
 export const updateStudentById = expressAsyncHandler(
     async (req: AuthenticatedRequest, res: Response) => {
 
-});
+    });
 
 
 
@@ -149,4 +149,4 @@ export const updateEnquiryDocuments = expressAsyncHandler(
         }
 
         return formatResponse(res, 200, 'Document uploaded successfully', true, updatedData);
-});
+    });

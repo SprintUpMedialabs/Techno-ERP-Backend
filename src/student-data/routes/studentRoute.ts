@@ -13,15 +13,15 @@ studentDataRoute.post('/search',
 );
 
 
-studentDataRoute.get('/:id', 
+studentDataRoute.get('/:id',
     authenticate,
     authorize([UserRoles.BASIC_USER]),
     getStudentDataById
-)
+);
 
 
-studentDataRoute.put(':/id',
-    authenticate, 
+studentDataRoute.put('/:id',
+    authenticate,
     authorize([UserRoles.BASIC_USER]),
     updateStudentById
 );
@@ -29,7 +29,7 @@ studentDataRoute.put(':/id',
 
 studentDataRoute.put('/update-document',
     authenticate,
-    authorize([UserRoles.BASIC_USER]), 
+    authorize([UserRoles.BASIC_USER]),
     upload.single('document'),
     updateEnquiryDocuments
 );
