@@ -1,32 +1,33 @@
+import { Response } from "express";
 import expressAsyncHandler from "express-async-handler";
-import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
-import { Response } from "express"
-import { formatResponse } from "../../utils/formatResponse";
-import { Enquiry } from "../../admission/models/enquiry";
 import createHttpError from "http-errors";
 import mongoose from "mongoose";
-import { ADMISSION } from "../../config/constants";
-import { uploadToS3 } from "../../config/s3Upload";
 import { singleDocumentSchema } from "../../admission/validators/singleDocumentSchema";
-import { DocumentType } from "../../config/constants";
-import { studentFilterSchema } from "../validators/studentFilterSchema";
-import { buildStudentFilter } from "../utils/buildStudentFilter";
+import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
+import { ADMISSION, DocumentType } from "../../config/constants";
+import { uploadToS3 } from "../../config/s3Upload";
+import { formatResponse } from "../../utils/formatResponse";
 import { Student } from "../models/student";
 import { IStudentUpdateSchema, updateStudentSchema } from "../validators/student";
+import { IStudentFilter, studentFilterSchema } from "../validators/studentFilterSchema";
 
 export const getStudentData = expressAsyncHandler(
     async (req: AuthenticatedRequest, res: Response) => {
-        let { search, studentFilter } = req.body;
+        let { search, semester, course } = req.body;
 
-        if(!studentFilter)
-        {
-            studentFilter = {}
+        const studentFilter: IStudentFilter = {}
+
+        if (semester) {
+            studentFilter.semester = semester;
+        }
+
+        if (course) {
+            studentFilter.course = course;
         }
 
         const validation = studentFilterSchema.safeParse(studentFilter);
 
-        if(!validation.success)
-        {
+        if (!validation.success) {
             throw createHttpError(400, validation.error.errors[0]);
         }
 
@@ -35,12 +36,11 @@ export const getStudentData = expressAsyncHandler(
                 { studentName: { $regex: search || "", $options: 'i' } },
                 { universityId: { $regex: search || "", $options: 'i' } }
             ],
-            applicationStatus: 'Step_4'
         };
 
         const filter = {
             ...baseFilter,
-            ...buildStudentFilter(validation.data)
+            ...studentFilter
         };
 
         const students = await Student.find(filter)
@@ -51,7 +51,7 @@ export const getStudentData = expressAsyncHandler(
                 fatherName: 1,
                 fatherPhoneNumber: 1,
                 course: 1,
-                semester : 1
+                semester: 1
             });
 
         if (students.length > 0) {
@@ -59,7 +59,7 @@ export const getStudentData = expressAsyncHandler(
         } else {
             return formatResponse(res, 200, 'No students found with this information', true);
         }
-});
+    });
 
 
 export const getStudentDataById = expressAsyncHandler(
@@ -167,4 +167,4 @@ export const updateStudentDocuments = expressAsyncHandler(
         }
 
         return formatResponse(res, 200, 'Document uploaded successfully', true, updatedData);
-});
+    });
