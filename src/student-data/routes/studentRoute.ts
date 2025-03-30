@@ -1,8 +1,8 @@
 import express from 'express';
-import { authenticate, authorize } from '../../middleware/jwtAuthenticationMiddleware';
 import { UserRoles } from '../../config/constants';
-import { getStudentData, getStudentDataById, updateEnquiryDocuments, updateStudentById } from '../controllers/studentController';
 import upload from '../../config/multerConfig';
+import { authenticate, authorize } from '../../middleware/jwtAuthenticationMiddleware';
+import { getStudentData, getStudentDataById, updateStudentById, updateStudentDocuments } from '../controllers/studentController';
 
 export const studentDataRoute = express.Router();
 
@@ -31,5 +31,5 @@ studentDataRoute.put('/update-document',
     authenticate,
     authorize([UserRoles.BASIC_USER]),
     upload.single('document'),
-    updateEnquiryDocuments
+    updateStudentDocuments
 );
