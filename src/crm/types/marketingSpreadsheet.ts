@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import { Course, FinalConversionType, LeadType, Locations } from '../../config/constants';
+import { Course, FinalConversionType, LeadType, Locations, Marketing_Source } from '../../config/constants';
 import { Gender } from 'aws-sdk/clients/polly';
 
 export interface IMarketingSpreadsheetProcessReport {
@@ -30,6 +30,6 @@ export interface IAdminAnalyticsFilter {
   assignedTo: Types.ObjectId[]; // Array for multiple assigned users | TODO: need to test this
   startDate?: string; // Date range start
   endDate?: string; // Date range end
-  source: [];
-  gender: Gender[]
+  source?: Marketing_Source[];
+  gender: Gender[];
 }

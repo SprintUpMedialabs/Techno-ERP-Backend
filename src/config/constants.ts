@@ -7,7 +7,8 @@ export enum UserRoles {
   EMPLOYEE_MARKETING = 'EMPLOYEE_MARKETING',
   BASIC_USER = 'BASIC_USER',
   COUNSELOR = 'COUNSELOR',
-  REGISTAR = 'REGISTAR'
+  REGISTAR = 'REGISTAR',
+  
 }
 
 export enum Gender {
@@ -15,6 +16,11 @@ export enum Gender {
   FEMALE = 'FEMALE',
   OTHER = 'OTHERS',
   NOT_TO_MENTION = 'NOT_TO_MENTION'
+}
+
+
+export enum Source {
+  SCHOOL = 'School'
 }
 
 
@@ -35,6 +41,11 @@ export enum FinalConversionType {
   RED = 'NOT_CONVERTED'
 }
 
+
+export enum Marketing_Source{
+  SCHOOL = 'School',
+  DIGITAL_MARKETING = 'Digital_Marketing'
+}
 
 /*
  * Admission Module Enums
