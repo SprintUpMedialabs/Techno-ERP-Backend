@@ -7,7 +7,11 @@ export enum UserRoles {
   EMPLOYEE_MARKETING = 'EMPLOYEE_MARKETING',
   BASIC_USER = 'BASIC_USER',
   COUNSELOR = 'COUNSELOR',
+<<<<<<< Updated upstream
   REGISTAR = 'REGISTAR'
+=======
+  REGISTAR = 'REGISTAR', 
+>>>>>>> Stashed changes
 }
 
 export enum Gender {
