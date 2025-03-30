@@ -167,13 +167,39 @@ exports.enquirySchema = new mongoose_1.Schema({
         default: [],
         required: false
     },
-    counsellorName: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        required: false
+    counsellor: {
+        type: mongoose_1.Schema.Types.Mixed, // Allows ObjectId or String
+        validate: {
+            validator: function (value) {
+                // Allow null or undefined
+                if (value === null || value === undefined)
+                    return true;
+                // Check for valid ObjectId
+                const isObjectId = mongoose_1.default.Types.ObjectId.isValid(value);
+                // Allow string 'other'
+                const isOther = value === 'other';
+                return isObjectId || isOther;
+            },
+            message: props => `'${props.value}' is not a valid counsellor (must be ObjectId or 'other')`
+        },
+        required: true,
     },
-    telecallerName: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        required: false
+    telecaller: {
+        type: mongoose_1.Schema.Types.Mixed, // Allows ObjectId or String
+        validate: {
+            validator: function (value) {
+                // Allow null or undefined
+                if (value === null || value === undefined)
+                    return true;
+                // Check for valid ObjectId
+                const isObjectId = mongoose_1.default.Types.ObjectId.isValid(value);
+                // Allow string 'other'
+                const isOther = value === 'other';
+                return isObjectId || isOther;
+            },
+            message: props => `'${props.value}' is not a valid counsellor (must be ObjectId or 'other')`
+        },
+        required: true,
     },
     dateOfCounselling: {
         type: Date,
@@ -220,10 +246,6 @@ exports.enquirySchema = new mongoose_1.Schema({
         },
         default: constants_1.ApplicationStatus.STEP_1,
         required: true
-    },
-    approvedBy: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        required: false
     },
     //Below IDs will be system generated
     universityId: {

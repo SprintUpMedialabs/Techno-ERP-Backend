@@ -28,8 +28,8 @@ exports.enquirySchema = zod_1.z.object({
     dateOfEnquiry: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)),
     gender: zod_1.z.nativeEnum(constants_1.Gender).default(constants_1.Gender.NOT_TO_MENTION),
     previousCollegeData: previousCollegeDataSchema_1.previousCollegeDataSchema.optional(),
-    counsellorName: zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])]),
-    telecallerName: zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])]),
+    counsellor: zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])]),
+    telecaller: zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])]),
     dateOfCounselling: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)).optional(),
     remarks: zod_1.z.string().optional(),
     applicationStatus: zod_1.z
@@ -43,11 +43,10 @@ exports.enquirySchema = zod_1.z.object({
     religion: zod_1.z.nativeEnum(constants_1.Religion).optional(),
     bloodGroup: zod_1.z.nativeEnum(constants_1.BloodGroup).optional(),
     admittedThrough: zod_1.z.nativeEnum(constants_1.AdmittedThrough),
-    approvedBy: commonSchema_1.objectIdSchema.optional(),
 });
 // Final schema for request (omitting feesDraftId and making it strict)
 exports.enquiryStep1RequestSchema = exports.enquirySchema
-    .omit({ studentFee: true, studentFeeDraft: true, dateOfAdmission: true, bloodGroup: true, admittedThrough: true, aadharNumber: true, religion: true, previousCollegeData: true, documents: true, approvedBy: true, applicationStatus: true })
+    .omit({ studentFee: true, studentFeeDraft: true, dateOfAdmission: true, bloodGroup: true, admittedThrough: true, aadharNumber: true, religion: true, previousCollegeData: true, documents: true, applicationStatus: true })
     .extend({ id: commonSchema_1.objectIdSchema.optional() })
     .strict();
 exports.enquiryStep1UpdateRequestSchema = exports.enquiryStep1RequestSchema.extend({
@@ -60,8 +59,8 @@ exports.enquiryDraftStep1RequestSchema = exports.enquiryStep1RequestSchema
     .extend({
     studentName: zod_1.z.string({ required_error: "Student Name is required", }).nonempty('Student Name is required'),
     studentPhoneNumber: commonSchema_1.contactNumberSchema,
-    counsellorName: zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])]).optional(),
-    telecallerName: zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])]).optional(),
+    counsellor: zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])]).optional(),
+    telecaller: zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])]).optional(),
     dateOfCounselling: commonSchema_1.requestDateSchema
         .transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date))
         .optional(),

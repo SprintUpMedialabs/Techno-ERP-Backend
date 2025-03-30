@@ -1,8 +1,9 @@
-import { model, Schema } from 'mongoose';
+import { model, Schema,Types } from 'mongoose';
 import { FeeStatus, FeeType } from '../../config/constants';
 import { IOtherFeesSchema, ISingleSemSchema, IStudentFeesSchema } from '../validators/studentFees';
 import createHttpError from 'http-errors';
 import { convertToDDMMYYYY } from '../../utils/convertDateToFormatedDate';
+import { emailSchema } from '../../validators/commonSchema';
 
 export interface IOtherFeesDocument extends IOtherFeesSchema, Document {
     feeAmount: number
@@ -63,9 +64,35 @@ const StudentFeesSchema = new Schema<IStudentFeesDocument>(
             enum: Object.values(FeeStatus),
             default: FeeStatus.DRAFT,
         },
-        feesClearanceDate : {
-            type : Date
-        }
+        feesClearanceDate: {
+            type: Date
+        },
+        counsellor: {
+            type: Schema.Types.Mixed, // Allows ObjectId or String
+            validate: {
+              validator: function (value) {
+                // Allow null or undefined
+                if (value === null || value === undefined) return true;
+        
+                // Check for valid ObjectId
+                const isObjectId = Types.ObjectId.isValid(value);
+        
+                // Allow string 'other'
+                const isOther = value === 'other';
+        
+                return isObjectId || isOther;
+              },
+              message: props => `'${props.value}' is not a valid counsellor (must be ObjectId or 'other')`
+            },
+            required: true,
+        },
+        approvedBy: {
+            type: String,
+            validate: {
+                validator: (email: string) => emailSchema.safeParse(email).success,
+                message: 'Invalid email format'
+            },
+        },
     },
     { timestamps: true }
 );
@@ -73,30 +100,30 @@ const StudentFeesSchema = new Schema<IStudentFeesDocument>(
 
 const handleMongooseError = (error: any, next: Function) => {
     if (error.name === 'ValidationError') {
-      const firstError = error.errors[Object.keys(error.errors)[0]];
-      throw createHttpError(400, firstError.message);
+        const firstError = error.errors[Object.keys(error.errors)[0]];
+        throw createHttpError(400, firstError.message);
     } else if (error.name == 'MongooseError') {
-      throw createHttpError(400, `${error.message}`);
+        throw createHttpError(400, `${error.message}`);
     } else {
-      next(error); // Pass any other errors to the next middleware
+        next(error); // Pass any other errors to the next middleware
     }
-  };
-  
-  StudentFeesSchema.post('save', function (error: any, doc: any, next: Function) {
+};
+
+StudentFeesSchema.post('save', function (error: any, doc: any, next: Function) {
     handleMongooseError(error, next);
-  });
-  
-  StudentFeesSchema.post('findOneAndUpdate', function (error: any, doc: any, next: Function) {
+});
+
+StudentFeesSchema.post('findOneAndUpdate', function (error: any, doc: any, next: Function) {
     handleMongooseError(error, next);
-  });
-  
-  const transformDates = (_: any, ret: any) => {
+});
+
+const transformDates = (_: any, ret: any) => {
     ['feesClearanceDate'].forEach((key) => {
-      if (ret[key]) {
-        ret[key] = convertToDDMMYYYY(ret[key]);
-      }
+        if (ret[key]) {
+            ret[key] = convertToDDMMYYYY(ret[key]);
+        }
     });
     return ret;
-  };
-  
+};
+
 export const FeesDraftModel = model('studentFee', StudentFeesSchema);

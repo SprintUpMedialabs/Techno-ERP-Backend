@@ -27,7 +27,9 @@ const studentFeesSchema = z.object({
     feeStatus: z.nativeEnum(FeeStatus).default(FeeStatus.DRAFT).optional(),
     feesClearanceDate : requestDateSchema.transform((date) =>
         convertToMongoDate(date) as Date
-    )
+    ),
+    approvedBy : z.string().email(),
+    counsellor: z.union([objectIdSchema, z.enum(['other'])]).optional(),
 });
 
 export const feesRequestSchema = studentFeesSchema.omit({ feeStatus: true }).extend({
@@ -50,7 +52,9 @@ export const feesDraftRequestSchema = feesRequestSchema.extend({
     enquiryId : objectIdSchema,
     feesClearanceDate : requestDateSchema.transform((date) =>
         convertToMongoDate(date) as Date
-    ).optional()
+    ).optional(),
+    approvedBy : z.string().email().optional(),
+    counsellor : z.union([objectIdSchema, z.enum(['other'])]).optional(),
 }).strict();
 
 

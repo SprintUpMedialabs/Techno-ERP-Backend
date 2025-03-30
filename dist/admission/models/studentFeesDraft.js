@@ -4,10 +4,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.StudentFeesDraftModel = void 0;
+const http_errors_1 = __importDefault(require("http-errors"));
 const mongoose_1 = require("mongoose");
 const constants_1 = require("../../config/constants");
-const http_errors_1 = __importDefault(require("http-errors"));
 const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
+const commonSchema_1 = require("../../validators/commonSchema");
 const studentFees_1 = require("./studentFees");
 const StudentFeesDraftSchema = new mongoose_1.Schema({
     otherFees: {
@@ -31,7 +32,32 @@ const StudentFeesDraftSchema = new mongoose_1.Schema({
     feesClearanceDate: {
         type: Date,
         required: false
-    }
+    },
+    counsellor: {
+        type: mongoose_1.Schema.Types.Mixed, // Allows ObjectId or String
+        validate: {
+            validator: function (value) {
+                // Allow null or undefined
+                if (value === null || value === undefined)
+                    return true;
+                // Check for valid ObjectId
+                const isObjectId = mongoose_1.Types.ObjectId.isValid(value);
+                // Allow string 'other'
+                const isOther = value === 'other';
+                return isObjectId || isOther;
+            },
+            message: props => `'${props.value}' is not a valid counsellor (must be ObjectId or 'other')`
+        },
+        required: false,
+    },
+    approvedBy: {
+        type: String,
+        validate: {
+            validator: (email) => commonSchema_1.emailSchema.safeParse(email).success,
+            message: 'Invalid email format'
+        },
+        required: false
+    },
 }, { timestamps: true });
 const handleMongooseError = (error, next) => {
     if (error.name === 'ValidationError') {

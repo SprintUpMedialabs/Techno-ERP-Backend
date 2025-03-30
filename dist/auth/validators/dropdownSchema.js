@@ -37,6 +37,6 @@ exports.dropdownSchema = void 0;
 const z = __importStar(require("zod"));
 const constants_1 = require("../../config/constants");
 exports.dropdownSchema = z.object({
-    roles: z.array(z.nativeEnum(constants_1.UserRoles)),
+    role: z.nativeEnum(constants_1.UserRoles),
     moduleName: z.nativeEnum(constants_1.ModuleNames)
 });

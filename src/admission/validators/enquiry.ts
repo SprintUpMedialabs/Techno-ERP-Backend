@@ -51,8 +51,8 @@ export const enquirySchema = z.object({
 
   previousCollegeData: previousCollegeDataSchema.optional(),
 
-  counsellorName: z.union([objectIdSchema, z.enum(['other'])]),
-  telecallerName: z.union([objectIdSchema, z.enum(['other'])]),
+  counsellor: z.union([objectIdSchema, z.enum(['other'])]),
+  telecaller: z.union([objectIdSchema, z.enum(['other'])]),
   dateOfCounselling: requestDateSchema.transform((date) =>
     convertToMongoDate(date) as Date
   ).optional(),
@@ -73,12 +73,11 @@ export const enquirySchema = z.object({
   religion: z.nativeEnum(Religion).optional(),
   bloodGroup: z.nativeEnum(BloodGroup).optional(),
   admittedThrough: z.nativeEnum(AdmittedThrough),
-  approvedBy: objectIdSchema.optional(),
 });
 
 // Final schema for request (omitting feesDraftId and making it strict)
 export const enquiryStep1RequestSchema = enquirySchema
-  .omit({ studentFee: true, studentFeeDraft : true,dateOfAdmission: true, bloodGroup: true, admittedThrough: true, aadharNumber: true, religion: true, previousCollegeData: true, documents: true, approvedBy : true, applicationStatus : true })
+  .omit({ studentFee: true, studentFeeDraft : true,dateOfAdmission: true, bloodGroup: true, admittedThrough: true, aadharNumber: true, religion: true, previousCollegeData: true, documents: true, applicationStatus : true })
   .extend({ id: objectIdSchema.optional() })
   .strict();
 
@@ -95,8 +94,8 @@ export const enquiryDraftStep1RequestSchema = enquiryStep1RequestSchema
   .extend({
     studentName: z.string({ required_error: "Student Name is required", }).nonempty('Student Name is required'),
     studentPhoneNumber: contactNumberSchema,
-    counsellorName: z.union([objectIdSchema, z.enum(['other'])]).optional(),
-    telecallerName: z.union([objectIdSchema, z.enum(['other'])]).optional(),
+    counsellor: z.union([objectIdSchema, z.enum(['other'])]).optional(),
+    telecaller: z.union([objectIdSchema, z.enum(['other'])]).optional(),
     dateOfCounselling: requestDateSchema
       .transform((date) => convertToMongoDate(date) as Date)
       .optional(),

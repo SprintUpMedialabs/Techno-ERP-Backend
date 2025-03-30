@@ -32,7 +32,7 @@ export const createEnquiryDraftStep1 = expressAsyncHandler(async (req : Authenti
   const enquiryDraftStep1Data : IEnquiryDraftStep1RequestSchema = req.body;
 
   const validation = enquiryDraftStep1RequestSchema.safeParse(enquiryDraftStep1Data);
-  console.log(validation.error)
+  
   //This will be used for checking other validations like length of pincode, format of date, etc
   if(!validation.success)
     throw createHttpError(400, validation.error.errors[0]);

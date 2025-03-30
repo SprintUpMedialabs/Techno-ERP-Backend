@@ -44,7 +44,6 @@ const studentFeesDraft_1 = require("../models/studentFeesDraft");
 exports.createEnquiryDraftStep1 = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const enquiryDraftStep1Data = req.body;
     const validation = enquiry_2.enquiryDraftStep1RequestSchema.safeParse(enquiryDraftStep1Data);
-    console.log(validation.error);
     //This will be used for checking other validations like length of pincode, format of date, etc
     if (!validation.success)
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);

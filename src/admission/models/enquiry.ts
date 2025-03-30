@@ -12,27 +12,27 @@ import { singleDocumentSchema } from './singleDocument';
 export interface IEnquiryDocument extends IEnquirySchema, Document {
   formNo: string;
   date: Date;
-  photoNo : number;
-  universityId : string; 
+  photoNo: number;
+  universityId: string;
 }
 
 export const enquirySchema = new Schema<IEnquiryDocument>(
   {
-    admissionMode : {
+    admissionMode: {
       type: String,
       enum: {
         values: Object.values(AdmissionMode),
         message: 'Invalid Admission Mode value'
       },
-      default : AdmissionMode.OFFLINE
+      default: AdmissionMode.OFFLINE
     },
     dateOfEnquiry: {
       type: Date,
       required: true,
-      default : new Date(),
+      default: new Date(),
       set: (value: string) => {
         return convertToMongoDate(value);
-      }   
+      }
     },
     studentName: {
       type: String,
@@ -127,19 +127,49 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
     academicDetails: {
       type: [academicDetailFormSchema],
       default: [],
-      required : false
-    },
-    counsellorName : {
-      type: Schema.Types.ObjectId,
-      required : false
-    },
-    telecallerName : {
-      type: Schema.Types.ObjectId,
       required: false
     },
-    dateOfCounselling : {
+    counsellor: {
+      type: Schema.Types.Mixed, // Allows ObjectId or String
+      validate: {
+        validator: function (value) {
+          // Allow null or undefined
+          if (value === null || value === undefined) return true;
+  
+          // Check for valid ObjectId
+          const isObjectId = mongoose.Types.ObjectId.isValid(value);
+  
+          // Allow string 'other'
+          const isOther = value === 'other';
+  
+          return isObjectId || isOther;
+        },
+        message: props => `'${props.value}' is not a valid counsellor (must be ObjectId or 'other')`
+      },
+      required: true,
+    },
+    telecaller: {
+      type: Schema.Types.Mixed, // Allows ObjectId or String
+      validate: {
+        validator: function (value) {
+          // Allow null or undefined
+          if (value === null || value === undefined) return true;
+
+          // Check for valid ObjectId
+          const isObjectId = mongoose.Types.ObjectId.isValid(value);
+
+          // Allow string 'other'
+          const isOther = value === 'other';
+
+          return isObjectId || isOther;
+        },
+        message: props => `'${props.value}' is not a valid counsellor (must be ObjectId or 'other')`
+      },
+      required: true,
+    },
+    dateOfCounselling: {
       type: Date,
-      required : false,
+      required: false,
       set: (value: string) => {
         return convertToMongoDate(value);
       }
@@ -147,12 +177,12 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
     remarks: {
       type: String
     },
-    
+
     dateOfAdmission: {
       type: Date,
-      required : false
+      required: false
     },
-  
+
     previousCollegeData: {
       type: previousCollegeDataSchema
     },
@@ -164,10 +194,10 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
       ref: 'studentFee', // Refer to FeesDraft model
       required: false
     },
-    studentFeeDraft : {
-      type : Schema.Types.ObjectId,
-      ref : 'studentFeeDraft',
-      required : false
+    studentFeeDraft: {
+      type: Schema.Types.ObjectId,
+      ref: 'studentFeeDraft',
+      required: false
     },
     gender: {
       type: String,
@@ -182,27 +212,22 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
         values: Object.values(ApplicationStatus),
         message: 'Invalid Application Status value'
       },
-      default : ApplicationStatus.STEP_1,
+      default: ApplicationStatus.STEP_1,
       required: true
     },
-    approvedBy : {
-      type : Schema.Types.ObjectId,
-      required : false
-    },
-    
     //Below IDs will be system generated
-    universityId : {
-      type : String,
+    universityId: {
+      type: String,
     },
-    photoNo : {
-      type : Number,
+    photoNo: {
+      type: Number,
     },
     formNo: {
       type: String,
     },
-    
+
   },
-  
+
   { timestamps: true }
 );
 

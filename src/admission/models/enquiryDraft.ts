@@ -19,7 +19,7 @@ export const enquiryDraftSchema = new Schema<IEnquiryDraftDocument>(
                 message: 'Invalid Admission Mode value'
             },
             required: false,
-            default : AdmissionMode.OFFLINE
+            default: AdmissionMode.OFFLINE
         },
         dateOfEnquiry: {
             type: Date,
@@ -49,7 +49,6 @@ export const enquiryDraftSchema = new Schema<IEnquiryDraftDocument>(
                 message: 'Invalid email format'
             },
             required: false
-
         },
         fatherName: {
             type: String,
@@ -124,13 +123,46 @@ export const enquiryDraftSchema = new Schema<IEnquiryDraftDocument>(
             default: [],
             required: false
         },
-        counsellorName: {
-            type: Schema.Types.ObjectId,
-            required: false
+        // DTODO: here we have id and other 2 value [so type should be according to that]
+        counsellor: {
+            type: Schema.Types.Mixed, // Allows ObjectId or String
+            validate: {
+                validator: function (value) {
+                    // Allow null or undefined
+                    if (value === null || value === undefined) return true;
+
+                    // Check for valid ObjectId
+                    const isObjectId = mongoose.Types.ObjectId.isValid(value);
+
+                    // Allow string 'other'
+                    const isOther = value === 'other';
+
+                    return isObjectId || isOther;
+                },
+                message: props => `'${props.value}' is not a valid counsellor (must be ObjectId or 'other')`
+            },
+            required: false,
         },
-        telecallerName: {
-            type: Schema.Types.ObjectId,
-            required: false
+        // DTODO: here we have id and other 2 value [so type should be according to that]
+        // this change need to be done in other models [studentFeesDraft, studentFees, enquiry]
+        telecaller: {
+            type: Schema.Types.Mixed, // Allows ObjectId or String
+            validate: {
+                validator: function (value) {
+                    // Allow null or undefined
+                    if (value === null || value === undefined) return true;
+
+                    // Check for valid ObjectId
+                    const isObjectId = mongoose.Types.ObjectId.isValid(value);
+
+                    // Allow string 'other'
+                    const isOther = value === 'other';
+
+                    return isObjectId || isOther;
+                },
+                message: props => `'${props.value}' is not a valid counsellor (must be ObjectId or 'other')`
+            },
+            required: false,
         },
         dateOfCounselling: {
             type: Date,

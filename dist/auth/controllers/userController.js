@@ -18,6 +18,7 @@ const user_1 = require("../models/user");
 const http_errors_1 = __importDefault(require("http-errors"));
 const commonSchema_1 = require("../../validators/commonSchema");
 const constants_1 = require("../../config/constants");
+const dropdownSchema_1 = require("../validators/dropdownSchema");
 const formatName_1 = require("../../utils/formatName");
 const formatResponse_1 = require("../../utils/formatResponse");
 exports.userProfile = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -57,61 +58,67 @@ exports.getUserByRole = (0, express_async_handler_1.default)((req, res) => __awa
     return (0, formatResponse_1.formatResponse)(res, 200, 'Fetching successful', true, formattedUsers);
 }));
 exports.fetchDropdownsBasedOnPage = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { role } = req.query;
-    if (Object.values(constants_1.UserRoles).includes(role)) {
-        const users = yield user_1.User.find({ roles: role });
-        const formattedUsers = users.map((user) => {
-            var _a, _b;
-            return ({
-                _id: user === null || user === void 0 ? void 0 : user._id,
-                name: (0, formatName_1.formatName)((_a = user === null || user === void 0 ? void 0 : user.firstName) !== null && _a !== void 0 ? _a : '', (_b = user === null || user === void 0 ? void 0 : user.lastName) !== null && _b !== void 0 ? _b : ''),
-                email: user === null || user === void 0 ? void 0 : user.email
+    var _a, _b;
+    // const { role } = req.query;
+    // if (Object.values(UserRoles).includes(role as UserRoles)) {
+    //   const users = await User.find({ roles: role as UserRoles });
+    //   const formattedUsers = users.map((user) => ({
+    //     _id: user?._id,
+    //     name: formatName(user?.firstName ?? '', user?.lastName ?? ''),
+    //     email: user?.email
+    //   }));
+    //   return formatResponse(res, 200, 'Fetching successful', true, formattedUsers);
+    // } else {
+    //   throw createHttpError(400, "Invalid role");
+    // }
+    const { moduleName, role } = req.query;
+    const id = (_a = req.data) === null || _a === void 0 ? void 0 : _a.id;
+    const roles = (_b = req.data) === null || _b === void 0 ? void 0 : _b.roles;
+    const validation = dropdownSchema_1.dropdownSchema.safeParse({ role, moduleName });
+    if (!validation.success) {
+        throw (0, http_errors_1.default)(400, "Invalid role or module name");
+    }
+    let users;
+    if (moduleName === constants_1.ModuleNames.MARKETING) {
+        // If the user is ADMIN or LEAD_MARKETING (and not only marketing employee)
+        if (roles.includes(constants_1.UserRoles.ADMIN) || roles.includes(constants_1.UserRoles.LEAD_MARKETING)) {
+            users = yield user_1.User.find({ roles: role });
+        }
+        // If the user is only a MARKETING_EMPLOYEE
+        else if (roles.includes(constants_1.UserRoles.EMPLOYEE_MARKETING)) {
+            users = yield user_1.User.findOne({ _id: id });
+            users = [users];
+        }
+        if (users) {
+            const formattedUsers = users.map((user) => {
+                var _a, _b;
+                return ({
+                    _id: user === null || user === void 0 ? void 0 : user._id,
+                    name: (0, formatName_1.formatName)((_a = user === null || user === void 0 ? void 0 : user.firstName) !== null && _a !== void 0 ? _a : '', (_b = user === null || user === void 0 ? void 0 : user.lastName) !== null && _b !== void 0 ? _b : ''),
+                    email: user === null || user === void 0 ? void 0 : user.email
+                });
             });
-        });
-        return (0, formatResponse_1.formatResponse)(res, 200, 'Fetching successful', true, formattedUsers);
+            return (0, formatResponse_1.formatResponse)(res, 200, 'Fetching successful', true, formattedUsers);
+        }
     }
-    else {
-        throw (0, http_errors_1.default)(400, "Invalid role");
+    else if (moduleName === constants_1.ModuleNames.ADMISSION) {
+        if (roles.includes(constants_1.UserRoles.COUNSELOR)) {
+            users = yield user_1.User.find({ roles: constants_1.UserRoles.COUNSELOR });
+        }
+        else if (roles.includes(constants_1.UserRoles.EMPLOYEE_MARKETING)) {
+            users = yield user_1.User.find({ roles: constants_1.UserRoles.EMPLOYEE_MARKETING });
+        }
+        if (users) {
+            const formattedUsers = users.map((user) => {
+                var _a, _b;
+                return ({
+                    _id: user === null || user === void 0 ? void 0 : user._id,
+                    name: (0, formatName_1.formatName)((_a = user === null || user === void 0 ? void 0 : user.firstName) !== null && _a !== void 0 ? _a : '', (_b = user === null || user === void 0 ? void 0 : user.lastName) !== null && _b !== void 0 ? _b : ''),
+                    email: user === null || user === void 0 ? void 0 : user.email
+                });
+            });
+            return (0, formatResponse_1.formatResponse)(res, 200, 'Fetching successful', true, formattedUsers);
+        }
     }
-    // const { moduleName } = req.query;
-    // const id = req.data?.id;
-    // const roles = req.data?.roles!;
-    // const validation = dropdownSchema.safeParse({ roles, moduleName });
-    // if (!validation.success) {
-    //   throw createHttpError(400, "Invalid role or module name");
-    // }
-    // let users;
-    // if (moduleName === ModuleNames.MARKETING) {
-    //   // If the user is ADMIN or LEAD_MARKETING (and not only marketing employee)
-    //   if (roles.includes(UserRoles.ADMIN) || roles.includes(UserRoles.LEAD_MARKETING)) {
-    //     users = await User.find({ roles: UserRoles.EMPLOYEE_MARKETING });
-    //   }
-    //   // If the user is only a MARKETING_EMPLOYEE
-    //   else if (roles.includes(UserRoles.EMPLOYEE_MARKETING)) {
-    //     users = await User.findOne({ _id: id });
-    //     users = [users];
-    //   }
-    //   if (users) {
-    //     const formattedUsers = users.map((user) => ({
-    //       _id: user?._id,
-    //       name: formatName(user?.firstName ?? '', user?.lastName ?? ''),
-    //       email: user?.email
-    //     }));
-    //     return formatResponse(res, 200, 'Fetching successful', true, formattedUsers)
-    //   }
-    // } else if (moduleName === ModuleNames.ADMISSION) {
-    //   if (roles.includes(UserRoles.COUNSELOR)) {
-    //     users = await User.findOne({ _id: id });
-    //     users = [users];
-    //   }
-    //   if (users) {
-    //     const formattedUsers = users.map((user) => ({
-    //       _id: user?._id,
-    //       name: formatName(user?.firstName ?? '', user?.lastName ?? ''),
-    //       email: user?.email
-    //     }));
-    //     return formatResponse(res, 200, 'Fetching successful', true, formattedUsers)
-    //   }
-    // }
     //throw createHttpError(400, "Invalid module name");
 }));
