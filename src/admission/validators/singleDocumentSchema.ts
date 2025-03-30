@@ -19,7 +19,7 @@ export const singleDocumentSchema = z.object({
   dueBy : requestDateSchema.transform((date) =>
     convertToMongoDate(date) as Date
   ).optional(),
-  fileUrl : z.string().optional()
+  fileUrl : z.string().optional(),
 });
 
 export type ISingleDocumentSchema = z.infer<typeof singleDocumentSchema>;

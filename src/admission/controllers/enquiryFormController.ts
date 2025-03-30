@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import expressAsyncHandler from 'express-async-handler';
 import createHttpError from 'http-errors';
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
 import { ADMISSION, ApplicationStatus, Course, DocumentType, FormNoPrefixes, PHOTO, TGI } from '../../config/constants';
 import { uploadToS3 } from '../../config/s3Upload';
@@ -13,7 +13,7 @@ import { objectIdSchema } from '../../validators/commonSchema';
 import { Enquiry } from '../models/enquiry';
 import { EnquiryDraft } from '../models/enquiryDraft';
 import { EnquiryApplicationId } from '../models/enquiryIdMetaDataSchema';
-import { FeesDraftModel } from '../models/studentFees';
+import { StudentFeesModel } from '../models/studentFees';
 import { StudentFeesDraftModel } from '../models/studentFeesDraft';
 import {
   enquiryDraftStep1RequestSchema,
@@ -30,13 +30,13 @@ import { singleDocumentSchema } from '../validators/singleDocumentSchema';
 import { feesDraftRequestSchema, feesDraftUpdateSchema, feesRequestSchema, feesUpdateSchema, IFeesDraftRequestSchema, IFeesDraftUpdateSchema, IFeesRequestSchema, IFeesUpdateSchema, IStudentFeesSchema } from '../validators/studentFees';
 
 
-export const createEnquiryDraftStep1 = expressAsyncHandler(async (req : AuthenticatedRequest, res : Response) => {
-  const enquiryDraftStep1Data : IEnquiryDraftStep1RequestSchema = req.body;
+export const createEnquiryDraftStep1 = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const enquiryDraftStep1Data: IEnquiryDraftStep1RequestSchema = req.body;
 
   const validation = enquiryDraftStep1RequestSchema.safeParse(enquiryDraftStep1Data);
-  
+
   //This will be used for checking other validations like length of pincode, format of date, etc
-  if(!validation.success)
+  if (!validation.success)
     throw createHttpError(400, validation.error.errors[0]);
 
   const enquiryDraft = await EnquiryDraft.create(validation.data);
@@ -48,18 +48,18 @@ export const createEnquiryDraftStep1 = expressAsyncHandler(async (req : Authenti
 
 export const updateEnquiryDraftStep1 = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
 
-  const enquiryDraftStep1Data : IEnquiryDraftStep1UpdateSchema = req.body;
+  const enquiryDraftStep1Data: IEnquiryDraftStep1UpdateSchema = req.body;
 
   const validation = enquiryDraftStep1UpdateSchema.safeParse(enquiryDraftStep1Data);
-  
-  if(!validation.success)
+
+  if (!validation.success)
     throw createHttpError(400, validation.error.errors[0]);
 
   const { id, ...newData } = validation.data;
 
   const updatedDraft = await EnquiryDraft.findByIdAndUpdate(
     id,
-    { $set: newData }, 
+    { $set: newData },
     { new: true, runValidators: true }
   );
 
@@ -74,7 +74,7 @@ export const updateEnquiryDraftStep1 = expressAsyncHandler(async (req: Authentic
 
 export const createEnquiry = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
-    
+
     const data: IEnquiryStep1RequestSchema = req.body;
     const validation = enquiryStep1RequestSchema.safeParse(data);
 
@@ -82,15 +82,14 @@ export const createEnquiry = expressAsyncHandler(
       throw createHttpError(400, validation.error.errors[0]);
     }
 
-    const { id , ...enquiryData } = data; 
+    const { id, ...enquiryData } = data;
 
     //Create the enquiry
     let savedResult = await Enquiry.create({ ...enquiryData });
 
     if (savedResult) {
       //Delete enquiry draft only if the save of enquiry is successful.
-      if(id)
-      {
+      if (id) {
         const deletedDraft = await EnquiryDraft.findByIdAndDelete(id);
         if (deletedDraft) {
           throw formatResponse(res, 201, 'Draft deleted successfully', true);
@@ -116,6 +115,8 @@ export const updateEnquiryStep1ById = expressAsyncHandler(async (req: Authentica
   }
   const { id, ...data } = validation.data;
 
+  await checkIfStudentAdmitted(id);
+
   const updatedData = await Enquiry.findByIdAndUpdate(
     { _id: id, applicationStatus: { $ne: ApplicationStatus.STEP_4 } },
     { $set: data },
@@ -134,19 +135,17 @@ export const createFeeDraft = expressAsyncHandler(async (req: AuthenticatedReque
 
   const validation = feesDraftRequestSchema.safeParse(feesDraftData);
 
-  console.log("Validation Error")
-  console.log(validation.error)
-
   if (!validation.success) {
     throw createHttpError(400, validation.error.errors[0].message);
   }
+
   const enquiry = await Enquiry.findOne(
     {
       _id: feesDraftData.enquiryId,
       applicationStatus: ApplicationStatus.STEP_1
     },
     {
-      course: 1 
+      course: 1
     }
   ).lean();
 
@@ -164,14 +163,14 @@ export const createFeeDraft = expressAsyncHandler(async (req: AuthenticatedReque
     otherFees: validation.data.otherFees?.map(fee => ({
       ...fee,
       feeAmount: fee.feeAmount ?? otherFees?.find(otherFee => otherFee.type === fee.type)?.fee ?? 0
-    })) || [], 
-  
+    })) || [],
+
     semWiseFees: validation.data.semWiseFees?.map((semFee, index) => ({
       ...semFee,
       feeAmount: semFee.feeAmount ?? semWiseFee?.fee[index] ?? 0
     })) || []
   };
-  
+
   const feesDraft = await StudentFeesDraftModel.create(feeData);
 
   await Enquiry.findByIdAndUpdate(
@@ -186,7 +185,7 @@ export const updateFeeDraft = expressAsyncHandler(async (req: AuthenticatedReque
 
   let feesDraftData: IFeesDraftUpdateSchema = req.body;
 
-  let { id , ...feesDraftUpdateData} = feesDraftData;
+  let { id, ...feesDraftUpdateData } = feesDraftData;
 
   const validation = feesDraftUpdateSchema.safeParse(feesDraftUpdateData);
 
@@ -228,10 +227,11 @@ export const createEnquiryStep2 = expressAsyncHandler(async (req: AuthenticatedR
 
   const validation = feesRequestSchema.safeParse(feesDraftData);
 
-  console.log(validation.error);
   if (!validation.success) {
     throw createHttpError(400, validation.error.errors[0]);
   }
+
+  await checkIfStudentAdmitted(validation.data.enquiryId);
 
   const enquiry = await Enquiry.findOne(
     {
@@ -239,12 +239,12 @@ export const createEnquiryStep2 = expressAsyncHandler(async (req: AuthenticatedR
       applicationStatus: ApplicationStatus.STEP_1
     },
     {
-      course: 1 ,// Only return course field
-      studentFeeDraft : 1
+      course: 1,// Only return course field
+      studentFeeDraft: 1
     }
   ).lean();
 
-  
+
 
   let feesDraft;
   if (enquiry) {
@@ -253,7 +253,7 @@ export const createEnquiryStep2 = expressAsyncHandler(async (req: AuthenticatedR
 
     const feeData: IStudentFeesSchema = {
       ...validation.data,
-      otherFees: validation.data.otherFees!.map(fee => ({
+      otherFees: validation.data.otherFees.map(fee => ({
         ...fee,
         feeAmount: otherFees?.find(otherFee => otherFee.type == fee.type)?.fee ?? 0
       })),
@@ -265,30 +265,26 @@ export const createEnquiryStep2 = expressAsyncHandler(async (req: AuthenticatedR
 
 
     //This means that enquiry is existing
-    feesDraft = await FeesDraftModel.create(feeData);
+    feesDraft = await StudentFeesModel.create(feeData);
     await Enquiry.findByIdAndUpdate(
       feesDraftData.enquiryId,
       {
         $set: {
           studentFee: feesDraft._id,
+          studentFeeDraft: null
         }
       },
     );
 
-    // console.log(enquiry);
-    if(feesDraft)
-    {
-      if(enquiry?.studentFeeDraft)
-        {
-          const updatedStudentDraft = await StudentFeesDraftModel.findByIdAndDelete(enquiry.studentFeeDraft);
-        }
+    if (enquiry?.studentFeeDraft) {
+      await StudentFeesDraftModel.findByIdAndDelete(enquiry.studentFeeDraft);
     }
 
   }
   else {
     //Enquiry does not exist, we have to create enquiry first.
     //This will never be true as we are getting from UI so we will land into this call if and only if enquiry Id is existing.
-    throw createHttpError(400, 'Enquiry doesnot exist');
+    throw createHttpError(400, 'Enquiry does not exist');
   }
 
   return formatResponse(res, 201, 'Fees Draft created successfully', true, feesDraft);
@@ -305,15 +301,15 @@ export const updateEnquiryStep2ById = expressAsyncHandler(async (req: Authentica
 
 
 
-const updateFeeDetails = async (applicationStatusList: ApplicationStatus[], feesDraftUpdateData: IFeesUpdateSchema, finalApplicationStatus?: ApplicationStatus) => {
-  const validation = feesUpdateSchema.safeParse(feesDraftUpdateData);
+const updateFeeDetails = async (applicationStatusList: ApplicationStatus[], studentFeesData: IFeesUpdateSchema) => {
+  const validation = feesUpdateSchema.safeParse(studentFeesData);
 
   if (!validation.success) {
     throw createHttpError(400, validation.error.errors[0]);
   }
 
   const enquiry = await Enquiry.findOne({
-    studentFee: feesDraftUpdateData.id,
+    studentFee: studentFeesData.id,
     applicationStatus: { $nin: [...applicationStatusList] }
   }, {
     course: 1 // Only return course field
@@ -324,12 +320,14 @@ const updateFeeDetails = async (applicationStatusList: ApplicationStatus[], fees
     throw createHttpError(404, 'please contact finance team to change the information');
   }
 
+  await checkIfStudentAdmitted(enquiry._id);
+
   const otherFees = await fetchOtherFees();
   const semWiseFee = await fetchCourseFeeByCourse(enquiry?.course.toString() ?? '');
 
   const feeData: IStudentFeesSchema = {
     ...validation.data,
-    otherFees: validation.data.otherFees!.map(fee => ({
+    otherFees: validation.data.otherFees.map(fee => ({
       ...fee,
       feeAmount: otherFees?.find(otherFee => otherFee.type == fee.type)?.fee ?? 0
     })),
@@ -339,21 +337,14 @@ const updateFeeDetails = async (applicationStatusList: ApplicationStatus[], fees
     }))
   }
 
-  const feesDraft = await FeesDraftModel.findByIdAndUpdate(
-    feesDraftUpdateData.id,
+  const feesDraft = await StudentFeesModel.findByIdAndUpdate(
+    studentFeesData.id,
     { $set: feeData },
     { new: true, runValidators: true }
   );
 
   if (!feesDraft) {
     throw createHttpError(404, 'Failed to update Fees Draft');
-  }
-  if (finalApplicationStatus) {
-    await Enquiry.updateOne(
-      { studentFee: feesDraftUpdateData.id },
-      { applicationStatus: finalApplicationStatus },
-      { runValidators: true }
-    );
   }
   return feesDraft;
 }
@@ -364,11 +355,12 @@ export const updateEnquiryStep3ById = expressAsyncHandler(
     const validation = enquiryStep3UpdateRequestSchema.safeParse(req.body);
 
     if (!validation.success) {
-      console.log(validation.error.errors[0]);
       throw createHttpError(400, validation.error.errors[0]);
     }
 
     const { id, ...data } = validation.data;
+
+    await checkIfStudentAdmitted(id);
 
     const enquiry = await Enquiry.findOne({
       _id: id,
@@ -382,8 +374,7 @@ export const updateEnquiryStep3ById = expressAsyncHandler(
       throw createHttpError(400, "Please complete step 2 first");
     }
 
-    if(enquiry.applicationStatus == ApplicationStatus.STEP_4)
-    {
+    if (enquiry.applicationStatus == ApplicationStatus.STEP_4) {
       throw createHttpError(400, 'Sorry, this is approved enquiry, please go to student module to update this!');
     }
 
@@ -397,24 +388,20 @@ export const updateEnquiryStep3ById = expressAsyncHandler(
       { new: true, runValidators: true }
     );
 
-    if (!updatedData) {
-      throw createHttpError(404, 'Enquiry not found');
-    }
-
     return formatResponse(res, 200, 'Enquiry data updated successfully', true, updatedData);
   }
 );
 
 
-// DTODO: there are few documents which are IMP need to think that how will handle those => Make them mandate from the UI side.
 export const updateEnquiryDocuments = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const { id, type, dueBy } = req.body;
 
-    const enquiry = await Enquiry.findById(id).select('applicationStatus');
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw createHttpError(400, 'Invalid enquiry ID');
+    }
 
-    if(enquiry && enquiry.applicationStatus == ApplicationStatus.STEP_4)
-      throw createHttpError(404, 'This is an approved enquiry, please go to student module to update this!');
+    await checkIfStudentAdmitted(id);
 
     const file = req.file as Express.Multer.File;
 
@@ -422,7 +409,7 @@ export const updateEnquiryDocuments = expressAsyncHandler(
       enquiryId: id,
       type,
       documentBuffer: file,
-      dueBy : dueBy
+      dueBy: dueBy
     });
 
     if (!validation.success) {
@@ -445,7 +432,6 @@ export const updateEnquiryDocuments = expressAsyncHandler(
       'documents.type': type,
     });
 
-    console.log("Is Exists : ", isExists);
     let updatedData;
     if (isExists) {
       updatedData = await Enquiry.findOneAndUpdate(
@@ -469,10 +455,6 @@ export const updateEnquiryDocuments = expressAsyncHandler(
         { new: true, runValidators: true }
       );
     }
-    console.log(updatedData);
-    if (!updatedData) {
-      throw createHttpError(400, 'Could not upload documents');
-    }
 
     return formatResponse(res, 200, 'Document uploaded successfully', true, updatedData);
   }
@@ -482,7 +464,7 @@ export const updateEnquiryDocuments = expressAsyncHandler(
 export const updateEnquiryStep4ById = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const feesDraftUpdateData: IFeesUpdateSchema = req.body;
 
-  const feesDraft = await updateFeeDetails([ApplicationStatus.STEP_1, ApplicationStatus.STEP_2, ApplicationStatus.STEP_4], feesDraftUpdateData, ApplicationStatus.STEP_4);
+  const feesDraft = await updateFeeDetails([ApplicationStatus.STEP_1, ApplicationStatus.STEP_2, ApplicationStatus.STEP_4], feesDraftUpdateData);
   return formatResponse(res, 200, 'Fees Draft updated successfully', true, feesDraft);
 });
 
@@ -509,21 +491,21 @@ export const getEnquiryData = expressAsyncHandler(
       }
       filter.applicationStatus = applicationStatus;
     }
-    
+
     const enquiries = await Enquiry.find(filter)
-    .select({
-      _id : 1,
-      dateOfEnquiry: 1,
-      studentName: 1,
-      studentPhoneNumber: 1,
-      gender: 1,
-      address : 1,
-      course: 1,
-      applicationStatus: 1,
-      fatherPhoneNumber: 1, 
-      motherPhoneNumber: 1 
-    })
-    
+      .select({
+        _id: 1,
+        dateOfEnquiry: 1,
+        studentName: 1,
+        studentPhoneNumber: 1,
+        gender: 1,
+        address: 1,
+        course: 1,
+        applicationStatus: 1,
+        fatherPhoneNumber: 1,
+        motherPhoneNumber: 1
+      })
+
     const enquiryDrafts = await EnquiryDraft.find(filter).select({
       _id: 1,
       dateOfEnquiry: 1,
@@ -556,25 +538,28 @@ export const getEnquiryById = expressAsyncHandler(
       throw createHttpError(400, 'Invalid enquiry ID');
     }
 
-    let enquiry = await Enquiry.findById(id).populate('studentFee');
+    let enquiry = await Enquiry.findById(id).populate('studentFee').populate('studentFeeDraft');
 
     if (!enquiry) {
       const enquiryDraft = await EnquiryDraft.findById(id);
       if (enquiryDraft) {
         return formatResponse(res, 200, 'Enquiry draft details', true, enquiryDraft);
-      }  
-    }
-
-    if (!enquiry!.studentFee) {
-      enquiry = await Enquiry.findById(id).populate('studentFeeDraft');
+      }
     }
 
     return formatResponse(res, 200, 'Enquiry details', true, enquiry);
   }
 );
 
+const checkIfStudentAdmitted = async (enquiryId: Types.ObjectId) => {
+  const student = await Enquiry.findById(enquiryId);
+  if (student?.universityId != null) {
+    throw createHttpError(400, 'Student is already admitted');
+  }
+  return false;
+}
 
-// DTODO: lets just take _id from the frontend => Resolved
+// DTODO: need to add transaction here.
 export const approveEnquiry = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
 
   const { id } = req.body;
@@ -583,6 +568,8 @@ export const approveEnquiry = expressAsyncHandler(async (req: AuthenticatedReque
 
   if (!validation.success)
     throw createHttpError(400, validation.error.errors[0]);
+
+  await checkIfStudentAdmitted(id);
 
   const enquiry = await Enquiry.findById(id);
 
@@ -605,7 +592,7 @@ export const approveEnquiry = expressAsyncHandler(async (req: AuthenticatedReque
   const formNo = `${prefix}${serial!.lastSerialNumber}`;
 
   const photoSerial = await EnquiryApplicationId.findOneAndUpdate(
-    { prefix: PHOTO },
+    { prefix: FormNoPrefixes.PHOTO },
     { $inc: { lastSerialNumber: 1 } },
     { new: true, runValidators: true }
   );
@@ -615,46 +602,31 @@ export const approveEnquiry = expressAsyncHandler(async (req: AuthenticatedReque
 
   const approvedById = req.data?.id;
 
+  // DTODO: we may need to change this logic [it may come from body]
+  let approvedEnquiry = await Enquiry.findByIdAndUpdate(
+    id,
+    {
+      $set: {
+        formNo: formNo,
+        photoNo: photoSerial!.lastSerialNumber,
+        universityId: universityId,
+        applicationStatus: ApplicationStatus.STEP_4,
+        approvedBy: approvedById
+      }
+    },
+    { runValidators: true, new: true, projection: { createdAt: 0, updatedAt: 0, __v: 0 } }
+  );
 
-  if (approvedById) {
-    let approvedEnquiry = await Enquiry.findByIdAndUpdate(
-      id,
-      {
-        $set: {
-          formNo: formNo,
-          photoNo: photoSerial!.lastSerialNumber,
-          universityId: universityId,
-          applicationStatus: ApplicationStatus.STEP_4,
-          approvedBy: approvedById
-        }
-      },
-      { runValidators: true, new: true, projection: { createdAt: 0, updatedAt: 0, __v: 0 } }
-    );
+  const studentValidation = studentSchema.safeParse(approvedEnquiry);
 
-    if (!approvedEnquiry) {
-      throw createHttpError(404, 'Failed to approve enquiry!');
-    }
+  if (!studentValidation.success)
+    throw createHttpError(400, studentValidation.error.errors[0]);
 
-    // console.log(approvedEnquiry);
+  const student = await Student.create({
+    ...studentValidation.data,
+  });
 
-    const validation = studentSchema.safeParse(approvedEnquiry);
-    
-    console.log('Validation Result of Approved Enquiry to Student:', validation.error);
-
-    if(!validation.success)
-      throw createHttpError(400, validation.error.errors[0]);
-
-    const student = await Student.create({
-      ...validation.data, 
-      preRegNumber: `PRE-${Date.now()}` 
-    });
-
-    return formatResponse(res, 200, 'Student created successfully with this information', true, student);
-    
-  }
-  else {
-    throw createHttpError(404, 'Invalid user logged in!');
-  }
+  return formatResponse(res, 200, 'Student created successfully with this information', true, student);
 });
 
 
@@ -690,6 +662,3 @@ const getPrefixForCourse = (course: Course): FormNoPrefixes => {
   if (course === Course.LLB) return FormNoPrefixes.TCL;
   return FormNoPrefixes.TIHS;
 };
-
-
-

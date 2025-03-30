@@ -158,7 +158,11 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
     remarks: {
       type: String
     },
-
+    approvedBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'user',
+      required: false
+    },
     dateOfAdmission: {
       type: Date,
       required: false

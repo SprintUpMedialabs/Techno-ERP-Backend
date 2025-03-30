@@ -69,7 +69,7 @@ export const updateStudentSchema = studentSchema
     photoNo: true,
   })
   .extend({
-    _id: objectIdSchema, 
+    id: objectIdSchema, 
     dateOfAdmission :  requestDateSchema.transform((date) =>
       convertToMongoDate(date) as Date
     ),

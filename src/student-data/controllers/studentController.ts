@@ -59,7 +59,8 @@ export const getStudentData = expressAsyncHandler(
         } else {
             return formatResponse(res, 200, 'No students found with this information', true);
         }
-    });
+    }
+);
 
 
 export const getStudentDataById = expressAsyncHandler(
@@ -70,37 +71,38 @@ export const getStudentDataById = expressAsyncHandler(
             throw createHttpError(400, 'Invalid ID');
         }
 
+        // DTODO: neeed to use populate here.
         const student = await Student.findById(id);
         if (!student) {
             throw createHttpError(404, 'Student Details not found');
         }
 
         return formatResponse(res, 200, 'Student details fetched successfully', true, student);
-});
+    }
+);
 
 
 export const updateStudentById = expressAsyncHandler(
     async (req: AuthenticatedRequest, res: Response) => {
-        const { id } = req.params;
-        const studentUpdateData : IStudentUpdateSchema = req.body;
+
+        const studentUpdateData: IStudentUpdateSchema = req.body;
         const validation = updateStudentSchema.safeParse(studentUpdateData);
-        if(!validation.success)
-        {
+        if (!validation.success) {
             throw createHttpError(400, validation.error.errors[0]);
         }
 
-    const updatedStudent = await Student.findByIdAndUpdate(
-      { _id : id} , 
-      { $set: validation.data },
-      { new: true, runValidators: true }
-    );
+        const updatedStudent = await Student.findByIdAndUpdate(
+            { _id: studentUpdateData.id },
+            { $set: validation.data },
+            { new: true, runValidators: true }
+        );
 
-    if (!updatedStudent) {
-      throw createHttpError(404, 'Error occurred updating student');
-    }
+        if (!updatedStudent) {
+            throw createHttpError(404, 'Error occurred updating student');
+        }
 
-    return formatResponse(res, 200, 'Student Updated Successfully', true, updatedStudent);
-});
+        return formatResponse(res, 200, 'Student Updated Successfully', true, updatedStudent);
+    });
 
 
 
@@ -114,7 +116,7 @@ export const updateStudentDocuments = expressAsyncHandler(
             enquiryId: id,
             type,
             documentBuffer: file,
-            dueBy : dueBy
+            dueBy: dueBy
         });
 
         if (!validation.success) {
@@ -143,7 +145,7 @@ export const updateStudentDocuments = expressAsyncHandler(
             updatedData = await Student.findOneAndUpdate(
                 { _id: id, 'documents.type': type, },
                 {
-                    $set: { 'documents.$[elem].fileUrl': fileUrl, dueBy : dueBy },
+                    $set: { 'documents.$[elem].fileUrl': fileUrl, dueBy: dueBy },
                 },
                 {
                     new: true,
@@ -167,4 +169,5 @@ export const updateStudentDocuments = expressAsyncHandler(
         }
 
         return formatResponse(res, 200, 'Document uploaded successfully', true, updatedData);
-    });
+    }
+);
