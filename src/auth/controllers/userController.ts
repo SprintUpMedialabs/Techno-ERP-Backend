@@ -109,11 +109,7 @@ export const fetchDropdownsBasedOnPage = expressAsyncHandler(async (req: Authent
       return formatResponse(res, 200, 'Fetching successful', true, formattedUsers)
     }
   } else if (moduleName === ModuleNames.ADMISSION) {
-    if (roles.includes(UserRoles.COUNSELOR)) {
-      users = await User.find({ roles: UserRoles.COUNSELOR });
-    } else if (roles.includes(UserRoles.EMPLOYEE_MARKETING)) {
-      users = await User.find({ roles: UserRoles.EMPLOYEE_MARKETING });
-    }
+    users = await User.find({ roles: role });
     if (users) {
       const formattedUsers = users.map((user) => ({
         _id: user?._id,
