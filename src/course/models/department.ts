@@ -16,6 +16,7 @@ const departmentSchema = new Schema<IDepartmentDocument>({
         minlength: [3, "Department name must be at least 3 characters long"],
         maxlength: [50, "Department name must be at most 50 characters long"]
     },
+    // DTODO: let's add object id here
     hodName: {
         type: String,
         required: [true, "HOD name is required"],
@@ -25,7 +26,6 @@ const departmentSchema = new Schema<IDepartmentDocument>({
     courses: {
         type: [courseSchema],
         default: [],
-        required : false
     }
 }, { timestamps: true });
 
@@ -71,4 +71,5 @@ const transformDates = (_: any, ret: any) => {
 departmentSchema.set('toJSON', { transform: transformDates });
 departmentSchema.set('toObject', { transform: transformDates });
 
+// DTODO: lets create one enum for collection name and also use it in Ref
 export const DepartmentModel = mongoose.model<IDepartmentDocument>('deptandcourse', departmentSchema);

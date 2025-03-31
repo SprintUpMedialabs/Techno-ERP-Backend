@@ -15,6 +15,7 @@ export const subjectDetailsSchema = new Schema<ISubjectDetailsDocument>(
         minlength: [3, "Subject name must be at least 3 characters long"],
         maxlength: [100, "Subject name must be at most 100 characters long"],
     },
+    // DTODO: let's put object id here
     instructorName: {
         type: String,
         required: [true, "Instructor name is required"],
