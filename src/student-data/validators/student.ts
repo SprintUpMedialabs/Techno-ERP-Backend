@@ -10,6 +10,7 @@ import {
 import { singleDocumentSchema } from '../../admission/validators/singleDocumentSchema';
 import { academicDetailsArraySchema } from '../../admission/validators/academicDetailSchema';
 import { previousCollegeDataSchema } from '../../admission/validators/previousCollegeDataSchema';
+import { singleStudentDocumentRequestSchema, singleStudentDocumentUpdateSchema } from './singleStudentDocumentSchema';
 
 
 export const studentSchema = z.object({
@@ -18,7 +19,7 @@ export const studentSchema = z.object({
   photoNo : z.number().min(100, 'Invalid Photo Number'),
   admissionMode: z.nativeEnum(AdmissionMode).default(AdmissionMode.OFFLINE),
   studentName: z.string({ required_error: "Student Name is required", }).nonempty('Student Name is required'),
-  semester : z.string(),
+  semester : z.string().optional(),
   dateOfBirth: z.date().optional(),
   dateOfEnquiry: z.date().optional(),
   
@@ -51,7 +52,7 @@ export const studentSchema = z.object({
 
   studentFee: objectIdSchema.optional(),
   dateOfAdmission: z.date().optional(),
-  documents: z.array(singleDocumentSchema).optional(),
+  documents: z.array(singleStudentDocumentRequestSchema).optional(),
 
   aadharNumber: z.string().regex(/^\d{12}$/, 'Aadhar Number must be exactly 12 digits').optional(),
   religion: z.nativeEnum(Religion).optional(),
@@ -72,14 +73,14 @@ export const updateStudentSchema = studentSchema
     id: objectIdSchema, 
     dateOfAdmission :  requestDateSchema.transform((date) =>
       convertToMongoDate(date) as Date
-    ),
+    ).optional(),
     dateOfEnquiry :  requestDateSchema.transform((date) =>
       convertToMongoDate(date) as Date
-    ),
+    ).optional(),
     dateOfBirth : requestDateSchema.transform((date) =>
       convertToMongoDate(date) as Date
-    )
-  }).partial(); 
+    ).optional(),
+  }).omit({documents: true}).partial(); 
 
 
 export type IStudentUpdateSchema = z.infer<typeof updateStudentSchema>;

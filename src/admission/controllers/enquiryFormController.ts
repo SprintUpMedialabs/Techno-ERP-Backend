@@ -28,6 +28,7 @@ import {
 import { enquiryStatusUpdateSchema, IEnquiryStatusUpdateSchema } from '../validators/enquiryStatusUpdateSchema';
 import { singleDocumentSchema } from '../validators/singleDocumentSchema';
 import { feesDraftRequestSchema, feesDraftUpdateSchema, feesRequestSchema, feesUpdateSchema, IFeesDraftRequestSchema, IFeesDraftUpdateSchema, IFeesRequestSchema, IFeesUpdateSchema, IStudentFeesSchema } from '../validators/studentFees';
+import logger from '../../config/logger';
 
 
 export const createEnquiryDraftStep1 = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
@@ -226,7 +227,8 @@ export const createEnquiryStep2 = expressAsyncHandler(async (req: AuthenticatedR
   const feesDraftData: IFeesRequestSchema = req.body;
 
   const validation = feesRequestSchema.safeParse(feesDraftData);
-
+  
+  console.log(validation.error);
   if (!validation.success) {
     throw createHttpError(400, validation.error.errors[0]);
   }
@@ -239,7 +241,7 @@ export const createEnquiryStep2 = expressAsyncHandler(async (req: AuthenticatedR
       applicationStatus: ApplicationStatus.STEP_1
     },
     {
-      course: 1,// Only return course field
+      course: 1,
       studentFeeDraft: 1
     }
   ).lean();
@@ -282,8 +284,6 @@ export const createEnquiryStep2 = expressAsyncHandler(async (req: AuthenticatedR
 
   }
   else {
-    //Enquiry does not exist, we have to create enquiry first.
-    //This will never be true as we are getting from UI so we will land into this call if and only if enquiry Id is existing.
     throw createHttpError(400, 'Enquiry does not exist');
   }
 
@@ -382,8 +382,6 @@ export const updateEnquiryStep3ById = expressAsyncHandler(
       id,
       {
         ...data,
-        // DTODO: should we manage application status in this way or it should be seperate button upon clicking on it status will change? => Added separate endpoint
-        // applicationStatus: enquiry.applicationStatus == ApplicationStatus.STEP_2 ? ApplicationStatus.STEP_3 : enquiry.applicationStatus
       },
       { new: true, runValidators: true }
     );
@@ -395,6 +393,7 @@ export const updateEnquiryStep3ById = expressAsyncHandler(
 
 export const updateEnquiryDocuments = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
+
     const { id, type, dueBy } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -403,60 +402,93 @@ export const updateEnquiryDocuments = expressAsyncHandler(
 
     await checkIfStudentAdmitted(id);
 
-    const file = req.file as Express.Multer.File;
+    const file = req.file as Express.Multer.File | undefined;
 
     const validation = singleDocumentSchema.safeParse({
-      enquiryId: id,
-      type,
-      documentBuffer: file,
-      dueBy: dueBy
+      id: id,
+      type: type,
+      dueBy: dueBy,
+      file: file
     });
 
     if (!validation.success) {
       throw createHttpError(400, validation.error.errors[0]);
     }
 
-    const fileUrl = await uploadToS3(
-      id.toString(),
-      ADMISSION,
-      type as DocumentType,
-      file
+    // Fetch existing document details
+    const existingDocument = await Enquiry.findOne(
+      { _id: id, 'documents.type': type },
+      { 'documents.$': 1 }
     );
 
-    //Free memory
-    if (req.file)
-      req.file.buffer = null as unknown as Buffer;
+    let fileUrl;
+    let finalDueBy;
+    if (existingDocument?.documents) {
+      fileUrl = existingDocument?.documents[0]?.fileUrl;
+      finalDueBy = existingDocument?.documents[0]?.dueBy;
+    }
 
-    const isExists = await Enquiry.exists({
-      _id: id,
-      'documents.type': type,
-    });
 
-    let updatedData;
-    if (isExists) {
-      updatedData = await Enquiry.findOneAndUpdate(
-        { _id: id, 'documents.type': type, },
-        {
-          $set: { 'documents.$[elem].fileUrl': fileUrl },
-        },
+    if (file) {
+      fileUrl = await uploadToS3(id.toString(), ADMISSION, type as DocumentType, file);
+      if (req.file) {
+        req.file.buffer = null as unknown as Buffer;
+      }
+    }
+
+    if (dueBy) {
+      finalDueBy = dueBy;
+    }
+
+    if (existingDocument) {
+      if (!file && !dueBy) {
+        throw createHttpError(400, 'No new data provided to update');
+      }
+
+      const updateFields: any = {};
+      if (fileUrl) {
+        updateFields['documents.$[elem].fileUrl'] = fileUrl;
+      }
+      if (finalDueBy) {
+        updateFields['documents.$[elem].dueBy'] = finalDueBy;
+      }
+
+      logger.info(updateFields)
+
+      const updatedData = await Enquiry.findOneAndUpdate(
+        { _id: id, 'documents.type': type },
+        { $set: updateFields },
         {
           new: true,
           runValidators: true,
           arrayFilters: [{ 'elem.type': type }],
         }
       );
+
+      return formatResponse(res, 200, 'Document updated successfully', true, updatedData);
     }
     else {
-      updatedData = await Enquiry.findByIdAndUpdate(
+      //Create new as it is not existing
+      if (!file) {
+        throw createHttpError(400, 'Please upload a file first before updating dueBy');
+      }
+
+      const documentData: Record<string, any> = { type, fileUrl };
+
+      if (finalDueBy) {
+        documentData.dueBy = finalDueBy;
+      }
+
+      const updatedData = await Enquiry.findByIdAndUpdate(
         id,
         {
-          $push: { documents: { type, fileUrl } },
+          $push: { documents: documentData },
         },
         { new: true, runValidators: true }
       );
-    }
 
-    return formatResponse(res, 200, 'Document uploaded successfully', true, updatedData);
+      return formatResponse(res, 200, 'New document created successfully', true, updatedData);
+    }
   }
 );
 
@@ -559,75 +591,90 @@ const checkIfStudentAdmitted = async (enquiryId: Types.ObjectId) => {
   return false;
 }
 
-// DTODO: need to add transaction here.
+// DTODO: need to add transaction here => ADDED
+// DACHECK : Here, we are not checking that the application status is of final step. Do we need to check that? 
+// Issue will be if we are on step 2, and someone is clicking the approveEnquiry on step4, the enquiry will be approved without step 3.
+// Frontend pe trust karna hai ya we are taking care of it?
 export const approveEnquiry = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-
   const { id } = req.body;
 
   const validation = objectIdSchema.safeParse(id);
 
-  if (!validation.success)
+  console.log(validation.error);
+  if (!validation.success) {
     throw createHttpError(400, validation.error.errors[0]);
+  }
 
   await checkIfStudentAdmitted(id);
 
-  const enquiry = await Enquiry.findById(id);
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-  if (!enquiry)
-    throw createHttpError(404, 'Please create the enquiry first!');
-
-
-  // DTODO : Here, the prefixes will get increamented even if the update of enquiry fails or student creation fails.
-
-  // For this enquiry Id, we will set the university ID, form no and the photo number. 
-  const prefix = getPrefixForCourse(enquiry.course as Course)
-
-  // Update serial
-  const serial = await EnquiryApplicationId.findOneAndUpdate(
-    { prefix: prefix },
-    { $inc: { lastSerialNumber: 1 } },
-    { new: true, runValidators: true }
-  );
-
-  const formNo = `${prefix}${serial!.lastSerialNumber}`;
-
-  const photoSerial = await EnquiryApplicationId.findOneAndUpdate(
-    { prefix: FormNoPrefixes.PHOTO },
-    { $inc: { lastSerialNumber: 1 } },
-    { new: true, runValidators: true }
-  );
-
-
-  let universityId = generateUniversityId(enquiry.course, photoSerial!.lastSerialNumber);
-
-  const approvedById = req.data?.id;
-
-  // DTODO: we may need to change this logic [it may come from body]
-  let approvedEnquiry = await Enquiry.findByIdAndUpdate(
-    id,
+  try {
+    const enquiry = await Enquiry.findById(id).session(session);
+    if (!enquiry) 
     {
-      $set: {
-        formNo: formNo,
-        photoNo: photoSerial!.lastSerialNumber,
-        universityId: universityId,
-        applicationStatus: ApplicationStatus.STEP_4,
-        approvedBy: approvedById
-      }
-    },
-    { runValidators: true, new: true, projection: { createdAt: 0, updatedAt: 0, __v: 0 } }
-  );
+      throw createHttpError(404, 'Please create the enquiry first!');
+    }
 
-  const studentValidation = studentSchema.safeParse(approvedEnquiry);
+    const prefix = getPrefixForCourse(enquiry.course as Course);
 
-  if (!studentValidation.success)
-    throw createHttpError(400, studentValidation.error.errors[0]);
+    const serial = await EnquiryApplicationId.findOneAndUpdate(
+      { prefix: prefix },
+      { $inc: { lastSerialNumber: 1 } },
+      { new: true, runValidators: true, session }
+    );
 
-  const student = await Student.create({
-    ...studentValidation.data,
-  });
+    const formNo = `${prefix}${serial!.lastSerialNumber}`;
 
-  return formatResponse(res, 200, 'Student created successfully with this information', true, student);
+    const photoSerial = await EnquiryApplicationId.findOneAndUpdate(
+      { prefix: FormNoPrefixes.PHOTO },
+      { $inc: { lastSerialNumber: 1 } },
+      { new: true, runValidators: true, session }
+    );
+
+    const universityId = generateUniversityId(enquiry.course, photoSerial!.lastSerialNumber);
+    const approvedById = req.data?.id;
+
+    const approvedEnquiry = await Enquiry.findByIdAndUpdate(
+      id,
+      {
+        $set: {
+          formNo: formNo,
+          photoNo: photoSerial!.lastSerialNumber,
+          universityId: universityId,
+          applicationStatus: ApplicationStatus.STEP_4,
+          approvedBy: approvedById,
+        },
+      },
+      { runValidators: true, new: true, projection: { createdAt: 0, updatedAt: 0, __v: 0 }, session }
+    );
+
+    console.log(approvedEnquiry);
+    const studentValidation = studentSchema.safeParse(approvedEnquiry);
+    console.log(studentValidation.error);
+    if (!studentValidation.success)
+      throw createHttpError(400, studentValidation.error.errors[0]);
+
+
+    // DTODO : The enquiry _id and student _id should be same => ADDED
+    const student = await Student.create([{
+      _id: enquiry._id,
+      ...studentValidation.data,
+    }], { session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return formatResponse(res, 200, 'Student created successfully with this information', true, student);
+  }
+  catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    throw error;
+  }
 });
+
 
 
 

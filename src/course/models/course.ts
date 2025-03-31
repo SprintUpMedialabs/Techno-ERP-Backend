@@ -1,13 +1,20 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema, Types } from "mongoose";
 import { ICourseSchema } from "../validators/courseSchema";
 import createHttpError from "http-errors";
 import { convertToDDMMYYYY } from "../../utils/convertDateToFormatedDate";
 import { Course } from "../../config/constants";
 import { semesterSchema } from "./semester";
 
-export interface ICourseDocument extends ICourseSchema, Document { }
+export interface ICourseDocument extends ICourseSchema, Document {
+    semester : [typeof semesterSchema]
+ }
 
-const courseSchema = new Schema<ICourseDocument>({
+ export interface ICourseResponseDocument extends ICourseSchema, Document {
+    _id: Types.ObjectId;
+    semester : [typeof semesterSchema]
+ }
+
+export const courseSchema = new Schema<ICourseDocument>({
     academicYear: {
         type: String,
         required: [true, "Academic year is required"],
@@ -20,13 +27,10 @@ const courseSchema = new Schema<ICourseDocument>({
             values: Object.values(Course),
             message: "Invalid course code"
         },
-        unique : true           //More than one course with same course code nahi chalega
     },
-    department: {
+    courseName: {
         type: String,
-        required: [true, "Department name is required"],
-        minlength: [3, "Department name must be at least 3 characters long"],
-        maxlength: [50, "Department name must be at most 50 characters long"]
+        required: [true, "Course Name is required"],
     },
     collegeName: {
         type: String,
@@ -34,15 +38,14 @@ const courseSchema = new Schema<ICourseDocument>({
         minlength: [3, "College name must be at least 3 characters long"],
         maxlength: [100, "College name must be at most 100 characters long"]
     },
-    hodName: {
-        type: String,
-        required: [true, "HOD name is required"],
-        minlength: [3, "HOD name must be at least 3 characters long"],
-        maxlength: [100, "HOD name must be at most 100 characters long"]
+    totalSemesters : {
+        type: Number,
+        required: [true, "Total number of semesters is required"],
+        min: [1, "At least one semester is required"],
     },
     semester: {
         type: [semesterSchema],
-        default: []
+        default: [],
     }
 },
 {
@@ -54,7 +57,11 @@ const handleMongooseError = (error: any, next: Function) => {
     if (error.name === 'ValidationError') {
         const firstError = error.errors[Object.keys(error.errors)[0]];
         throw createHttpError(400, firstError.message);
-    } else if (error.name == 'MongooseError') {
+    }
+    else if (error.code === 11000) {
+        throw createHttpError(400, "Course with this courseCode already exists");       //If course would be duplicated in department, this error would handle that
+    } 
+    else if (error.name == 'MongooseError') {
         throw createHttpError(400, `${error.message}`);
     } else {
         next(error);
@@ -75,10 +82,11 @@ const transformDates = (_: any, ret: any) => {
             ret[key] = convertToDDMMYYYY(ret[key]);
         }
     });
+    delete ret.createdAt;
+    delete ret.updatedAt;
+    delete ret.__v;
     return ret;
 };
 
 courseSchema.set('toJSON', { transform: transformDates });
 courseSchema.set('toObject', { transform: transformDates });
-
-export const CourseModel = mongoose.model<ICourseDocument>('Course', courseSchema);

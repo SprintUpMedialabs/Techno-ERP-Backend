@@ -1,10 +1,8 @@
 import { z } from "zod";
-import { subjectDetailsSchema } from "./subjectDetailsSchema";
 import { objectIdSchema } from "../../validators/commonSchema";
 
 export const semesterSchema = z.object({
     semesterNumber: z.number().min(1).max(10, "Semester number should be between 1 and 10"),
-    semesterDetails: z.array(subjectDetailsSchema).optional()
 });
 
 export const semesterRequestSchema = semesterSchema.extend({

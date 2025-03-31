@@ -10,6 +10,7 @@ import { formatResponse } from "../../utils/formatResponse";
 import { Student } from "../models/student";
 import { IStudentUpdateSchema, updateStudentSchema } from "../validators/student";
 import { IStudentFilter, studentFilterSchema } from "../validators/studentFilterSchema";
+import logger from "../../config/logger";
 
 export const getStudentData = expressAsyncHandler(
     async (req: AuthenticatedRequest, res: Response) => {
@@ -72,7 +73,7 @@ export const getStudentDataById = expressAsyncHandler(
         }
 
         // DTODO: neeed to use populate here.
-        const student = await Student.findById(id);
+        const student = await Student.findById(id).populate('studentFee');
         if (!student) {
             throw createHttpError(404, 'Student Details not found');
         }
@@ -87,6 +88,7 @@ export const updateStudentById = expressAsyncHandler(
 
         const studentUpdateData: IStudentUpdateSchema = req.body;
         const validation = updateStudentSchema.safeParse(studentUpdateData);
+        console.log(validation.error);
         if (!validation.success) {
             throw createHttpError(400, validation.error.errors[0]);
         }
@@ -106,68 +108,108 @@ export const updateStudentById = expressAsyncHandler(
 
 
 
-// DATODO : Need to see where the student documents should be stored.
 export const updateStudentDocuments = expressAsyncHandler(
-    async (req: AuthenticatedRequest, res: Response) => {
-        const { id, type, dueBy } = req.body;
-        const file = req.file as Express.Multer.File;
+  async (req: AuthenticatedRequest, res: Response) => {
+   
+    const { id, type, dueBy } = req.body;
 
-        const validation = singleDocumentSchema.safeParse({
-            enquiryId: id,
-            type,
-            documentBuffer: file,
-            dueBy: dueBy
-        });
-
-        if (!validation.success) {
-            throw createHttpError(400, validation.error.errors[0]);
-        }
-
-        const fileUrl = await uploadToS3(
-            id.toString(),
-            ADMISSION,      //DTODO : Should we change folder here as it is now Student so.
-            type as DocumentType,
-            file
-        );
-
-        //Free memory
-        if (req.file)
-            req.file.buffer = null as unknown as Buffer;
-
-        const isExists = await Student.exists({
-            _id: id,
-            'documents.type': type,
-        });
-
-        console.log("Is Exists : ", isExists);
-        let updatedData;
-        if (isExists) {
-            updatedData = await Student.findOneAndUpdate(
-                { _id: id, 'documents.type': type, },
-                {
-                    $set: { 'documents.$[elem].fileUrl': fileUrl, dueBy: dueBy },
-                },
-                {
-                    new: true,
-                    runValidators: true,
-                    arrayFilters: [{ 'elem.type': type }],
-                }
-            );
-        }
-        else {
-            updatedData = await Student.findByIdAndUpdate(
-                id,
-                {
-                    $push: { documents: { type, fileUrl, dueBy } },
-                },
-                { new: true, runValidators: true }
-            );
-        }
-        console.log(updatedData);
-        if (!updatedData) {
-            throw createHttpError(400, 'Could not upload documents');
-        }
-
-        return formatResponse(res, 200, 'Document uploaded successfully', true, updatedData);
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw createHttpError(400, 'Invalid enquiry ID');
     }
+
+
+    const file = req.file as Express.Multer.File | undefined;
+
+    const validation = singleDocumentSchema.safeParse({
+      id : id,
+      type : type,
+      dueBy : dueBy,
+      file : file
+    });
+
+    if(!validation.success)
+    {
+      throw createHttpError(400, validation.error.errors[0]);
+    }
+
+    // Fetch existing document details
+    const existingDocument = await Student.findOne(
+      { _id: id, 'documents.type': type },
+      { 'documents.$': 1 }
+    );
+
+    let fileUrl;
+    let finalDueBy;
+    if(existingDocument?.documents)
+    {
+       fileUrl = existingDocument?.documents[0]?.fileUrl;
+       finalDueBy = existingDocument?.documents[0]?.dueBy; 
+    }
+  
+
+    if (file) {
+      fileUrl = await uploadToS3(id.toString(), ADMISSION, type as DocumentType, file);      
+      if(req.file)
+      {
+        req.file.buffer = null as unknown as Buffer;
+      }
+    }
+
+    if (dueBy) {
+      finalDueBy = dueBy;
+    }
+
+    if (existingDocument) {
+      if (!file && !dueBy) {
+        throw createHttpError(400, 'No new data provided to update');
+      }
+
+      const updateFields: any = {};
+      if (fileUrl) 
+      {
+        updateFields['documents.$[elem].fileUrl'] = fileUrl;
+      }
+      if (finalDueBy) 
+      {
+        updateFields['documents.$[elem].dueBy'] = finalDueBy;
+      }
+
+      logger.info(updateFields)
+
+      const updatedData = await Student.findOneAndUpdate(
+        { _id: id, 'documents.type': type },
+        { $set: updateFields },
+        {
+          new: true,
+          runValidators: true,
+          arrayFilters: [{ 'elem.type': type }],
+        }
+      );
+
+      return formatResponse(res, 200, 'Document updated successfully', true, updatedData);
+    }
+    else 
+    {
+      //Create new as it is not existing
+      if (!file) {
+        throw createHttpError(400, 'Please upload a file first before updating dueBy');
+      }      
+      
+      const documentData: Record<string, any> = { type, fileUrl };
+
+      if (finalDueBy) {
+          documentData.dueBy = finalDueBy;
+      }
+
+      const updatedData = await Student.findByIdAndUpdate(
+        id,
+        {
+          $push: { documents: documentData },
+        },
+        { new: true, runValidators: true }
+      );
+
+      return formatResponse(res, 200, 'New document created successfully', true, updatedData);
+    }
+  }
 );
