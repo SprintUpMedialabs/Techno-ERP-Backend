@@ -1,0 +1,150 @@
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.saveDataToDb = void 0;
+const user_1 = require("../../auth/models/user");
+const constants_1 = require("../../config/constants");
+const logger_1 = __importDefault(require("../../config/logger"));
+const mailer_1 = require("../../config/mailer");
+const secrets_1 = require("../../secrets");
+const marketingSheetHeader_1 = require("../enums/marketingSheetHeader");
+const leads_1 = require("../models/leads");
+const leads_2 = require("../validators/leads");
+const formatReport_1 = require("./formatReport");
+const googleSheetOperations_1 = require("./googleSheetOperations");
+const leadsToBeInserted = (latestData, report, lastSavedIndex) => __awaiter(void 0, void 0, void 0, function* () {
+    let MarketingEmployees = new Map();
+    const dataToInsert = [];
+    for (const index in latestData) {
+        const row = latestData[index];
+        //We need to add 1 as the sheet index starts from 1, whereas in loop, the index is starting from 0.
+        const correspondingSheetIndex = lastSavedIndex + Number(index) + 1;
+        try {
+            if (!row) {
+                logger_1.default.info('Empty row found at index : ', correspondingSheetIndex);
+                report.emptyRows.push(correspondingSheetIndex);
+                report.rowsFailed++;
+                continue;
+            }
+            // if assignTo is not mentationed in sheet
+            if (!row[marketingSheetHeader_1.MarketingsheetHeaders.AssignedTo]) {
+                logger_1.default.info('Assigned to not found at index : ', correspondingSheetIndex);
+                report.assignedToNotFound.push(correspondingSheetIndex);
+                report.rowsFailed++;
+                continue;
+            }
+            let assignedToEmail = row[marketingSheetHeader_1.MarketingsheetHeaders.AssignedTo];
+            let assignedToID = MarketingEmployees.get(assignedToEmail);
+            if (!assignedToID) {
+                const existingUser = yield user_1.User.findOne({ email: assignedToEmail });
+                if (existingUser && existingUser.roles.includes(constants_1.UserRoles.EMPLOYEE_MARKETING)) {
+                    assignedToID = existingUser._id;
+                    MarketingEmployees.set(assignedToEmail, assignedToID);
+                }
+                else {
+                    if (!existingUser) {
+                        report.otherIssue.push({
+                            rowId: correspondingSheetIndex,
+                            issue: 'Assigned to is not a valid User'
+                        });
+                    }
+                    else {
+                        report.otherIssue.push({
+                            rowId: correspondingSheetIndex,
+                            issue: 'Assigned to is not a Marketing Employee'
+                        });
+                        continue;
+                    }
+                }
+            }
+            let leadData = {
+                date: row[marketingSheetHeader_1.MarketingsheetHeaders.Date],
+                source: row[marketingSheetHeader_1.MarketingsheetHeaders.Source] || '',
+                name: row[marketingSheetHeader_1.MarketingsheetHeaders.Name],
+                phoneNumber: row[marketingSheetHeader_1.MarketingsheetHeaders.PhoneNumber],
+                altPhoneNumber: row[marketingSheetHeader_1.MarketingsheetHeaders.AltPhoneNumber] || '',
+                email: row[marketingSheetHeader_1.MarketingsheetHeaders.Email],
+                gender: constants_1.Gender.NOT_TO_MENTION,
+                location: row[marketingSheetHeader_1.MarketingsheetHeaders.Location] || '',
+                assignedTo: assignedToID
+            };
+            if (row[marketingSheetHeader_1.MarketingsheetHeaders.Gender] &&
+                constants_1.Gender[row[marketingSheetHeader_1.MarketingsheetHeaders.Gender]]) {
+                leadData.gender = constants_1.Gender[row[marketingSheetHeader_1.MarketingsheetHeaders.Gender]];
+            }
+            const leadDataValidation = leads_2.leadRequestSchema.safeParse(leadData);
+            if (leadDataValidation.success) {
+                dataToInsert.push(leadDataValidation.data);
+            }
+            else {
+                report.rowsFailed++;
+                report.otherIssue.push({
+                    rowId: correspondingSheetIndex,
+                    issue: leadDataValidation.error.errors
+                        .map((error) => `${error.path.join('.')}: ${error.message}`)
+                        .join(', ')
+                });
+                logger_1.default.error('Validation failed for row', correspondingSheetIndex, leadDataValidation.error.errors);
+            }
+        }
+        catch (error) {
+            logger_1.default.error(`Error processing row: ${JSON.stringify(row)}`, error);
+        }
+    }
+    return dataToInsert;
+});
+const saveDataToDb = (latestData, lastSavedIndex) => __awaiter(void 0, void 0, void 0, function* () {
+    const report = {
+        rowsToBeProcessed: latestData.length,
+        otherIssue: [],
+        actullyProcessedRows: 0,
+        rowsFailed: 0,
+        duplicateRowIds: [],
+        assignedToNotFound: [],
+        emptyRows: []
+    };
+    const dataToInsert = yield leadsToBeInserted(latestData, report, lastSavedIndex);
+    if (!dataToInsert || dataToInsert.length === 0) {
+        if (report.rowsFailed != 0) {
+            (0, mailer_1.sendEmail)(secrets_1.LEAD_MARKETING_EMAIL, 'Lead Processing Report', (0, formatReport_1.formatReport)(report));
+            logger_1.default.info('Error report sent to Lead!');
+        }
+        logger_1.default.info('No valid data to insert.');
+        (0, googleSheetOperations_1.updateStatusForMarketingSheet)(lastSavedIndex + latestData.length, lastSavedIndex);
+        return;
+    }
+    try {
+        const insertedData = yield leads_1.Lead.insertMany(dataToInsert, { ordered: false, throwOnValidationError: true });
+        report.actullyProcessedRows = insertedData.length;
+    }
+    catch (error) {
+        report.actullyProcessedRows = error.result.insertedCount;
+        error.writeErrors.map((e) => {
+            report.rowsFailed++;
+            if (e.err.code === 11000) {
+                report.duplicateRowIds.push(e.err.index + lastSavedIndex + 1);
+            }
+            else {
+                report.otherIssue.push({ rowId: e.err.index + lastSavedIndex + 1, issue: e.err.errmsg });
+            }
+        });
+        // console.log(report);
+    }
+    if (report.rowsFailed != 0) {
+        (0, mailer_1.sendEmail)(secrets_1.LEAD_MARKETING_EMAIL, 'Lead Processing Report', (0, formatReport_1.formatReport)(report));
+        logger_1.default.info('Error report sent to Lead!');
+    }
+    (0, googleSheetOperations_1.updateStatusForMarketingSheet)(lastSavedIndex + latestData.length, lastSavedIndex);
+});
+exports.saveDataToDb = saveDataToDb;

@@ -82,6 +82,9 @@ const transformDates = (_: any, ret: any) => {
       }
     }
   });
+  delete ret.createdAt;
+  delete ret.updatedAt;
+  delete ret.__v;
   return ret;
 };
 

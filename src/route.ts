@@ -5,6 +5,7 @@ import { crmRoute } from './crm/routes/crmRoute';
 import { admissionRoute } from './admission/routes';
 import feesRouter from './fees/courseAndOtherFees.routes';
 import { courseRoute } from './course/routes/courseRoute';
+import { studentDataRoute } from './student-data/routes/studentRoute';
 
 export const apiRouter = express.Router();
 
@@ -37,3 +38,8 @@ apiRouter.use('/fees-structure',feesRouter);
  * Contains the router for Course Module
  */
 apiRouter.use('/course', courseRoute);
+
+/**
+ * Contains the router for Student Data Module
+ */
+apiRouter.use('/student-data', studentDataRoute);

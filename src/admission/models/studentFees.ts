@@ -1,6 +1,9 @@
-import { model, Schema } from 'mongoose';
+import { model, Schema, Types } from 'mongoose';
 import { FeeStatus, FeeType } from '../../config/constants';
 import { IOtherFeesSchema, ISingleSemSchema, IStudentFeesSchema } from '../validators/studentFees';
+import createHttpError from 'http-errors';
+import { convertToDDMMYYYY } from '../../utils/convertDateToFormatedDate';
+import { emailSchema } from '../../validators/commonSchema';
 
 export interface IOtherFeesDocument extends IOtherFeesSchema, Document {
     feeAmount: number
@@ -12,19 +15,16 @@ export interface ISingleSemWiseDocument extends ISingleSemSchema, Document {
 export interface IStudentFeesDocument extends IStudentFeesSchema, Document { }
 
 //Other fees schema
-const OtherFeesSchema = new Schema<IOtherFeesDocument>({
+export const OtherFeesSchema = new Schema<IOtherFeesDocument>({
     type: {
         type: String,
         enum: Object.values(FeeType),
-        required: true
     },
     feeAmount: {
         type: Number,
-        required: true
     },
     finalFee: {
         type: Number,
-        required: true
     },
     feesDepositedTOA: {
         type: Number,
@@ -36,14 +36,12 @@ const OtherFeesSchema = new Schema<IOtherFeesDocument>({
 });
 
 //Sem wise schema
-const SingleSemWiseFeesSchema = new Schema<ISingleSemWiseDocument>({
+export const SingleSemWiseFeesSchema = new Schema<ISingleSemWiseDocument>({
     feeAmount: {
         type: Number,
-        required: true
     },
     finalFee: {
         type: Number,
-        required: true
     }
 }, { _id: false });
 
@@ -65,10 +63,73 @@ const StudentFeesSchema = new Schema<IStudentFeesDocument>(
             type: String,
             enum: Object.values(FeeStatus),
             default: FeeStatus.DRAFT,
-            optional: true
-        }
+        },
+        feesClearanceDate: {
+            type: Date
+        },
+        counsellor: {
+            type: Schema.Types.Mixed, // Allows ObjectId or String
+            validate: {
+                validator: function (value) {
+                    // Allow null or undefined
+                    if (value === null || value === undefined) return true;
+
+                    // Check for valid ObjectId
+                    const isObjectId = Types.ObjectId.isValid(value);
+
+                    // Allow string 'other'
+                    const isOther = value === 'other';
+
+                    return isObjectId || isOther;
+                },
+                message: props => `'${props.value}' is not a valid counsellor (must be ObjectId or 'other')`
+            },
+            required: true,
+        },
+        approvedBy: {
+            type: String,
+            validate: {
+                validator: (email: string) => emailSchema.safeParse(email).success,
+                message: 'Invalid email format'
+            },
+        },
     },
     { timestamps: true }
 );
 
-export const FeesDraftModel = model('studentFee', StudentFeesSchema);
+
+const handleMongooseError = (error: any, next: Function) => {
+    if (error.name === 'ValidationError') {
+        const firstError = error.errors[Object.keys(error.errors)[0]];
+        throw createHttpError(400, firstError.message);
+    } else if (error.name == 'MongooseError') {
+        throw createHttpError(400, `${error.message}`);
+    } else {
+        next(error); // Pass any other errors to the next middleware
+    }
+};
+
+StudentFeesSchema.post('save', function (error: any, doc: any, next: Function) {
+    handleMongooseError(error, next);
+});
+
+StudentFeesSchema.post('findOneAndUpdate', function (error: any, doc: any, next: Function) {
+    handleMongooseError(error, next);
+});
+
+const transformDates = (_: any, ret: any) => {
+    ['feesClearanceDate'].forEach((key) => {
+        if (ret[key]) {
+            ret[key] = convertToDDMMYYYY(ret[key]);
+        }
+    });
+    delete ret.createdAt;
+    delete ret.updatedAt;
+    delete ret.__v;
+    return ret;
+};
+
+StudentFeesSchema.set('toJSON', { transform: transformDates });
+StudentFeesSchema.set('toObject', { transform: transformDates });
+
+export const StudentFeesModel = model('studentFee', StudentFeesSchema);

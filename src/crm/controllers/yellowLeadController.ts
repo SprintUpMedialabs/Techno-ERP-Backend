@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import expressAsyncHandler from 'express-async-handler';
 import createHttpError from 'http-errors';
 import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
-import { FinalConversionType } from '../../config/constants';
+import { FinalConversionType, Marketing_Source } from '../../config/constants';
 import logger from '../../config/logger';
 import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import { parseFilter } from '../helpers/parseFilter';
@@ -25,19 +25,18 @@ export const createYellowLead = async (leadData: ILead) => {
     gender: leadData.gender,
     campusVisit: false,
     assignedTo: leadData.assignedTo,
+    source: leadData.source ?? Marketing_Source.SCHOOL
   };
 
   if (leadData.nextDueDate && convertToMongoDate(leadData.nextDueDate) > new Date()) {
     yellowLead.nextDueDate = convertToMongoDate(leadData.nextDueDate);
-  } else {
-    yellowLead.nextDueDate = undefined;
   }
 
   const validation = yellowLeadSchema.safeParse(yellowLead);
   if (!validation.success) {
     throw createHttpError(400, validation.error.errors[0]);
   }
-
+  console.log(yellowLead);
   await YellowLead.create(yellowLead);
 
   logger.info('Yellow lead object created successfully');

@@ -25,6 +25,7 @@ export const getFilteredLeadData = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const { query, search, page, limit, sort } = parseFilter(req);
 
+    console.log(query);
     if (search.trim()) {
       query.$and = [
         ...(query.$and || []),
@@ -55,17 +56,18 @@ export const getFilteredLeadData = expressAsyncHandler(
       total: totalLeads,
       totalPages: Math.ceil(totalLeads / limit),
       currentPage: page
-    }); 
+    });
   }
 );
 
 export const getAllLeadAnalytics = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const { query } = parseFilter(req);
-
+    console.log(query);
     // 🔹 Running Aggregate Pipeline
     const analytics = await Lead.aggregate([
       { $match: query }, // Apply Filters
+
       {
         $group: {
           _id: null,
@@ -76,6 +78,8 @@ export const getAllLeadAnalytics = expressAsyncHandler(
         }
       }
     ]);
+
+    console.log(analytics)
 
     return formatResponse(res, 200, 'Lead analytics fetched successfully', true, {
       totalLeads: analytics[0]?.totalLeads ?? 0,
@@ -107,6 +111,11 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
 
     let leadTypeModifiedDate = existingLead.leadTypeModifiedDate;
 
+    if (leadRequestData.leadType && existingLead.leadType != leadRequestData.leadType) {
+      leadTypeModifiedDate = new Date();
+    }
+    console.log('before updating from controller');
+    console.log(leadRequestData);
     const updatedData = await Lead.findByIdAndUpdate(
       existingLead._id,
       { ...leadRequestData, leadTypeModifiedDate },
@@ -115,16 +124,18 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
         runValidators: true
       }
     );
+    console.log('after updating from controller');
+    console.log(updatedData);
 
     if (leadRequestData.leadType && existingLead.leadType != leadRequestData.leadType) {
       if (leadRequestData.leadType === LeadType.YELLOW) {
         createYellowLead(updatedData!);
+        console.log('Yellow lead created successfully');
       }
-      leadTypeModifiedDate = new Date();
     }
 
     return formatResponse(res, 200, 'Data Updated Successfully!', true, updatedData);
-  } 
+  }
   else {
     throw createHttpError(404, 'Lead does not found with the given ID.');
   }

@@ -1,11 +1,11 @@
 import { z } from 'zod';
-import { Course, Gender, LeadType, Locations } from '../../config/constants';
+import { Course, Gender, LeadType, Locations, Marketing_Source } from '../../config/constants';
 import { contactNumberSchema, objectIdSchema, requestDateSchema } from '../../validators/commonSchema';
 
 export const leadSchema = z.object({
   date:
     z.date(),
-  source: z.string().optional(),
+  source: z.nativeEnum(Marketing_Source).optional(),
   name: z.string().min(1, 'Name field is required'),
   phoneNumber: contactNumberSchema,
 

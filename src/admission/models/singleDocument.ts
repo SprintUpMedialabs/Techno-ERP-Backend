@@ -1,6 +1,8 @@
 import { Schema } from "mongoose";
 import { ISingleDocumentSchema } from "../validators/singleDocumentSchema";
 import { DocumentType } from "../../config/constants";
+import { optional } from "zod";
+import { objectIdSchema } from "../../validators/commonSchema";
 export interface ISingleDocument extends ISingleDocumentSchema, Document {}
 
 export const singleDocumentSchema = new Schema({
@@ -10,5 +12,9 @@ export const singleDocumentSchema = new Schema({
     },
     fileUrl : {
       type : String
-    }
+    },
+    dueBy : {
+      type: Date,
+      optional : true
+    },
 });

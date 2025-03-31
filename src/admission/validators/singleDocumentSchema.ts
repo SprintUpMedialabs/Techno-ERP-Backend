@@ -1,9 +1,9 @@
 import { z } from 'zod';
 import { DocumentType } from '../../config/constants';
-import { objectIdSchema } from '../../validators/commonSchema';
+import { objectIdSchema, requestDateSchema } from '../../validators/commonSchema';
+import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 
 export const singleDocumentSchema = z.object({
-  enquiryId : objectIdSchema,
   type: z.nativeEnum(DocumentType),
   documentBuffer: z.object({
     buffer: z.instanceof(Buffer),
@@ -15,7 +15,11 @@ export const singleDocumentSchema = z.object({
   }).refine(
     (file) => ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf'].includes(file.mimetype),
     { message: 'Invalid file type. Only PNG, JPG, JPEG, and PDF are allowed.' }
-  )
+  ).optional(),
+  dueBy : requestDateSchema.transform((date) =>
+    convertToMongoDate(date) as Date
+  ).optional(),
+  fileUrl : z.string().optional(),
 });
 
 export type ISingleDocumentSchema = z.infer<typeof singleDocumentSchema>;
