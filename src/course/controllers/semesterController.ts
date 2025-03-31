@@ -1,10 +1,10 @@
+import { Response } from "express";
 import expressAsyncHandler from "express-async-handler";
-import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
-import { Response } from "express"
 import createHttpError from "http-errors";
 import { formatResponse } from "../../utils/formatResponse";
 import { Types } from "mongoose";
 import { DepartmentModel } from "../models/department";
+import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
 
 // DTODO : On deleting semester, the total number of semesters in course should change.
 export const deleteSemester = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
