@@ -4,6 +4,8 @@ import { objectIdSchema } from "../../validators/commonSchema";
 
 export const courseSchema = z.object({
     academicYear: z.string().regex(/^\d{4}-\d{4}$/, "Invalid academic year format (YYYY-YYYY)"),
+    // DTODO: lets use string here[also create api to get courses]
+    // Future DTODO: in enquire request body will change courseCode type string to _id
     courseCode: z.nativeEnum(Course),
     courseName : z.string().min(3, "Course Name is required"),
     collegeName: z.string().min(3).max(100, "College name should be between 3 and 100 characters"),

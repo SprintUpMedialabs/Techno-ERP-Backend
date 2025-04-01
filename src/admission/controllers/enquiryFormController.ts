@@ -399,9 +399,6 @@ export const updateEnquiryDocuments = expressAsyncHandler(
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw createHttpError(400, 'Invalid enquiry ID');
     }
-
-    await checkIfStudentAdmitted(id);
-
     const file = req.file as Express.Multer.File | undefined;
 
     const validation = singleDocumentSchema.safeParse({
@@ -410,6 +407,9 @@ export const updateEnquiryDocuments = expressAsyncHandler(
       dueBy: dueBy,
       file: file
     });
+
+    await checkIfStudentAdmitted(id);
+
 
     if (!validation.success) {
       throw createHttpError(400, validation.error.errors[0]);
@@ -468,6 +468,7 @@ export const updateEnquiryDocuments = expressAsyncHandler(
       return formatResponse(res, 200, 'Document updated successfully', true, updatedData);
     }
     else {
+      // DTODO: we need change this logic as we want to acccept only due by also
       //Create new as it is not existing
       if (!file) {
         throw createHttpError(400, 'Please upload a file first before updating dueBy');
@@ -591,10 +592,6 @@ const checkIfStudentAdmitted = async (enquiryId: Types.ObjectId) => {
   return false;
 }
 
-// DTODO: need to add transaction here => ADDED
-// DACHECK : Here, we are not checking that the application status is of final step. Do we need to check that? 
-// Issue will be if we are on step 2, and someone is clicking the approveEnquiry on step4, the enquiry will be approved without step 3.
-// Frontend pe trust karna hai ya we are taking care of it?
 export const approveEnquiry = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const { id } = req.body;
 
@@ -650,9 +647,7 @@ export const approveEnquiry = expressAsyncHandler(async (req: AuthenticatedReque
       { runValidators: true, new: true, projection: { createdAt: 0, updatedAt: 0, __v: 0 }, session }
     );
 
-    console.log(approvedEnquiry);
     const studentValidation = studentSchema.safeParse(approvedEnquiry);
-    console.log(studentValidation.error);
     if (!studentValidation.success)
       throw createHttpError(400, studentValidation.error.errors[0]);
 

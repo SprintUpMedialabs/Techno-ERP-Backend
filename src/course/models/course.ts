@@ -1,18 +1,18 @@
-import mongoose, { Schema, Types } from "mongoose";
-import { ICourseSchema } from "../validators/courseSchema";
 import createHttpError from "http-errors";
-import { convertToDDMMYYYY } from "../../utils/convertDateToFormatedDate";
+import { Schema, Types } from "mongoose";
 import { Course } from "../../config/constants";
+import { convertToDDMMYYYY } from "../../utils/convertDateToFormatedDate";
+import { ICourseSchema } from "../validators/courseSchema";
 import { semesterSchema } from "./semester";
 
 export interface ICourseDocument extends ICourseSchema, Document {
-    semester : [typeof semesterSchema]
- }
+    semester: [typeof semesterSchema]
+}
 
- export interface ICourseResponseDocument extends ICourseSchema, Document {
+export interface ICourseResponseDocument extends ICourseSchema, Document {
     _id: Types.ObjectId;
-    semester : [typeof semesterSchema]
- }
+    semester: [typeof semesterSchema]
+}
 
 export const courseSchema = new Schema<ICourseDocument>({
     academicYear: {
@@ -38,7 +38,7 @@ export const courseSchema = new Schema<ICourseDocument>({
         minlength: [3, "College name must be at least 3 characters long"],
         maxlength: [100, "College name must be at most 100 characters long"]
     },
-    totalSemesters : {
+    totalSemesters: {
         type: Number,
         required: [true, "Total number of semesters is required"],
         min: [1, "At least one semester is required"],
@@ -48,9 +48,10 @@ export const courseSchema = new Schema<ICourseDocument>({
         default: [],
     }
 },
-{
-        timestamps: true 
-});
+    {
+        timestamps: true
+    }
+);
 
 
 const handleMongooseError = (error: any, next: Function) => {
@@ -60,7 +61,7 @@ const handleMongooseError = (error: any, next: Function) => {
     }
     else if (error.code === 11000) {
         throw createHttpError(400, "Course with this courseCode already exists");       //If course would be duplicated in department, this error would handle that
-    } 
+    }
     else if (error.name == 'MongooseError') {
         throw createHttpError(400, `${error.message}`);
     } else {

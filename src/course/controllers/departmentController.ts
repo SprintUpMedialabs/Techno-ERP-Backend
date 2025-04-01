@@ -10,8 +10,6 @@ export const createDepartment = expressAsyncHandler(async (req: AuthenticatedReq
 
     const { departmentName, hodName } = req.body;
     const validation = departmentSchema.safeParse({departmentName, hodName});
-    
-    console.log(validation.error?.format());
 
     if (!validation.success)
     {
@@ -19,7 +17,6 @@ export const createDepartment = expressAsyncHandler(async (req: AuthenticatedReq
     }
 
     const newDepartment = await DepartmentModel.create(validation.data);
-    console.log(newDepartment)
 
     return formatResponse(res, 200, 'Department created successfully', true, newDepartment);
 });
@@ -29,8 +26,8 @@ export const updateDepartment = expressAsyncHandler(async (req: AuthenticatedReq
 
     const { departmentId, hodName } = req.body;
     const validation = departmentUpdateSchema.safeParse({departmentId, hodName});
-    if (!validation.success)
-    {
+
+    if (!validation.success){
         throw createHttpError(400, validation.error.errors[0]);
     }
 

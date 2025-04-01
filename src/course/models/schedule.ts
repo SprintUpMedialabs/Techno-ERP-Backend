@@ -1,7 +1,5 @@
 import { Schema } from "mongoose";
-import { subjectDetailsSchema } from "./subject";
 import { IScheduleSchema } from "../validators/scheduleSchema";
-import { convertToDDMMYYYY } from "../../utils/convertDateToFormatedDate";
 
 export interface IScheduleDocument extends IScheduleSchema, Document { }
 
