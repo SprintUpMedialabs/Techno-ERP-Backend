@@ -1,5 +1,5 @@
 import { Schema, model, Document } from 'mongoose';
-import { Course, FeeType } from '../config/constants';
+import { COLLECTION_NAMES, Course, FeeType } from '../config/constants';
 
 
 export interface ICourseFee {
@@ -67,6 +67,6 @@ const CourseAndOtherFeesSchema = new Schema<ICourseAndOtherFeesDocument>(
 
 // Model
 export const CourseAndOtherFeesModel = model<ICourseAndOtherFeesDocument>(
-    'CourseAndOtherFees',
+    COLLECTION_NAMES.COURSE_OTHER_FEES,
     CourseAndOtherFeesSchema
 );

@@ -3,7 +3,7 @@ import { objectIdSchema } from "../../validators/commonSchema";
 
 export const departmentSchema = z.object({
     departmentName: z.string().min(3).max(50, "Department name should be between 3 and 50 characters"),
-    hodName: z.string().min(3).max(100, "HOD name should be between 3 and 100 characters"),
+    hod: objectIdSchema,
 });
 
 export const departmentUpdateSchema = departmentSchema.extend({

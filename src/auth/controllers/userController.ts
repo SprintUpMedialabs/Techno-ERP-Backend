@@ -119,8 +119,20 @@ export const fetchDropdownsBasedOnPage = expressAsyncHandler(async (req: Authent
 
       return formatResponse(res, 200, 'Fetching successful', true, formattedUsers)
     }
+  } 
+  else if(moduleName == ModuleNames.COURSE)
+  {
+      users = await User.find({ roles: role });
+      if (users) {
+        const formattedUsers = users.map((user) => ({
+          _id: user?._id,
+          name: formatName(user?.firstName ?? '', user?.lastName ?? ''),
+          email: user?.email
+        }));
+  
+        return formatResponse(res, 200, 'Fetching successful', true, formattedUsers)
+      }
   }
-
 
   //throw createHttpError(400, "Invalid module name");
 });

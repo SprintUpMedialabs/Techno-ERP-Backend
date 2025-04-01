@@ -1,6 +1,6 @@
 import createHttpError from 'http-errors';
 import mongoose, { Schema, Types } from 'mongoose';
-import { AdmissionMode, AdmissionReference, AdmittedThrough, ApplicationStatus, Category, Course, Gender } from '../../config/constants';
+import { AdmissionMode, AdmissionReference, AdmittedThrough, ApplicationStatus, Category, COLLECTION_NAMES, Course, Gender } from '../../config/constants';
 import { convertToDDMMYYYY, convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import { contactNumberSchema, emailSchema } from '../../validators/commonSchema';
 import { IEnquirySchema } from '../validators/enquiry';
@@ -176,12 +176,12 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
     },
     studentFee: {
       type: Schema.Types.ObjectId,
-      ref: 'studentFee', // Refer to FeesDraft model
+      ref: COLLECTION_NAMES.STUDENT_FEE, // Refer to FeesDraft model
       required: false
     },
     studentFeeDraft: {
       type: Schema.Types.ObjectId,
-      ref: 'studentFeeDraft',
+      ref: COLLECTION_NAMES.STUDENT_FEE_DRAFT,
       required: false
     },
     gender: {
@@ -273,4 +273,4 @@ const transformDates = (_: any, ret: any) => {
 enquirySchema.set('toJSON', { transform: transformDates });
 enquirySchema.set('toObject', { transform: transformDates });
 
-export const Enquiry = mongoose.model<IEnquiryDocument>('Enquiry', enquirySchema);
+export const Enquiry = mongoose.model<IEnquiryDocument>(COLLECTION_NAMES.ENQUIRY, enquirySchema);

@@ -652,7 +652,6 @@ export const approveEnquiry = expressAsyncHandler(async (req: AuthenticatedReque
       throw createHttpError(400, studentValidation.error.errors[0]);
 
 
-    // DTODO : The enquiry _id and student _id should be same => ADDED
     const student = await Student.create([{
       _id: enquiry._id,
       ...studentValidation.data,

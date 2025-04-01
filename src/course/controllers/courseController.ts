@@ -4,9 +4,8 @@ import { Response } from "express"
 import createHttpError from "http-errors";
 import mongoose from "mongoose";
 import { formatResponse } from "../../utils/formatResponse";
-import { ICourseResponseDocument } from "../models/course";
 import { DepartmentModel } from "../models/department";
-import { courseRequestSchema, ICourseRequestSchema } from "../validators/courseSchema";
+import { courseRequestSchema, ICourseRequestSchema, ICourseUpdateSchema, updateCourseSchema } from "../validators/courseSchema";
 
 export const createCourse = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
 
@@ -27,6 +26,16 @@ export const createCourse = expressAsyncHandler(async (req: AuthenticatedRequest
         semester: semesterArray
     }
 
+    const existingCourse = await DepartmentModel.findOne({
+        _id: validation.data.departmentId,
+        "courses.courseCode": validation.data.courseCode
+    });
+
+    if (existingCourse) {
+        throw createHttpError(400, `Course with code ${validation.data.courseCode} already exists in this department.`);
+    }
+
+
     const updatedDepartment = await DepartmentModel.findOneAndUpdate(
         { _id: createCourseData.departmentId, "courses.courseCode": { $ne: newCourse.courseCode } },
         { $push: { courses: newCourse } },
@@ -41,7 +50,43 @@ export const createCourse = expressAsyncHandler(async (req: AuthenticatedRequest
 });
 
 
-// DTODO: lets add courseCode, collegeName in update course api[lets make sure that courseCode is not duplicated]
+// DTODO: lets add courseCode, collegeName in update course api[lets make sure that courseCode is not duplicated] => DONE
+export const updateCourse = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const updateCourseData : ICourseUpdateSchema = req.body;
+    const validation = updateCourseSchema.safeParse(updateCourseData);
+
+    if(!validation.success)
+        throw createHttpError(400, validation.error.errors[0]);
+
+
+    const { courseId, courseName, courseCode, collegeName } = validation.data;
+
+    const isDuplicateCourseCode = await DepartmentModel.findOne({
+        "courses.courseCode": courseCode,
+        "courses._id": { $ne: courseId } 
+    });
+
+    if (isDuplicateCourseCode) {
+        throw createHttpError(400, `Course with code ${courseCode} already exists in this department.`);
+    }
+
+    const updatedCourse = await DepartmentModel.findOneAndUpdate(
+        { "courses._id": courseId },
+        {
+            $set: {
+                "courses.$.courseName": courseName,
+                "courses.$.courseCode": courseCode,
+                "courses.$.collegeName": collegeName
+            }
+        },
+        { new: true, projection: { "courses": { $elemMatch: { _id: courseId } } } }
+    );
+    
+    return formatResponse(res, 200, 'Course information updated successfully', true, updatedCourse);
+
+})
+
+
 export const deleteCourse = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
 
     const { courseId } = req.body;
@@ -61,45 +106,39 @@ export const deleteCourse = expressAsyncHandler(async (req: AuthenticatedRequest
 
 
 export const searchCourse = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    // DTODO: will have departmentId in body | will get course by id
-    let { search } = req.body;
-    if (!search) search = "";
+    
+    let { search } = req.body;  
+    
+    if (!search)
+    {
+        search = "";
+    }
 
-    //This is will return entire object of department where course would have matched
-    // find one
-    const departments = await DepartmentModel.find({
-        "courses": {
-            $elemMatch: {
+    const matchedCourses = await DepartmentModel.aggregate([
+        { $unwind: "$courses" }, 
+        { 
+            $match: { 
                 $or: [
-                    { courseCode: { $regex: search, $options: "i" } },
-                    { courseName: { $regex: search, $options: "i" } }
+                    { "courses.courseCode": { $regex: search, $options: "i" } },
+                    { "courses.courseName": { $regex: search, $options: "i" } }
                 ]
             }
+        },
+        { 
+            $project: { 
+                _id: 0,
+                departmentId: "$_id",
+                courseId: "$courses._id",
+                courseCode: "$courses.courseCode",
+                courseName: "$courses.courseName",
+                academicYear: "$courses.academicYear",
+                totalSemesters: "$courses.totalSemesters",
+                semester: "$courses.semester"
+            }
         }
-    }).populate("courses");
+    ]);
 
-    if (!departments.length) {
-        throw createHttpError(404, "No matching courses found.");
-    }
-    //Here, we are getting only those documents which are necessary and which contain the matched course in department, we are ignoring other courses.
-    const matchedCourses = departments.flatMap((department) =>
-        (department.courses as ICourseResponseDocument[])
-            .filter((course) => {
-                const courseCode = course.courseCode?.toLowerCase() || "";
-                const courseName = course.courseName?.toLowerCase() || "";
-                return courseCode.includes(search.toLowerCase()) || courseName.includes(search.toLowerCase());
-            })
-            .map((course) => ({
-                departmentId: department._id,
-                courseId: course._id,
-                courseCode: course.courseCode,
-                academicYear: course.academicYear,
-                totalSemesters: course.totalSemesters,
-                semester: course.semester
-            }))
-    );
-
-    if (matchedCourses.length === 0) {
+    if (!matchedCourses.length) {
         throw createHttpError(404, "No matching courses found.");
     }
 

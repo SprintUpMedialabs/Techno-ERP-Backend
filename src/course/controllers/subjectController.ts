@@ -29,62 +29,131 @@ export const createSubject = expressAsyncHandler(async (req: AuthenticatedReques
         }
     );
 
-    console.log(updatedDepartment);
+    const updatedCourse  = await DepartmentModel.findOne(
+        { "courses.semester._id": semesterId },
+        { "courses.$": 1 } 
+    );
+
     if (!updatedDepartment) {
-        throw createHttpError(404, "Semester not found.");
+        throw createHttpError(404, "Failed creating subject");
     }
 
-    return formatResponse(res, 201, 'Subject Added successfully', true, updatedDepartment.courses[0].semester[0])
+    return formatResponse(res, 201, 'Subject Added successfully', true, updatedCourse);
 });
+
+
+// export const updateSubject = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+
+//     const  subjectData : ISubjectDetailsUpdateSchema = req.body;
+
+//     const validation = subjectDetailsUpdateSchema.safeParse(subjectData);
+
+//     if(!validation.success)
+//     {
+//         throw createHttpError(400, validation.error.errors[0]);
+//     }
+
+
+//     const { subjectId, ...subjectUpdateData} = validation.data
+//     console.log(subjectUpdateData);
+    
+//     const updatedDepartment = await DepartmentModel.findOneAndUpdate(
+//         { "courses.semester.subjectDetails._id": subjectId },
+//         { $set: { "courses.$[].semester.$[].subjectDetails.$[subj]":  } },
+//         {
+//             arrayFilters: [{ "subj._id": subjectId }],
+//             new: true
+//         }
+//     );
+//     console.log(updatedDepartment);
+
+//     // const updatedDepartmentWithSemester = await DepartmentModel.findOne(
+//     //     { "courses.semester.subjectDetails._id": subjectId },
+//     //     { 
+//     //         _id: 1, 
+//     //         "courses._id": 1,
+//     //         "courses.semester.$": 1 // Only return the matched semester
+//     //     }
+//     // );
+
+//     // console.log(updatedDepartmentWithSemester);
+//     // if(!updatedDepartmentWithSemester)
+//     //     throw createHttpError(404, 'Failed updating the subject information');
+
+//     return formatResponse(res, 200, 'Subject Updated Successfully', true, updatedDepartment);
+// });
 
 
 export const updateSubject = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-
-    const  subjectData : ISubjectDetailsUpdateSchema = req.body;
+    const subjectData: ISubjectDetailsUpdateSchema = req.body;
 
     const validation = subjectDetailsUpdateSchema.safeParse(subjectData);
 
-    if(!validation.success)
-    {
+    if (!validation.success) {
         throw createHttpError(400, validation.error.errors[0]);
     }
 
-    const { subjectId, ...subjectUpdateData} = validation.data
+
+    const { subjectId, ...subjectUpdateData } = validation.data;
+    console.log(subjectUpdateData);
+
+
     const updatedDepartment = await DepartmentModel.findOneAndUpdate(
-        { "courses.semester.subjectDetails._id": subjectId },
-        { $set: { "courses.$[].semester.$[].subjectDetails.$[subj]": subjectUpdateData } }, 
-        { 
-            arrayFilters: [{ "subj._id": subjectId }], 
-            new: true, 
+        { "courses.semester.subjectDetails._id": subjectId }, 
+        {
+            $set: { 
+                "courses.$.semester.$[sem].subjectDetails.$[subj].subjectName": subjectUpdateData.subjectName, 
+                "courses.$.semester.$[sem].subjectDetails.$[subj].subjectCode": subjectUpdateData.subjectCode,
+                "courses.$.semester.$[sem].subjectDetails.$[subj].instructor": subjectUpdateData.instructor,
+            }
+        },
+        {
+            arrayFilters: [
+                { "sem.subjectDetails._id": subjectId }, 
+                { "subj._id": subjectId } 
+            ],
+            projection: { "courses.$": 1 } 
         }
     );
 
-    if(!updatedDepartment)
-        throw createHttpError(404, 'Failed updating the subject information');
-
-    return formatResponse(res, 200, 'Subject Updated Successfully', true, updatedDepartment.courses[0].semester[0])
+    console.log(updatedDepartment)
+    return formatResponse(res, 200, 'Subject Updated Successfully', true, updatedDepartment);
 });
+
 
 
 
 export const deleteSubject = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const { subjectId } = req.body;
+    const { subjectId, semesterId } = req.body;
 
-    if (!Types.ObjectId.isValid(subjectId)) {
-        throw createHttpError(400, "Invalid Subject ID");
+    if (!Types.ObjectId.isValid(subjectId) || !Types.ObjectId.isValid(semesterId)) {
+        throw createHttpError(400, "Invalid subjectId or semesterId");
     }
 
     const updatedDepartment = await DepartmentModel.findOneAndUpdate(
-        { "courses.semester.subjectDetails._id": subjectId },
-        { $pull: { "courses.$[].semester.$[].subjectDetails": { _id: subjectId } } }, 
-        { 
+        {
+            "courses.semester._id": semesterId,
+            "courses.semester.subjectDetails._id": subjectId
+        },
+        {
+            $pull: {
+                "courses.$.semester.$[sem].subjectDetails": { _id: subjectId }
+            }
+        },
+        {
             new: true, 
+            arrayFilters: [
+                { "sem._id": semesterId } 
+            ],
+            projection: {
+                "courses": {
+                    $elemMatch: {
+                        "semester._id": semesterId
+                    }
+                }
+            }
         }
     );
 
-    if (!updatedDepartment) {
-        throw createHttpError(404, "Subject not found.");
-    }
-
-    return formatResponse(res, 200, 'Subject Deleted Successfully', true, updatedDepartment);
+    return formatResponse(res, 200, "Subject deleted successfully", true, updatedDepartment);
 });

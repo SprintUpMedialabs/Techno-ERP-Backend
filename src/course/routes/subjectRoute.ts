@@ -1,7 +1,7 @@
 import express from "express";
 import { UserRoles } from "../../config/constants";
 import { authenticate, authorize } from "../../middleware/jwtAuthenticationMiddleware";
-// import { scheduleRoute } from "./scheduleRoute";
+import { scheduleRoute } from "./scheduleRoute";
 import { createSubject, deleteSubject, updateSubject } from "../controllers/subjectController";
 
 
@@ -24,4 +24,4 @@ subjectRoute.delete('/',
     deleteSubject
 )
 
-// subjectRoute.use('/schedule', scheduleRoute);
+subjectRoute.use('/schedule', scheduleRoute);

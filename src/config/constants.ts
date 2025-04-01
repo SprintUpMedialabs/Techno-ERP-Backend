@@ -8,7 +8,8 @@ export enum UserRoles {
   BASIC_USER = 'BASIC_USER',
   COUNSELOR = 'COUNSELOR',
   REGISTAR = 'REGISTAR',
-  
+  HOD = 'HOD',
+  INSTRUCTOR = 'INSTRUCTOR'
 }
 
 export enum Gender {
@@ -180,7 +181,8 @@ export enum MimeType {
 
 export enum ModuleNames {
   MARKETING = "MARKETING",
-  ADMISSION = "ADMISSION"
+  ADMISSION = "ADMISSION",
+  COURSE = "COURSE"
 }
 
 
@@ -283,3 +285,19 @@ export const PHOTO = "PHOTO";
 
 export const MARKETING_SHEET = 'Marketing Sheet'
 
+
+export enum COLLECTION_NAMES{
+   USER = 'User',
+   VERIFY_OTP = 'VerifyOtp',
+   ENQUIRY = 'Enquiry',
+   ENQUIRY_DRAFT = 'EnquiryDraft',
+   ENQUIRY_ID_META_DATA = 'EnquiryIdMetaData',
+   STUDENT_FEE = 'studentFee',
+   STUDENT_FEE_DRAFT = 'studentFeeDraft',
+   DEPARTMENT_COURSE = 'deptandcourse',
+   LEAD = 'Lead',
+   SPREADSHEET_META_DATA = 'spreadSheetMetaData',
+   YELLOW_LEAD = 'YellowLead',
+   COURSE_OTHER_FEES = 'CourseAndOtherFees',
+   STUDENT = 'Student'
+}

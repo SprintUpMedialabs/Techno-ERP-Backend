@@ -2,6 +2,7 @@ import { Schema } from "mongoose";
 import { ISubjectDetailsSchema } from "../validators/subjectDetailsSchema";
 import { scheduleSchema } from "./schedule";
 import createHttpError from "http-errors";
+import { COLLECTION_NAMES } from "../../config/constants";
 
 export interface ISubjectDetailsDocument extends ISubjectDetailsSchema, Document {
     schedule : [typeof scheduleSchema]
@@ -15,10 +16,10 @@ export const subjectDetailsSchema = new Schema<ISubjectDetailsDocument>(
         minlength: [3, "Subject name must be at least 3 characters long"],
         maxlength: [100, "Subject name must be at most 100 characters long"],
     },
-    // DTODO: let's put object id here
-    instructorName: {
-        type: String,
-        required: [true, "Instructor name is required"],
+    instructor: {
+        type: Schema.Types.ObjectId,
+        ref : COLLECTION_NAMES.USER,
+        required: [true, "Instructor information is required"],
         minlength: [3, "Instructor name must be at least 3 characters long"],
         maxlength: [100, "Instructor name must be at most 100 characters long"]
     },

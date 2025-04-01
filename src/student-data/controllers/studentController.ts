@@ -72,7 +72,6 @@ export const getStudentDataById = expressAsyncHandler(
       throw createHttpError(400, 'Invalid ID');
     }
 
-    // DTODO: neeed to use populate here.
     const student = await Student.findById(id).populate('studentFee');
     if (!student) {
       throw createHttpError(404, 'Student Details not found');

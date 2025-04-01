@@ -16,10 +16,10 @@ export const courseRequestSchema = courseSchema.extend({
     departmentId : objectIdSchema       //This we are taking as course will be created inside department
 })
 
-// export const updateCourseSchema = courseSchema.omit({
-//     courseCode: true,
-//     academicYear: true
-// }).extend({  id: objectIdSchema });
+export const updateCourseSchema = courseSchema.omit({
+   totalSemesters : true,
+   academicYear : true,
+}).extend({  courseId: objectIdSchema });
 
 
 export const deleteCourseSchema = z.object({
@@ -29,4 +29,5 @@ export const deleteCourseSchema = z.object({
 
 export type ICourseSchema = z.infer<typeof courseSchema>;
 export type ICourseRequestSchema = z.infer<typeof courseRequestSchema>;
+export type ICourseUpdateSchema = z.infer<typeof updateCourseSchema>;
 export type ICourseDeleteSchema = z.infer<typeof deleteCourseSchema>;
