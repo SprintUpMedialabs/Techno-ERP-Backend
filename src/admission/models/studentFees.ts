@@ -132,4 +132,4 @@ const transformDates = (_: any, ret: any) => {
 StudentFeesSchema.set('toJSON', { transform: transformDates });
 StudentFeesSchema.set('toObject', { transform: transformDates });
 
-export const FeesDraftModel = model('studentFee', StudentFeesSchema);
+export const StudentFeesModel = model('studentFee', StudentFeesSchema);

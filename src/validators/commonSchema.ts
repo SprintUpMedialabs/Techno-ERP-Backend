@@ -1,11 +1,9 @@
-import mongoose, { Types } from 'mongoose';
+import mongoose from 'mongoose';
 import { z } from 'zod';
 import { Countries, Districts, StatesOfIndia, UserRoles } from '../config/constants';
 
-export const objectIdSchema = z.custom<Types.ObjectId>(
+export const objectIdSchema = z.custom<mongoose.Types.ObjectId>(
   (id) => {
-    // console.log(id);
-    // console.log(typeof id)
     return mongoose.Types.ObjectId.isValid(id)
   },
   { message: "Invalid ObjectId" }

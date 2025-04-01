@@ -73,6 +73,7 @@ export const enquirySchema = z.object({
   religion: z.nativeEnum(Religion).optional(),
   bloodGroup: z.nativeEnum(BloodGroup).optional(),
   admittedThrough: z.nativeEnum(AdmittedThrough),
+  approvedBy: objectIdSchema.optional(),  
 });
 
 // Final schema for request (omitting feesDraftId and making it strict)
