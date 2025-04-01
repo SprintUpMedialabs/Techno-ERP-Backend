@@ -34,6 +34,7 @@ export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedReque
             query.date.$lte = convertToMongoDate(endDate);
         }
     }
+    assignedTo = assignedTo.map(id => new mongoose.Types.ObjectId(id));
 
     assignedTo = assignedTo.map(id => new mongoose.Types.ObjectId(id));
 
