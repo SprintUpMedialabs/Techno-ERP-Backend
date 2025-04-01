@@ -45,49 +45,59 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Enquiry = exports.enquirySchema = void 0;
+exports.Student = void 0;
 const http_errors_1 = __importDefault(require("http-errors"));
 const mongoose_1 = __importStar(require("mongoose"));
 const constants_1 = require("../../config/constants");
 const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
 const commonSchema_1 = require("../../validators/commonSchema");
-const academicDetail_1 = require("./academicDetail");
-const address_1 = require("./address");
-const previousCollegeData_1 = require("./previousCollegeData");
-const singleDocument_1 = require("./singleDocument");
-exports.enquirySchema = new mongoose_1.Schema({
+const address_1 = require("../../admission/models/address");
+const academicDetail_1 = require("../../admission/models/academicDetail");
+const singleDocument_1 = require("../../admission/models/singleDocument");
+const previousCollegeData_1 = require("../../admission/models/previousCollegeData");
+const studentSchema = new mongoose_1.Schema({
+    universityId: {
+        type: String,
+    },
+    photoNo: {
+        type: Number,
+    },
+    formNo: {
+        type: String,
+    },
+    dateOfEnquiry: {
+        type: Date,
+        required: true,
+        default: new Date(), // DA Check : This won't come from input hence initialised it to new date.
+    },
+    dateOfAdmission: {
+        type: Date,
+    },
     admissionMode: {
         type: String,
         enum: {
             values: Object.values(constants_1.AdmissionMode),
             message: 'Invalid Admission Mode value'
-        },
-        default: constants_1.AdmissionMode.OFFLINE
-    },
-    dateOfEnquiry: {
-        type: Date,
-        required: true,
-        default: new Date(),
-        set: (value) => {
-            return (0, convertDateToFormatedDate_1.convertToMongoDate)(value);
         }
     },
     studentName: {
         type: String,
         required: [true, 'Student Name is required']
     },
+    dateOfBirth: {
+        type: Date,
+        required: [true, 'Date is required'],
+        // set: (value: string) => {
+        //   let convertedDate = convertToMongoDate(value);
+        //   if (!convertedDate) throw createHttpError(400,'Invalid date format, expected DD-MM-YYYY');
+        //   return convertedDate;
+        // }
+    },
     studentPhoneNumber: {
         type: String,
         validate: {
             validator: (stuPhNum) => commonSchema_1.contactNumberSchema.safeParse(stuPhNum).success,
             message: 'Invalid Phone Number'
-        }
-    },
-    emailId: {
-        type: String,
-        validate: {
-            validator: (email) => commonSchema_1.emailSchema.safeParse(email).success,
-            message: 'Invalid email format'
         }
     },
     fatherName: {
@@ -122,23 +132,31 @@ exports.enquirySchema = new mongoose_1.Schema({
         type: String,
         required: [true, 'Mother occupation is required']
     },
-    dateOfBirth: {
-        type: Date,
-        required: [true, 'Date is required'],
-        set: (value) => {
-            return (0, convertDateToFormatedDate_1.convertToMongoDate)(value);
-        }
-        // set: (value: string) => {
-        //   let convertedDate = convertToMongoDate(value);
-        //   if (!convertedDate) throw createHttpError(400,'Invalid date format, expected DD-MM-YYYY');
-        //   return convertedDate;
-        // }
-    },
     category: {
         type: String,
         enum: {
             values: Object.values(constants_1.Category),
             message: 'Invalid Category value'
+        },
+        required: true
+    },
+    address: {
+        type: address_1.addressSchema,
+        required: [true, 'Address is required'],
+        minlength: [5, 'Address must be at least 5 characters long']
+    },
+    emailId: {
+        type: String,
+        validate: {
+            validator: (email) => commonSchema_1.emailSchema.safeParse(email).success,
+            message: 'Invalid email format'
+        }
+    },
+    reference: {
+        type: String,
+        enum: {
+            values: Object.values(constants_1.AdmissionReference),
+            message: 'Invalid Admission Reference value'
         },
         required: true
     },
@@ -150,58 +168,12 @@ exports.enquirySchema = new mongoose_1.Schema({
         },
         required: true
     },
-    reference: {
-        type: String,
-        enum: {
-            values: Object.values(constants_1.AdmissionReference),
-            message: 'Invalid Admission Reference value'
-        },
-        required: true
-    },
-    address: {
-        type: address_1.addressSchema,
-        minlength: [5, 'Address must be at least 5 characters long']
-    },
-    academicDetails: {
-        type: [academicDetail_1.academicDetailFormSchema],
-        default: [],
-        required: false
-    },
-    telecaller: {
-        type: mongoose_1.Schema.Types.Mixed, // Allows ObjectId or String
-        validate: {
-            validator: function (value) {
-                // Allow null or undefined
-                if (value === null || value === undefined)
-                    return true;
-                // Check for valid ObjectId
-                const isObjectId = mongoose_1.default.Types.ObjectId.isValid(value);
-                // Allow string 'other'
-                const isOther = value === 'other';
-                return isObjectId || isOther;
-            },
-            message: props => `'${props.value}' is not a valid counsellor (must be ObjectId or 'other')`
-        },
-        required: true,
-    },
-    dateOfCounselling: {
-        type: Date,
-        required: false,
-        set: (value) => {
-            return (0, convertDateToFormatedDate_1.convertToMongoDate)(value);
-        }
-    },
     remarks: {
         type: String
     },
-    approvedBy: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        ref: 'user',
-        required: false
-    },
-    dateOfAdmission: {
-        type: Date,
-        required: false
+    academicDetails: {
+        type: [academicDetail_1.academicDetailFormSchema],
+        default: []
     },
     previousCollegeData: {
         type: previousCollegeData_1.previousCollegeDataSchema
@@ -212,12 +184,7 @@ exports.enquirySchema = new mongoose_1.Schema({
     studentFee: {
         type: mongoose_1.Schema.Types.ObjectId,
         ref: 'studentFee', // Refer to FeesDraft model
-        required: false
-    },
-    studentFeeDraft: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        ref: 'studentFeeDraft',
-        required: false
+        optional: true
     },
     gender: {
         type: String,
@@ -230,10 +197,17 @@ exports.enquirySchema = new mongoose_1.Schema({
         type: String,
         enum: {
             values: Object.values(constants_1.ApplicationStatus),
-            message: 'Invalid Application Status value'
+            message: 'Invalid Course value'
         },
-        default: constants_1.ApplicationStatus.STEP_1,
         required: true
+    },
+    approvedBy: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        optional: true
+    },
+    preRegNumber: {
+        type: String,
+        optional: true
     },
     counsellor: {
         type: mongoose_1.Schema.Types.Mixed,
@@ -249,18 +223,11 @@ exports.enquirySchema = new mongoose_1.Schema({
         type: String,
         enum: Object.values(constants_1.AdmittedThrough)
     },
-    //Below IDs will be system generated
-    universityId: {
-        type: String,
-    },
-    photoNo: {
-        type: Number,
-    },
-    formNo: {
-        type: String,
-    },
+    semester: {
+        type: String
+    }
 }, { timestamps: true });
-exports.enquirySchema.pre('save', function (next) {
+studentSchema.pre('save', function (next) {
     return __awaiter(this, void 0, void 0, function* () {
         next();
     });
@@ -277,23 +244,20 @@ const handleMongooseError = (error, next) => {
         next(error); // Pass any other errors to the next middleware
     }
 };
-exports.enquirySchema.post('save', function (error, doc, next) {
+studentSchema.post('save', function (error, doc, next) {
     handleMongooseError(error, next);
 });
-exports.enquirySchema.post('findOneAndUpdate', function (error, doc, next) {
+studentSchema.post('findOneAndUpdate', function (error, doc, next) {
     handleMongooseError(error, next);
 });
 const transformDates = (_, ret) => {
-    ['dateOfEnquiry', 'dateOfAdmission', 'dateOfBirth', 'dateOfCounselling'].forEach((key) => {
+    ['dateOfEnquiry', 'dateOfAdmission', 'dateOfBirth'].forEach((key) => {
         if (ret[key]) {
             ret[key] = (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(ret[key]);
         }
     });
-    delete ret.createdAt;
-    delete ret.updatedAt;
-    delete ret.__v;
     return ret;
 };
-exports.enquirySchema.set('toJSON', { transform: transformDates });
-exports.enquirySchema.set('toObject', { transform: transformDates });
-exports.Enquiry = mongoose_1.default.model('Enquiry', exports.enquirySchema);
+studentSchema.set('toJSON', { transform: transformDates });
+studentSchema.set('toObject', { transform: transformDates });
+exports.Student = mongoose_1.default.model('Student', studentSchema);

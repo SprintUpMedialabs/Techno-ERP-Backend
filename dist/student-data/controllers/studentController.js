@@ -12,23 +12,25 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateEnquiryDocuments = exports.updateStudentById = exports.getStudentDataById = exports.getStudentData = void 0;
+exports.updateStudentDocuments = exports.updateStudentById = exports.getStudentDataById = exports.getStudentData = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
-const formatResponse_1 = require("../../utils/formatResponse");
-const enquiry_1 = require("../../admission/models/enquiry");
 const http_errors_1 = __importDefault(require("http-errors"));
 const mongoose_1 = __importDefault(require("mongoose"));
+const singleDocumentSchema_1 = require("../../admission/validators/singleDocumentSchema");
 const constants_1 = require("../../config/constants");
 const s3Upload_1 = require("../../config/s3Upload");
-const singleDocumentSchema_1 = require("../../admission/validators/singleDocumentSchema");
+const formatResponse_1 = require("../../utils/formatResponse");
+const student_1 = require("../models/student");
+const student_2 = require("../validators/student");
 const studentFilterSchema_1 = require("../validators/studentFilterSchema");
-const buildStudentFilter_1 = require("../utils/buildStudentFilter");
 exports.getStudentData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    let { search, studentFilter } = req.body;
-    // console.log(search);
-    // console.log(studentFilter);
-    if (!studentFilter) {
-        studentFilter = {};
+    let { search, semester, course } = req.body;
+    const studentFilter = {};
+    if (semester) {
+        studentFilter.semester = semester;
+    }
+    if (course) {
+        studentFilter.course = course;
     }
     const validation = studentFilterSchema_1.studentFilterSchema.safeParse(studentFilter);
     if (!validation.success) {
@@ -39,10 +41,9 @@ exports.getStudentData = (0, express_async_handler_1.default)((req, res) => __aw
             { studentName: { $regex: search || "", $options: 'i' } },
             { universityId: { $regex: search || "", $options: 'i' } }
         ],
-        applicationStatus: 'Step_4'
     };
-    const filter = Object.assign(Object.assign({}, baseFilter), (0, buildStudentFilter_1.buildStudentFilter)(validation.data));
-    const enquiries = yield enquiry_1.Enquiry.find(filter)
+    const filter = Object.assign(Object.assign({}, baseFilter), studentFilter);
+    const students = yield student_1.Student.find(filter)
         .select({
         universityId: 1,
         studentName: 1,
@@ -52,11 +53,11 @@ exports.getStudentData = (0, express_async_handler_1.default)((req, res) => __aw
         course: 1,
         semester: 1
     });
-    if (enquiries.length > 0) {
-        return (0, formatResponse_1.formatResponse)(res, 200, 'Enquiries corresponding to your search', true, enquiries);
+    if (students.length > 0) {
+        return (0, formatResponse_1.formatResponse)(res, 200, 'Students corresponding to your search', true, students);
     }
     else {
-        return (0, formatResponse_1.formatResponse)(res, 200, 'No enquiries found with this information', true);
+        return (0, formatResponse_1.formatResponse)(res, 200, 'No students found with this information', true);
     }
 }));
 exports.getStudentDataById = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -64,39 +65,52 @@ exports.getStudentDataById = (0, express_async_handler_1.default)((req, res) => 
     if (!mongoose_1.default.Types.ObjectId.isValid(id)) {
         throw (0, http_errors_1.default)(400, 'Invalid ID');
     }
-    const enquiry = yield enquiry_1.Enquiry.findById(id)
-        .populate('studentFee');
-    if (!enquiry) {
+    // DTODO: neeed to use populate here.
+    const student = yield student_1.Student.findById(id);
+    if (!student) {
         throw (0, http_errors_1.default)(404, 'Student Details not found');
     }
-    return (0, formatResponse_1.formatResponse)(res, 200, 'Student details fetched successfully', true, enquiry);
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Student details fetched successfully', true, student);
 }));
 exports.updateStudentById = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const studentUpdateData = req.body;
+    const validation = student_2.updateStudentSchema.safeParse(studentUpdateData);
+    if (!validation.success) {
+        throw (0, http_errors_1.default)(400, validation.error.errors[0]);
+    }
+    const updatedStudent = yield student_1.Student.findByIdAndUpdate({ _id: studentUpdateData.id }, { $set: validation.data }, { new: true, runValidators: true });
+    if (!updatedStudent) {
+        throw (0, http_errors_1.default)(404, 'Error occurred updating student');
+    }
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Student Updated Successfully', true, updatedStudent);
 }));
-exports.updateEnquiryDocuments = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { id, type } = req.body;
+// DATODO : Need to see where the student documents should be stored.
+exports.updateStudentDocuments = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id, type, dueBy } = req.body;
     const file = req.file;
     const validation = singleDocumentSchema_1.singleDocumentSchema.safeParse({
         enquiryId: id,
         type,
-        documentBuffer: file
+        documentBuffer: file,
+        dueBy: dueBy
     });
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }
-    const fileUrl = yield (0, s3Upload_1.uploadToS3)(id.toString(), constants_1.ADMISSION, type, file);
+    const fileUrl = yield (0, s3Upload_1.uploadToS3)(id.toString(), constants_1.ADMISSION, //DTODO : Should we change folder here as it is now Student so.
+    type, file);
     //Free memory
     if (req.file)
         req.file.buffer = null;
-    const isExists = yield enquiry_1.Enquiry.exists({
+    const isExists = yield student_1.Student.exists({
         _id: id,
         'documents.type': type,
     });
     console.log("Is Exists : ", isExists);
     let updatedData;
     if (isExists) {
-        updatedData = yield enquiry_1.Enquiry.findOneAndUpdate({ _id: id, 'documents.type': type, }, {
-            $set: { 'documents.$[elem].fileUrl': fileUrl },
+        updatedData = yield student_1.Student.findOneAndUpdate({ _id: id, 'documents.type': type, }, {
+            $set: { 'documents.$[elem].fileUrl': fileUrl, dueBy: dueBy },
         }, {
             new: true,
             runValidators: true,
@@ -104,8 +118,8 @@ exports.updateEnquiryDocuments = (0, express_async_handler_1.default)((req, res)
         });
     }
     else {
-        updatedData = yield enquiry_1.Enquiry.findByIdAndUpdate(id, {
-            $push: { documents: { type, fileUrl } },
+        updatedData = yield student_1.Student.findByIdAndUpdate(id, {
+            $push: { documents: { type, fileUrl, dueBy } },
         }, { new: true, runValidators: true });
     }
     console.log(updatedData);

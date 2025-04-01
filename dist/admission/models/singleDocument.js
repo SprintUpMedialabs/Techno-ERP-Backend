@@ -10,5 +10,9 @@ exports.singleDocumentSchema = new mongoose_1.Schema({
     },
     fileUrl: {
         type: String
-    }
+    },
+    dueBy: {
+        type: Date,
+        optional: true
+    },
 });

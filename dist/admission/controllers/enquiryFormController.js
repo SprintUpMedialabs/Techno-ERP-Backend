@@ -24,23 +24,25 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateStatus = exports.approveEnquiry = exports.getEnquiryById = exports.getEnquiryData = exports.updateEnquiryStep4ById = exports.updateEnquiryDocuments = exports.updateEnquiryStep3ById = exports.updateEnquiryStep2ById = exports.createEnquiryStep2 = exports.updateFeeDraft = exports.createFeeDraft = exports.updateEnquiryStep1ById = exports.createEnquiry = exports.updateEnquiryDraftStep1 = exports.createEnquiryDraftStep1 = void 0;
-const http_errors_1 = __importDefault(require("http-errors"));
-const enquiryIdMetaDataSchema_1 = require("../models/enquiryIdMetaDataSchema");
-const enquiry_1 = require("../models/enquiry");
-const enquiry_2 = require("../validators/enquiry");
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
-const s3Upload_1 = require("../../config/s3Upload");
-const constants_1 = require("../../config/constants");
-const singleDocumentSchema_1 = require("../validators/singleDocumentSchema");
-const formatResponse_1 = require("../../utils/formatResponse");
-const studentFees_1 = require("../validators/studentFees");
-const studentFees_2 = require("../models/studentFees");
-const courseAndOtherFees_controller_1 = require("../../fees/courseAndOtherFees.controller");
+const http_errors_1 = __importDefault(require("http-errors"));
 const mongoose_1 = __importDefault(require("mongoose"));
-const enquiryStatusUpdateSchema_1 = require("../validators/enquiryStatusUpdateSchema");
+const constants_1 = require("../../config/constants");
+const s3Upload_1 = require("../../config/s3Upload");
+const courseAndOtherFees_controller_1 = require("../../fees/courseAndOtherFees.controller");
+const student_1 = require("../../student-data/models/student");
+const student_2 = require("../../student-data/validators/student");
+const formatResponse_1 = require("../../utils/formatResponse");
 const commonSchema_1 = require("../../validators/commonSchema");
+const enquiry_1 = require("../models/enquiry");
 const enquiryDraft_1 = require("../models/enquiryDraft");
+const enquiryIdMetaDataSchema_1 = require("../models/enquiryIdMetaDataSchema");
+const studentFees_1 = require("../models/studentFees");
 const studentFeesDraft_1 = require("../models/studentFeesDraft");
+const enquiry_2 = require("../validators/enquiry");
+const enquiryStatusUpdateSchema_1 = require("../validators/enquiryStatusUpdateSchema");
+const singleDocumentSchema_1 = require("../validators/singleDocumentSchema");
+const studentFees_2 = require("../validators/studentFees");
 exports.createEnquiryDraftStep1 = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const enquiryDraftStep1Data = req.body;
     const validation = enquiry_2.enquiryDraftStep1RequestSchema.safeParse(enquiryDraftStep1Data);
@@ -65,12 +67,10 @@ exports.updateEnquiryDraftStep1 = (0, express_async_handler_1.default)((req, res
 exports.createEnquiry = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const data = req.body;
     const validation = enquiry_2.enquiryStep1RequestSchema.safeParse(data);
-    console.log(validation.error);
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }
     const { id } = data, enquiryData = __rest(data, ["id"]);
-    console.log(enquiryData);
     //Create the enquiry
     let savedResult = yield enquiry_1.Enquiry.create(Object.assign({}, enquiryData));
     if (savedResult) {
@@ -95,18 +95,17 @@ exports.updateEnquiryStep1ById = (0, express_async_handler_1.default)((req, res)
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }
     const _a = validation.data, { id } = _a, data = __rest(_a, ["id"]);
-    const updatedData = yield enquiry_1.Enquiry.findByIdAndUpdate(id, { $set: data }, { new: true, runValidators: true });
+    yield checkIfStudentAdmitted(id);
+    const updatedData = yield enquiry_1.Enquiry.findByIdAndUpdate({ _id: id, applicationStatus: { $ne: constants_1.ApplicationStatus.STEP_4 } }, { $set: data }, { new: true, runValidators: true });
     if (!updatedData) {
-        throw (0, http_errors_1.default)(404, 'Enquiry occurred in updating data');
+        throw (0, http_errors_1.default)(404, 'Enquiry occurred in updating data, this can be an approved enquiry, try updating from student');
     }
     return (0, formatResponse_1.formatResponse)(res, 200, 'Enquiry data updated successfully', true, updatedData);
 }));
 exports.createFeeDraft = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     const feesDraftData = req.body;
-    const validation = studentFees_1.feesDraftRequestSchema.safeParse(feesDraftData);
-    console.log("Validation Error");
-    console.log(validation.error);
+    const validation = studentFees_2.feesDraftRequestSchema.safeParse(feesDraftData);
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0].message);
     }
@@ -136,7 +135,7 @@ exports.updateFeeDraft = (0, express_async_handler_1.default)((req, res) => __aw
     var _a, _b;
     let feesDraftData = req.body;
     let { id } = feesDraftData, feesDraftUpdateData = __rest(feesDraftData, ["id"]);
-    const validation = studentFees_1.feesDraftUpdateSchema.safeParse(feesDraftUpdateData);
+    const validation = studentFees_2.feesDraftUpdateSchema.safeParse(feesDraftUpdateData);
     console.log("Validation Error");
     console.log(validation.error);
     if (!validation.success) {
@@ -158,11 +157,11 @@ exports.updateFeeDraft = (0, express_async_handler_1.default)((req, res) => __aw
 exports.createEnquiryStep2 = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const feesDraftData = req.body;
-    const validation = studentFees_1.feesRequestSchema.safeParse(feesDraftData);
-    console.log(validation.error);
+    const validation = studentFees_2.feesRequestSchema.safeParse(feesDraftData);
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }
+    yield checkIfStudentAdmitted(validation.data.enquiryId);
     const enquiry = yield enquiry_1.Enquiry.findOne({
         _id: feesDraftData.enquiryId,
         applicationStatus: constants_1.ApplicationStatus.STEP_1
@@ -185,23 +184,21 @@ exports.createEnquiryStep2 = (0, express_async_handler_1.default)((req, res) => 
                 });
             }) });
         //This means that enquiry is existing
-        feesDraft = yield studentFees_2.FeesDraftModel.create(feeData);
+        feesDraft = yield studentFees_1.StudentFeesModel.create(feeData);
         yield enquiry_1.Enquiry.findByIdAndUpdate(feesDraftData.enquiryId, {
             $set: {
                 studentFee: feesDraft._id,
+                studentFeeDraft: null
             }
         });
-        // console.log(enquiry);
-        if (feesDraft) {
-            if (enquiry === null || enquiry === void 0 ? void 0 : enquiry.studentFeeDraft) {
-                const updatedStudentDraft = yield studentFeesDraft_1.StudentFeesDraftModel.findByIdAndDelete(enquiry.studentFeeDraft);
-            }
+        if (enquiry === null || enquiry === void 0 ? void 0 : enquiry.studentFeeDraft) {
+            yield studentFeesDraft_1.StudentFeesDraftModel.findByIdAndDelete(enquiry.studentFeeDraft);
         }
     }
     else {
         //Enquiry does not exist, we have to create enquiry first.
         //This will never be true as we are getting from UI so we will land into this call if and only if enquiry Id is existing.
-        throw (0, http_errors_1.default)(400, 'Enquiry doesnot exist');
+        throw (0, http_errors_1.default)(400, 'Enquiry does not exist');
     }
     return (0, formatResponse_1.formatResponse)(res, 201, 'Fees Draft created successfully', true, feesDraft);
 }));
@@ -210,14 +207,14 @@ exports.updateEnquiryStep2ById = (0, express_async_handler_1.default)((req, res)
     const feesDraft = yield updateFeeDetails([constants_1.ApplicationStatus.STEP_1, constants_1.ApplicationStatus.STEP_3, constants_1.ApplicationStatus.STEP_4], feesDraftUpdateData);
     return (0, formatResponse_1.formatResponse)(res, 200, 'Fees Draft updated successfully', true, feesDraft);
 }));
-const updateFeeDetails = (applicationStatusList, feesDraftUpdateData, finalApplicationStatus) => __awaiter(void 0, void 0, void 0, function* () {
+const updateFeeDetails = (applicationStatusList, studentFeesData) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
-    const validation = studentFees_1.feesUpdateSchema.safeParse(feesDraftUpdateData);
+    const validation = studentFees_2.feesUpdateSchema.safeParse(studentFeesData);
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }
     const enquiry = yield enquiry_1.Enquiry.findOne({
-        studentFee: feesDraftUpdateData.id,
+        studentFee: studentFeesData.id,
         applicationStatus: { $nin: [...applicationStatusList] }
     }, {
         course: 1 // Only return course field
@@ -225,6 +222,7 @@ const updateFeeDetails = (applicationStatusList, feesDraftUpdateData, finalAppli
     if (!enquiry) {
         throw (0, http_errors_1.default)(404, 'please contact finance team to change the information');
     }
+    yield checkIfStudentAdmitted(enquiry._id);
     const otherFees = yield (0, courseAndOtherFees_controller_1.fetchOtherFees)();
     const semWiseFee = yield (0, courseAndOtherFees_controller_1.fetchCourseFeeByCourse)((_a = enquiry === null || enquiry === void 0 ? void 0 : enquiry.course.toString()) !== null && _a !== void 0 ? _a : '');
     const feeData = Object.assign(Object.assign({}, validation.data), { otherFees: validation.data.otherFees.map(fee => {
@@ -237,22 +235,19 @@ const updateFeeDetails = (applicationStatusList, feesDraftUpdateData, finalAppli
                 feeAmount: (_a = (semWiseFee === null || semWiseFee === void 0 ? void 0 : semWiseFee.fee[index])) !== null && _a !== void 0 ? _a : 0
             });
         }) });
-    const feesDraft = yield studentFees_2.FeesDraftModel.findByIdAndUpdate(feesDraftUpdateData.id, { $set: feeData }, { new: true, runValidators: true });
+    const feesDraft = yield studentFees_1.StudentFeesModel.findByIdAndUpdate(studentFeesData.id, { $set: feeData }, { new: true, runValidators: true });
     if (!feesDraft) {
         throw (0, http_errors_1.default)(404, 'Failed to update Fees Draft');
-    }
-    if (finalApplicationStatus) {
-        yield enquiry_1.Enquiry.updateOne({ studentFee: feesDraftUpdateData.id }, { applicationStatus: finalApplicationStatus }, { runValidators: true });
     }
     return feesDraft;
 });
 exports.updateEnquiryStep3ById = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const validation = enquiry_2.enquiryStep3UpdateRequestSchema.safeParse(req.body);
     if (!validation.success) {
-        console.log(validation.error.errors[0]);
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }
     const _a = validation.data, { id } = _a, data = __rest(_a, ["id"]);
+    yield checkIfStudentAdmitted(id);
     const enquiry = yield enquiry_1.Enquiry.findOne({
         _id: id,
         applicationStatus: { $ne: constants_1.ApplicationStatus.STEP_1 }
@@ -263,20 +258,24 @@ exports.updateEnquiryStep3ById = (0, express_async_handler_1.default)((req, res)
         // is it can't happen that id was not exists so case which is possible is that ki student only did step1 and came to register [we are ignoring postman possibility here]
         throw (0, http_errors_1.default)(400, "Please complete step 2 first");
     }
-    const updatedData = yield enquiry_1.Enquiry.findByIdAndUpdate(id, Object.assign({}, data), { new: true, runValidators: true });
-    if (!updatedData) {
-        throw (0, http_errors_1.default)(404, 'Enquiry not found');
+    if (enquiry.applicationStatus == constants_1.ApplicationStatus.STEP_4) {
+        throw (0, http_errors_1.default)(400, 'Sorry, this is approved enquiry, please go to student module to update this!');
     }
+    const updatedData = yield enquiry_1.Enquiry.findByIdAndUpdate(id, Object.assign({}, data), { new: true, runValidators: true });
     return (0, formatResponse_1.formatResponse)(res, 200, 'Enquiry data updated successfully', true, updatedData);
 }));
-// DTODO: there are few documents which are IMP need to think that how will handle those => Make them mandate from the UI side.
 exports.updateEnquiryDocuments = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { id, type } = req.body;
+    const { id, type, dueBy } = req.body;
+    if (!mongoose_1.default.Types.ObjectId.isValid(id)) {
+        throw (0, http_errors_1.default)(400, 'Invalid enquiry ID');
+    }
+    yield checkIfStudentAdmitted(id);
     const file = req.file;
     const validation = singleDocumentSchema_1.singleDocumentSchema.safeParse({
         enquiryId: id,
         type,
-        documentBuffer: file
+        documentBuffer: file,
+        dueBy: dueBy
     });
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
@@ -289,7 +288,6 @@ exports.updateEnquiryDocuments = (0, express_async_handler_1.default)((req, res)
         _id: id,
         'documents.type': type,
     });
-    console.log("Is Exists : ", isExists);
     let updatedData;
     if (isExists) {
         updatedData = yield enquiry_1.Enquiry.findOneAndUpdate({ _id: id, 'documents.type': type, }, {
@@ -305,15 +303,11 @@ exports.updateEnquiryDocuments = (0, express_async_handler_1.default)((req, res)
             $push: { documents: { type, fileUrl } },
         }, { new: true, runValidators: true });
     }
-    console.log(updatedData);
-    if (!updatedData) {
-        throw (0, http_errors_1.default)(400, 'Could not upload documents');
-    }
     return (0, formatResponse_1.formatResponse)(res, 200, 'Document uploaded successfully', true, updatedData);
 }));
 exports.updateEnquiryStep4ById = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const feesDraftUpdateData = req.body;
-    const feesDraft = yield updateFeeDetails([constants_1.ApplicationStatus.STEP_1, constants_1.ApplicationStatus.STEP_2], feesDraftUpdateData, constants_1.ApplicationStatus.STEP_4);
+    const feesDraft = yield updateFeeDetails([constants_1.ApplicationStatus.STEP_1, constants_1.ApplicationStatus.STEP_2, constants_1.ApplicationStatus.STEP_4], feesDraftUpdateData);
     return (0, formatResponse_1.formatResponse)(res, 200, 'Fees Draft updated successfully', true, feesDraft);
 }));
 exports.getEnquiryData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -373,50 +367,57 @@ exports.getEnquiryById = (0, express_async_handler_1.default)((req, res) => __aw
     if (!mongoose_1.default.Types.ObjectId.isValid(id)) {
         throw (0, http_errors_1.default)(400, 'Invalid enquiry ID');
     }
-    let enquiry = yield enquiry_1.Enquiry.findById(id).populate('studentFee');
+    let enquiry = yield enquiry_1.Enquiry.findById(id).populate('studentFee').populate('studentFeeDraft');
     if (!enquiry) {
         const enquiryDraft = yield enquiryDraft_1.EnquiryDraft.findById(id);
         if (enquiryDraft) {
             return (0, formatResponse_1.formatResponse)(res, 200, 'Enquiry draft details', true, enquiryDraft);
         }
     }
-    if (!enquiry.studentFee) {
-        enquiry = yield enquiry_1.Enquiry.findById(id).populate('studentFeeDraft');
-    }
     return (0, formatResponse_1.formatResponse)(res, 200, 'Enquiry details', true, enquiry);
 }));
-// DTODO: lets just take _id from the frontend => Resolved
+const checkIfStudentAdmitted = (enquiryId) => __awaiter(void 0, void 0, void 0, function* () {
+    const student = yield enquiry_1.Enquiry.findById(enquiryId);
+    if ((student === null || student === void 0 ? void 0 : student.universityId) != null) {
+        throw (0, http_errors_1.default)(400, 'Student is already admitted');
+    }
+    return false;
+});
+// DTODO: need to add transaction here.
 exports.approveEnquiry = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const { id } = req.body;
     const validation = commonSchema_1.objectIdSchema.safeParse(id);
     if (!validation.success)
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
+    yield checkIfStudentAdmitted(id);
     const enquiry = yield enquiry_1.Enquiry.findById(id);
     if (!enquiry)
         throw (0, http_errors_1.default)(404, 'Please create the enquiry first!');
+    // DTODO : Here, the prefixes will get increamented even if the update of enquiry fails or student creation fails.
     // For this enquiry Id, we will set the university ID, form no and the photo number. 
     const prefix = getPrefixForCourse(enquiry.course);
     // Update serial
     const serial = yield enquiryIdMetaDataSchema_1.EnquiryApplicationId.findOneAndUpdate({ prefix: prefix }, { $inc: { lastSerialNumber: 1 } }, { new: true, runValidators: true });
     const formNo = `${prefix}${serial.lastSerialNumber}`;
-    const photoSerial = yield enquiryIdMetaDataSchema_1.EnquiryApplicationId.findOneAndUpdate({ prefix: constants_1.PHOTO }, { $inc: { lastSerialNumber: 1 } }, { new: true, runValidators: true });
+    const photoSerial = yield enquiryIdMetaDataSchema_1.EnquiryApplicationId.findOneAndUpdate({ prefix: constants_1.FormNoPrefixes.PHOTO }, { $inc: { lastSerialNumber: 1 } }, { new: true, runValidators: true });
     let universityId = generateUniversityId(enquiry.course, photoSerial.lastSerialNumber);
     const approvedById = (_a = req.data) === null || _a === void 0 ? void 0 : _a.id;
-    if (approvedById) {
-        let approvedEnquiry = yield enquiry_1.Enquiry.findByIdAndUpdate(id, {
-            $set: { formNo: formNo, photoNo: photoSerial.lastSerialNumber, universityId: universityId, applicationStatus: constants_1.ApplicationStatus.STEP_4, approvedBy: approvedById }
-        }, { runValidators: true });
-        if (!approvedEnquiry) {
-            throw (0, http_errors_1.default)(404, 'Failed to approve enquiry!');
+    // DTODO: we may need to change this logic [it may come from body]
+    let approvedEnquiry = yield enquiry_1.Enquiry.findByIdAndUpdate(id, {
+        $set: {
+            formNo: formNo,
+            photoNo: photoSerial.lastSerialNumber,
+            universityId: universityId,
+            applicationStatus: constants_1.ApplicationStatus.STEP_4,
+            approvedBy: approvedById
         }
-        else {
-            return (0, formatResponse_1.formatResponse)(res, 200, 'Enquiry Approved Successfully', true);
-        }
-    }
-    else {
-        throw (0, http_errors_1.default)(404, 'Invalid user logged in!');
-    }
+    }, { runValidators: true, new: true, projection: { createdAt: 0, updatedAt: 0, __v: 0 } });
+    const studentValidation = student_2.studentSchema.safeParse(approvedEnquiry);
+    if (!studentValidation.success)
+        throw (0, http_errors_1.default)(400, studentValidation.error.errors[0]);
+    const student = yield student_1.Student.create(Object.assign({}, studentValidation.data));
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Student created successfully with this information', true, student);
 }));
 exports.updateStatus = ((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const updateStatusData = req.body;
