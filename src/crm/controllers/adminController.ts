@@ -7,9 +7,10 @@ import { Lead } from "../models/leads";
 import { YellowLead } from "../models/yellowLead";
 import { IAdminAnalyticsFilter } from "../types/marketingSpreadsheet";
 import { formatResponse } from '../../utils/formatResponse';
+import mongoose from 'mongoose';
 
 export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const {
+    let {
         startDate,
         endDate,
         location = [],
@@ -33,6 +34,7 @@ export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedReque
             query.date.$lte = convertToMongoDate(endDate);
         }
     }
+    assignedTo = assignedTo.map(id => new mongoose.Types.ObjectId(id));
 
     if (assignedTo.length > 0) {
         query.assignedTo = { $in: assignedTo };
@@ -46,7 +48,7 @@ export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedReque
         query.gender = { $in: gender };
     }
 
-    console.log(query);
+    // console.log(query);
 
     const [allLeadAnalytics, yellowLeadAnalytics] = await Promise.all([
         Lead.aggregate([
