@@ -80,16 +80,19 @@ const leadSchema = new mongoose_1.Schema({
             message: 'Invalid gender value'
         }
     },
-    location: { type: String,
+    location: {
+        type: String,
         enum: {
             values: Object.values(constants_1.Locations),
             message: 'Invalid Location Value'
         }
     },
-    course: { type: String, enum: {
+    course: {
+        type: String, enum: {
             values: Object.values(constants_1.Course),
             message: 'Invalid Course Value'
-        } }, // TODO: need to test this as we added enum
+        }
+    }, // TODO: need to test this as we added enum
     // Required field with a custom validation error message
     assignedTo: {
         type: mongoose_1.Schema.Types.ObjectId, // TODO: this need to be tested
@@ -140,6 +143,9 @@ const transformDates = (_, ret) => {
             ret[key] = (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(ret[key]);
         }
     });
+    delete ret.createdAt;
+    delete ret.updatedAt;
+    delete ret.__v;
     return ret;
 };
 leadSchema.set('toJSON', { transform: transformDates });

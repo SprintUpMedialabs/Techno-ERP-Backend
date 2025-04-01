@@ -146,6 +146,9 @@ userSchema.post('findOneAndUpdate', function (error, doc, next) {
 });
 const transformDates = (_, ret) => {
     delete ret.password;
+    delete ret.createdAt;
+    delete ret.updatedAt;
+    delete ret.__v;
     return ret;
 };
 userSchema.set('toJSON', { transform: transformDates });

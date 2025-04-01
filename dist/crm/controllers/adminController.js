@@ -19,8 +19,9 @@ const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDa
 const leads_1 = require("../models/leads");
 const yellowLead_1 = require("../models/yellowLead");
 const formatResponse_1 = require("../../utils/formatResponse");
+const mongoose_1 = __importDefault(require("mongoose"));
 exports.adminAnalytics = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { startDate, endDate, location = [], assignedTo = [], source = [], gender = [] } = req.body;
+    let { startDate, endDate, location = [], assignedTo = [], source = [], gender = [] } = req.body;
     const query = {};
     if (location.length > 0) {
         query.location = { $in: location };
@@ -34,6 +35,7 @@ exports.adminAnalytics = (0, express_async_handler_1.default)((req, res) => __aw
             query.date.$lte = (0, convertDateToFormatedDate_1.convertToMongoDate)(endDate);
         }
     }
+    assignedTo = assignedTo.map(id => new mongoose_1.default.Types.ObjectId(id));
     if (assignedTo.length > 0) {
         query.assignedTo = { $in: assignedTo };
     }
@@ -44,7 +46,7 @@ exports.adminAnalytics = (0, express_async_handler_1.default)((req, res) => __aw
     if (gender.length > 0) {
         query.gender = { $in: gender };
     }
-    console.log(query);
+    // console.log(query);
     const [allLeadAnalytics, yellowLeadAnalytics] = yield Promise.all([
         leads_1.Lead.aggregate([
             { $match: query }, // Apply Filters

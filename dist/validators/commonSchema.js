@@ -8,8 +8,6 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const zod_1 = require("zod");
 const constants_1 = require("../config/constants");
 exports.objectIdSchema = zod_1.z.custom((id) => {
-    // console.log(id);
-    // console.log(typeof id)
     return mongoose_1.default.Types.ObjectId.isValid(id);
 }, { message: "Invalid ObjectId" });
 exports.requestDateSchema = zod_1.z

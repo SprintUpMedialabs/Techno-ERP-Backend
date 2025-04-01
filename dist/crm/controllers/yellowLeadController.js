@@ -37,13 +37,11 @@ const createYellowLead = (leadData) => __awaiter(void 0, void 0, void 0, functio
     if (leadData.nextDueDate && (0, convertDateToFormatedDate_1.convertToMongoDate)(leadData.nextDueDate) > new Date()) {
         yellowLead.nextDueDate = (0, convertDateToFormatedDate_1.convertToMongoDate)(leadData.nextDueDate);
     }
-    else {
-        yellowLead.nextDueDate = undefined;
-    }
     const validation = yellowLead_2.yellowLeadSchema.safeParse(yellowLead);
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }
+    console.log(yellowLead);
     yield yellowLead_1.YellowLead.create(yellowLead);
     logger_1.default.info('Yellow lead object created successfully');
 });
