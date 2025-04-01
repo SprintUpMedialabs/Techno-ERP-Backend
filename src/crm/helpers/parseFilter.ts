@@ -54,7 +54,10 @@ export const parseFilter = (req: AuthenticatedRequest) => {
     query.location = { $in: filters.location };
   }
 
+  console.log("Before mapping:", filters.assignedTo);
   filters.assignedTo = filters.assignedTo.map(id => new mongoose.Types.ObjectId(id));
+  console.log("After mapping:", filters.assignedTo);
+
 
   if (
     req.data?.roles.includes(UserRoles.EMPLOYEE_MARKETING) &&

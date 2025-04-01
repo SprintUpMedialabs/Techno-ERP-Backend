@@ -1,12 +1,12 @@
 import expressAsyncHandler from "express-async-handler";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
 import { Response } from "express"
-import { courseRequestSchema, courseSchema, deleteCourseSchema, ICourseRequestSchema } from "../validators/courseSchema";
+import { courseRequestSchema, ICourseRequestSchema } from "../validators/courseSchema";
 import createHttpError from "http-errors";
 import { formatResponse } from "../../utils/formatResponse";
 import { DepartmentModel } from "../models/department";
 import mongoose from "mongoose";
-import { ICourseDocument, ICourseResponseDocument } from "../models/course";
+import { ICourseResponseDocument } from "../models/course";
 
 export const createCourse = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
 
