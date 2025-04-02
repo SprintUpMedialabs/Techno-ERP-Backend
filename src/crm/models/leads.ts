@@ -1,6 +1,6 @@
 import createHttpError from 'http-errors';
 import mongoose, { Document, Schema } from 'mongoose';
-import { Course, Gender, LeadType, Locations } from '../../config/constants';
+import { COLLECTION_NAMES, Course, Gender, LeadType, Locations } from '../../config/constants';
 import { convertToDDMMYYYY, convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import { ILead } from '../validators/leads';
 
@@ -132,4 +132,4 @@ const transformDates = (_: any, ret: any) => {
 leadSchema.set('toJSON', { transform: transformDates });
 leadSchema.set('toObject', { transform: transformDates });
 
-export const Lead = mongoose.model<ILeadDocument>('Lead', leadSchema);
+export const Lead = mongoose.model<ILeadDocument>(COLLECTION_NAMES.LEAD, leadSchema);

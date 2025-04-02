@@ -30,6 +30,7 @@ export const uploadToS3 = async (folderName: string, yearSubFolderName: string, 
     throw new Error(`Invalid file type: ${fileType}`);
   }
 
+  console.log(file.originalname);
   let extension = getFileExtension(file.originalname);
   const fileName = `${fileType}.${extension}`;
 

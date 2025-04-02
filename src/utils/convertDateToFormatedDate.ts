@@ -2,10 +2,13 @@ export const convertToMongoDate = (dateString: string | Date): Date => {
   if (dateString instanceof Date) {
     return dateString;
   }
+
+  console.log(dateString);
   // Split the date string into day, month, and year
   const [day, month, year] = dateString.split('/').map(Number);
 
   // Create a JavaScript Date object (Months are 0-based in JavaScript)
+  console.log(new Date(Date.UTC(year, month - 1, day)));
   return new Date(Date.UTC(year, month - 1, day));
 };
 

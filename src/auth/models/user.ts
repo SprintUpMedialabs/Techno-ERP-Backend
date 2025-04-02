@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import { IUser } from '../validators/user';
-import { UserRoles } from '../../config/constants';
+import { COLLECTION_NAMES, UserRoles } from '../../config/constants';
 import createHttpError from 'http-errors';
 import bcrypt from 'bcrypt';
 import { emailSchema } from '../../validators/commonSchema';
@@ -112,4 +112,4 @@ const transformDates = (_: any, ret: any) => {
 userSchema.set('toJSON', { transform: transformDates });
 userSchema.set('toObject', { transform: transformDates });
 
-export const User = mongoose.model<IUserDocument>('User', userSchema);
+export const User = mongoose.model<IUserDocument>(COLLECTION_NAMES.USER, userSchema);

@@ -1,6 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import { IEnquiryIdMetaDataSchema } from "../validators/enquiryIdMetaDataSchema";
-import { FormNoPrefixes } from "../../config/constants";
+import { COLLECTION_NAMES, FormNoPrefixes } from "../../config/constants";
 
 export interface IEnquiryMetaDataDocument extends IEnquiryIdMetaDataSchema, Document { }
 
@@ -17,4 +17,4 @@ const enquiryIdMetaDataSchema = new Schema<IEnquiryMetaDataDocument>({
   }
 })
 
-export const EnquiryApplicationId = mongoose.model<IEnquiryMetaDataDocument>('EnquiryIdMetaData', enquiryIdMetaDataSchema);
+export const EnquiryApplicationId = mongoose.model<IEnquiryMetaDataDocument>(COLLECTION_NAMES.ENQUIRY_ID_META_DATA, enquiryIdMetaDataSchema);

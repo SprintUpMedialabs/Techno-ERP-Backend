@@ -1,6 +1,7 @@
 import mongoose, { Schema } from 'mongoose';
 import { ISpreadSheetMetaData } from '../validators/spreadSheet';
 import createHttpError from 'http-errors';
+import { COLLECTION_NAMES } from '../../config/constants';
 
 export interface ISpreadSheetMetaDataDocument extends ISpreadSheetMetaData, Document {}
 
@@ -15,6 +16,6 @@ const spreadSheetSchema = new Schema<ISpreadSheetMetaDataDocument>(
 // as this is from the server side and we will be handling it in the server side only by checking up logs
 
 export const SpreadSheetMetaData = mongoose.model<ISpreadSheetMetaDataDocument>(
-  'spreadSheetMetaData',
+  COLLECTION_NAMES.SPREADSHEET_META_DATA,
   spreadSheetSchema
 );

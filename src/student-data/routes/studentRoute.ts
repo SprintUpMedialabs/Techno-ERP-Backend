@@ -20,7 +20,7 @@ studentDataRoute.get('/:id',
 );
 
 
-studentDataRoute.put('/:id',
+studentDataRoute.put('/',
     authenticate,
     authorize([UserRoles.BASIC_USER]),
     updateStudentById

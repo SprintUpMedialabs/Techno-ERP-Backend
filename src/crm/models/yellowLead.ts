@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import { IYellowLead } from '../validators/yellowLead';
-import { Gender, FinalConversionType } from '../../config/constants';
+import { Gender, FinalConversionType, COLLECTION_NAMES } from '../../config/constants';
 import { convertToDDMMYYYY, convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import createHttpError from 'http-errors';
 import logger from '../../config/logger';
@@ -92,4 +92,4 @@ yellowLeadSchema.set('toJSON', { transform: transformDates });
 yellowLeadSchema.set('toObject', { transform: transformDates });
 
 
-export const YellowLead = mongoose.model<IYellowLeadDocument>('YellowLead', yellowLeadSchema);
+export const YellowLead = mongoose.model<IYellowLeadDocument>(COLLECTION_NAMES.YELLOW_LEAD, yellowLeadSchema);
