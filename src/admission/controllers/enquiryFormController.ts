@@ -304,10 +304,13 @@ export const updateEnquiryStep2ById = expressAsyncHandler(async (req: Authentica
 const updateFeeDetails = async (applicationStatusList: ApplicationStatus[], studentFeesData: IFeesUpdateSchema) => {
   const validation = feesUpdateSchema.safeParse(studentFeesData);
 
+  console.log(validation.error);
+  
   if (!validation.success) {
     throw createHttpError(400, validation.error.errors[0]);
   }
 
+ 
   const enquiry = await Enquiry.findOne({
     studentFee: studentFeesData.id,
     applicationStatus: { $nin: [...applicationStatusList] }
