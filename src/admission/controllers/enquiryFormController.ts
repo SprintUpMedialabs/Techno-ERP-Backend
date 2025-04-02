@@ -394,8 +394,12 @@ export const updateEnquiryStep3ById = expressAsyncHandler(
 export const updateEnquiryDocuments = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
 
+    // console.log("In updating documents")
     const { id, type, dueBy } = req.body;
 
+    // console.log(id);
+    // console.log(type);
+    // console.log(dueBy);
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw createHttpError(400, 'Invalid enquiry ID');
     }
@@ -468,14 +472,11 @@ export const updateEnquiryDocuments = expressAsyncHandler(
       return formatResponse(res, 200, 'Document updated successfully', true, updatedData);
     }
     else {
-      // DTODO: we need change this logic as we want to acccept only due by also
-      //Create new as it is not existing
-      if (!file) {
-        throw createHttpError(400, 'Please upload a file first before updating dueBy');
-      }
 
       const documentData: Record<string, any> = { type, fileUrl };
 
+      // console.log("Document Data : ");
+      // console.log(documentData);
       if (finalDueBy) {
         documentData.dueBy = finalDueBy;
       }
