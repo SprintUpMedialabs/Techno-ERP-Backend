@@ -142,3 +142,30 @@ export const searchCourse = expressAsyncHandler(async (req: AuthenticatedRequest
 
     return formatResponse(res, 200, "Courses found", true, matchedCourses);
 });
+
+
+export const fetchCourses  = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const departments = await DepartmentModel.find({}, "courses").lean();
+
+        const uniqueCourses = new Map();
+
+        departments.forEach(department => {
+            department.courses.forEach(course => {
+                uniqueCourses.set(course.courseCode, course.courseName);
+            });
+        });
+
+        const formattedCourses = Array.from(uniqueCourses, ([courseCode, courseName]) => ({ courseCode, courseName }));
+
+        if (formattedCourses.length === 0) {
+            throw createHttpError(404, "Courses found.");
+        }
+
+        return formatResponse(res, 200, "Courses fetched successfully", true, formattedCourses);
+    } 
+    catch (error) 
+    {
+        throw createHttpError(404, 'Error fetching unique course details!');
+    }
+});

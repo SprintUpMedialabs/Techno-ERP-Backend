@@ -11,6 +11,9 @@ import { Student } from "../models/student";
 import { IStudentUpdateSchema, updateStudentSchema } from "../validators/student";
 import { IStudentFilter, studentFilterSchema } from "../validators/studentFilterSchema";
 import logger from "../../config/logger";
+import { feesUpdateSchema, IFeesUpdateSchema, IStudentFeesSchema } from "../../admission/validators/studentFees";
+import { fetchCourseFeeByCourse, fetchOtherFees } from "../../fees/courseAndOtherFees.controller";
+import { StudentFeesModel } from "../../admission/models/studentFees";
 
 export const getStudentData = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
@@ -107,7 +110,7 @@ export const updateStudentById = expressAsyncHandler(
 );
 
 
-// DTODO: same change
+// DTODO: same change => DONE, here and in enquiry documents both
 export const updateStudentDocuments = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
 
@@ -184,10 +187,6 @@ export const updateStudentDocuments = expressAsyncHandler(
       return formatResponse(res, 200, 'Document updated successfully', true, updatedData);
     }
     else {
-      //Create new as it is not existing
-      if (!file) {
-        throw createHttpError(400, 'Please upload a file first before updating dueBy');
-      }
 
       const documentData: Record<string, any> = { type, fileUrl };
 
@@ -208,4 +207,50 @@ export const updateStudentDocuments = expressAsyncHandler(
   }
 );
 
-// DTODO: add fee update endpoint
+// DTODO: add fee update endpoint => DONE
+export const updateStudentFee = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const feesDraftUpdateData: IFeesUpdateSchema = req.body;
+
+
+  const validation = feesUpdateSchema.safeParse(feesDraftUpdateData);
+
+  console.log(validation.error)
+  if (!validation.success) {
+    throw createHttpError(400, validation.error.errors[0]);
+  }
+
+  const studentFeeInfo = await Student.findOne({
+    studentFee: feesDraftUpdateData.id,
+  }, {
+    course: 1 
+  }
+  ).lean();
+
+  const otherFees = await fetchOtherFees();
+  const semWiseFee = await fetchCourseFeeByCourse(studentFeeInfo?.course.toString() ?? '');
+
+  const feeData: IStudentFeesSchema = {
+    ...validation.data,
+    otherFees: validation.data.otherFees.map(fee => ({
+      ...fee,
+      feeAmount: otherFees?.find(otherFee => otherFee.type == fee.type)?.fee ?? 0
+    })),
+    semWiseFees: validation.data.semWiseFees.map((semFee, index: number) => ({
+      finalFee: semFee.finalFee,
+      feeAmount: (semWiseFee?.fee[index]) ?? 0
+    }))
+  }
+
+  const feesDraft = await StudentFeesModel.findByIdAndUpdate(
+    feesDraftUpdateData.id,
+    { $set: feeData },
+    { new: true, runValidators: true }
+  );
+
+  if (!feesDraft) {
+    throw createHttpError(404, 'Failed to update Fees Draft');
+  }
+
+  return formatResponse(res, 200, 'Fees Draft updated successfully', true, feesDraft);
+});
+

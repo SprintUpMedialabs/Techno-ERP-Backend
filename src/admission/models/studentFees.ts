@@ -87,11 +87,23 @@ const StudentFeesSchema = new Schema<IStudentFeesDocument>(
             required: true,
         },
         approvedBy: {
-            type: String,
+            type: Schema.Types.Mixed, // Allows ObjectId or String
             validate: {
-                validator: (email: string) => emailSchema.safeParse(email).success,
-                message: 'Invalid email format'
+                validator: function (value) {
+                    // Allow null or undefined
+                    if (value === null || value === undefined) return true;
+
+                    // Check for valid ObjectId
+                    const isObjectId = Types.ObjectId.isValid(value);
+
+                    // Allow string 'other'
+                    const isOther = value === 'other';
+
+                    return isObjectId || isOther;
+                },
+                message: props => `'${props.value}' is not a valid counsellor (must be ObjectId or 'other')`
             },
+            required: true,
         },
     },
     { timestamps: true }

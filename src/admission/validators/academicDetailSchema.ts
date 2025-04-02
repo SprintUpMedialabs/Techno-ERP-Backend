@@ -17,7 +17,7 @@ export const academicDetailSchema = z.object({
     .max(100, 'Percentage cannot exceed 100'),
   subjects: z
     .array(z.string().min(1, 'Subject name is required'))
-    .nonempty('Subjects cannot be empty')
+    .nonempty('Subjects cannot be empty').optional()
 });
 // Array schema
 export const academicDetailsArraySchema = z.array(academicDetailSchema);

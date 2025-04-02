@@ -2,7 +2,7 @@ import express from 'express';
 import { UserRoles } from '../../config/constants';
 import upload from '../../config/multerConfig';
 import { authenticate, authorize } from '../../middleware/jwtAuthenticationMiddleware';
-import { getStudentData, getStudentDataById, updateStudentById, updateStudentDocuments } from '../controllers/studentController';
+import { getStudentData, getStudentDataById, updateStudentById, updateStudentDocuments, updateStudentFee } from '../controllers/studentController';
 
 export const studentDataRoute = express.Router();
 
@@ -24,6 +24,12 @@ studentDataRoute.put('/',
     authenticate,
     authorize([UserRoles.BASIC_USER]),
     updateStudentById
+);
+
+studentDataRoute.put('/fee',
+    authenticate,
+    authorize([UserRoles.BASIC_USER]),
+    updateStudentFee
 );
 
 

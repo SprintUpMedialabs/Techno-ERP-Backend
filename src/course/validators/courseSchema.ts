@@ -6,7 +6,7 @@ export const courseSchema = z.object({
     academicYear: z.string().regex(/^\d{4}-\d{4}$/, "Invalid academic year format (YYYY-YYYY)"),
     // DTODO: lets use string here[also create api to get courses]
     // Future DTODO: in enquire request body will change courseCode type string to _id
-    courseCode: z.nativeEnum(Course),
+    courseCode: z.string().min(3, "Course Code is required"),
     courseName : z.string().min(3, "Course Name is required"),
     collegeName: z.string().min(3).max(100, "College name should be between 3 and 100 characters"),
     totalSemesters : z.number().min(1, 'Please enter a valid value for total number of semesters')

@@ -22,11 +22,7 @@ export const courseSchema = new Schema<ICourseDocument>({
     },
     courseCode: {
         type: String,
-        required: [true, "Course code is required"],
-        enum: {
-            values: Object.values(Course),
-            message: "Invalid course code"
-        },
+        required: [true, "Course code is required"]
     },
     courseName: {
         type: String,
