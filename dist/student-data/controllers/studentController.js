@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateStudentDocuments = exports.updateStudentById = exports.getStudentDataById = exports.getStudentData = void 0;
+exports.updateStudentFee = exports.updateStudentDocuments = exports.updateStudentById = exports.getStudentDataById = exports.getStudentData = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const http_errors_1 = __importDefault(require("http-errors"));
 const mongoose_1 = __importDefault(require("mongoose"));
@@ -24,6 +24,9 @@ const student_1 = require("../models/student");
 const student_2 = require("../validators/student");
 const studentFilterSchema_1 = require("../validators/studentFilterSchema");
 const logger_1 = __importDefault(require("../../config/logger"));
+const studentFees_1 = require("../../admission/validators/studentFees");
+const courseAndOtherFees_controller_1 = require("../../fees/courseAndOtherFees.controller");
+const studentFees_2 = require("../../admission/models/studentFees");
 exports.getStudentData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let { search, semester, course } = req.body;
     const studentFilter = {};
@@ -84,7 +87,7 @@ exports.updateStudentById = (0, express_async_handler_1.default)((req, res) => _
     }
     return (0, formatResponse_1.formatResponse)(res, 200, 'Student Updated Successfully', true, updatedStudent);
 }));
-// DTODO: same change
+// DTODO: same change => DONE, here and in enquiry documents both
 exports.updateStudentDocuments = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     const { id, type, dueBy } = req.body;
@@ -138,10 +141,6 @@ exports.updateStudentDocuments = (0, express_async_handler_1.default)((req, res)
         return (0, formatResponse_1.formatResponse)(res, 200, 'Document updated successfully', true, updatedData);
     }
     else {
-        //Create new as it is not existing
-        if (!file) {
-            throw (0, http_errors_1.default)(400, 'Please upload a file first before updating dueBy');
-        }
         const documentData = { type, fileUrl };
         if (finalDueBy) {
             documentData.dueBy = finalDueBy;
@@ -152,4 +151,35 @@ exports.updateStudentDocuments = (0, express_async_handler_1.default)((req, res)
         return (0, formatResponse_1.formatResponse)(res, 200, 'New document created successfully', true, updatedData);
     }
 }));
-// DTODO: add fee update endpoint
+// DTODO: add fee update endpoint => DONE
+exports.updateStudentFee = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    const feesDraftUpdateData = req.body;
+    const validation = studentFees_1.feesUpdateSchema.safeParse(feesDraftUpdateData);
+    console.log(validation.error);
+    if (!validation.success) {
+        throw (0, http_errors_1.default)(400, validation.error.errors[0]);
+    }
+    const studentFeeInfo = yield student_1.Student.findOne({
+        studentFee: feesDraftUpdateData.id,
+    }, {
+        course: 1
+    }).lean();
+    const otherFees = yield (0, courseAndOtherFees_controller_1.fetchOtherFees)();
+    const semWiseFee = yield (0, courseAndOtherFees_controller_1.fetchCourseFeeByCourse)((_a = studentFeeInfo === null || studentFeeInfo === void 0 ? void 0 : studentFeeInfo.course.toString()) !== null && _a !== void 0 ? _a : '');
+    const feeData = Object.assign(Object.assign({}, validation.data), { otherFees: validation.data.otherFees.map(fee => {
+            var _a, _b;
+            return (Object.assign(Object.assign({}, fee), { feeAmount: (_b = (_a = otherFees === null || otherFees === void 0 ? void 0 : otherFees.find(otherFee => otherFee.type == fee.type)) === null || _a === void 0 ? void 0 : _a.fee) !== null && _b !== void 0 ? _b : 0 }));
+        }), semWiseFees: validation.data.semWiseFees.map((semFee, index) => {
+            var _a;
+            return ({
+                finalFee: semFee.finalFee,
+                feeAmount: (_a = (semWiseFee === null || semWiseFee === void 0 ? void 0 : semWiseFee.fee[index])) !== null && _a !== void 0 ? _a : 0
+            });
+        }) });
+    const feesDraft = yield studentFees_2.StudentFeesModel.findByIdAndUpdate(feesDraftUpdateData.id, { $set: feeData }, { new: true, runValidators: true });
+    if (!feesDraft) {
+        throw (0, http_errors_1.default)(404, 'Failed to update Fees Draft');
+    }
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Fees Draft updated successfully', true, feesDraft);
+}));

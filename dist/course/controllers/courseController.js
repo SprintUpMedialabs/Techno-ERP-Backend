@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.searchCourse = exports.deleteCourse = exports.updateCourse = exports.createCourse = void 0;
+exports.fetchCourses = exports.searchCourse = exports.deleteCourse = exports.updateCourse = exports.createCourse = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const http_errors_1 = __importDefault(require("http-errors"));
 const mongoose_1 = __importDefault(require("mongoose"));
@@ -106,4 +106,23 @@ exports.searchCourse = (0, express_async_handler_1.default)((req, res) => __awai
         throw (0, http_errors_1.default)(404, "No matching courses found.");
     }
     return (0, formatResponse_1.formatResponse)(res, 200, "Courses found", true, matchedCourses);
+}));
+exports.fetchCourses = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const departments = yield department_1.DepartmentModel.find({}, "courses").lean();
+        const uniqueCourses = new Map();
+        departments.forEach(department => {
+            department.courses.forEach(course => {
+                uniqueCourses.set(course.courseCode, course.courseName);
+            });
+        });
+        const formattedCourses = Array.from(uniqueCourses, ([courseCode, courseName]) => ({ courseCode, courseName }));
+        if (formattedCourses.length === 0) {
+            throw (0, http_errors_1.default)(404, "Courses found.");
+        }
+        return (0, formatResponse_1.formatResponse)(res, 200, "Courses fetched successfully", true, formattedCourses);
+    }
+    catch (error) {
+        throw (0, http_errors_1.default)(404, 'Error fetching unique course details!');
+    }
 }));

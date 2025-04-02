@@ -6,7 +6,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.courseSchema = void 0;
 const http_errors_1 = __importDefault(require("http-errors"));
 const mongoose_1 = require("mongoose");
-const constants_1 = require("../../config/constants");
 const semester_1 = require("./semester");
 exports.courseSchema = new mongoose_1.Schema({
     academicYear: {
@@ -16,11 +15,7 @@ exports.courseSchema = new mongoose_1.Schema({
     },
     courseCode: {
         type: String,
-        required: [true, "Course code is required"],
-        enum: {
-            values: Object.values(constants_1.Course),
-            message: "Invalid course code"
-        },
+        required: [true, "Course code is required"]
     },
     courseName: {
         type: String,

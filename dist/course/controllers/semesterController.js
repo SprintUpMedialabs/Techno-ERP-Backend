@@ -29,6 +29,7 @@ exports.deleteSemester = (0, express_async_handler_1.default)((req, res) => __aw
         $pull: { "courses.$.semester": { _id: semesterId } },
         $inc: { "courses.$.totalSemesters": -1 }
     }, { new: true, projection: { "courses": { $elemMatch: { _id: courseId } } }, runValidators: true });
+    console.log(updatedDepartment);
     if (!updatedDepartment || updatedDepartment.courses.length === 0) {
         throw (0, http_errors_1.default)(404, "Semester not deleted.");
     }

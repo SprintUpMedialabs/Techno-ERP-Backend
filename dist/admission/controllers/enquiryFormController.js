@@ -210,6 +210,7 @@ exports.updateEnquiryStep2ById = (0, express_async_handler_1.default)((req, res)
 const updateFeeDetails = (applicationStatusList, studentFeesData) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const validation = studentFees_2.feesUpdateSchema.safeParse(studentFeesData);
+    console.log(validation.error);
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }
@@ -266,7 +267,11 @@ exports.updateEnquiryStep3ById = (0, express_async_handler_1.default)((req, res)
 }));
 exports.updateEnquiryDocuments = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
+    // console.log("In updating documents")
     const { id, type, dueBy } = req.body;
+    // console.log(id);
+    // console.log(type);
+    // console.log(dueBy);
     if (!mongoose_1.default.Types.ObjectId.isValid(id)) {
         throw (0, http_errors_1.default)(400, 'Invalid enquiry ID');
     }
@@ -318,12 +323,9 @@ exports.updateEnquiryDocuments = (0, express_async_handler_1.default)((req, res)
         return (0, formatResponse_1.formatResponse)(res, 200, 'Document updated successfully', true, updatedData);
     }
     else {
-        // DTODO: we need change this logic as we want to acccept only due by also
-        //Create new as it is not existing
-        if (!file) {
-            throw (0, http_errors_1.default)(400, 'Please upload a file first before updating dueBy');
-        }
         const documentData = { type, fileUrl };
+        // console.log("Document Data : ");
+        // console.log(documentData);
         if (finalDueBy) {
             documentData.dueBy = finalDueBy;
         }

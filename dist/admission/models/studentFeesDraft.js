@@ -8,7 +8,6 @@ const http_errors_1 = __importDefault(require("http-errors"));
 const mongoose_1 = require("mongoose");
 const constants_1 = require("../../config/constants");
 const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
-const commonSchema_1 = require("../../validators/commonSchema");
 const studentFees_1 = require("./studentFees");
 const StudentFeesDraftSchema = new mongoose_1.Schema({
     otherFees: {
@@ -48,15 +47,22 @@ const StudentFeesDraftSchema = new mongoose_1.Schema({
             },
             message: props => `'${props.value}' is not a valid counsellor (must be ObjectId or 'other')`
         },
-        required: false,
     },
     approvedBy: {
-        type: String,
+        type: mongoose_1.Schema.Types.Mixed, // Allows ObjectId or String
         validate: {
-            validator: (email) => commonSchema_1.emailSchema.safeParse(email).success,
-            message: 'Invalid email format'
+            validator: function (value) {
+                // Allow null or undefined
+                if (value === null || value === undefined)
+                    return true;
+                // Check for valid ObjectId
+                const isObjectId = mongoose_1.Types.ObjectId.isValid(value);
+                // Allow string 'other'
+                const isOther = value === 'other';
+                return isObjectId || isOther;
+            },
+            message: props => `'${props.value}' is not a valid counsellor (must be ObjectId or 'other')`
         },
-        required: false
     },
 }, { timestamps: true });
 const handleMongooseError = (error, next) => {

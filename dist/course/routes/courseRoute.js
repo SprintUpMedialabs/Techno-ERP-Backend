@@ -14,4 +14,5 @@ exports.courseRoute.post('/', jwtAuthenticationMiddleware_1.authenticate, (0, jw
 exports.courseRoute.put('/', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER]), courseController_1.updateCourse);
 exports.courseRoute.delete('/', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER]), courseController_1.deleteCourse);
 exports.courseRoute.post('/search', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER]), courseController_1.searchCourse);
+exports.courseRoute.get('/fetch', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER]), courseController_1.fetchCourses);
 exports.courseRoute.use('/semester', semesterRoute_1.semesterRoute);
