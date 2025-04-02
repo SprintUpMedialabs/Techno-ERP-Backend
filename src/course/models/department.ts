@@ -1,10 +1,9 @@
-import mongoose, { Schema } from "mongoose";
-import { courseSchema, ICourseDocument } from "./course";
-import { IDepartmentSchema } from "../validators/departmentSchema";
 import createHttpError from "http-errors";
-import { convertToDDMMYYYY } from "../../utils/convertDateToFormatedDate";
-import { objectIdSchema } from "../../validators/commonSchema";
+import mongoose, { Schema } from "mongoose";
 import { COLLECTION_NAMES } from "../../config/constants";
+import { convertToDDMMYYYY } from "../../utils/convertDateToFormatedDate";
+import { IDepartmentSchema } from "../validators/departmentSchema";
+import { courseSchema, ICourseDocument } from "./course";
 
 export interface IDepartmentDocument extends IDepartmentSchema, Document {
     courses : ICourseDocument[]
@@ -18,13 +17,10 @@ const departmentSchema = new Schema<IDepartmentDocument>({
         minlength: [3, "Department name must be at least 3 characters long"],
         maxlength: [50, "Department name must be at most 50 characters long"]
     },
-    // DTODO: let's add object id here => Done
     hod: {
         type: Schema.Types.ObjectId,
         ref : COLLECTION_NAMES.USER,
         required: [true, "HOD name is required"],
-        minlength: [3, "HOD name must be at least 3 characters long"],
-        maxlength: [100, "HOD name must be at most 100 characters long"]
     },
     courses: {
         type: [courseSchema],

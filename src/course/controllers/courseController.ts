@@ -49,8 +49,6 @@ export const createCourse = expressAsyncHandler(async (req: AuthenticatedRequest
     return formatResponse(res, 200, 'Course created successfully', true, updatedDepartment);
 });
 
-
-// DTODO: lets add courseCode, collegeName in update course api[lets make sure that courseCode is not duplicated] => DONE
 export const updateCourse = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const updateCourseData : ICourseUpdateSchema = req.body;
     const validation = updateCourseSchema.safeParse(updateCourseData);
@@ -79,7 +77,7 @@ export const updateCourse = expressAsyncHandler(async (req: AuthenticatedRequest
                 "courses.$.collegeName": collegeName
             }
         },
-        { new: true, projection: { "courses": { $elemMatch: { _id: courseId } } } }
+        { new: true, projection: { "courses": { $elemMatch: { _id: courseId } } }, runValidators: true }
     );
     
     return formatResponse(res, 200, 'Course information updated successfully', true, updatedCourse);
@@ -113,7 +111,7 @@ export const searchCourse = expressAsyncHandler(async (req: AuthenticatedRequest
     {
         search = "";
     }
-
+    // Future DTODO: do we change this to just search based on courseCode?
     const matchedCourses = await DepartmentModel.aggregate([
         { $unwind: "$courses" }, 
         { 
@@ -138,7 +136,7 @@ export const searchCourse = expressAsyncHandler(async (req: AuthenticatedRequest
         }
     ]);
 
-    if (!matchedCourses.length) {
+    if (matchedCourses.length === 0) {
         throw createHttpError(404, "No matching courses found.");
     }
 

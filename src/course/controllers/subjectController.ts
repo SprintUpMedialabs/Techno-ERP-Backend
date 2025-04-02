@@ -26,6 +26,7 @@ export const createSubject = expressAsyncHandler(async (req: AuthenticatedReques
         { 
             arrayFilters: [{ "sem._id": semesterId }], 
             new: true, 
+            runValidators: true
         }
     );
 
@@ -40,49 +41,6 @@ export const createSubject = expressAsyncHandler(async (req: AuthenticatedReques
 
     return formatResponse(res, 201, 'Subject Added successfully', true, updatedCourse);
 });
-
-
-// export const updateSubject = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-
-//     const  subjectData : ISubjectDetailsUpdateSchema = req.body;
-
-//     const validation = subjectDetailsUpdateSchema.safeParse(subjectData);
-
-//     if(!validation.success)
-//     {
-//         throw createHttpError(400, validation.error.errors[0]);
-//     }
-
-
-//     const { subjectId, ...subjectUpdateData} = validation.data
-//     console.log(subjectUpdateData);
-    
-//     const updatedDepartment = await DepartmentModel.findOneAndUpdate(
-//         { "courses.semester.subjectDetails._id": subjectId },
-//         { $set: { "courses.$[].semester.$[].subjectDetails.$[subj]":  } },
-//         {
-//             arrayFilters: [{ "subj._id": subjectId }],
-//             new: true
-//         }
-//     );
-//     console.log(updatedDepartment);
-
-//     // const updatedDepartmentWithSemester = await DepartmentModel.findOne(
-//     //     { "courses.semester.subjectDetails._id": subjectId },
-//     //     { 
-//     //         _id: 1, 
-//     //         "courses._id": 1,
-//     //         "courses.semester.$": 1 // Only return the matched semester
-//     //     }
-//     // );
-
-//     // console.log(updatedDepartmentWithSemester);
-//     // if(!updatedDepartmentWithSemester)
-//     //     throw createHttpError(404, 'Failed updating the subject information');
-
-//     return formatResponse(res, 200, 'Subject Updated Successfully', true, updatedDepartment);
-// });
-
 
 export const updateSubject = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const subjectData: ISubjectDetailsUpdateSchema = req.body;
@@ -115,8 +73,7 @@ export const updateSubject = expressAsyncHandler(async (req: AuthenticatedReques
             projection: { "courses.$": 1 } 
         }
     );
-
-    console.log(updatedDepartment)
+    
     return formatResponse(res, 200, 'Subject Updated Successfully', true, updatedDepartment);
 });
 

@@ -1,13 +1,11 @@
-import expressAsyncHandler from "express-async-handler";
 import { Response } from "express";
+import expressAsyncHandler from "express-async-handler";
 import createHttpError from "http-errors";
-import { DepartmentModel } from "../models/department";
-import { IScheduleRequestSchema, IScheduleUpdateSchema, IScheduleSchema } from "../validators/scheduleSchema";
 import { Types } from "mongoose";
-import { formatResponse } from "../../utils/formatResponse";
-import { z } from "zod";
-import { scheduleRequestSchema, scheduleUpdateSchema } from "../validators/scheduleSchema";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
+import { formatResponse } from "../../utils/formatResponse";
+import { DepartmentModel } from "../models/department";
+import { IScheduleRequestSchema, IScheduleUpdateSchema, scheduleRequestSchema, scheduleUpdateSchema } from "../validators/scheduleSchema";
 
 
 export const createSchedule = expressAsyncHandler(async (req : AuthenticatedRequest, res: Response) => {

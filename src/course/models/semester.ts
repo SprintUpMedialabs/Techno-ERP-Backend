@@ -47,11 +47,6 @@ semesterSchema.post('findOneAndUpdate', function (error: any, doc: any, next: Fu
 });
 
 const transformDates = (_: any, ret: any) => {
-    // ['plannedDate', 'dateOfLecture'].forEach((key) => {
-    //     if (ret[key]) {
-    //         ret[key] = convertToDDMMYYYY(ret[key]);
-    //     }
-    // });
     delete ret.createdAt;
     delete ret.updatedAt;
     delete ret.__v;

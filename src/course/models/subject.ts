@@ -20,8 +20,6 @@ export const subjectDetailsSchema = new Schema<ISubjectDetailsDocument>(
         type: Schema.Types.ObjectId,
         ref : COLLECTION_NAMES.USER,
         required: [true, "Instructor information is required"],
-        minlength: [3, "Instructor name must be at least 3 characters long"],
-        maxlength: [100, "Instructor name must be at most 100 characters long"]
     },
     subjectCode: {
         type: String,
@@ -62,11 +60,6 @@ subjectDetailsSchema.post('findOneAndUpdate', function (error: any, doc: any, ne
 });
 
 const transformDates = (_: any, ret: any) => {
-    // ['plannedDate', 'dateOfLecture'].forEach((key) => {
-    //     if (ret[key]) {
-    //         ret[key] = convertToDDMMYYYY(ret[key]);
-    //     }
-    // });
     delete ret.createdAt;
     delete ret.updatedAt;
     delete ret.__v;

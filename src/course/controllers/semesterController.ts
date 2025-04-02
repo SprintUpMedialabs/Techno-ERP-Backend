@@ -21,7 +21,7 @@ export const deleteSemester = expressAsyncHandler(async (req: AuthenticatedReque
             $pull: { "courses.$.semester": { _id: semesterId } },
             $inc: { "courses.$.totalSemesters": -1 }
         },
-        { new: true, projection: { "courses": { $elemMatch: { _id: courseId } } } }
+        { new: true, projection: { "courses": { $elemMatch: { _id: courseId } } }, runValidators: true }
     );
 
     if (!updatedDepartment || updatedDepartment.courses.length === 0) {
@@ -31,8 +31,8 @@ export const deleteSemester = expressAsyncHandler(async (req: AuthenticatedReque
     return formatResponse(res, 200, "Semester deleted successfully", true, updatedDepartment);
 });
 
+// DTODO: lets return only course rather than department.
 
-// DTODO: Create Semester => Done
 export const createSemester = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
 
     const createSemesterData: ISemesterCreateSchema = req.body;
@@ -51,6 +51,7 @@ export const createSemester = expressAsyncHandler(async (req: AuthenticatedReque
         subjectDetails: []
     }
 
+    // DTODO: lets use isExist  here.
     const existingCourse = await DepartmentModel.findOne({
         "courses._id": courseId,
         "courses.semester.semesterNumber": semesterNumber
@@ -69,10 +70,8 @@ export const createSemester = expressAsyncHandler(async (req: AuthenticatedReque
             $push: { "courses.$.semester": semesterData },
             $inc: { "courses.$.totalSemesters": 1 }
         },
-        { new: true, projection: { "courses": { $elemMatch: { _id: courseId } } } }
+        { new: true, projection: { "courses": { $elemMatch: { _id: courseId } } }, runValidators: true }
     );
 
-    console.log("Updated Course is : ");
-    console.log(updatedCourse);
     return formatResponse(res, 200, "Semester created successfully", true, updatedCourse);
 });

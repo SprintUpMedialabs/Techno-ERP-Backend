@@ -43,7 +43,7 @@ export enum FinalConversionType {
 }
 
 
-export enum Marketing_Source{
+export enum Marketing_Source {
   SCHOOL = 'School',
   DIGITAL_MARKETING = 'Digital_Marketing'
 }
@@ -73,7 +73,7 @@ export enum AdmissionReference {
 };
 
 
-export enum   Course {
+export enum Course {
   BCOM = "BCOM",
   BCOMH = "BCOMH",
   BAJMC = "BAJMC",
@@ -171,14 +171,6 @@ export enum ApplicationStatus {
 }
 
 
-export enum MimeType {
-  PNG = 'image/png',
-  JPG = 'image/jpeg',
-  JPEG = 'image/jpeg',
-  PDF = 'application/pdf',
-}
-
-
 export enum ModuleNames {
   MARKETING = "MARKETING",
   ADMISSION = "ADMISSION",
@@ -216,7 +208,7 @@ export enum FeeStatus {
 }
 
 
-export enum AdmissionMode{
+export enum AdmissionMode {
   ONLINE = "ONLINE",
   OFFLINE = "OFFLINE"
 }
@@ -286,18 +278,18 @@ export const PHOTO = "PHOTO";
 export const MARKETING_SHEET = 'Marketing Sheet'
 
 
-export enum COLLECTION_NAMES{
-   USER = 'User',
-   VERIFY_OTP = 'VerifyOtp',
-   ENQUIRY = 'Enquiry',
-   ENQUIRY_DRAFT = 'EnquiryDraft',
-   ENQUIRY_ID_META_DATA = 'EnquiryIdMetaData',
-   STUDENT_FEE = 'studentFee',
-   STUDENT_FEE_DRAFT = 'studentFeeDraft',
-   DEPARTMENT_COURSE = 'deptandcourse',
-   LEAD = 'Lead',
-   SPREADSHEET_META_DATA = 'spreadSheetMetaData',
-   YELLOW_LEAD = 'YellowLead',
-   COURSE_OTHER_FEES = 'CourseAndOtherFees',
-   STUDENT = 'Student'
+export enum COLLECTION_NAMES {
+  USER = 'User',
+  VERIFY_OTP = 'VerifyOtp',
+  ENQUIRY = 'Enquiry',
+  ENQUIRY_DRAFT = 'EnquiryDraft',
+  ENQUIRY_ID_META_DATA = 'EnquiryIdMetaData',
+  STUDENT_FEE = 'studentFee',
+  STUDENT_FEE_DRAFT = 'studentFeeDraft',
+  DEPARTMENT_COURSE = 'deptandcourse',
+  LEAD = 'Lead',
+  SPREADSHEET_META_DATA = 'spreadSheetMetaData',
+  YELLOW_LEAD = 'YellowLead',
+  COURSE_OTHER_FEES = 'CourseAndOtherFees',
+  STUDENT = 'Student'
 }

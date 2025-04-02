@@ -1,15 +1,13 @@
-import expressAsyncHandler from 'express-async-handler';
 import { Response } from 'express';
-import { User } from '../models/user';
-import { AuthenticatedRequest } from '../validators/authenticatedRequest';
-import logger from '../../config/logger';
+import expressAsyncHandler from 'express-async-handler';
 import createHttpError from 'http-errors';
-import { roleSchema } from '../../validators/commonSchema';
 import { ModuleNames, UserRoles } from '../../config/constants';
-import { dropdownSchema } from '../validators/dropdownSchema';
-import { decodeToken } from '../../utils/jwtHelper';
 import { formatName } from '../../utils/formatName';
 import { formatResponse } from '../../utils/formatResponse';
+import { roleSchema } from '../../validators/commonSchema';
+import { User } from '../models/user';
+import { AuthenticatedRequest } from '../validators/authenticatedRequest';
+import { dropdownSchema } from '../validators/dropdownSchema';
 
 export const userProfile = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
 
@@ -22,8 +20,6 @@ export const userProfile = expressAsyncHandler(async (req: AuthenticatedRequest,
 
   const { id } = decodedData;
 
-  // console.log("Decoded data is : ", decodedData)
-  // console.log("ID is : ", id);
   const user = await User.findById(id);
 
   console.log("User is : ", user);
@@ -65,18 +61,6 @@ export const getUserByRole = expressAsyncHandler(async (req: AuthenticatedReques
 });
 
 export const fetchDropdownsBasedOnPage = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  // const { role } = req.query;
-  // if (Object.values(UserRoles).includes(role as UserRoles)) {
-  //   const users = await User.find({ roles: role as UserRoles });
-  //   const formattedUsers = users.map((user) => ({
-  //     _id: user?._id,
-  //     name: formatName(user?.firstName ?? '', user?.lastName ?? ''),
-  //     email: user?.email
-  //   }));
-  //   return formatResponse(res, 200, 'Fetching successful', true, formattedUsers);
-  // } else {
-  //   throw createHttpError(400, "Invalid role");
-  // }
   const { moduleName, role } = req.query;
   const id = req.data?.id;
   const roles = req.data?.roles!;
@@ -98,17 +82,15 @@ export const fetchDropdownsBasedOnPage = expressAsyncHandler(async (req: Authent
       users = await User.findOne({ _id: id });
       users = [users];
     }
-
     if (users) {
       const formattedUsers = users.map((user) => ({
         _id: user?._id,
         name: formatName(user?.firstName ?? '', user?.lastName ?? ''),
         email: user?.email
       }));
-
       return formatResponse(res, 200, 'Fetching successful', true, formattedUsers)
     }
-  } else if (moduleName === ModuleNames.ADMISSION) {
+  } else if (moduleName === ModuleNames.ADMISSION || moduleName === ModuleNames.COURSE) {
     users = await User.find({ roles: role });
     if (users) {
       const formattedUsers = users.map((user) => ({
@@ -116,24 +98,9 @@ export const fetchDropdownsBasedOnPage = expressAsyncHandler(async (req: Authent
         name: formatName(user?.firstName ?? '', user?.lastName ?? ''),
         email: user?.email
       }));
-
       return formatResponse(res, 200, 'Fetching successful', true, formattedUsers)
     }
-  } 
-  else if(moduleName == ModuleNames.COURSE)
-  {
-      users = await User.find({ roles: role });
-      if (users) {
-        const formattedUsers = users.map((user) => ({
-          _id: user?._id,
-          name: formatName(user?.firstName ?? '', user?.lastName ?? ''),
-          email: user?.email
-        }));
-  
-        return formatResponse(res, 200, 'Fetching successful', true, formattedUsers)
-      }
+  } else {
+    throw createHttpError(400, "Invalid module name");
   }
-
-  //throw createHttpError(400, "Invalid module name");
 });
-
