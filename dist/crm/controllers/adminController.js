@@ -36,6 +36,7 @@ exports.adminAnalytics = (0, express_async_handler_1.default)((req, res) => __aw
         }
     }
     assignedTo = assignedTo.map(id => new mongoose_1.default.Types.ObjectId(id));
+    assignedTo = assignedTo.map(id => new mongoose_1.default.Types.ObjectId(id));
     if (assignedTo.length > 0) {
         query.assignedTo = { $in: assignedTo };
     }
@@ -78,6 +79,8 @@ exports.adminAnalytics = (0, express_async_handler_1.default)((req, res) => __aw
             }
         ])
     ]);
+    // console.log(allLeadAnalytics);
+    // console.log(yellowLeadAnalytics);
     return (0, formatResponse_1.formatResponse)(res, 200, 'Analytics fetched successfully', true, {
         allLeadsAnalytics: allLeadAnalytics.length > 0 ? allLeadAnalytics[0] : {
             allLeads: 0,

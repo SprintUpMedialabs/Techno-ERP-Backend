@@ -153,4 +153,4 @@ const transformDates = (_, ret) => {
 };
 userSchema.set('toJSON', { transform: transformDates });
 userSchema.set('toObject', { transform: transformDates });
-exports.User = mongoose_1.default.model('User', userSchema);
+exports.User = mongoose_1.default.model(constants_1.COLLECTION_NAMES.USER, userSchema);

@@ -43,6 +43,7 @@ const enquiry_2 = require("../validators/enquiry");
 const enquiryStatusUpdateSchema_1 = require("../validators/enquiryStatusUpdateSchema");
 const singleDocumentSchema_1 = require("../validators/singleDocumentSchema");
 const studentFees_2 = require("../validators/studentFees");
+const logger_1 = __importDefault(require("../../config/logger"));
 exports.createEnquiryDraftStep1 = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const enquiryDraftStep1Data = req.body;
     const validation = enquiry_2.enquiryDraftStep1RequestSchema.safeParse(enquiryDraftStep1Data);
@@ -158,6 +159,7 @@ exports.createEnquiryStep2 = (0, express_async_handler_1.default)((req, res) => 
     var _a;
     const feesDraftData = req.body;
     const validation = studentFees_2.feesRequestSchema.safeParse(feesDraftData);
+    console.log(validation.error);
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }
@@ -166,7 +168,7 @@ exports.createEnquiryStep2 = (0, express_async_handler_1.default)((req, res) => 
         _id: feesDraftData.enquiryId,
         applicationStatus: constants_1.ApplicationStatus.STEP_1
     }, {
-        course: 1, // Only return course field
+        course: 1,
         studentFeeDraft: 1
     }).lean();
     let feesDraft;
@@ -196,8 +198,6 @@ exports.createEnquiryStep2 = (0, express_async_handler_1.default)((req, res) => 
         }
     }
     else {
-        //Enquiry does not exist, we have to create enquiry first.
-        //This will never be true as we are getting from UI so we will land into this call if and only if enquiry Id is existing.
         throw (0, http_errors_1.default)(400, 'Enquiry does not exist');
     }
     return (0, formatResponse_1.formatResponse)(res, 201, 'Fees Draft created successfully', true, feesDraft);
@@ -265,45 +265,73 @@ exports.updateEnquiryStep3ById = (0, express_async_handler_1.default)((req, res)
     return (0, formatResponse_1.formatResponse)(res, 200, 'Enquiry data updated successfully', true, updatedData);
 }));
 exports.updateEnquiryDocuments = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
     const { id, type, dueBy } = req.body;
     if (!mongoose_1.default.Types.ObjectId.isValid(id)) {
         throw (0, http_errors_1.default)(400, 'Invalid enquiry ID');
     }
-    yield checkIfStudentAdmitted(id);
     const file = req.file;
     const validation = singleDocumentSchema_1.singleDocumentSchema.safeParse({
-        enquiryId: id,
-        type,
-        documentBuffer: file,
-        dueBy: dueBy
+        id: id,
+        type: type,
+        dueBy: dueBy,
+        file: file
     });
+    yield checkIfStudentAdmitted(id);
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }
-    const fileUrl = yield (0, s3Upload_1.uploadToS3)(id.toString(), constants_1.ADMISSION, type, file);
-    //Free memory
-    if (req.file)
-        req.file.buffer = null;
-    const isExists = yield enquiry_1.Enquiry.exists({
-        _id: id,
-        'documents.type': type,
-    });
-    let updatedData;
-    if (isExists) {
-        updatedData = yield enquiry_1.Enquiry.findOneAndUpdate({ _id: id, 'documents.type': type, }, {
-            $set: { 'documents.$[elem].fileUrl': fileUrl },
-        }, {
+    // Fetch existing document details
+    const existingDocument = yield enquiry_1.Enquiry.findOne({ _id: id, 'documents.type': type }, { 'documents.$': 1 });
+    let fileUrl;
+    let finalDueBy;
+    if (existingDocument === null || existingDocument === void 0 ? void 0 : existingDocument.documents) {
+        fileUrl = (_a = existingDocument === null || existingDocument === void 0 ? void 0 : existingDocument.documents[0]) === null || _a === void 0 ? void 0 : _a.fileUrl;
+        finalDueBy = (_b = existingDocument === null || existingDocument === void 0 ? void 0 : existingDocument.documents[0]) === null || _b === void 0 ? void 0 : _b.dueBy;
+    }
+    if (file) {
+        fileUrl = yield (0, s3Upload_1.uploadToS3)(id.toString(), constants_1.ADMISSION, type, file);
+        if (req.file) {
+            req.file.buffer = null;
+        }
+    }
+    if (dueBy) {
+        finalDueBy = dueBy;
+    }
+    if (existingDocument) {
+        if (!file && !dueBy) {
+            throw (0, http_errors_1.default)(400, 'No new data provided to update');
+        }
+        const updateFields = {};
+        if (fileUrl) {
+            updateFields['documents.$[elem].fileUrl'] = fileUrl;
+        }
+        if (finalDueBy) {
+            updateFields['documents.$[elem].dueBy'] = finalDueBy;
+        }
+        logger_1.default.info(updateFields);
+        const updatedData = yield enquiry_1.Enquiry.findOneAndUpdate({ _id: id, 'documents.type': type }, { $set: updateFields }, {
             new: true,
             runValidators: true,
             arrayFilters: [{ 'elem.type': type }],
         });
+        return (0, formatResponse_1.formatResponse)(res, 200, 'Document updated successfully', true, updatedData);
     }
     else {
-        updatedData = yield enquiry_1.Enquiry.findByIdAndUpdate(id, {
-            $push: { documents: { type, fileUrl } },
+        // DTODO: we need change this logic as we want to acccept only due by also
+        //Create new as it is not existing
+        if (!file) {
+            throw (0, http_errors_1.default)(400, 'Please upload a file first before updating dueBy');
+        }
+        const documentData = { type, fileUrl };
+        if (finalDueBy) {
+            documentData.dueBy = finalDueBy;
+        }
+        const updatedData = yield enquiry_1.Enquiry.findByIdAndUpdate(id, {
+            $push: { documents: documentData },
         }, { new: true, runValidators: true });
+        return (0, formatResponse_1.formatResponse)(res, 200, 'New document created successfully', true, updatedData);
     }
-    return (0, formatResponse_1.formatResponse)(res, 200, 'Document uploaded successfully', true, updatedData);
 }));
 exports.updateEnquiryStep4ById = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const feesDraftUpdateData = req.body;
@@ -383,41 +411,50 @@ const checkIfStudentAdmitted = (enquiryId) => __awaiter(void 0, void 0, void 0, 
     }
     return false;
 });
-// DTODO: need to add transaction here.
 exports.approveEnquiry = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const { id } = req.body;
     const validation = commonSchema_1.objectIdSchema.safeParse(id);
-    if (!validation.success)
+    console.log(validation.error);
+    if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
+    }
     yield checkIfStudentAdmitted(id);
-    const enquiry = yield enquiry_1.Enquiry.findById(id);
-    if (!enquiry)
-        throw (0, http_errors_1.default)(404, 'Please create the enquiry first!');
-    // DTODO : Here, the prefixes will get increamented even if the update of enquiry fails or student creation fails.
-    // For this enquiry Id, we will set the university ID, form no and the photo number. 
-    const prefix = getPrefixForCourse(enquiry.course);
-    // Update serial
-    const serial = yield enquiryIdMetaDataSchema_1.EnquiryApplicationId.findOneAndUpdate({ prefix: prefix }, { $inc: { lastSerialNumber: 1 } }, { new: true, runValidators: true });
-    const formNo = `${prefix}${serial.lastSerialNumber}`;
-    const photoSerial = yield enquiryIdMetaDataSchema_1.EnquiryApplicationId.findOneAndUpdate({ prefix: constants_1.FormNoPrefixes.PHOTO }, { $inc: { lastSerialNumber: 1 } }, { new: true, runValidators: true });
-    let universityId = generateUniversityId(enquiry.course, photoSerial.lastSerialNumber);
-    const approvedById = (_a = req.data) === null || _a === void 0 ? void 0 : _a.id;
-    // DTODO: we may need to change this logic [it may come from body]
-    let approvedEnquiry = yield enquiry_1.Enquiry.findByIdAndUpdate(id, {
-        $set: {
-            formNo: formNo,
-            photoNo: photoSerial.lastSerialNumber,
-            universityId: universityId,
-            applicationStatus: constants_1.ApplicationStatus.STEP_4,
-            approvedBy: approvedById
+    const session = yield mongoose_1.default.startSession();
+    session.startTransaction();
+    try {
+        const enquiry = yield enquiry_1.Enquiry.findById(id).session(session);
+        if (!enquiry) {
+            throw (0, http_errors_1.default)(404, 'Please create the enquiry first!');
         }
-    }, { runValidators: true, new: true, projection: { createdAt: 0, updatedAt: 0, __v: 0 } });
-    const studentValidation = student_2.studentSchema.safeParse(approvedEnquiry);
-    if (!studentValidation.success)
-        throw (0, http_errors_1.default)(400, studentValidation.error.errors[0]);
-    const student = yield student_1.Student.create(Object.assign({}, studentValidation.data));
-    return (0, formatResponse_1.formatResponse)(res, 200, 'Student created successfully with this information', true, student);
+        const prefix = getPrefixForCourse(enquiry.course);
+        const serial = yield enquiryIdMetaDataSchema_1.EnquiryApplicationId.findOneAndUpdate({ prefix: prefix }, { $inc: { lastSerialNumber: 1 } }, { new: true, runValidators: true, session });
+        const formNo = `${prefix}${serial.lastSerialNumber}`;
+        const photoSerial = yield enquiryIdMetaDataSchema_1.EnquiryApplicationId.findOneAndUpdate({ prefix: constants_1.FormNoPrefixes.PHOTO }, { $inc: { lastSerialNumber: 1 } }, { new: true, runValidators: true, session });
+        const universityId = generateUniversityId(enquiry.course, photoSerial.lastSerialNumber);
+        const approvedById = (_a = req.data) === null || _a === void 0 ? void 0 : _a.id;
+        const approvedEnquiry = yield enquiry_1.Enquiry.findByIdAndUpdate(id, {
+            $set: {
+                formNo: formNo,
+                photoNo: photoSerial.lastSerialNumber,
+                universityId: universityId,
+                applicationStatus: constants_1.ApplicationStatus.STEP_4,
+                approvedBy: approvedById,
+            },
+        }, { runValidators: true, new: true, projection: { createdAt: 0, updatedAt: 0, __v: 0 }, session });
+        const studentValidation = student_2.studentSchema.safeParse(approvedEnquiry);
+        if (!studentValidation.success)
+            throw (0, http_errors_1.default)(400, studentValidation.error.errors[0]);
+        const student = yield student_1.Student.create([Object.assign({ _id: enquiry._id }, studentValidation.data)], { session });
+        yield session.commitTransaction();
+        session.endSession();
+        return (0, formatResponse_1.formatResponse)(res, 200, 'Student created successfully with this information', true, student);
+    }
+    catch (error) {
+        yield session.abortTransaction();
+        session.endSession();
+        throw error;
+    }
 }));
 exports.updateStatus = ((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const updateStatusData = req.body;

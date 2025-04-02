@@ -23,6 +23,7 @@ const formatResponse_1 = require("../../utils/formatResponse");
 const student_1 = require("../models/student");
 const student_2 = require("../validators/student");
 const studentFilterSchema_1 = require("../validators/studentFilterSchema");
+const logger_1 = __importDefault(require("../../config/logger"));
 exports.getStudentData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let { search, semester, course } = req.body;
     const studentFilter = {};
@@ -65,8 +66,7 @@ exports.getStudentDataById = (0, express_async_handler_1.default)((req, res) => 
     if (!mongoose_1.default.Types.ObjectId.isValid(id)) {
         throw (0, http_errors_1.default)(400, 'Invalid ID');
     }
-    // DTODO: neeed to use populate here.
-    const student = yield student_1.Student.findById(id);
+    const student = yield student_1.Student.findById(id).populate('studentFee');
     if (!student) {
         throw (0, http_errors_1.default)(404, 'Student Details not found');
     }
@@ -84,47 +84,72 @@ exports.updateStudentById = (0, express_async_handler_1.default)((req, res) => _
     }
     return (0, formatResponse_1.formatResponse)(res, 200, 'Student Updated Successfully', true, updatedStudent);
 }));
-// DATODO : Need to see where the student documents should be stored.
+// DTODO: same change
 exports.updateStudentDocuments = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
     const { id, type, dueBy } = req.body;
+    if (!mongoose_1.default.Types.ObjectId.isValid(id)) {
+        throw (0, http_errors_1.default)(400, 'Invalid enquiry ID');
+    }
     const file = req.file;
     const validation = singleDocumentSchema_1.singleDocumentSchema.safeParse({
-        enquiryId: id,
-        type,
-        documentBuffer: file,
-        dueBy: dueBy
+        id: id,
+        type: type,
+        dueBy: dueBy,
+        file: file
     });
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }
-    const fileUrl = yield (0, s3Upload_1.uploadToS3)(id.toString(), constants_1.ADMISSION, //DTODO : Should we change folder here as it is now Student so.
-    type, file);
-    //Free memory
-    if (req.file)
-        req.file.buffer = null;
-    const isExists = yield student_1.Student.exists({
-        _id: id,
-        'documents.type': type,
-    });
-    console.log("Is Exists : ", isExists);
-    let updatedData;
-    if (isExists) {
-        updatedData = yield student_1.Student.findOneAndUpdate({ _id: id, 'documents.type': type, }, {
-            $set: { 'documents.$[elem].fileUrl': fileUrl, dueBy: dueBy },
-        }, {
+    // Fetch existing document details
+    const existingDocument = yield student_1.Student.findOne({ _id: id, 'documents.type': type }, { 'documents.$': 1 });
+    let fileUrl;
+    let finalDueBy;
+    if (existingDocument === null || existingDocument === void 0 ? void 0 : existingDocument.documents) {
+        fileUrl = (_a = existingDocument === null || existingDocument === void 0 ? void 0 : existingDocument.documents[0]) === null || _a === void 0 ? void 0 : _a.fileUrl;
+        finalDueBy = (_b = existingDocument === null || existingDocument === void 0 ? void 0 : existingDocument.documents[0]) === null || _b === void 0 ? void 0 : _b.dueBy;
+    }
+    if (file) {
+        fileUrl = yield (0, s3Upload_1.uploadToS3)(id.toString(), constants_1.ADMISSION, type, file);
+        if (req.file) {
+            req.file.buffer = null;
+        }
+    }
+    if (dueBy) {
+        finalDueBy = dueBy;
+    }
+    if (existingDocument) {
+        if (!file && !dueBy) {
+            throw (0, http_errors_1.default)(400, 'No new data provided to update');
+        }
+        const updateFields = {};
+        if (fileUrl) {
+            updateFields['documents.$[elem].fileUrl'] = fileUrl;
+        }
+        if (finalDueBy) {
+            updateFields['documents.$[elem].dueBy'] = finalDueBy;
+        }
+        logger_1.default.info(updateFields);
+        const updatedData = yield student_1.Student.findOneAndUpdate({ _id: id, 'documents.type': type }, { $set: updateFields }, {
             new: true,
             runValidators: true,
             arrayFilters: [{ 'elem.type': type }],
         });
+        return (0, formatResponse_1.formatResponse)(res, 200, 'Document updated successfully', true, updatedData);
     }
     else {
-        updatedData = yield student_1.Student.findByIdAndUpdate(id, {
-            $push: { documents: { type, fileUrl, dueBy } },
+        //Create new as it is not existing
+        if (!file) {
+            throw (0, http_errors_1.default)(400, 'Please upload a file first before updating dueBy');
+        }
+        const documentData = { type, fileUrl };
+        if (finalDueBy) {
+            documentData.dueBy = finalDueBy;
+        }
+        const updatedData = yield student_1.Student.findByIdAndUpdate(id, {
+            $push: { documents: documentData },
         }, { new: true, runValidators: true });
+        return (0, formatResponse_1.formatResponse)(res, 200, 'New document created successfully', true, updatedData);
     }
-    console.log(updatedData);
-    if (!updatedData) {
-        throw (0, http_errors_1.default)(400, 'Could not upload documents');
-    }
-    return (0, formatResponse_1.formatResponse)(res, 200, 'Document uploaded successfully', true, updatedData);
 }));
+// DTODO: add fee update endpoint

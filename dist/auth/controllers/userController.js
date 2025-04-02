@@ -14,21 +14,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.fetchDropdownsBasedOnPage = exports.getUserByRole = exports.userProfile = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
-const user_1 = require("../models/user");
 const http_errors_1 = __importDefault(require("http-errors"));
-const commonSchema_1 = require("../../validators/commonSchema");
 const constants_1 = require("../../config/constants");
-const dropdownSchema_1 = require("../validators/dropdownSchema");
 const formatName_1 = require("../../utils/formatName");
 const formatResponse_1 = require("../../utils/formatResponse");
+const commonSchema_1 = require("../../validators/commonSchema");
+const user_1 = require("../models/user");
+const dropdownSchema_1 = require("../validators/dropdownSchema");
 exports.userProfile = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const decodedData = req.data;
     if (!decodedData) {
         throw (0, http_errors_1.default)(404, 'Profile could not be fetched');
     }
     const { id } = decodedData;
-    // console.log("Decoded data is : ", decodedData)
-    // console.log("ID is : ", id);
     const user = yield user_1.User.findById(id);
     console.log("User is : ", user);
     return (0, formatResponse_1.formatResponse)(res, 200, 'Profile retrieved successfully', true, {
@@ -59,18 +57,6 @@ exports.getUserByRole = (0, express_async_handler_1.default)((req, res) => __awa
 }));
 exports.fetchDropdownsBasedOnPage = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
-    // const { role } = req.query;
-    // if (Object.values(UserRoles).includes(role as UserRoles)) {
-    //   const users = await User.find({ roles: role as UserRoles });
-    //   const formattedUsers = users.map((user) => ({
-    //     _id: user?._id,
-    //     name: formatName(user?.firstName ?? '', user?.lastName ?? ''),
-    //     email: user?.email
-    //   }));
-    //   return formatResponse(res, 200, 'Fetching successful', true, formattedUsers);
-    // } else {
-    //   throw createHttpError(400, "Invalid role");
-    // }
     const { moduleName, role } = req.query;
     const id = (_a = req.data) === null || _a === void 0 ? void 0 : _a.id;
     const roles = (_b = req.data) === null || _b === void 0 ? void 0 : _b.roles;
@@ -101,7 +87,7 @@ exports.fetchDropdownsBasedOnPage = (0, express_async_handler_1.default)((req, r
             return (0, formatResponse_1.formatResponse)(res, 200, 'Fetching successful', true, formattedUsers);
         }
     }
-    else if (moduleName === constants_1.ModuleNames.ADMISSION) {
+    else if (moduleName === constants_1.ModuleNames.ADMISSION || moduleName === constants_1.ModuleNames.COURSE) {
         users = yield user_1.User.find({ roles: role });
         if (users) {
             const formattedUsers = users.map((user) => {
@@ -115,5 +101,7 @@ exports.fetchDropdownsBasedOnPage = (0, express_async_handler_1.default)((req, r
             return (0, formatResponse_1.formatResponse)(res, 200, 'Fetching successful', true, formattedUsers);
         }
     }
-    //throw createHttpError(400, "Invalid module name");
+    else {
+        throw (0, http_errors_1.default)(400, "Invalid module name");
+    }
 }));

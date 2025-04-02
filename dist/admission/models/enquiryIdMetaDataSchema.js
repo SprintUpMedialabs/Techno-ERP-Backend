@@ -48,4 +48,4 @@ const enquiryIdMetaDataSchema = new mongoose_1.Schema({
         required: true,
     }
 });
-exports.EnquiryApplicationId = mongoose_1.default.model('EnquiryIdMetaData', enquiryIdMetaDataSchema);
+exports.EnquiryApplicationId = mongoose_1.default.model(constants_1.COLLECTION_NAMES.ENQUIRY_ID_META_DATA, enquiryIdMetaDataSchema);

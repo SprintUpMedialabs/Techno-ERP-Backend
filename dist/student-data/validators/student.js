@@ -5,16 +5,16 @@ const zod_1 = require("zod");
 const constants_1 = require("../../config/constants");
 const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
 const commonSchema_1 = require("../../validators/commonSchema");
-const singleDocumentSchema_1 = require("../../admission/validators/singleDocumentSchema");
 const academicDetailSchema_1 = require("../../admission/validators/academicDetailSchema");
 const previousCollegeDataSchema_1 = require("../../admission/validators/previousCollegeDataSchema");
+const singleStudentDocumentSchema_1 = require("./singleStudentDocumentSchema");
 exports.studentSchema = zod_1.z.object({
     universityId: zod_1.z.string(),
     formNo: zod_1.z.string(),
     photoNo: zod_1.z.number().min(100, 'Invalid Photo Number'),
     admissionMode: zod_1.z.nativeEnum(constants_1.AdmissionMode).default(constants_1.AdmissionMode.OFFLINE),
     studentName: zod_1.z.string({ required_error: "Student Name is required", }).nonempty('Student Name is required'),
-    semester: zod_1.z.string(),
+    semester: zod_1.z.string().optional(),
     dateOfBirth: zod_1.z.date().optional(),
     dateOfEnquiry: zod_1.z.date().optional(),
     studentPhoneNumber: commonSchema_1.contactNumberSchema,
@@ -39,7 +39,7 @@ exports.studentSchema = zod_1.z.object({
         .default(constants_1.ApplicationStatus.STEP_1),
     studentFee: commonSchema_1.objectIdSchema.optional(),
     dateOfAdmission: zod_1.z.date().optional(),
-    documents: zod_1.z.array(singleDocumentSchema_1.singleDocumentSchema).optional(),
+    documents: zod_1.z.array(singleStudentDocumentSchema_1.singleStudentDocumentRequestSchema).optional(),
     aadharNumber: zod_1.z.string().regex(/^\d{12}$/, 'Aadhar Number must be exactly 12 digits').optional(),
     religion: zod_1.z.nativeEnum(constants_1.Religion).optional(),
     bloodGroup: zod_1.z.nativeEnum(constants_1.BloodGroup).optional(),
@@ -55,7 +55,7 @@ exports.updateStudentSchema = exports.studentSchema
 })
     .extend({
     id: commonSchema_1.objectIdSchema,
-    dateOfAdmission: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)),
-    dateOfEnquiry: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)),
-    dateOfBirth: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date))
-}).partial();
+    dateOfAdmission: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)).optional(),
+    dateOfEnquiry: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)).optional(),
+    dateOfBirth: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)).optional(),
+}).omit({ documents: true }).partial();

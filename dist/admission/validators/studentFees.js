@@ -23,7 +23,7 @@ const studentFeesSchema = zod_1.z.object({
     semWiseFees: zod_1.z.array(exports.singleSemSchema),
     feeStatus: zod_1.z.nativeEnum(constants_1.FeeStatus).default(constants_1.FeeStatus.DRAFT).optional(),
     feesClearanceDate: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)),
-    approvedBy: zod_1.z.string().email(),
+    approvedBy: zod_1.z.string().email(), // DACHECK : Is this mandatory here?
     counsellor: zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])]).optional(),
 });
 exports.feesRequestSchema = studentFeesSchema.omit({ feeStatus: true }).extend({

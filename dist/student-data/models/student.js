@@ -251,7 +251,7 @@ studentSchema.post('findOneAndUpdate', function (error, doc, next) {
     handleMongooseError(error, next);
 });
 const transformDates = (_, ret) => {
-    ['dateOfEnquiry', 'dateOfAdmission', 'dateOfBirth'].forEach((key) => {
+    ['dateOfEnquiry', 'dateOfAdmission', 'dateOfBirth', 'dueBy'].forEach((key) => {
         if (ret[key]) {
             ret[key] = (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(ret[key]);
         }
@@ -260,4 +260,4 @@ const transformDates = (_, ret) => {
 };
 studentSchema.set('toJSON', { transform: transformDates });
 studentSchema.set('toObject', { transform: transformDates });
-exports.Student = mongoose_1.default.model('Student', studentSchema);
+exports.Student = mongoose_1.default.model(constants_1.COLLECTION_NAMES.STUDENT, studentSchema);

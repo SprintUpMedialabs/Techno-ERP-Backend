@@ -238,4 +238,4 @@ const transformDates = (_, ret) => {
 };
 exports.enquiryDraftSchema.set('toJSON', { transform: transformDates });
 exports.enquiryDraftSchema.set('toObject', { transform: transformDates });
-exports.EnquiryDraft = mongoose_1.default.model('EnquiryDraft', exports.enquiryDraftSchema);
+exports.EnquiryDraft = mongoose_1.default.model(constants_1.COLLECTION_NAMES.ENQUIRY_DRAFT, exports.enquiryDraftSchema);

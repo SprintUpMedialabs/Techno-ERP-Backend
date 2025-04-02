@@ -114,4 +114,4 @@ const transformDates = (_, ret) => {
 };
 StudentFeesSchema.set('toJSON', { transform: transformDates });
 StudentFeesSchema.set('toObject', { transform: transformDates });
-exports.StudentFeesModel = (0, mongoose_1.model)('studentFee', StudentFeesSchema);
+exports.StudentFeesModel = (0, mongoose_1.model)(constants_1.COLLECTION_NAMES.STUDENT_FEE, StudentFeesSchema);

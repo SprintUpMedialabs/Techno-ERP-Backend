@@ -211,12 +211,12 @@ exports.enquirySchema = new mongoose_1.Schema({
     },
     studentFee: {
         type: mongoose_1.Schema.Types.ObjectId,
-        ref: 'studentFee', // Refer to FeesDraft model
+        ref: constants_1.COLLECTION_NAMES.STUDENT_FEE, // Refer to FeesDraft model
         required: false
     },
     studentFeeDraft: {
         type: mongoose_1.Schema.Types.ObjectId,
-        ref: 'studentFeeDraft',
+        ref: constants_1.COLLECTION_NAMES.STUDENT_FEE_DRAFT,
         required: false
     },
     gender: {
@@ -284,7 +284,7 @@ exports.enquirySchema.post('findOneAndUpdate', function (error, doc, next) {
     handleMongooseError(error, next);
 });
 const transformDates = (_, ret) => {
-    ['dateOfEnquiry', 'dateOfAdmission', 'dateOfBirth', 'dateOfCounselling'].forEach((key) => {
+    ['dateOfEnquiry', 'dateOfAdmission', 'dateOfBirth', 'dateOfCounselling', 'dueBy'].forEach((key) => {
         if (ret[key]) {
             ret[key] = (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(ret[key]);
         }
@@ -296,4 +296,4 @@ const transformDates = (_, ret) => {
 };
 exports.enquirySchema.set('toJSON', { transform: transformDates });
 exports.enquirySchema.set('toObject', { transform: transformDates });
-exports.Enquiry = mongoose_1.default.model('Enquiry', exports.enquirySchema);
+exports.Enquiry = mongoose_1.default.model(constants_1.COLLECTION_NAMES.ENQUIRY, exports.enquirySchema);

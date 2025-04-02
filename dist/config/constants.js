@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MARKETING_SHEET = exports.PHOTO = exports.TGI = exports.ADMISSION = exports.Districts = exports.Countries = exports.StatesOfIndia = exports.AdmissionMode = exports.FeeStatus = exports.FeeType = exports.Locations = exports.ModuleNames = exports.MimeType = exports.ApplicationStatus = exports.DocumentType = exports.AdmittedThrough = exports.BloodGroup = exports.Religion = exports.FormNoPrefixes = exports.EducationLevel = exports.Course = exports.AdmissionReference = exports.Category = exports.Marketing_Source = exports.FinalConversionType = exports.LeadType = exports.Source = exports.Gender = exports.UserRoles = void 0;
+exports.COLLECTION_NAMES = exports.MARKETING_SHEET = exports.PHOTO = exports.TGI = exports.ADMISSION = exports.Districts = exports.Countries = exports.StatesOfIndia = exports.AdmissionMode = exports.FeeStatus = exports.FeeType = exports.Locations = exports.ModuleNames = exports.ApplicationStatus = exports.DocumentType = exports.AdmittedThrough = exports.BloodGroup = exports.Religion = exports.FormNoPrefixes = exports.EducationLevel = exports.Course = exports.AdmissionReference = exports.Category = exports.Marketing_Source = exports.FinalConversionType = exports.LeadType = exports.Source = exports.Gender = exports.UserRoles = void 0;
 /**
  * Marketing Module Enums
 */
@@ -12,6 +12,8 @@ var UserRoles;
     UserRoles["BASIC_USER"] = "BASIC_USER";
     UserRoles["COUNSELOR"] = "COUNSELOR";
     UserRoles["REGISTAR"] = "REGISTAR";
+    UserRoles["HOD"] = "HOD";
+    UserRoles["INSTRUCTOR"] = "INSTRUCTOR";
 })(UserRoles || (exports.UserRoles = UserRoles = {}));
 var Gender;
 (function (Gender) {
@@ -160,17 +162,11 @@ var ApplicationStatus;
     ApplicationStatus["STEP_3"] = "Step_3";
     ApplicationStatus["STEP_4"] = "Step_4";
 })(ApplicationStatus || (exports.ApplicationStatus = ApplicationStatus = {}));
-var MimeType;
-(function (MimeType) {
-    MimeType["PNG"] = "image/png";
-    MimeType["JPG"] = "image/jpeg";
-    MimeType["JPEG"] = "image/jpeg";
-    MimeType["PDF"] = "application/pdf";
-})(MimeType || (exports.MimeType = MimeType = {}));
 var ModuleNames;
 (function (ModuleNames) {
     ModuleNames["MARKETING"] = "MARKETING";
     ModuleNames["ADMISSION"] = "ADMISSION";
+    ModuleNames["COURSE"] = "COURSE";
 })(ModuleNames || (exports.ModuleNames = ModuleNames = {}));
 var Locations;
 (function (Locations) {
@@ -262,3 +258,19 @@ exports.ADMISSION = 'admissions';
 exports.TGI = "TGI";
 exports.PHOTO = "PHOTO";
 exports.MARKETING_SHEET = 'Marketing Sheet';
+var COLLECTION_NAMES;
+(function (COLLECTION_NAMES) {
+    COLLECTION_NAMES["USER"] = "User";
+    COLLECTION_NAMES["VERIFY_OTP"] = "VerifyOtp";
+    COLLECTION_NAMES["ENQUIRY"] = "Enquiry";
+    COLLECTION_NAMES["ENQUIRY_DRAFT"] = "EnquiryDraft";
+    COLLECTION_NAMES["ENQUIRY_ID_META_DATA"] = "EnquiryIdMetaData";
+    COLLECTION_NAMES["STUDENT_FEE"] = "studentFee";
+    COLLECTION_NAMES["STUDENT_FEE_DRAFT"] = "studentFeeDraft";
+    COLLECTION_NAMES["DEPARTMENT_COURSE"] = "deptandcourse";
+    COLLECTION_NAMES["LEAD"] = "Lead";
+    COLLECTION_NAMES["SPREADSHEET_META_DATA"] = "spreadSheetMetaData";
+    COLLECTION_NAMES["YELLOW_LEAD"] = "YellowLead";
+    COLLECTION_NAMES["COURSE_OTHER_FEES"] = "CourseAndOtherFees";
+    COLLECTION_NAMES["STUDENT"] = "Student";
+})(COLLECTION_NAMES || (exports.COLLECTION_NAMES = COLLECTION_NAMES = {}));

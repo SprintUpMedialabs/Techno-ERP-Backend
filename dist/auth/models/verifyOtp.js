@@ -35,9 +35,10 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.VerifyOtp = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
+const constants_1 = require("../../config/constants");
 const verifyOtpSchema = new mongoose_1.Schema({
     email: { type: String, required: true },
     verifyOtp: { type: Number, required: true },
     verifyOtpExpireAt: { type: Date, required: true }
 }, { timestamps: true });
-exports.VerifyOtp = mongoose_1.default.model('VerifyOtp', verifyOtpSchema);
+exports.VerifyOtp = mongoose_1.default.model(constants_1.COLLECTION_NAMES.VERIFY_OTP, verifyOtpSchema);

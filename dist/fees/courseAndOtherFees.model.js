@@ -40,4 +40,4 @@ const CourseAndOtherFeesSchema = new mongoose_1.Schema({
     }
 }, { timestamps: true });
 // Model
-exports.CourseAndOtherFeesModel = (0, mongoose_1.model)('CourseAndOtherFees', CourseAndOtherFeesSchema);
+exports.CourseAndOtherFeesModel = (0, mongoose_1.model)(constants_1.COLLECTION_NAMES.COURSE_OTHER_FEES, CourseAndOtherFeesSchema);

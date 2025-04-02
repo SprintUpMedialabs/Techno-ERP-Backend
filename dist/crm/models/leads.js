@@ -150,4 +150,4 @@ const transformDates = (_, ret) => {
 };
 leadSchema.set('toJSON', { transform: transformDates });
 leadSchema.set('toObject', { transform: transformDates });
-exports.Lead = mongoose_1.default.model('Lead', leadSchema);
+exports.Lead = mongoose_1.default.model(constants_1.COLLECTION_NAMES.LEAD, leadSchema);

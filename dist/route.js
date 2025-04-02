@@ -11,6 +11,7 @@ const crmRoute_1 = require("./crm/routes/crmRoute");
 const routes_1 = require("./admission/routes");
 const courseAndOtherFees_routes_1 = __importDefault(require("./fees/courseAndOtherFees.routes"));
 const studentRoute_1 = require("./student-data/routes/studentRoute");
+const departmentRoute_1 = require("./course/routes/departmentRoute");
 exports.apiRouter = express_1.default.Router();
 /**
  * Contains the router for Authentication
@@ -24,6 +25,19 @@ exports.apiRouter.use('/user', userRoute_1.userRouter);
  * Contains the router for CRM Module
  */
 exports.apiRouter.use('/crm', crmRoute_1.crmRoute);
+/**
+ * Contains the router for Admission Module
+ */
 exports.apiRouter.use('/admission', routes_1.admissionRoute);
+/**
+ * Contains the router for Fees Module
+ */
 exports.apiRouter.use('/fees-structure', courseAndOtherFees_routes_1.default);
+/**
+ * Contains the router for Department Module
+ */
+exports.apiRouter.use('/department', departmentRoute_1.departmentRoute);
+/**
+ * Contains the router for Student Data Module
+ */
 exports.apiRouter.use('/student-data', studentRoute_1.studentDataRoute);

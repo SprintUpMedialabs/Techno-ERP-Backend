@@ -120,4 +120,4 @@ const transformDates = (_, ret) => {
 };
 yellowLeadSchema.set('toJSON', { transform: transformDates });
 yellowLeadSchema.set('toObject', { transform: transformDates });
-exports.YellowLead = mongoose_1.default.model('YellowLead', yellowLeadSchema);
+exports.YellowLead = mongoose_1.default.model(constants_1.COLLECTION_NAMES.YELLOW_LEAD, yellowLeadSchema);
