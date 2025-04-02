@@ -2,11 +2,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateStudentSchema = exports.studentSchema = void 0;
 const zod_1 = require("zod");
+const academicDetailSchema_1 = require("../../admission/validators/academicDetailSchema");
+const previousCollegeDataSchema_1 = require("../../admission/validators/previousCollegeDataSchema");
 const constants_1 = require("../../config/constants");
 const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
 const commonSchema_1 = require("../../validators/commonSchema");
-const academicDetailSchema_1 = require("../../admission/validators/academicDetailSchema");
-const previousCollegeDataSchema_1 = require("../../admission/validators/previousCollegeDataSchema");
 const singleStudentDocumentSchema_1 = require("./singleStudentDocumentSchema");
 exports.studentSchema = zod_1.z.object({
     universityId: zod_1.z.string(),

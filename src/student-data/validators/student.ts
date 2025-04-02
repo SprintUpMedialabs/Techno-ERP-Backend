@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { academicDetailsArraySchema } from '../../admission/validators/academicDetailSchema';
+import { previousCollegeDataSchema } from '../../admission/validators/previousCollegeDataSchema';
 import { AdmissionMode, AdmissionReference, AdmittedThrough, ApplicationStatus, BloodGroup, Category, Course, Gender, Religion } from '../../config/constants';
 import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import {
@@ -7,10 +9,7 @@ import {
   objectIdSchema,
   requestDateSchema
 } from '../../validators/commonSchema';
-import { singleDocumentSchema } from '../../admission/validators/singleDocumentSchema';
-import { academicDetailsArraySchema } from '../../admission/validators/academicDetailSchema';
-import { previousCollegeDataSchema } from '../../admission/validators/previousCollegeDataSchema';
-import { singleStudentDocumentRequestSchema, singleStudentDocumentUpdateSchema } from './singleStudentDocumentSchema';
+import { singleStudentDocumentRequestSchema } from './singleStudentDocumentSchema';
 
 
 export const studentSchema = z.object({
