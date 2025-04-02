@@ -28,7 +28,7 @@ const studentFeesSchema = z.object({
     feesClearanceDate : requestDateSchema.transform((date) =>
         convertToMongoDate(date) as Date
     ),
-    approvedBy : z.string().email(),
+    approvedBy : z.string().email(),            // DACHECK : Is this mandatory here?
     counsellor: z.union([objectIdSchema, z.enum(['other'])]).optional(),
 });
 

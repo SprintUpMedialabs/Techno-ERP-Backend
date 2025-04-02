@@ -1,6 +1,6 @@
 import createHttpError from 'http-errors';
 import mongoose, { Schema, Types } from 'mongoose';
-import { AdmissionMode, AdmissionReference, AdmittedThrough, ApplicationStatus, Category, Course, Gender } from '../../config/constants';
+import { AdmissionMode, AdmissionReference, AdmittedThrough, ApplicationStatus, Category, COLLECTION_NAMES, Course, Gender } from '../../config/constants';
 import { convertToDDMMYYYY } from '../../utils/convertDateToFormatedDate';
 import { contactNumberSchema, emailSchema } from '../../validators/commonSchema';
 import { IStudentSchema } from '../validators/student';
@@ -224,7 +224,7 @@ studentSchema.post('findOneAndUpdate', function (error: any, doc: any, next: Fun
 });
 
 const transformDates = (_: any, ret: any) => {
-  ['dateOfEnquiry', 'dateOfAdmission', 'dateOfBirth'].forEach((key) => {
+  ['dateOfEnquiry', 'dateOfAdmission', 'dateOfBirth', 'dueBy'].forEach((key) => {
     if (ret[key]) {
       ret[key] = convertToDDMMYYYY(ret[key]);
     }
@@ -235,4 +235,4 @@ const transformDates = (_: any, ret: any) => {
 studentSchema.set('toJSON', { transform: transformDates });
 studentSchema.set('toObject', { transform: transformDates });
 
-export const Student = mongoose.model<IStudentDocument>('Student', studentSchema);
+export const Student = mongoose.model<IStudentDocument>(COLLECTION_NAMES.STUDENT, studentSchema);

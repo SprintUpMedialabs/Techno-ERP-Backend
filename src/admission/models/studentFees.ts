@@ -1,5 +1,5 @@
 import { model, Schema, Types } from 'mongoose';
-import { FeeStatus, FeeType } from '../../config/constants';
+import { COLLECTION_NAMES, FeeStatus, FeeType } from '../../config/constants';
 import { IOtherFeesSchema, ISingleSemSchema, IStudentFeesSchema } from '../validators/studentFees';
 import createHttpError from 'http-errors';
 import { convertToDDMMYYYY } from '../../utils/convertDateToFormatedDate';
@@ -132,4 +132,4 @@ const transformDates = (_: any, ret: any) => {
 StudentFeesSchema.set('toJSON', { transform: transformDates });
 StudentFeesSchema.set('toObject', { transform: transformDates });
 
-export const StudentFeesModel = model('studentFee', StudentFeesSchema);
+export const StudentFeesModel = model(COLLECTION_NAMES.STUDENT_FEE, StudentFeesSchema);

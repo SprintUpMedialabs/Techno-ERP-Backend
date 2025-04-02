@@ -1,7 +1,7 @@
 import createHttpError from "http-errors";
 import mongoose, { Schema } from "mongoose"
 import { convertToDDMMYYYY, convertToMongoDate } from "../../utils/convertDateToFormatedDate";
-import { AdmissionMode, AdmissionReference, Category, Course, Gender } from "../../config/constants";
+import { AdmissionMode, AdmissionReference, Category, COLLECTION_NAMES, Course, Gender } from "../../config/constants";
 import { IEnquirySchema } from "../validators/enquiry";
 import { contactNumberSchema, emailSchema } from "../../validators/commonSchema";
 import { academicDetailFormSchema } from "./academicDetail";
@@ -221,4 +221,4 @@ const transformDates = (_: any, ret: any) => {
 enquiryDraftSchema.set('toJSON', { transform: transformDates });
 enquiryDraftSchema.set('toObject', { transform: transformDates });
 
-export const EnquiryDraft = mongoose.model<IEnquiryDraftDocument>('EnquiryDraft', enquiryDraftSchema);
+export const EnquiryDraft = mongoose.model<IEnquiryDraftDocument>(COLLECTION_NAMES.ENQUIRY_DRAFT, enquiryDraftSchema);

@@ -36,9 +36,12 @@ export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedReque
     }
     assignedTo = assignedTo.map(id => new mongoose.Types.ObjectId(id));
 
+    assignedTo = assignedTo.map(id => new mongoose.Types.ObjectId(id));
+
     if (assignedTo.length > 0) {
         query.assignedTo = { $in: assignedTo };
     }
+
 
     // TODO: will discuss this in future and apply it here
     if (source.length > 0) {
@@ -81,6 +84,10 @@ export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedReque
             }
         ])
     ]);
+
+    // console.log(allLeadAnalytics);
+
+    // console.log(yellowLeadAnalytics);
 
     return formatResponse(res, 200, 'Analytics fetched successfully',
         true,
