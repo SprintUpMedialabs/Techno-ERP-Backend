@@ -41,6 +41,7 @@ const http_errors_1 = __importDefault(require("http-errors"));
 const mongoose_1 = __importStar(require("mongoose"));
 const constants_1 = require("../../config/constants");
 const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
+const moment_timezone_1 = __importDefault(require("moment-timezone"));
 const leadSchema = new mongoose_1.Schema({
     // Change format to DD/MM/YYYY and add error message
     date: {
@@ -92,10 +93,10 @@ const leadSchema = new mongoose_1.Schema({
             values: Object.values(constants_1.Course),
             message: 'Invalid Course Value'
         }
-    }, // TODO: need to test this as we added enum
+    },
     // Required field with a custom validation error message
     assignedTo: {
-        type: mongoose_1.Schema.Types.ObjectId, // TODO: this need to be tested
+        type: mongoose_1.Schema.Types.ObjectId,
         required: [true, 'Assigned To is required']
     },
     // Must be one of the predefined lead types; defaults to "ORANGE"
@@ -139,7 +140,10 @@ leadSchema.post('findOneAndUpdate', function (error, doc, next) {
 });
 const transformDates = (_, ret) => {
     ['leadTypeModifiedDate', 'nextDueDate', 'date'].forEach((key) => {
-        if (ret[key]) {
+        if (key == 'leadTypeModifiedDate') {
+            ret[key] = (0, moment_timezone_1.default)(ret[key]).tz('Asia/Kolkata').format('DD/MM/YYYY | HH:mm');
+        }
+        else if (ret[key]) {
             ret[key] = (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(ret[key]);
         }
     });
