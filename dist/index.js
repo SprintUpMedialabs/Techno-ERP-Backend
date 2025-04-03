@@ -47,13 +47,16 @@ const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const database_1 = __importStar(require("./config/database"));
 const validateEnv_1 = require("./config/validateEnv");
 const cors_1 = __importDefault(require("cors"));
+const path_1 = __importDefault(require("path"));
 const app = (0, express_1.default)();
-dotenv_1.default.config();
+const envFile = process.env.NODE_ENV === 'production' ? '.env.prod' : '.env.uat';
+dotenv_1.default.config({ path: path_1.default.resolve(__dirname, envFile) });
 (0, validateEnv_1.validateEnvVariables)();
 app.use(express_1.default.json());
 app.use((0, cookie_parser_1.default)());
+console.log(process.env.NODE_ENV);
 const allowedOrigins = process.env.NODE_ENV === 'production'
-    ? ['https://myepicfrontend.com'] // PROD ENV
+    ? [process.env.FRONTEND_URL] // PROD ENV
     : '*'; // Allow all origins in DEV ENV
 const corsOptions = {
     origin: (origin, callback) => {
