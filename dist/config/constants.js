@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.COLLECTION_NAMES = exports.MARKETING_SHEET = exports.PHOTO = exports.TGI = exports.ADMISSION = exports.Districts = exports.Countries = exports.StatesOfIndia = exports.AdmissionMode = exports.FeeStatus = exports.FeeType = exports.Locations = exports.ModuleNames = exports.ApplicationStatus = exports.DocumentType = exports.AdmittedThrough = exports.BloodGroup = exports.Religion = exports.FormNoPrefixes = exports.EducationLevel = exports.Course = exports.AdmissionReference = exports.Category = exports.Marketing_Source = exports.FinalConversionType = exports.LeadType = exports.Source = exports.Gender = exports.UserRoles = void 0;
+exports.COLLECTION_NAMES = exports.MARKETING_SHEET = exports.PHOTO = exports.TGI = exports.ADMISSION = exports.AreaType = exports.Districts = exports.Countries = exports.StatesOfIndia = exports.AdmissionMode = exports.FeeStatus = exports.FeeType = exports.Locations = exports.ModuleNames = exports.ApplicationStatus = exports.DocumentType = exports.AdmittedThrough = exports.BloodGroup = exports.Religion = exports.FormNoPrefixes = exports.EducationLevel = exports.Course = exports.AdmissionReference = exports.Category = exports.Marketing_Source = exports.FinalConversionType = exports.LeadType = exports.Source = exports.Gender = exports.UserRoles = void 0;
 /**
  * Marketing Module Enums
 */
@@ -254,6 +254,12 @@ var Districts;
     Districts["Raebareli"] = "Raebareli";
     Districts["Unnao"] = "Unnao";
 })(Districts || (exports.Districts = Districts = {}));
+var AreaType;
+(function (AreaType) {
+    AreaType["URBAN"] = "URBAN";
+    AreaType["RURAL"] = "RURAL";
+    AreaType["OTHERS"] = "OTHERS";
+})(AreaType || (exports.AreaType = AreaType = {}));
 exports.ADMISSION = 'admissions';
 exports.TGI = "TGI";
 exports.PHOTO = "PHOTO";

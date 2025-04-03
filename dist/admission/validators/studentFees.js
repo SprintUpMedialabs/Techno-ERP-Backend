@@ -24,7 +24,7 @@ const studentFeesSchema = zod_1.z.object({
     feeStatus: zod_1.z.nativeEnum(constants_1.FeeStatus).default(constants_1.FeeStatus.DRAFT).optional(),
     feesClearanceDate: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)),
     approvedBy: zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])]).optional(),
-    counsellor: zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])]).optional(),
+    counsellor: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])])).optional(),
 });
 exports.feesRequestSchema = studentFeesSchema.omit({ feeStatus: true }).extend({
     otherFees: zod_1.z.array(otherFeesSchemaWithoutFeeAmount),
@@ -41,6 +41,6 @@ exports.feesDraftRequestSchema = exports.feesRequestSchema.extend({
     enquiryId: commonSchema_1.objectIdSchema,
     feesClearanceDate: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)).optional(),
     approvedBy: zod_1.z.string().email().optional(),
-    counsellor: zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])]).optional(),
+    counsellor: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])])).optional(),
 }).strict();
 exports.feesDraftUpdateSchema = exports.feesDraftRequestSchema.extend({ id: commonSchema_1.objectIdSchema }).omit({ enquiryId: true }).partial().strict();

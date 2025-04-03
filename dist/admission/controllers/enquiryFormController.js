@@ -23,7 +23,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateStatus = exports.approveEnquiry = exports.getEnquiryById = exports.getEnquiryData = exports.updateEnquiryStep4ById = exports.updateEnquiryDocuments = exports.updateEnquiryStep3ById = exports.updateEnquiryStep2ById = exports.createEnquiryStep2 = exports.updateFeeDraft = exports.createFeeDraft = exports.updateEnquiryStep1ById = exports.createEnquiry = exports.updateEnquiryDraftStep1 = exports.createEnquiryDraftStep1 = void 0;
+exports.updateStatus = exports.approveEnquiry = exports.getEnquiryById = exports.getEnquiryData = exports.updateEnquiryStep4ById = exports.updateEnquiryDocuments = exports.updateEnquiryStep3ById = exports.saveStep3Draft = exports.updateEnquiryStep2ById = exports.createEnquiryStep2 = exports.updateFeeDraft = exports.createFeeDraft = exports.updateEnquiryStep1ById = exports.createEnquiry = exports.updateEnquiryDraftStep1 = exports.createEnquiryDraftStep1 = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const http_errors_1 = __importDefault(require("http-errors"));
 const mongoose_1 = __importDefault(require("mongoose"));
@@ -242,6 +242,15 @@ const updateFeeDetails = (applicationStatusList, studentFeesData) => __awaiter(v
     }
     return feesDraft;
 });
+exports.saveStep3Draft = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const step3DraftData = req.body;
+    const validation = enquiry_2.enquiryDraftStep3Schema.safeParse(step3DraftData);
+    if (!validation.success)
+        throw (0, http_errors_1.default)(400, validation.error.errors[0]);
+    const _a = validation.data, { id } = _a, validatedData = __rest(_a, ["id"]);
+    const enquiry = yield enquiry_1.Enquiry.findByIdAndUpdate(id, Object.assign({}, validatedData), { new: true, runValidators: true });
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Created Step 3 draft successfully', true, enquiry);
+}));
 exports.updateEnquiryStep3ById = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const validation = enquiry_2.enquiryStep3UpdateRequestSchema.safeParse(req.body);
     if (!validation.success) {
@@ -401,10 +410,16 @@ exports.getEnquiryById = (0, express_async_handler_1.default)((req, res) => __aw
     if (!enquiry) {
         const enquiryDraft = yield enquiryDraft_1.EnquiryDraft.findById(id);
         if (enquiryDraft) {
-            return (0, formatResponse_1.formatResponse)(res, 200, 'Enquiry draft details', true, enquiryDraft);
+            const course = enquiryDraft.course;
+            const enquiryPayload = Object.assign(Object.assign({}, enquiryDraft.toObject()), { collegeName: course ? getCollegeName(course) : null, affiliation: course ? getAffiliation(course) : null });
+            return (0, formatResponse_1.formatResponse)(res, 200, 'Enquiry draft details', true, enquiryPayload);
         }
     }
-    return (0, formatResponse_1.formatResponse)(res, 200, 'Enquiry details', true, enquiry);
+    if (enquiry) {
+        const course = enquiry.course;
+        const enquiryPayload = Object.assign(Object.assign({}, enquiry.toObject()), { collegeName: course ? getCollegeName(course) : null, affiliation: course ? getAffiliation(course) : null });
+        return (0, formatResponse_1.formatResponse)(res, 200, 'Enquiry details', true, enquiryPayload);
+    }
 }));
 const checkIfStudentAdmitted = (enquiryId) => __awaiter(void 0, void 0, void 0, function* () {
     const student = yield enquiry_1.Enquiry.findById(enquiryId);
@@ -481,4 +496,19 @@ const getPrefixForCourse = (course) => {
     if (course === constants_1.Course.LLB)
         return constants_1.FormNoPrefixes.TCL;
     return constants_1.FormNoPrefixes.TIHS;
+};
+const getCollegeName = (course) => {
+    if (course === constants_1.Course.MBA)
+        return constants_1.FormNoPrefixes.TIMS;
+    if (course === constants_1.Course.LLB)
+        return constants_1.FormNoPrefixes.TCL;
+    return constants_1.FormNoPrefixes.TIHS;
+};
+const getAffiliation = (course) => {
+    if (course === constants_1.Course.MBA)
+        return "Delhi University";
+    else if (course === constants_1.Course.BCOM)
+        return "Lucknow University";
+    else
+        return "ABC University";
 };

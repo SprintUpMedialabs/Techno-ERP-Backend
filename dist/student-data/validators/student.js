@@ -31,7 +31,7 @@ exports.studentSchema = zod_1.z.object({
     reference: zod_1.z.nativeEnum(constants_1.AdmissionReference),
     course: zod_1.z.nativeEnum(constants_1.Course),
     previousCollegeData: previousCollegeDataSchema_1.previousCollegeDataSchema.optional(),
-    counsellor: zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])]).optional(),
+    counsellor: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])])).optional(),
     remarks: zod_1.z.string().optional(),
     academicDetails: academicDetailSchema_1.academicDetailsArraySchema.optional(),
     applicationStatus: zod_1.z

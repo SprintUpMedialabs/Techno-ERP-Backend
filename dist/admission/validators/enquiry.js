@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.enquiryDraftStep1UpdateSchema = exports.enquiryDraftStep1RequestSchema = exports.enquiryStep3UpdateRequestSchema = exports.enquiryStep1UpdateRequestSchema = exports.enquiryStep1RequestSchema = exports.enquirySchema = void 0;
+exports.enquiryDraftStep1UpdateSchema = exports.enquiryDraftStep1RequestSchema = exports.enquiryDraftStep3Schema = exports.enquiryStep3UpdateRequestSchema = exports.enquiryStep1UpdateRequestSchema = exports.enquiryStep1RequestSchema = exports.enquirySchema = void 0;
 const zod_1 = require("zod");
 const constants_1 = require("../../config/constants");
 const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
@@ -8,6 +8,7 @@ const commonSchema_1 = require("../../validators/commonSchema");
 const academicDetailSchema_1 = require("./academicDetailSchema");
 const previousCollegeDataSchema_1 = require("./previousCollegeDataSchema");
 const singleDocumentSchema_1 = require("./singleDocumentSchema");
+const entranceExamDetailSchema_1 = require("./entranceExamDetailSchema");
 exports.enquirySchema = zod_1.z.object({
     admissionMode: zod_1.z.nativeEnum(constants_1.AdmissionMode).default(constants_1.AdmissionMode.OFFLINE),
     studentName: zod_1.z.string({ required_error: "Student Name is required", }).nonempty('Student Name is required'),
@@ -25,11 +26,15 @@ exports.enquirySchema = zod_1.z.object({
     reference: zod_1.z.nativeEnum(constants_1.AdmissionReference),
     address: commonSchema_1.addressSchema,
     academicDetails: academicDetailSchema_1.academicDetailsArraySchema.optional(),
-    dateOfEnquiry: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)),
+    dateOfEnquiry: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)).optional(),
     gender: zod_1.z.nativeEnum(constants_1.Gender).default(constants_1.Gender.NOT_TO_MENTION),
     previousCollegeData: previousCollegeDataSchema_1.previousCollegeDataSchema.optional(),
-    counsellor: zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])]),
-    telecaller: zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])]),
+    stateOfDomicile: zod_1.z.nativeEnum(constants_1.StatesOfIndia).optional(),
+    areaType: zod_1.z.nativeEnum(constants_1.AreaType).optional(),
+    nationality: zod_1.z.string().optional(),
+    entranceExamDetails: entranceExamDetailSchema_1.entranceExamDetailSchema.optional(),
+    counsellor: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])])).optional(),
+    telecaller: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])])).optional(),
     dateOfCounselling: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)).optional(),
     remarks: zod_1.z.string().optional(),
     applicationStatus: zod_1.z
@@ -37,17 +42,17 @@ exports.enquirySchema = zod_1.z.object({
         .default(constants_1.ApplicationStatus.STEP_1),
     studentFee: commonSchema_1.objectIdSchema.optional(),
     studentFeeDraft: commonSchema_1.objectIdSchema.optional(),
-    dateOfAdmission: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)),
+    dateOfAdmission: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)).optional(),
     documents: zod_1.z.array(singleDocumentSchema_1.singleDocumentSchema).optional(),
     aadharNumber: zod_1.z.string().regex(/^\d{12}$/, 'Aadhar Number must be exactly 12 digits').optional(),
     religion: zod_1.z.nativeEnum(constants_1.Religion).optional(),
     bloodGroup: zod_1.z.nativeEnum(constants_1.BloodGroup).optional(),
     admittedThrough: zod_1.z.nativeEnum(constants_1.AdmittedThrough),
-    approvedBy: commonSchema_1.objectIdSchema.optional(),
+    approvedBy: zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])]).optional(),
 });
 // Final schema for request (omitting feesDraftId and making it strict)
 exports.enquiryStep1RequestSchema = exports.enquirySchema
-    .omit({ studentFee: true, studentFeeDraft: true, dateOfAdmission: true, bloodGroup: true, admittedThrough: true, aadharNumber: true, religion: true, previousCollegeData: true, documents: true, applicationStatus: true })
+    .omit({ studentFee: true, studentFeeDraft: true, dateOfAdmission: true, bloodGroup: true, admittedThrough: true, aadharNumber: true, religion: true, previousCollegeData: true, documents: true, applicationStatus: true, entranceExamDetails: true, nationality: true, stateOfDomicile: true, areaType: true })
     .extend({ id: commonSchema_1.objectIdSchema.optional() })
     .strict();
 exports.enquiryStep1UpdateRequestSchema = exports.enquiryStep1RequestSchema.extend({
@@ -56,12 +61,34 @@ exports.enquiryStep1UpdateRequestSchema = exports.enquiryStep1RequestSchema.exte
 exports.enquiryStep3UpdateRequestSchema = exports.enquirySchema.omit({ documents: true, studentFee: true }).extend({
     id: commonSchema_1.objectIdSchema,
 }).strict();
+exports.enquiryDraftStep3Schema = exports.enquiryStep3UpdateRequestSchema
+    .extend({
+    address: commonSchema_1.addressSchema.partial().optional(),
+    academicDetails: zod_1.z.array(academicDetailSchema_1.academicDetailSchema.partial()).optional(),
+    studentName: zod_1.z.string({ required_error: "Student Name is required", }).nonempty('Student Name is required'),
+    studentPhoneNumber: commonSchema_1.contactNumberSchema,
+    counsellor: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])])).optional(),
+    telecaller: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])])).optional(),
+    dateOfCounselling: commonSchema_1.requestDateSchema
+        .transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date))
+        .optional(),
+    dateOfAdmission: commonSchema_1.requestDateSchema
+        .transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date))
+        .optional(),
+    dateOfBirth: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date))
+        .optional(),
+    entranceExamDetails: entranceExamDetailSchema_1.entranceExamDetailSchema
+        .partial()
+        .optional()
+})
+    .partial()
+    .strict();
 exports.enquiryDraftStep1RequestSchema = exports.enquiryStep1RequestSchema
     .extend({
     studentName: zod_1.z.string({ required_error: "Student Name is required", }).nonempty('Student Name is required'),
     studentPhoneNumber: commonSchema_1.contactNumberSchema,
-    counsellor: zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])]).optional(),
-    telecaller: zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])]).optional(),
+    counsellor: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])])).optional(),
+    telecaller: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])])).optional(),
     dateOfCounselling: commonSchema_1.requestDateSchema
         .transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date))
         .optional(),
