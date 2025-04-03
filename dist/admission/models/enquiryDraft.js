@@ -200,13 +200,6 @@ exports.enquiryDraftSchema = new mongoose_1.Schema({
         },
         required: false,
     },
-    dateOfCounselling: {
-        type: Date,
-        required: false,
-        set: (value) => {
-            return (0, convertDateToFormatedDate_1.convertToMongoDate)(value);
-        }
-    },
     remarks: {
         type: String
     },
@@ -234,7 +227,7 @@ exports.enquiryDraftSchema.post('findOneAndUpdate', function (error, doc, next) 
     handleDraftMongooseError(error, next);
 });
 const transformDates = (_, ret) => {
-    ['dateOfEnquiry', 'dateOfBirth', 'dateOfCounselling'].forEach((key) => {
+    ['dateOfEnquiry', 'dateOfBirth'].forEach((key) => {
         if (ret[key]) {
             ret[key] = (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(ret[key]);
         }

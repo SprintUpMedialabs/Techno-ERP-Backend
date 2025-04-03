@@ -184,17 +184,10 @@ exports.enquirySchema = new mongoose_1.Schema({
         },
         required: true,
     },
-    dateOfCounselling: {
-        type: Date,
-        required: false,
-        set: (value) => {
-            return (0, convertDateToFormatedDate_1.convertToMongoDate)(value);
-        }
-    },
     remarks: {
         type: String
     },
-    approvedBy: {
+    admittedBy: {
         type: mongoose_1.Schema.Types.Mixed, // Allows ObjectId or String
         validate: {
             validator: function (value) {
@@ -209,7 +202,6 @@ exports.enquirySchema = new mongoose_1.Schema({
             },
             message: props => `'${props.value}' is not a valid counsellor (must be ObjectId or 'other')`
         },
-        required: true,
     },
     dateOfAdmission: {
         type: Date,
@@ -287,6 +279,10 @@ exports.enquirySchema = new mongoose_1.Schema({
             message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
         },
     },
+    religion: {
+        type: String,
+        enum: Object.values(constants_1.Religion)
+    },
     admittedThrough: {
         type: String,
         enum: Object.values(constants_1.AdmittedThrough)
@@ -326,7 +322,7 @@ exports.enquirySchema.post('findOneAndUpdate', function (error, doc, next) {
     handleMongooseError(error, next);
 });
 const transformDates = (_, ret) => {
-    ['dateOfEnquiry', 'dateOfAdmission', 'dateOfBirth', 'dateOfCounselling', 'dueBy'].forEach((key) => {
+    ['dateOfEnquiry', 'dateOfAdmission', 'dateOfBirth', 'dueBy'].forEach((key) => {
         if (ret[key]) {
             ret[key] = (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(ret[key]);
         }

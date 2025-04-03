@@ -72,8 +72,9 @@ exports.createEnquiry = (0, express_async_handler_1.default)((req, res) => __awa
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }
     const { id } = data, enquiryData = __rest(data, ["id"]);
+    const admittedThrough = enquiryData.course === constants_1.Course.BED ? constants_1.AdmittedThrough.COUNSELLING : constants_1.AdmittedThrough.DIRECT;
     //Create the enquiry
-    let savedResult = yield enquiry_1.Enquiry.create(Object.assign({}, enquiryData));
+    let savedResult = yield enquiry_1.Enquiry.create(Object.assign(Object.assign({}, enquiryData), { admittedThrough }));
     if (savedResult) {
         //Delete enquiry draft only if the save of enquiry is successful.
         if (id) {
@@ -429,7 +430,6 @@ const checkIfStudentAdmitted = (enquiryId) => __awaiter(void 0, void 0, void 0, 
     return false;
 });
 exports.approveEnquiry = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
     const { id } = req.body;
     const validation = commonSchema_1.objectIdSchema.safeParse(id);
     console.log(validation.error);
@@ -449,14 +449,12 @@ exports.approveEnquiry = (0, express_async_handler_1.default)((req, res) => __aw
         const formNo = `${prefix}${serial.lastSerialNumber}`;
         const photoSerial = yield enquiryIdMetaDataSchema_1.EnquiryApplicationId.findOneAndUpdate({ prefix: constants_1.FormNoPrefixes.PHOTO }, { $inc: { lastSerialNumber: 1 } }, { new: true, runValidators: true, session });
         const universityId = generateUniversityId(enquiry.course, photoSerial.lastSerialNumber);
-        const approvedById = (_a = req.data) === null || _a === void 0 ? void 0 : _a.id;
         const approvedEnquiry = yield enquiry_1.Enquiry.findByIdAndUpdate(id, {
             $set: {
                 formNo: formNo,
                 photoNo: photoSerial.lastSerialNumber,
                 universityId: universityId,
                 applicationStatus: constants_1.ApplicationStatus.STEP_4,
-                approvedBy: approvedById,
             },
         }, { runValidators: true, new: true, projection: { createdAt: 0, updatedAt: 0, __v: 0 }, session });
         const studentValidation = student_2.studentSchema.safeParse(approvedEnquiry);

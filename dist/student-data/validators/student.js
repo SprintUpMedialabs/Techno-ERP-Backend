@@ -43,8 +43,6 @@ exports.studentSchema = zod_1.z.object({
     aadharNumber: zod_1.z.string().regex(/^\d{12}$/, 'Aadhar Number must be exactly 12 digits').optional(),
     religion: zod_1.z.nativeEnum(constants_1.Religion).optional(),
     bloodGroup: zod_1.z.nativeEnum(constants_1.BloodGroup).optional(),
-    admittedThrough: zod_1.z.nativeEnum(constants_1.AdmittedThrough).optional(),
-    approvedBy: commonSchema_1.objectIdSchema.optional(),
     preRegNumber: zod_1.z.string().optional() //This will be added here
 });
 exports.updateStudentSchema = exports.studentSchema

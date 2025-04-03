@@ -201,10 +201,6 @@ const studentSchema = new mongoose_1.Schema({
         },
         required: true
     },
-    approvedBy: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        optional: true
-    },
     preRegNumber: {
         type: String,
         optional: true

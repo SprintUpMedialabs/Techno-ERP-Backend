@@ -35,7 +35,6 @@ exports.enquirySchema = zod_1.z.object({
     entranceExamDetails: entranceExamDetailSchema_1.entranceExamDetailSchema.optional(),
     counsellor: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])])).optional(),
     telecaller: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])])).optional(),
-    dateOfCounselling: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)).optional(),
     remarks: zod_1.z.string().optional(),
     applicationStatus: zod_1.z
         .nativeEnum(constants_1.ApplicationStatus)
@@ -47,12 +46,11 @@ exports.enquirySchema = zod_1.z.object({
     aadharNumber: zod_1.z.string().regex(/^\d{12}$/, 'Aadhar Number must be exactly 12 digits').optional(),
     religion: zod_1.z.nativeEnum(constants_1.Religion).optional(),
     bloodGroup: zod_1.z.nativeEnum(constants_1.BloodGroup).optional(),
-    admittedThrough: zod_1.z.nativeEnum(constants_1.AdmittedThrough),
-    approvedBy: zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])]).optional(),
+    admittedBy: zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])]).optional(),
 });
 // Final schema for request (omitting feesDraftId and making it strict)
 exports.enquiryStep1RequestSchema = exports.enquirySchema
-    .omit({ studentFee: true, studentFeeDraft: true, dateOfAdmission: true, bloodGroup: true, admittedThrough: true, aadharNumber: true, religion: true, previousCollegeData: true, documents: true, applicationStatus: true, entranceExamDetails: true, nationality: true, stateOfDomicile: true, areaType: true })
+    .omit({ studentFee: true, studentFeeDraft: true, dateOfAdmission: true, bloodGroup: true, aadharNumber: true, religion: true, previousCollegeData: true, documents: true, applicationStatus: true, entranceExamDetails: true, nationality: true, stateOfDomicile: true, areaType: true, admittedBy: true })
     .extend({ id: commonSchema_1.objectIdSchema.optional() })
     .strict();
 exports.enquiryStep1UpdateRequestSchema = exports.enquiryStep1RequestSchema.extend({
@@ -69,9 +67,6 @@ exports.enquiryDraftStep3Schema = exports.enquiryStep3UpdateRequestSchema
     studentPhoneNumber: commonSchema_1.contactNumberSchema,
     counsellor: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])])).optional(),
     telecaller: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])])).optional(),
-    dateOfCounselling: commonSchema_1.requestDateSchema
-        .transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date))
-        .optional(),
     dateOfAdmission: commonSchema_1.requestDateSchema
         .transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date))
         .optional(),
@@ -89,9 +84,6 @@ exports.enquiryDraftStep1RequestSchema = exports.enquiryStep1RequestSchema
     studentPhoneNumber: commonSchema_1.contactNumberSchema,
     counsellor: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])])).optional(),
     telecaller: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])])).optional(),
-    dateOfCounselling: commonSchema_1.requestDateSchema
-        .transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date))
-        .optional(),
     address: commonSchema_1.addressSchema.partial().optional(),
     academicDetails: zod_1.z.array(academicDetailSchema_1.academicDetailSchema.partial()).optional(),
 }).omit({ id: true }).partial().strict();
