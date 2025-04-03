@@ -1,5 +1,5 @@
-import { optional, z } from 'zod';
-import { AdmissionMode, AdmissionReference, AdmittedThrough, ApplicationStatus, AreaType, BloodGroup, Category, Course, Gender, Religion, StatesOfIndia } from '../../config/constants';
+import {  z } from 'zod';
+import { AdmissionMode, AdmissionReference, ApplicationStatus, AreaType, BloodGroup, Category, Course, Gender, Religion, StatesOfIndia } from '../../config/constants';
 import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import {
   addressSchema,
@@ -51,17 +51,14 @@ export const enquirySchema = z.object({
 
   previousCollegeData: previousCollegeDataSchema.optional(),
 
-  stateOfDomicile : z.nativeEnum(StatesOfIndia).optional(),
-  areaType : z.nativeEnum(AreaType).optional(),
-  nationality : z.string().optional(),
+  stateOfDomicile: z.nativeEnum(StatesOfIndia).optional(),
+  areaType: z.nativeEnum(AreaType).optional(),
+  nationality: z.string().optional(),
 
-  entranceExamDetails : entranceExamDetailSchema.optional(),
+  entranceExamDetails: entranceExamDetailSchema.optional(),
 
   counsellor: z.array(z.union([objectIdSchema, z.enum(['other'])])).optional(),
   telecaller: z.array(z.union([objectIdSchema, z.enum(['other'])])).optional(),
-  dateOfCounselling: requestDateSchema.transform((date) =>
-    convertToMongoDate(date) as Date
-  ).optional(),
   remarks: z.string().optional(),
 
 
@@ -78,14 +75,13 @@ export const enquirySchema = z.object({
   aadharNumber: z.string().regex(/^\d{12}$/, 'Aadhar Number must be exactly 12 digits').optional(),
   religion: z.nativeEnum(Religion).optional(),
   bloodGroup: z.nativeEnum(BloodGroup).optional(),
-  admittedThrough: z.nativeEnum(AdmittedThrough),
-  approvedBy:z.union([objectIdSchema, z.enum(['other'])]).optional(),  
+  admittedBy: z.union([objectIdSchema, z.enum(['other'])]).optional(),
 });
 
 
 // Final schema for request (omitting feesDraftId and making it strict)
 export const enquiryStep1RequestSchema = enquirySchema
-  .omit({ studentFee: true, studentFeeDraft : true,dateOfAdmission: true, bloodGroup: true, admittedThrough: true, aadharNumber: true, religion: true, previousCollegeData: true, documents: true, applicationStatus : true, entranceExamDetails : true, nationality : true, stateOfDomicile : true, areaType : true })
+  .omit({ studentFee: true, studentFeeDraft: true, dateOfAdmission: true, bloodGroup: true, aadharNumber: true, religion: true, previousCollegeData: true, documents: true, applicationStatus: true, entranceExamDetails: true, nationality: true, stateOfDomicile: true, areaType: true, admittedBy : true })
   .extend({ id: objectIdSchema.optional() })
   .strict();
 
@@ -109,18 +105,15 @@ export const enquiryDraftStep3Schema = enquiryStep3UpdateRequestSchema
     studentPhoneNumber: contactNumberSchema,
     counsellor: z.array(z.union([objectIdSchema, z.enum(['other'])])).optional(),
     telecaller: z.array(z.union([objectIdSchema, z.enum(['other'])])).optional(),
-    dateOfCounselling: requestDateSchema
+    dateOfAdmission: requestDateSchema
       .transform((date) => convertToMongoDate(date) as Date)
       .optional(),
-   dateOfAdmission : requestDateSchema
-      .transform((date) => convertToMongoDate(date) as Date)
+    dateOfBirth: requestDateSchema.transform((date) =>
+      convertToMongoDate(date) as Date)
       .optional(),
-   dateOfBirth: requestDateSchema.transform((date) =>
-        convertToMongoDate(date) as Date)
-       .optional(),
-   entranceExamDetails : entranceExamDetailSchema
-       .partial()
-       .optional()
+    entranceExamDetails: entranceExamDetailSchema
+      .partial()
+      .optional()
   })
   .partial()
   .strict();
@@ -132,12 +125,9 @@ export const enquiryDraftStep1RequestSchema = enquiryStep1RequestSchema
     studentPhoneNumber: contactNumberSchema,
     counsellor: z.array(z.union([objectIdSchema, z.enum(['other'])])).optional(),
     telecaller: z.array(z.union([objectIdSchema, z.enum(['other'])])).optional(),
-    dateOfCounselling: requestDateSchema
-      .transform((date) => convertToMongoDate(date) as Date)
-      .optional(),
     address: addressSchema.partial().optional(),
     academicDetails: z.array(academicDetailSchema.partial()).optional(),
-  }).omit({id : true}).partial().strict();
+  }).omit({ id: true }).partial().strict();
 
 export const enquiryDraftStep1UpdateSchema = enquiryDraftStep1RequestSchema.extend({
   id: objectIdSchema      // This is referring to _id in the enquiryDraftsTable

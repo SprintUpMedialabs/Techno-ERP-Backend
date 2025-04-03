@@ -16,6 +16,7 @@ export interface IStudentDocument extends IStudentSchema, Document {
   // photoNo : number;
   // universityId : string; 
   preRegNumber : string;
+  admittedThrough : string;
 }
 
 const studentSchema = new Schema<IStudentDocument>(
@@ -165,10 +166,6 @@ const studentSchema = new Schema<IStudentDocument>(
         message: 'Invalid Course value'
       },
       required: true
-    },
-    approvedBy : {
-      type : Schema.Types.ObjectId,
-      optional : true
     },
     preRegNumber : {
       type : String,
