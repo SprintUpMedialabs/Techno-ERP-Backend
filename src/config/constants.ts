@@ -269,6 +269,12 @@ export enum Districts {
   Unnao = "Unnao",
 }
 
+export enum AreaType{
+  URBAN = "URBAN",
+  RURAL = "RURAL",
+  OTHERS = "OTHERS"
+}
+
 
 export const ADMISSION = 'admissions'
 

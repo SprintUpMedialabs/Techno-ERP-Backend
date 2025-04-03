@@ -34,22 +34,26 @@ const StudentFeesDraftSchema = new Schema<IStudentFeesDocument>(
       required: false
     },
     counsellor: {
-      type: Schema.Types.Mixed, // Allows ObjectId or String
+      type: [ Schema.Types.Mixed ], // Allows ObjectId or String
       validate: {
-        validator: function (value) {
-          // Allow null or undefined
-          if (value === null || value === undefined) return true;
-
-          // Check for valid ObjectId
-          const isObjectId = Types.ObjectId.isValid(value);
-
-          // Allow string 'other'
-          const isOther = value === 'other';
-
-          return isObjectId || isOther;
+        validator: function (values) {
+            if (!Array.isArray(values)) return false; // Ensure it's an array
+    
+            return values.every(value => {
+                // Allow null or undefined
+                if (value === null || value === undefined) return true;
+    
+                // Check for valid ObjectId
+                const isObjectId = mongoose.Types.ObjectId.isValid(value);
+    
+                // Allow string 'other'
+                const isOther = value === 'other';
+    
+                return isObjectId || isOther;
+            });
         },
-        message: props => `'${props.value}' is not a valid counsellor (must be ObjectId or 'other')`
-      },
+        message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
+    }
     },
     approvedBy: {
       type: Schema.Types.Mixed, // Allows ObjectId or String
