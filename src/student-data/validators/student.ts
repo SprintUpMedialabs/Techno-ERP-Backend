@@ -41,7 +41,7 @@ export const studentSchema = z.object({
   course: z.nativeEnum(Course),
   previousCollegeData: previousCollegeDataSchema.optional(),
 
-  counsellor: z.union([objectIdSchema, z.enum(['other'])]).optional(),
+  counsellor: z.array(z.union([objectIdSchema, z.enum(['other'])])).optional(),
   remarks: z.string().optional(),
   academicDetails: academicDetailsArraySchema.optional(),
 

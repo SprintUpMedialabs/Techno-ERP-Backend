@@ -1,7 +1,7 @@
 import express from 'express';
 import { authenticate, authorize } from '../../middleware/jwtAuthenticationMiddleware';
 import { UserRoles } from '../../config/constants';
-import { createEnquiry, getEnquiryData, updateEnquiryStep3ById, updateEnquiryDocuments, updateEnquiryStep1ById, updateEnquiryStep2ById, createEnquiryStep2, getEnquiryById, approveEnquiry, updateStatus, createEnquiryDraftStep1, updateEnquiryDraftStep1, createFeeDraft, updateFeeDraft } from '../controllers/enquiryFormController';
+import { createEnquiry, getEnquiryData, updateEnquiryStep3ById, updateEnquiryDocuments, updateEnquiryStep1ById, updateEnquiryStep2ById, createEnquiryStep2, getEnquiryById, approveEnquiry, updateStatus, createEnquiryDraftStep1, updateEnquiryDraftStep1, createFeeDraft, updateFeeDraft, saveStep3Draft } from '../controllers/enquiryFormController';
 import upload from '../../config/multerConfig';
 import { User } from '../../auth/models/user';
 
@@ -87,4 +87,12 @@ enquiryRoute.put('/update-draft-step-2',
     authenticate,
     authorize([UserRoles.REGISTAR, UserRoles.BASIC_USER]),
     updateFeeDraft
+);
+
+
+
+enquiryRoute.put('/save-draft-step-3', 
+    authenticate,
+    authorize([UserRoles.REGISTAR, UserRoles.BASIC_USER]),
+    saveStep3Draft
 );
