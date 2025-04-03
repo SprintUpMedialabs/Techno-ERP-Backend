@@ -3,6 +3,7 @@ import mongoose, { Document, Schema } from 'mongoose';
 import { COLLECTION_NAMES, Course, Gender, LeadType, Locations } from '../../config/constants';
 import { convertToDDMMYYYY, convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import { ILead } from '../validators/leads';
+import moment from 'moment-timezone';
 
 export interface ILeadDocument extends ILead, Document { }
 
@@ -65,11 +66,11 @@ const leadSchema = new Schema<ILeadDocument>(
         values: Object.values(Course),
         message: 'Invalid Course Value'
       }
-    }, // TODO: need to test this as we added enum
+    },
 
     // Required field with a custom validation error message
     assignedTo: {
-      type: Schema.Types.ObjectId, // TODO: this need to be tested
+      type: Schema.Types.ObjectId,
       required: [true, 'Assigned To is required']
     },
 
@@ -119,7 +120,9 @@ leadSchema.post('findOneAndUpdate', function (error: any, doc: any, next: Functi
 
 const transformDates = (_: any, ret: any) => {
   ['leadTypeModifiedDate', 'nextDueDate', 'date'].forEach((key) => {
-    if (ret[key]) {
+    if (key == 'leadTypeModifiedDate') {
+      ret[key] = moment(ret[key]).tz('Asia/Kolkata').format('DD/MM/YYYY | HH:mm');
+    } else if (ret[key]) {
       ret[key] = convertToDDMMYYYY(ret[key]);
     }
   });
