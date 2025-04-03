@@ -6,6 +6,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon",
     "build": "tsc",
+    "start": "NODE_ENV=production node dist/src/index.js",
+    "uat": "NODE_ENV=uat node dist/src/index.js",
     "format": "prettier --write . TODO remove this TO RUN FORMAT"
   },
   "repository": {

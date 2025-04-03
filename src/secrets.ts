@@ -1,5 +1,8 @@
 import dotenv from 'dotenv';
-dotenv.config();
+import path from 'path';
+
+const envFile = process.env.NODE_ENV === 'production' ? '.env.prod' : '.env.uat';
+dotenv.config({ path: path.resolve(__dirname, '../', envFile) });
 
 export const MONGODB_DATABASE_URL = process.env.MONGODB_DATABASE_URL!;
 export const PORT = process.env.PORT!;
