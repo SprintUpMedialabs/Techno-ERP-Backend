@@ -18,11 +18,13 @@ import { StudentFeesDraftModel } from '../models/studentFeesDraft';
 import {
   enquiryDraftStep1RequestSchema,
   enquiryDraftStep1UpdateSchema,
+  enquiryDraftStep3Schema,
   enquiryStep1RequestSchema,
   enquiryStep1UpdateRequestSchema,
   enquiryStep3UpdateRequestSchema,
   IEnquiryDraftStep1RequestSchema,
   IEnquiryDraftStep1UpdateSchema,
+  IEnquiryDraftStep3Schema,
   IEnquiryStep1RequestSchema
 } from '../validators/enquiry';
 import { enquiryStatusUpdateSchema, IEnquiryStatusUpdateSchema } from '../validators/enquiryStatusUpdateSchema';
@@ -353,6 +355,30 @@ const updateFeeDetails = async (applicationStatusList: ApplicationStatus[], stud
 }
 
 
+export const saveStep3Draft = expressAsyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+
+    const step3DraftData : IEnquiryDraftStep3Schema = req.body;
+
+    const validation = enquiryDraftStep3Schema.safeParse(step3DraftData);
+
+    if(!validation.success)
+      throw createHttpError(400, validation.error.errors[0]);
+
+    const { id, ...validatedData } = validation.data;
+
+    const enquiry = await Enquiry.findByIdAndUpdate(
+      id,
+      { ...validatedData },
+      { new: true, runValidators: true }
+    );
+
+    return formatResponse(res, 200, 'Created Step 3 draft successfully', true, enquiry);
+  }
+);
+
+
+
 export const updateEnquiryStep3ById = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const validation = enquiryStep3UpdateRequestSchema.safeParse(req.body);
@@ -577,16 +603,35 @@ export const getEnquiryById = expressAsyncHandler(
 
     let enquiry = await Enquiry.findById(id).populate('studentFee').populate('studentFeeDraft');
 
+
     if (!enquiry) {
       const enquiryDraft = await EnquiryDraft.findById(id);
       if (enquiryDraft) {
-        return formatResponse(res, 200, 'Enquiry draft details', true, enquiryDraft);
+        const course = enquiryDraft.course;
+
+        const enquiryPayload = {
+          ...enquiryDraft.toObject(),
+          collegeName: course ? getCollegeName(course) : null,
+          affiliation: course ? getAffiliation(course) : null,
+        };
+
+        return formatResponse(res, 200, 'Enquiry draft details', true, enquiryPayload);
       }
     }
 
-    return formatResponse(res, 200, 'Enquiry details', true, enquiry);
+    if (enquiry) {
+      const course = enquiry.course;
+
+      const enquiryPayload = {
+        ...enquiry.toObject(),
+        collegeName: course ? getCollegeName(course) : null,
+        affiliation: course ? getAffiliation(course) : null,
+      };
+
+    return formatResponse(res, 200, 'Enquiry details', true, enquiryPayload);
   }
-);
+
+});
 
 const checkIfStudentAdmitted = async (enquiryId: Types.ObjectId) => {
   const student = await Enquiry.findById(enquiryId);
@@ -674,8 +719,6 @@ export const approveEnquiry = expressAsyncHandler(async (req: AuthenticatedReque
 });
 
 
-
-
 export const updateStatus = (async (req: AuthenticatedRequest, res: Response) => {
   const updateStatusData: IEnquiryStatusUpdateSchema = req.body;
 
@@ -707,3 +750,19 @@ const getPrefixForCourse = (course: Course): FormNoPrefixes => {
   if (course === Course.LLB) return FormNoPrefixes.TCL;
   return FormNoPrefixes.TIHS;
 };
+
+
+const getCollegeName = (course: Course): FormNoPrefixes => {
+  if (course === Course.MBA) return FormNoPrefixes.TIMS;
+  if (course === Course.LLB) return FormNoPrefixes.TCL;
+  return FormNoPrefixes.TIHS;
+};
+
+const getAffiliation = (course : Course) => {
+  if(course === Course.MBA)
+    return "Delhi University";
+  else if(course === Course.BCOM)
+    return "Lucknow University";
+  else
+    return "ABC University";
+}

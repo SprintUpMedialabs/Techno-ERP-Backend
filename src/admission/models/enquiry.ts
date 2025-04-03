@@ -1,6 +1,6 @@
 import createHttpError from 'http-errors';
 import mongoose, { Schema, Types } from 'mongoose';
-import { AdmissionMode, AdmissionReference, AdmittedThrough, ApplicationStatus, Category, COLLECTION_NAMES, Course, Gender } from '../../config/constants';
+import { AdmissionMode, AdmissionReference, AdmittedThrough, ApplicationStatus, AreaType, Category, COLLECTION_NAMES, Course, Gender, StatesOfIndia } from '../../config/constants';
 import { convertToDDMMYYYY, convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import { contactNumberSchema, emailSchema } from '../../validators/commonSchema';
 import { IEnquirySchema } from '../validators/enquiry';
@@ -8,6 +8,7 @@ import { academicDetailFormSchema } from './academicDetail';
 import { addressSchema } from './address';
 import { previousCollegeDataSchema } from './previousCollegeData';
 import { singleDocumentSchema } from './singleDocument';
+import { entranceExamDetailSchema } from './entranceExamDetail';
 
 export interface IEnquiryDocument extends IEnquirySchema, Document {
   formNo: string;
@@ -90,11 +91,6 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
       set: (value: string) => {
         return convertToMongoDate(value);
       }
-      // set: (value: string) => {
-      //   let convertedDate = convertToMongoDate(value);
-      //   if (!convertedDate) throw createHttpError(400,'Invalid date format, expected DD-MM-YYYY');
-      //   return convertedDate;
-      // }
     },
     category: {
       type: String,
@@ -130,22 +126,26 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
       required: false
     },
     telecaller: {
-      type: Schema.Types.Mixed, // Allows ObjectId or String
+      type: [ Schema.Types.Mixed ], // Allows ObjectId or String
       validate: {
-        validator: function (value) {
-          // Allow null or undefined
-          if (value === null || value === undefined) return true;
-
-          // Check for valid ObjectId
-          const isObjectId = mongoose.Types.ObjectId.isValid(value);
-
-          // Allow string 'other'
-          const isOther = value === 'other';
-
-          return isObjectId || isOther;
+        validator: function (values) {
+            if (!Array.isArray(values)) return false; // Ensure it's an array
+    
+            return values.every(value => {
+                // Allow null or undefined
+                if (value === null || value === undefined) return true;
+    
+                // Check for valid ObjectId
+                const isObjectId = mongoose.Types.ObjectId.isValid(value);
+    
+                // Allow string 'other'
+                const isOther = value === 'other';
+    
+                return isObjectId || isOther;
+            });
         },
-        message: props => `'${props.value}' is not a valid counsellor (must be ObjectId or 'other')`
-      },
+        message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
+    },
       required: true,
     },
     dateOfCounselling: {
@@ -159,10 +159,24 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
       type: String
     },
     approvedBy: {
-      type: Schema.Types.ObjectId,
-      ref: 'user',
-      required: false
-    },
+      type: Schema.Types.Mixed, // Allows ObjectId or String
+      validate: {
+          validator: function (value) {
+              // Allow null or undefined
+              if (value === null || value === undefined) return true;
+
+              // Check for valid ObjectId
+              const isObjectId = Types.ObjectId.isValid(value);
+
+              // Allow string 'other'
+              const isOther = value === 'other';
+
+              return isObjectId || isOther;
+          },
+          message: props => `'${props.value}' is not a valid counsellor (must be ObjectId or 'other')`
+      },
+      required: true,
+  },
     dateOfAdmission: {
       type: Date,
       required: false
@@ -173,6 +187,26 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
     },
     documents: {
       type: [singleDocumentSchema]
+    },
+    stateOfDomicile : {
+      type : String,
+      enum : {
+        values : Object.values(StatesOfIndia),
+        message : 'Invalid state of domicile value'
+      }
+    },
+    areaType : {
+      type : String,
+      enum : {
+        values : Object.values(AreaType),
+        message : 'Invalid area type'
+      }
+    },
+    nationality : {
+      type : String
+    },
+    entranceExamDetails : {
+      type : [entranceExamDetailSchema]
     },
     studentFee: {
       type: Schema.Types.ObjectId,
@@ -201,16 +235,26 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
       required: true
     },
     counsellor : {
-      type: Schema.Types.Mixed,
+      type: [ Schema.Types.Mixed ], 
       validate: {
-        validator: function (value: any) {
-          return (
-            value === 'other' || 
-            Types.ObjectId.isValid(value)
-          );
+        validator: function (values) {
+            if (!Array.isArray(values)) return false; // Ensure it's an array
+    
+            return values.every(value => {
+                // Allow null or undefined
+                if (value === null || value === undefined) return true;
+    
+                // Check for valid ObjectId
+                const isObjectId = mongoose.Types.ObjectId.isValid(value);
+    
+                // Allow string 'other'
+                const isOther = value === 'other';
+    
+                return isObjectId || isOther;
+            });
         },
-        message: 'Counsellor must be a valid ObjectId or "other"',
-      },
+        message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
+    },
     },
     admittedThrough : {
       type : String,

@@ -175,16 +175,26 @@ const studentSchema = new Schema<IStudentDocument>(
       optional : true
     },
     counsellor : {
-      type: Schema.Types.Mixed,
+      type:  [ Schema.Types.Mixed ],
       validate: {
-        validator: function (value: any) {
-          return (
-            value === 'other' || 
-            Types.ObjectId.isValid(value)
-          );
+        validator: function (values) {
+            if (!Array.isArray(values)) return false; // Ensure it's an array
+    
+            return values.every(value => {
+                // Allow null or undefined
+                if (value === null || value === undefined) return true;
+    
+                // Check for valid ObjectId
+                const isObjectId = mongoose.Types.ObjectId.isValid(value);
+    
+                // Allow string 'other'
+                const isOther = value === 'other';
+    
+                return isObjectId || isOther;
+            });
         },
-        message: 'Counsellor must be a valid ObjectId or "other"',
-      },
+        message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
+    }
     },
     admittedThrough : {
       type : String,
