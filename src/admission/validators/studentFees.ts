@@ -28,7 +28,6 @@ const studentFeesSchema = z.object({
     feesClearanceDate : requestDateSchema.transform((date) =>
         convertToMongoDate(date) as Date
     ),
-    approvedBy : z.union([objectIdSchema, z.enum(['other'])]).optional(),       
     counsellor: z.array(z.union([objectIdSchema, z.enum(['other'])])).optional(),
 });
 
@@ -53,7 +52,6 @@ export const feesDraftRequestSchema = feesRequestSchema.extend({
     feesClearanceDate : requestDateSchema.transform((date) =>
         convertToMongoDate(date) as Date
     ).optional(),
-    approvedBy : z.string().email().optional(),
     counsellor : z.array(z.union([objectIdSchema, z.enum(['other'])])).optional(),
 }).strict();
 

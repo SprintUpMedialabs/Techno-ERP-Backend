@@ -1,6 +1,6 @@
 import createHttpError from 'http-errors';
 import mongoose, { Schema, Types } from 'mongoose';
-import { AdmissionMode, AdmissionReference, AdmittedThrough, ApplicationStatus, AreaType, Category, COLLECTION_NAMES, Course, Gender, StatesOfIndia } from '../../config/constants';
+import { AdmissionMode, AdmissionReference, AdmittedThrough, ApplicationStatus, AreaType, Category, COLLECTION_NAMES, Course, Gender, Religion, StatesOfIndia } from '../../config/constants';
 import { convertToDDMMYYYY, convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import { contactNumberSchema, emailSchema } from '../../validators/commonSchema';
 import { IEnquirySchema } from '../validators/enquiry';
@@ -15,6 +15,7 @@ export interface IEnquiryDocument extends IEnquirySchema, Document {
   date: Date;
   photoNo: number;
   universityId: string;
+  admittedThrough : string;
 }
 
 export const enquirySchema = new Schema<IEnquiryDocument>(
@@ -148,17 +149,10 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
     },
       required: true,
     },
-    dateOfCounselling: {
-      type: Date,
-      required: false,
-      set: (value: string) => {
-        return convertToMongoDate(value);
-      }
-    },
     remarks: {
       type: String
     },
-    approvedBy: {
+    admittedBy: {
       type: Schema.Types.Mixed, // Allows ObjectId or String
       validate: {
           validator: function (value) {
@@ -175,7 +169,6 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
           },
           message: props => `'${props.value}' is not a valid counsellor (must be ObjectId or 'other')`
       },
-      required: true,
   },
     dateOfAdmission: {
       type: Date,
@@ -256,6 +249,10 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
         message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
     },
     },
+    religion : {
+      type : String,
+      enum : Object.values(Religion)
+    },
     admittedThrough : {
       type : String,
       enum : Object.values(AdmittedThrough)
@@ -303,7 +300,7 @@ enquirySchema.post('findOneAndUpdate', function (error: any, doc: any, next: Fun
 });
 
 const transformDates = (_: any, ret: any) => {
-  ['dateOfEnquiry', 'dateOfAdmission', 'dateOfBirth', 'dateOfCounselling', 'dueBy'].forEach((key) => {
+  ['dateOfEnquiry', 'dateOfAdmission', 'dateOfBirth', 'dueBy'].forEach((key) => {
     if (ret[key]) {
       ret[key] = convertToDDMMYYYY(ret[key]);
     }

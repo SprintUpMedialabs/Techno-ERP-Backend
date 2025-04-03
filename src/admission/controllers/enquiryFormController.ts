@@ -3,7 +3,7 @@ import expressAsyncHandler from 'express-async-handler';
 import createHttpError from 'http-errors';
 import mongoose, { Types } from 'mongoose';
 import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
-import { ADMISSION, ApplicationStatus, Course, DocumentType, FormNoPrefixes, PHOTO, TGI } from '../../config/constants';
+import { ADMISSION, AdmittedThrough, ApplicationStatus, Course, DocumentType, FormNoPrefixes, PHOTO, TGI } from '../../config/constants';
 import { uploadToS3 } from '../../config/s3Upload';
 import { fetchCourseFeeByCourse, fetchOtherFees } from '../../fees/courseAndOtherFees.controller';
 import { Student } from '../../student-data/models/student';
@@ -87,8 +87,10 @@ export const createEnquiry = expressAsyncHandler(
 
     const { id, ...enquiryData } = data;
 
+    const admittedThrough = enquiryData.course === Course.BED ? AdmittedThrough.COUNSELLING : AdmittedThrough.DIRECT;
+
     //Create the enquiry
-    let savedResult = await Enquiry.create({ ...enquiryData });
+    let savedResult = await Enquiry.create({ ...enquiryData, admittedThrough });
 
     if (savedResult) {
       //Delete enquiry draft only if the save of enquiry is successful.
@@ -680,7 +682,6 @@ export const approveEnquiry = expressAsyncHandler(async (req: AuthenticatedReque
     );
 
     const universityId = generateUniversityId(enquiry.course, photoSerial!.lastSerialNumber);
-    const approvedById = req.data?.id;
 
     const approvedEnquiry = await Enquiry.findByIdAndUpdate(
       id,
@@ -690,7 +691,6 @@ export const approveEnquiry = expressAsyncHandler(async (req: AuthenticatedReque
           photoNo: photoSerial!.lastSerialNumber,
           universityId: universityId,
           applicationStatus: ApplicationStatus.STEP_4,
-          approvedBy: approvedById,
         },
       },
       { runValidators: true, new: true, projection: { createdAt: 0, updatedAt: 0, __v: 0 }, session }

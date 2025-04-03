@@ -56,8 +56,6 @@ export const studentSchema = z.object({
   aadharNumber: z.string().regex(/^\d{12}$/, 'Aadhar Number must be exactly 12 digits').optional(),
   religion: z.nativeEnum(Religion).optional(),
   bloodGroup: z.nativeEnum(BloodGroup).optional(),
-  admittedThrough: z.nativeEnum(AdmittedThrough).optional(),
-  approvedBy: objectIdSchema.optional(),
   preRegNumber : z.string().optional()            //This will be added here
 });
 
