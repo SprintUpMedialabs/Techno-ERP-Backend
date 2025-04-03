@@ -1,6 +1,6 @@
 import createHttpError from 'http-errors';
 import mongoose, { Schema, Types } from 'mongoose';
-import { AdmissionMode, AdmissionReference, AdmittedThrough, ApplicationStatus, AreaType, Category, COLLECTION_NAMES, Course, Gender, StatesOfIndia } from '../../config/constants';
+import { AdmissionMode, AdmissionReference, AdmittedThrough, ApplicationStatus, AreaType, Category, COLLECTION_NAMES, Course, Gender, Religion, StatesOfIndia } from '../../config/constants';
 import { convertToDDMMYYYY, convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import { contactNumberSchema, emailSchema } from '../../validators/commonSchema';
 import { IEnquirySchema } from '../validators/enquiry';
@@ -255,6 +255,10 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
         },
         message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
     },
+    },
+    religion : {
+      type : String,
+      enum : Object.values(Religion)
     },
     admittedThrough : {
       type : String,
