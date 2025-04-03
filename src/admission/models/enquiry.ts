@@ -169,7 +169,6 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
           },
           message: props => `'${props.value}' is not a valid counsellor (must be ObjectId or 'other')`
       },
-      required: true,
   },
     dateOfAdmission: {
       type: Date,
