@@ -15,6 +15,7 @@ export interface IEnquiryDocument extends IEnquirySchema, Document {
   date: Date;
   photoNo: number;
   universityId: string;
+  admittedThrough : string;
 }
 
 export const enquirySchema = new Schema<IEnquiryDocument>(
@@ -148,17 +149,10 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
     },
       required: true,
     },
-    dateOfCounselling: {
-      type: Date,
-      required: false,
-      set: (value: string) => {
-        return convertToMongoDate(value);
-      }
-    },
     remarks: {
       type: String
     },
-    approvedBy: {
+    admittedBy: {
       type: Schema.Types.Mixed, // Allows ObjectId or String
       validate: {
           validator: function (value) {
@@ -307,7 +301,7 @@ enquirySchema.post('findOneAndUpdate', function (error: any, doc: any, next: Fun
 });
 
 const transformDates = (_: any, ret: any) => {
-  ['dateOfEnquiry', 'dateOfAdmission', 'dateOfBirth', 'dateOfCounselling', 'dueBy'].forEach((key) => {
+  ['dateOfEnquiry', 'dateOfAdmission', 'dateOfBirth', 'dueBy'].forEach((key) => {
     if (ret[key]) {
       ret[key] = convertToDDMMYYYY(ret[key]);
     }

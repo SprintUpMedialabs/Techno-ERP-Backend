@@ -1,5 +1,5 @@
 import createHttpError from 'http-errors';
-import { model, Schema, Types } from 'mongoose';
+import mongoose, { model, Schema, Types } from 'mongoose';
 import { COLLECTION_NAMES, FeeStatus } from '../../config/constants';
 import { convertToDDMMYYYY } from '../../utils/convertDateToFormatedDate';
 import { emailSchema } from '../../validators/commonSchema';
@@ -54,24 +54,6 @@ const StudentFeesDraftSchema = new Schema<IStudentFeesDocument>(
         },
         message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
     }
-    },
-    approvedBy: {
-      type: Schema.Types.Mixed, // Allows ObjectId or String
-      validate: {
-        validator: function (value) {
-          // Allow null or undefined
-          if (value === null || value === undefined) return true;
-
-          // Check for valid ObjectId
-          const isObjectId = Types.ObjectId.isValid(value);
-
-          // Allow string 'other'
-          const isOther = value === 'other';
-
-          return isObjectId || isOther;
-        },
-        message: props => `'${props.value}' is not a valid counsellor (must be ObjectId or 'other')`
-      },
     },
   },
   { timestamps: true }
