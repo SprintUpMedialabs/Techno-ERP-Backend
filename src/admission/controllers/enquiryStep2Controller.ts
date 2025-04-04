@@ -12,8 +12,9 @@ import { IFeesRequestSchema, feesRequestSchema, IStudentFeesSchema, IFeesUpdateS
 import { Response } from "express";
 import { updateFeeDetails } from "../helpers/updateFeeDetails";
 import { StudentFeesDraftModel } from "../models/studentFeesDraft";
+import { functionLevelLogger } from "../../config/functionLevelLogging";
 
-export const createEnquiryStep2 = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+export const createEnquiryStep2 = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
 
     const data: IFeesRequestSchema = req.body;
   
@@ -111,14 +112,14 @@ export const createEnquiryStep2 = expressAsyncHandler(async (req: AuthenticatedR
       throw createHttpError('Could not update successfully');
     }
     return formatResponse(res, 201, 'Fees created successfully', true, feesDraft);
-});
+}));
   
   
   
-export const updateEnquiryStep2ById = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+export const updateEnquiryStep2ById = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
     const feesDraftUpdateData: IFeesUpdateSchema = req.body;
   
     const feesDraft = await updateFeeDetails([ApplicationStatus.STEP_1, ApplicationStatus.STEP_3, ApplicationStatus.STEP_4], feesDraftUpdateData);
     return formatResponse(res, 200, 'Fees Draft updated successfully', true, feesDraft);
-});
+}));
   

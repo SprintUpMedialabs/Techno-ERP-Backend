@@ -121,7 +121,7 @@ export const getEnquiryById = expressAsyncHandler(functionLevelLogger(async (req
 }));
 
 
-export const approveEnquiry = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
   const { id } = req.body;
 
   const validation = objectIdSchema.safeParse(id);
@@ -195,7 +195,7 @@ export const approveEnquiry = expressAsyncHandler(async (req: AuthenticatedReque
     session.endSession();
     throw error;
   }
-});
+}));
 
 
 export const updateStatus = (async (req: AuthenticatedRequest, res: Response) => {

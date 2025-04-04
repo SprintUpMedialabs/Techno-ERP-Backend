@@ -38,7 +38,7 @@ export const saveStep3Draft = expressAsyncHandler(functionLevelLogger(async (req
 
 
 
-export const updateEnquiryStep3ById = expressAsyncHandler( functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
+export const updateEnquiryStep3ById = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
    
     const validation = enquiryStep3UpdateRequestSchema.safeParse(req.body);
 
@@ -70,7 +70,7 @@ export const updateEnquiryStep3ById = expressAsyncHandler( functionLevelLogger(a
 
 
 
-export const updateEnquiryDocuments = expressAsyncHandler( functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
+export const updateEnquiryDocuments = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
   
       const { id, type, dueBy } = req.body;
   
