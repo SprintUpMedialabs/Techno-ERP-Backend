@@ -311,12 +311,11 @@ export const createEnquiryStep2 = expressAsyncHandler(async (req: AuthenticatedR
     const feeData: IStudentFeesSchema = {
       ...validation.data,
       otherFees: validation.data.otherFees?.map(fee => {
-        let feeAmount = fee.feeAmount;
-    
+        let feeAmount;
         if (fee.type === FeeType.SEM1FEE) {
           feeAmount = semWiseFee?.fee[0] ?? 0;
         } else {
-          feeAmount = feeAmount ?? otherFees?.find(otherFee => otherFee.type === fee.type)?.fee ?? 0;
+          feeAmount =  otherFees?.find(otherFee => otherFee.type === fee.type)?.fee ?? 0;
         }
     
         return {
