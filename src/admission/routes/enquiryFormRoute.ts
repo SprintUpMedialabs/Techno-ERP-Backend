@@ -1,10 +1,13 @@
 import express from 'express';
 import { authenticate, authorize } from '../../middleware/jwtAuthenticationMiddleware';
 import { UserRoles } from '../../config/constants';
-import { createEnquiry, getEnquiryData, updateEnquiryStep3ById, updateEnquiryDocuments, updateEnquiryStep1ById, updateEnquiryStep2ById, createEnquiryStep2, getEnquiryById, approveEnquiry, updateStatus, createEnquiryDraftStep1, updateEnquiryDraftStep1, createFeeDraft, updateFeeDraft, saveStep3Draft } from '../controllers/enquiryFormController';
+import { getEnquiryData, getEnquiryById, approveEnquiry, updateStatus } from '../controllers/enquiryFormController';
 import upload from '../../config/multerConfig';
-import { User } from '../../auth/models/user';
-
+import { createEnquiryDraftStep1, updateEnquiryDraftStep1 } from '../controllers/enquiryDraftController';
+import { createFeeDraft, updateFeeDraft } from '../controllers/feeDraftController';
+import { createEnquiry, updateEnquiryStep1ById } from '../controllers/enquiryStep1Controller';
+import { createEnquiryStep2, updateEnquiryStep2ById } from '../controllers/enquiryStep2Controller';
+import { saveStep3Draft, updateEnquiryDocuments, updateEnquiryStep3ById } from '../controllers/enquiryStep3Controller';
 
 export const enquiryRoute = express.Router();
 
@@ -88,7 +91,6 @@ enquiryRoute.put('/update-draft-step-2',
     authorize([UserRoles.REGISTAR, UserRoles.BASIC_USER]),
     updateFeeDraft
 );
-
 
 
 enquiryRoute.put('/save-draft-step-3', 

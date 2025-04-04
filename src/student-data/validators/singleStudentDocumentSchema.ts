@@ -5,7 +5,7 @@ import { DocumentType } from "../../config/constants";
 export const singleStudentDocumentRequestSchema = z.object({
     type: z.nativeEnum(DocumentType),
     dueBy : z.date().optional(),
-    fileUrl : z.string(),
+    fileUrl : z.string().optional(),
 });
   
 
