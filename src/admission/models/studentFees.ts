@@ -30,9 +30,6 @@ export const OtherFeesSchema = new Schema<IOtherFeesDocument>({
         type: Number,
         default: 0
     },
-    remarks: {
-        type: String
-    }
 });
 
 //Sem wise schema

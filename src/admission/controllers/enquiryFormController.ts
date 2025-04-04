@@ -3,7 +3,7 @@ import expressAsyncHandler from 'express-async-handler';
 import createHttpError from 'http-errors';
 import mongoose, { Types } from 'mongoose';
 import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
-import { ADMISSION, AdmittedThrough, ApplicationStatus, Course, DocumentType, FormNoPrefixes, PHOTO, TGI } from '../../config/constants';
+import { ADMISSION, AdmittedThrough, ApplicationStatus, Course, DocumentType, FeeType, FormNoPrefixes, PHOTO, TGI } from '../../config/constants';
 import { uploadToS3 } from '../../config/s3Upload';
 import { fetchCourseFeeByCourse, fetchOtherFees } from '../../fees/courseAndOtherFees.controller';
 import { Student } from '../../student-data/models/student';
@@ -31,6 +31,7 @@ import { enquiryStatusUpdateSchema, IEnquiryStatusUpdateSchema } from '../valida
 import { singleDocumentSchema } from '../validators/singleDocumentSchema';
 import { feesDraftRequestSchema, feesDraftUpdateSchema, feesRequestSchema, feesUpdateSchema, IFeesDraftRequestSchema, IFeesDraftUpdateSchema, IFeesRequestSchema, IFeesUpdateSchema, IStudentFeesSchema } from '../validators/studentFees';
 import logger from '../../config/logger';
+import { CourseAndOtherFeesModel } from '../../fees/courseAndOtherFees.model';
 
 
 export const createEnquiryDraftStep1 = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
@@ -165,14 +166,25 @@ export const createFeeDraft = expressAsyncHandler(async (req: AuthenticatedReque
 
   const feeData = {
     ...validation.data,
-    otherFees: validation.data.otherFees?.map(fee => ({
-      ...fee,
-      feeAmount: fee.feeAmount ?? otherFees?.find(otherFee => otherFee.type === fee.type)?.fee ?? 0
-    })) || [],
-
+    otherFees: validation.data.otherFees?.map(fee => {
+      let feeAmount = fee.feeAmount;
+  
+      if (fee.type === FeeType.SEM1FEE) {
+        feeAmount = semWiseFee?.fee[0] ?? 0;
+      } else {
+        feeAmount = feeAmount ?? otherFees?.find(otherFee => otherFee.type === fee.type)?.fee ?? 0;
+      }
+  
+      return {
+        ...fee,
+        feeAmount,
+        finalFee: fee.finalFee ?? 0,
+        feesDepositedTOA: fee.feesDepositedTOA ?? 0
+      };
+    }) || [],
     semWiseFees: validation.data.semWiseFees?.map((semFee, index) => ({
-      ...semFee,
-      feeAmount: semFee.feeAmount ?? semWiseFee?.fee[index] ?? 0
+      feeAmount: semFee.feeAmount ?? semWiseFee?.fee[index] ?? 0,
+      finalFee: semFee.finalFee ?? 0
     })) || []
   };
 
@@ -190,7 +202,7 @@ export const updateFeeDraft = expressAsyncHandler(async (req: AuthenticatedReque
 
   let feesDraftData: IFeesDraftUpdateSchema = req.body;
 
-  let { id, ...feesDraftUpdateData } = feesDraftData;
+  let { id, enquiryId, ...feesDraftUpdateData } = feesDraftData;
 
   const validation = feesDraftUpdateSchema.safeParse(feesDraftUpdateData);
 
@@ -201,17 +213,49 @@ export const updateFeeDraft = expressAsyncHandler(async (req: AuthenticatedReque
     throw createHttpError(400, validation.error.errors[0].message);
   }
 
+  const enquiry = await Enquiry.findOne(
+    {
+      _id: feesDraftData.enquiryId,
+      applicationStatus: ApplicationStatus.STEP_1
+    },
+    {
+      course: 1
+    }
+  ).lean();
+  
+  if(!enquiry)
+  {
+    throw createHttpError(400, 'Not a valid enquiry');
+  }
+
+  const otherFees = await fetchOtherFees();
+  const semWiseFee = await fetchCourseFeeByCourse(enquiry.course.toString());
+
+
   const updateData: any = {
     ...validation.data,
-    otherFees: validation.data.otherFees?.map(fee => ({
-      ...fee,
-      feeAmount: fee.feeAmount ?? 0
-    })),
-    semWiseFees: validation.data.semWiseFees?.map(semFee => ({
-      ...semFee,
-      feeAmount: semFee.feeAmount ?? 0
-    }))
+    otherFees: validation.data.otherFees?.map(fee => {
+      let feeAmount = fee.feeAmount;
+  
+      if (fee.type === FeeType.SEM1FEE) {
+        feeAmount = semWiseFee?.fee[0] ?? 0;
+      } else {
+        feeAmount = feeAmount ?? otherFees?.find(otherFee => otherFee.type === fee.type)?.fee ?? 0;
+      }
+  
+      return {
+        ...fee,
+        feeAmount,
+        finalFee: fee.finalFee ?? 0,
+        feesDepositedTOA: fee.feesDepositedTOA ?? 0
+      };
+    }) || [],
+    semWiseFees: validation.data.semWiseFees?.map((semFee, index) => ({
+      feeAmount: semFee.feeAmount ?? semWiseFee?.fee[index] ?? 0,
+      finalFee: semFee.finalFee ?? 0
+    })) || []
   };
+
 
   const updatedDraft = await StudentFeesDraftModel.findByIdAndUpdate(
     id,
@@ -266,10 +310,22 @@ export const createEnquiryStep2 = expressAsyncHandler(async (req: AuthenticatedR
 
     const feeData: IStudentFeesSchema = {
       ...validation.data,
-      otherFees: validation.data.otherFees.map(fee => ({
-        ...fee,
-        feeAmount: otherFees?.find(otherFee => otherFee.type == fee.type)?.fee ?? 0,
-      })),
+      otherFees: validation.data.otherFees?.map(fee => {
+        let feeAmount = fee.feeAmount;
+    
+        if (fee.type === FeeType.SEM1FEE) {
+          feeAmount = semWiseFee?.fee[0] ?? 0;
+        } else {
+          feeAmount = feeAmount ?? otherFees?.find(otherFee => otherFee.type === fee.type)?.fee ?? 0;
+        }
+    
+        return {
+          ...fee,
+          feeAmount,
+          finalFee: fee.finalFee ?? 0,
+          feesDepositedTOA: fee.feesDepositedTOA ?? 0
+        };
+      }) || [],
       semWiseFees: validation.data.semWiseFees.map((semFee, index: number) => ({
         finalFee: semFee.finalFee,
         feeAmount: semWiseFee?.fee[index] ?? 0,
@@ -294,11 +350,7 @@ export const createEnquiryStep2 = expressAsyncHandler(async (req: AuthenticatedR
       },
       { new: true, session }
     );
-
-    if (enquiry?.studentFeeDraft) {
-      await StudentFeesDraftModel.findByIdAndDelete(enquiry.studentFeeDraft, { session });
-    }
-
+    
     await session.commitTransaction();
     session.endSession();
   }

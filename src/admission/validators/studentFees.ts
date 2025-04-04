@@ -8,7 +8,6 @@ export const otherFeesSchema = z.object({
     feeAmount: z.number().min(0, 'Fee amount must be greater than 0'),
     finalFee: z.number().min(0, 'Final fees to be paid must be greater than 0'),
     feesDepositedTOA: z.number().min(0, 'Fees to be deposited must be greater then 0').default(0),
-    remarks: z.string()
 });
 
 export const singleSemSchema = z.object({
@@ -30,6 +29,7 @@ const studentFeesSchema = z.object({
     ),
     counsellor: z.array(z.union([objectIdSchema, z.enum(['other'])])).optional(),
     telecaller: z.array(z.union([objectIdSchema, z.enum(['other'])])).optional(),
+    remarks : z.string().optional()
 });
 
 export const feesRequestSchema = studentFeesSchema.omit({ feeStatus: true }).extend({
@@ -58,7 +58,7 @@ export const feesDraftRequestSchema = feesRequestSchema.extend({
 }).strict();
 
 
-export const feesDraftUpdateSchema = feesDraftRequestSchema.extend({id : objectIdSchema}).omit({ enquiryId : true }).partial().strict()
+export const feesDraftUpdateSchema = feesDraftRequestSchema.extend({id : objectIdSchema}).partial().strict()
 
 
 export type IOtherFeesSchema = z.infer<typeof otherFeesSchema>;
