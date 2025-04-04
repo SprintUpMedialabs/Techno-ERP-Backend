@@ -231,29 +231,36 @@ export const createEnquiryStep2 = expressAsyncHandler(async (req: AuthenticatedR
   const feesDraftData: IFeesRequestSchema = req.body;
 
   const validation = feesRequestSchema.safeParse(feesDraftData);
-  
+
   console.log(validation.error);
   if (!validation.success) {
     throw createHttpError(400, validation.error.errors[0]);
   }
 
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+
   await checkIfStudentAdmitted(validation.data.enquiryId);
-
-  const enquiry = await Enquiry.findOne(
-    {
-      _id: feesDraftData.enquiryId,
-      applicationStatus: ApplicationStatus.STEP_1
-    },
-    {
-      course: 1,
-      studentFeeDraft: 1
-    }
-  ).lean();
-
-
-
   let feesDraft;
-  if (enquiry) {
+
+  try {
+    const enquiry = await Enquiry.findOne(
+      {
+        _id: feesDraftData.enquiryId,
+        applicationStatus: ApplicationStatus.STEP_1
+      },
+      {
+        course: 1,
+        studentFeeDraft: 1
+      }
+    ).session(session).lean();
+
+    if (!enquiry) {
+      throw createHttpError(404, 'Enquiry with particular ID not found!')
+    }
+
+
     const otherFees = await fetchOtherFees();
     const semWiseFee = await fetchCourseFeeByCourse(enquiry?.course.toString() ?? '');
 
@@ -261,37 +268,46 @@ export const createEnquiryStep2 = expressAsyncHandler(async (req: AuthenticatedR
       ...validation.data,
       otherFees: validation.data.otherFees.map(fee => ({
         ...fee,
-        feeAmount: otherFees?.find(otherFee => otherFee.type == fee.type)?.fee ?? 0
+        feeAmount: otherFees?.find(otherFee => otherFee.type == fee.type)?.fee ?? 0,
       })),
       semWiseFees: validation.data.semWiseFees.map((semFee, index: number) => ({
         finalFee: semFee.finalFee,
-        feeAmount: (semWiseFee?.fee[index]) ?? 0
-      }))
+        feeAmount: semWiseFee?.fee[index] ?? 0,
+      })),
+    };
+
+    feesDraft = await StudentFeesModel.create([feeData], { session });
+
+    if (!feesDraft) {
+      throw createHttpError(404, 'Failed to update Fees');
     }
 
-
-    //This means that enquiry is existing
-    feesDraft = await StudentFeesModel.create(feeData);
     await Enquiry.findByIdAndUpdate(
       feesDraftData.enquiryId,
       {
         $set: {
-          studentFee: feesDraft._id,
-          studentFeeDraft: null
+          studentFee: feesDraft[0]._id,
+          studentFeeDraft: null,
+          counsellor: feesDraftData.counsellor,
+          telecaller: feesDraftData.telecaller
         }
       },
+      { new: true, session }
     );
 
     if (enquiry?.studentFeeDraft) {
-      await StudentFeesDraftModel.findByIdAndDelete(enquiry.studentFeeDraft);
+      await StudentFeesDraftModel.findByIdAndDelete(enquiry.studentFeeDraft, { session });
     }
 
+    await session.commitTransaction();
+    session.endSession();
   }
-  else {
-    throw createHttpError(400, 'Enquiry does not exist');
+  catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    throw createHttpError('Could not update successfully');
   }
-
-  return formatResponse(res, 201, 'Fees Draft created successfully', true, feesDraft);
+  return formatResponse(res, 201, 'Fees created successfully', true, feesDraft);
 });
 
 
@@ -309,12 +325,12 @@ const updateFeeDetails = async (applicationStatusList: ApplicationStatus[], stud
   const validation = feesUpdateSchema.safeParse(studentFeesData);
 
   console.log(validation.error);
-  
+
   if (!validation.success) {
     throw createHttpError(400, validation.error.errors[0]);
   }
 
- 
+
   const enquiry = await Enquiry.findOne({
     studentFee: studentFeesData.id,
     applicationStatus: { $nin: [...applicationStatusList] }
@@ -360,11 +376,11 @@ const updateFeeDetails = async (applicationStatusList: ApplicationStatus[], stud
 export const saveStep3Draft = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
 
-    const step3DraftData : IEnquiryDraftStep3Schema = req.body;
+    const step3DraftData: IEnquiryDraftStep3Schema = req.body;
 
     const validation = enquiryDraftStep3Schema.safeParse(step3DraftData);
 
-    if(!validation.success)
+    if (!validation.success)
       throw createHttpError(400, validation.error.errors[0]);
 
     const { id, ...validatedData } = validation.data;
@@ -630,10 +646,10 @@ export const getEnquiryById = expressAsyncHandler(
         affiliation: course ? getAffiliation(course) : null,
       };
 
-    return formatResponse(res, 200, 'Enquiry details', true, enquiryPayload);
-  }
+      return formatResponse(res, 200, 'Enquiry details', true, enquiryPayload);
+    }
 
-});
+  });
 
 const checkIfStudentAdmitted = async (enquiryId: Types.ObjectId) => {
   const student = await Enquiry.findById(enquiryId);
@@ -660,8 +676,7 @@ export const approveEnquiry = expressAsyncHandler(async (req: AuthenticatedReque
 
   try {
     const enquiry = await Enquiry.findById(id).session(session);
-    if (!enquiry) 
-    {
+    if (!enquiry) {
       throw createHttpError(404, 'Please create the enquiry first!');
     }
 
@@ -744,13 +759,11 @@ const generateUniversityId = (course: Course, photoSerialNumber: number) => {
   return `${TGI}${new Date().getFullYear().toString()}${course.toString()}${photoSerialNumber.toString()}`
 }
 
-
 const getPrefixForCourse = (course: Course): FormNoPrefixes => {
   if (course === Course.MBA) return FormNoPrefixes.TIMS;
   if (course === Course.LLB) return FormNoPrefixes.TCL;
   return FormNoPrefixes.TIHS;
 };
-
 
 const getCollegeName = (course: Course): FormNoPrefixes => {
   if (course === Course.MBA) return FormNoPrefixes.TIMS;
@@ -758,10 +771,10 @@ const getCollegeName = (course: Course): FormNoPrefixes => {
   return FormNoPrefixes.TIHS;
 };
 
-const getAffiliation = (course : Course) => {
-  if(course === Course.MBA)
+const getAffiliation = (course: Course) => {
+  if (course === Course.MBA)
     return "Delhi University";
-  else if(course === Course.BCOM)
+  else if (course === Course.BCOM)
     return "Lucknow University";
   else
     return "ABC University";

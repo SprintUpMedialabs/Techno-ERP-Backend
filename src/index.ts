@@ -19,6 +19,7 @@ validateEnvVariables();
 app.use(express.json());
 app.use(cookieParser());
 
+console.log(process.env.NODE_ENV);
 const allowedOrigins =
   process.env.NODE_ENV === 'production'
     ? ['https://myepicfrontend.com'] // PROD ENV
