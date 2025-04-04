@@ -15,7 +15,7 @@ export interface IEnquiryDocument extends IEnquirySchema, Document {
   date: Date;
   photoNo: number;
   universityId: string;
-  admittedThrough : string;
+  admittedThrough: string;
 }
 
 export const enquirySchema = new Schema<IEnquiryDocument>(
@@ -127,26 +127,26 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
       required: false
     },
     telecaller: {
-      type: [ Schema.Types.Mixed ], // Allows ObjectId or String
+      type: [Schema.Types.Mixed], // Allows ObjectId or String
       validate: {
         validator: function (values) {
-            if (!Array.isArray(values)) return false; // Ensure it's an array
-    
-            return values.every(value => {
-                // Allow null or undefined
-                if (value === null || value === undefined) return true;
-    
-                // Check for valid ObjectId
-                const isObjectId = mongoose.Types.ObjectId.isValid(value);
-    
-                // Allow string 'other'
-                const isOther = value === 'other';
-    
-                return isObjectId || isOther;
-            });
+          if (!Array.isArray(values)) return false; // Ensure it's an array
+
+          return values.every(value => {
+            // Allow null or undefined
+            if (value === null || value === undefined) return true;
+
+            // Check for valid ObjectId
+            const isObjectId = mongoose.Types.ObjectId.isValid(value);
+
+            // Allow string 'other'
+            const isOther = value === 'other';
+
+            return isObjectId || isOther;
+          });
         },
         message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
-    },
+      },
       required: true,
     },
     remarks: {
@@ -155,21 +155,21 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
     admittedBy: {
       type: Schema.Types.Mixed, // Allows ObjectId or String
       validate: {
-          validator: function (value) {
-              // Allow null or undefined
-              if (value === null || value === undefined) return true;
+        validator: function (value) {
+          // Allow null or undefined
+          if (value === null || value === undefined) return true;
 
-              // Check for valid ObjectId
-              const isObjectId = Types.ObjectId.isValid(value);
+          // Check for valid ObjectId
+          const isObjectId = Types.ObjectId.isValid(value);
 
-              // Allow string 'other'
-              const isOther = value === 'other';
+          // Allow string 'other'
+          const isOther = value === 'other';
 
-              return isObjectId || isOther;
-          },
-          message: props => `'${props.value}' is not a valid counsellor (must be ObjectId or 'other')`
+          return isObjectId || isOther;
+        },
+        message: props => `'${props.value}' is not a valid counsellor (must be ObjectId or 'other')`
       },
-  },
+    },
     dateOfAdmission: {
       type: Date,
       required: false
@@ -181,25 +181,25 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
     documents: {
       type: [singleDocumentSchema]
     },
-    stateOfDomicile : {
-      type : String,
-      enum : {
-        values : Object.values(StatesOfIndia),
-        message : 'Invalid state of domicile value'
+    stateOfDomicile: {
+      type: String,
+      enum: {
+        values: Object.values(StatesOfIndia),
+        message: 'Invalid state of domicile value'
       }
     },
-    areaType : {
-      type : String,
-      enum : {
-        values : Object.values(AreaType),
-        message : 'Invalid area type'
+    areaType: {
+      type: String,
+      enum: {
+        values: Object.values(AreaType),
+        message: 'Invalid area type'
       }
     },
-    nationality : {
-      type : String
+    nationality: {
+      type: String
     },
-    entranceExamDetails : {
-      type : [entranceExamDetailSchema]
+    entranceExamDetails: {
+      type: [entranceExamDetailSchema]
     },
     studentFee: {
       type: Schema.Types.ObjectId,
@@ -227,35 +227,35 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
       default: ApplicationStatus.STEP_1,
       required: true
     },
-    counsellor : {
-      type: [ Schema.Types.Mixed ], 
+    counsellor: {
+      type: [Schema.Types.Mixed],
       validate: {
         validator: function (values) {
-            if (!Array.isArray(values)) return false; // Ensure it's an array
-    
-            return values.every(value => {
-                // Allow null or undefined
-                if (value === null || value === undefined) return true;
-    
-                // Check for valid ObjectId
-                const isObjectId = mongoose.Types.ObjectId.isValid(value);
-    
-                // Allow string 'other'
-                const isOther = value === 'other';
-    
-                return isObjectId || isOther;
-            });
+          if (!Array.isArray(values)) return false; // Ensure it's an array
+
+          return values.every(value => {
+            // Allow null or undefined
+            if (value === null || value === undefined) return true;
+
+            // Check for valid ObjectId
+            const isObjectId = mongoose.Types.ObjectId.isValid(value);
+
+            // Allow string 'other'
+            const isOther = value === 'other';
+
+            return isObjectId || isOther;
+          });
         },
         message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
+      },
     },
+    religion: {
+      type: String,
+      enum: Object.values(Religion)
     },
-    religion : {
-      type : String,
-      enum : Object.values(Religion)
-    },
-    admittedThrough : {
-      type : String,
-      enum : Object.values(AdmittedThrough)
+    admittedThrough: {
+      type: String,
+      enum: Object.values(AdmittedThrough)
     },
     //Below IDs will be system generated
     universityId: {
