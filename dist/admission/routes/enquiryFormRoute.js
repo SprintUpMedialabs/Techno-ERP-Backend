@@ -14,19 +14,16 @@ const feeDraftController_1 = require("../controllers/feeDraftController");
 const enquiryStep1Controller_1 = require("../controllers/enquiryStep1Controller");
 const enquiryStep2Controller_1 = require("../controllers/enquiryStep2Controller");
 const enquiryStep3Controller_1 = require("../controllers/enquiryStep3Controller");
+const enquiryStep4Controller_1 = require("../controllers/enquiryStep4Controller");
 exports.enquiryRoute = express_1.default.Router();
-exports.enquiryRoute.post('/step-1', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.COUNSELOR, constants_1.UserRoles.BASIC_USER]), // yes i know that every one has this basic user role so in a way its available to ALL.
-enquiryStep1Controller_1.createEnquiry);
-exports.enquiryRoute.put('/step-1', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.COUNSELOR, constants_1.UserRoles.BASIC_USER]), // yes i know that every one has this basic user role so in a way its available to ALL.
-enquiryStep1Controller_1.updateEnquiryStep1ById);
+exports.enquiryRoute.post('/step-1', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.COUNSELOR, constants_1.UserRoles.BASIC_USER]), enquiryStep1Controller_1.createEnquiry);
+exports.enquiryRoute.put('/step-1', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.COUNSELOR, constants_1.UserRoles.BASIC_USER]), enquiryStep1Controller_1.updateEnquiryStep1ById);
 exports.enquiryRoute.post('/step-2', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER, constants_1.UserRoles.COUNSELOR]), enquiryStep2Controller_1.createEnquiryStep2);
 exports.enquiryRoute.put('/step-2', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER, constants_1.UserRoles.COUNSELOR]), enquiryStep2Controller_1.updateEnquiryStep2ById);
-exports.enquiryRoute.put('/step-3', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.REGISTAR, constants_1.UserRoles.BASIC_USER]), // yes i know that every one has this basic user role so in a way its available to ALL.
-enquiryStep3Controller_1.updateEnquiryStep3ById);
-exports.enquiryRoute.post('/search', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.COUNSELOR, constants_1.UserRoles.BASIC_USER, constants_1.UserRoles.REGISTAR]), // yes i know that every one has this basic user role so in a way its available to ALL.
-enquiryFormController_1.getEnquiryData);
-exports.enquiryRoute.put('/update-document', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER, constants_1.UserRoles.COUNSELOR]), // yes i know that every one has this basic user role so in a way its available to ALL.
-multerConfig_1.default.single('document'), enquiryStep3Controller_1.updateEnquiryDocuments);
+exports.enquiryRoute.put('/step-3', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.REGISTAR, constants_1.UserRoles.BASIC_USER]), enquiryStep3Controller_1.updateEnquiryStep3ById);
+exports.enquiryRoute.put('/step-4', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.REGISTAR, constants_1.UserRoles.BASIC_USER]), enquiryStep4Controller_1.updateEnquiryStep4ById);
+exports.enquiryRoute.post('/search', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.COUNSELOR, constants_1.UserRoles.BASIC_USER, constants_1.UserRoles.REGISTAR]), enquiryFormController_1.getEnquiryData);
+exports.enquiryRoute.put('/update-document', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER, constants_1.UserRoles.COUNSELOR]), multerConfig_1.default.single('document'), enquiryStep3Controller_1.updateEnquiryDocuments);
 exports.enquiryRoute.get('/:id', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER, constants_1.UserRoles.COUNSELOR]), enquiryFormController_1.getEnquiryById);
 exports.enquiryRoute.post('/approve-enquiry', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.REGISTAR, constants_1.UserRoles.BASIC_USER]), enquiryFormController_1.approveEnquiry);
 exports.enquiryRoute.put('/update-status', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.COUNSELOR, constants_1.UserRoles.REGISTAR, constants_1.UserRoles.BASIC_USER]), enquiryFormController_1.updateStatus);

@@ -114,7 +114,7 @@ exports.approveEnquiry = (0, express_async_handler_1.default)((0, functionLevelL
         if (!enquiry) {
             throw (0, http_errors_1.default)(404, 'Please create the enquiry first!');
         }
-        const prefix = getPrefixForCourse(enquiry.course);
+        const prefix = getCollegeName(enquiry.course);
         const serial = yield enquiryIdMetaDataSchema_1.EnquiryApplicationId.findOneAndUpdate({ prefix: prefix }, { $inc: { lastSerialNumber: 1 } }, { new: true, runValidators: true, session });
         const formNo = `${prefix}${serial.lastSerialNumber}`;
         const photoSerial = yield enquiryIdMetaDataSchema_1.EnquiryApplicationId.findOneAndUpdate({ prefix: constants_1.FormNoPrefixes.PHOTO }, { $inc: { lastSerialNumber: 1 } }, { new: true, runValidators: true, session });
@@ -158,13 +158,6 @@ exports.updateStatus = ((req, res) => __awaiter(void 0, void 0, void 0, function
 }));
 const generateUniversityId = (course, photoSerialNumber) => {
     return `${constants_1.TGI}${new Date().getFullYear().toString()}${course.toString()}${photoSerialNumber.toString()}`;
-};
-const getPrefixForCourse = (course) => {
-    if (course === constants_1.Course.MBA)
-        return constants_1.FormNoPrefixes.TIMS;
-    if (course === constants_1.Course.LLB)
-        return constants_1.FormNoPrefixes.TCL;
-    return constants_1.FormNoPrefixes.TIHS;
 };
 const getCollegeName = (course) => {
     if (course === constants_1.Course.MBA)
