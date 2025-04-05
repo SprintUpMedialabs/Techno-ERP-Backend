@@ -92,8 +92,11 @@ exports.getEnquiryById = (0, express_async_handler_1.default)((0, functionLevelL
             const enquiryPayload = Object.assign(Object.assign({}, enquiryDraft.toObject()), { collegeName: course ? getCollegeName(course) : null, affiliation: course ? getAffiliation(course) : null });
             return (0, formatResponse_1.formatResponse)(res, 200, 'Enquiry draft details', true, enquiryPayload);
         }
+        else {
+            throw (0, http_errors_1.default)(404, 'Enquiry not found');
+        }
     }
-    if (enquiry) {
+    else {
         const course = enquiry.course;
         const enquiryPayload = Object.assign(Object.assign({}, enquiry.toObject()), { collegeName: course ? getCollegeName(course) : null, affiliation: course ? getAffiliation(course) : null });
         return (0, formatResponse_1.formatResponse)(res, 200, 'Enquiry details', true, enquiryPayload);
