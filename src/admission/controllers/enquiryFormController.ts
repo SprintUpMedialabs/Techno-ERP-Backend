@@ -17,45 +17,31 @@ import { functionLevelLogger } from '../../config/functionLevelLogging';
 
 
 export const getEnquiryData = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
-    
+
   let { search, applicationStatus } = req.body;
 
-    if (!search) {
-      search = "";
+  if (!search) {
+    search = "";
+  }
+
+  const filter: any = {
+    $or: [
+      { studentName: { $regex: search, $options: 'i' } },
+      { studentPhoneNumber: { $regex: search, $options: 'i' } }
+    ]
+  };
+
+  // Validate applicationStatus
+  if (applicationStatus) {
+    const validStatuses = Object.values(ApplicationStatus);
+    if (!validStatuses.includes(applicationStatus)) {
+      throw createHttpError(400, 'Invalid application status');
     }
-    
-    const filter: any = {
-      $or: [
-        { studentName: { $regex: search, $options: 'i' } },
-        { studentPhoneNumber: { $regex: search, $options: 'i' } }
-      ]
-    };
+    filter.applicationStatus = applicationStatus;
+  }
 
-    // Validate applicationStatus
-    if (applicationStatus) {
-      const validStatuses = Object.values(ApplicationStatus);
-      if (!validStatuses.includes(applicationStatus)) 
-      {
-        throw createHttpError(400, 'Invalid application status');
-      }
-      filter.applicationStatus = applicationStatus;
-    }
-
-    const enquiries = await Enquiry.find(filter)
-      .select({
-        _id: 1,
-        dateOfEnquiry: 1,
-        studentName: 1,
-        studentPhoneNumber: 1,
-        gender: 1,
-        address: 1,
-        course: 1,
-        applicationStatus: 1,
-        fatherPhoneNumber: 1,
-        motherPhoneNumber: 1
-      })
-
-    const enquiryDrafts = await EnquiryDraft.find(filter).select({
+  const enquiries = await Enquiry.find(filter)
+    .select({
       _id: 1,
       dateOfEnquiry: 1,
       studentName: 1,
@@ -66,22 +52,35 @@ export const getEnquiryData = expressAsyncHandler(functionLevelLogger(async (req
       applicationStatus: 1,
       fatherPhoneNumber: 1,
       motherPhoneNumber: 1
-    });
+    })
 
-    const combinedResults = [...enquiries, ...enquiryDrafts];
+  const enquiryDrafts = await EnquiryDraft.find(filter).select({
+    _id: 1,
+    dateOfEnquiry: 1,
+    studentName: 1,
+    studentPhoneNumber: 1,
+    gender: 1,
+    address: 1,
+    course: 1,
+    applicationStatus: 1,
+    fatherPhoneNumber: 1,
+    motherPhoneNumber: 1
+  });
 
-    if (combinedResults.length > 0) {
-      return formatResponse(res, 200, 'Enquiries corresponding to your search', true, combinedResults);
-    } 
-    else {
-      return formatResponse(res, 200, 'No enquiries found with this information', true);
-    }
+  const combinedResults = [...enquiries, ...enquiryDrafts];
+
+  if (combinedResults.length > 0) {
+    return formatResponse(res, 200, 'Enquiries corresponding to your search', true, combinedResults);
+  }
+  else {
+    return formatResponse(res, 200, 'No enquiries found with this information', true);
+  }
 
 }));
 
 
 export const getEnquiryById = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    
+
   const { id } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -89,7 +88,6 @@ export const getEnquiryById = expressAsyncHandler(functionLevelLogger(async (req
   }
 
   let enquiry = await Enquiry.findById(id).populate('studentFee').populate('studentFeeDraft');
-
 
   if (!enquiry) {
     const enquiryDraft = await EnquiryDraft.findById(id);
@@ -103,10 +101,10 @@ export const getEnquiryById = expressAsyncHandler(functionLevelLogger(async (req
       };
 
       return formatResponse(res, 200, 'Enquiry draft details', true, enquiryPayload);
+    } else {
+      throw createHttpError(404, 'Enquiry not found');
     }
-  }
-
-  if (enquiry) {
+  } else {
     const course = enquiry.course;
 
     const enquiryPayload = {
