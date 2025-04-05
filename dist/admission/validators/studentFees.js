@@ -10,7 +10,6 @@ exports.otherFeesSchema = zod_1.z.object({
     feeAmount: zod_1.z.number().min(0, 'Fee amount must be greater than 0'),
     finalFee: zod_1.z.number().min(0, 'Final fees to be paid must be greater than 0'),
     feesDepositedTOA: zod_1.z.number().min(0, 'Fees to be deposited must be greater then 0').default(0),
-    remarks: zod_1.z.string()
 });
 exports.singleSemSchema = zod_1.z.object({
     feeAmount: zod_1.z.number().min(0, 'Fee amount must be greater than 0'),
@@ -24,6 +23,8 @@ const studentFeesSchema = zod_1.z.object({
     feeStatus: zod_1.z.nativeEnum(constants_1.FeeStatus).default(constants_1.FeeStatus.DRAFT).optional(),
     feesClearanceDate: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)),
     counsellor: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])])).optional(),
+    telecaller: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])])).optional(),
+    remarks: zod_1.z.string().optional()
 });
 exports.feesRequestSchema = studentFeesSchema.omit({ feeStatus: true }).extend({
     otherFees: zod_1.z.array(otherFeesSchemaWithoutFeeAmount),
@@ -40,5 +41,6 @@ exports.feesDraftRequestSchema = exports.feesRequestSchema.extend({
     enquiryId: commonSchema_1.objectIdSchema,
     feesClearanceDate: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)).optional(),
     counsellor: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])])).optional(),
+    telecaller: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])])).optional()
 }).strict();
-exports.feesDraftUpdateSchema = exports.feesDraftRequestSchema.extend({ id: commonSchema_1.objectIdSchema }).omit({ enquiryId: true }).partial().strict();
+exports.feesDraftUpdateSchema = exports.feesDraftRequestSchema.extend({ id: commonSchema_1.objectIdSchema }).partial().strict();

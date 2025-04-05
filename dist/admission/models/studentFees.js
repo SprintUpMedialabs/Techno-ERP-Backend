@@ -57,9 +57,6 @@ exports.OtherFeesSchema = new mongoose_1.Schema({
         type: Number,
         default: 0
     },
-    remarks: {
-        type: String
-    }
 });
 //Sem wise schema
 exports.SingleSemWiseFeesSchema = new mongoose_1.Schema({
@@ -91,6 +88,27 @@ const StudentFeesSchema = new mongoose_1.Schema({
         type: Date
     },
     counsellor: {
+        type: [mongoose_1.Schema.Types.Mixed], // Allows ObjectId or String
+        validate: {
+            validator: function (values) {
+                if (!Array.isArray(values))
+                    return false; // Ensure it's an array
+                return values.every(value => {
+                    // Allow null or undefined
+                    if (value === null || value === undefined)
+                        return true;
+                    // Check for valid ObjectId
+                    const isObjectId = mongoose_1.default.Types.ObjectId.isValid(value);
+                    // Allow string 'other'
+                    const isOther = value === 'other';
+                    return isObjectId || isOther;
+                });
+            },
+            message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
+        },
+        required: true,
+    },
+    telecaller: {
         type: [mongoose_1.Schema.Types.Mixed], // Allows ObjectId or String
         validate: {
             validator: function (values) {

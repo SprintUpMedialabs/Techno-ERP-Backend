@@ -66,18 +66,15 @@ const StudentFeesDraftSchema = new mongoose_1.Schema({
         required: false
     },
     counsellor: {
-        type: [mongoose_1.Schema.Types.Mixed], // Allows ObjectId or String
+        type: [mongoose_1.Schema.Types.Mixed],
         validate: {
             validator: function (values) {
                 if (!Array.isArray(values))
-                    return false; // Ensure it's an array
+                    return false;
                 return values.every(value => {
-                    // Allow null or undefined
                     if (value === null || value === undefined)
                         return true;
-                    // Check for valid ObjectId
                     const isObjectId = mongoose_1.default.Types.ObjectId.isValid(value);
-                    // Allow string 'other'
                     const isOther = value === 'other';
                     return isObjectId || isOther;
                 });
@@ -85,6 +82,26 @@ const StudentFeesDraftSchema = new mongoose_1.Schema({
             message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
         }
     },
+    telecaller: {
+        type: [mongoose_1.Schema.Types.Mixed],
+        validate: {
+            validator: function (values) {
+                if (!Array.isArray(values))
+                    return false;
+                return values.every(value => {
+                    if (value === null || value === undefined)
+                        return true;
+                    const isObjectId = mongoose_1.default.Types.ObjectId.isValid(value);
+                    const isOther = value === 'other';
+                    return isObjectId || isOther;
+                });
+            },
+            message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
+        }
+    },
+    remarks: {
+        type: String
+    }
 }, { timestamps: true });
 const handleMongooseError = (error, next) => {
     if (error.name === 'ValidationError') {

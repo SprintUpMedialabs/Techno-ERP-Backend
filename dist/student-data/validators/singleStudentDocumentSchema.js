@@ -8,7 +8,7 @@ const constants_1 = require("../../config/constants");
 exports.singleStudentDocumentRequestSchema = zod_1.z.object({
     type: zod_1.z.nativeEnum(constants_1.DocumentType),
     dueBy: zod_1.z.date().optional(),
-    fileUrl: zod_1.z.string(),
+    fileUrl: zod_1.z.string().optional(),
 });
 exports.singleStudentDocumentUpdateSchema = exports.singleStudentDocumentRequestSchema.extend({
     studentId: commonSchema_1.objectIdSchema,

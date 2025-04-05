@@ -189,6 +189,7 @@ var FeeType;
     FeeType["STUDENTWELFARE"] = "STUDENTWELFARE";
     FeeType["BOOKBANK"] = "BOOKBANK";
     FeeType["EXAMFEES"] = "EXAMFEES";
+    FeeType["SEM1FEE"] = "SEM1FEE";
 })(FeeType || (exports.FeeType = FeeType = {}));
 var FeeStatus;
 (function (FeeStatus) {
