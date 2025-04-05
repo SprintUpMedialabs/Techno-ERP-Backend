@@ -143,7 +143,7 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
       throw createHttpError(404, 'Please create the enquiry first!');
     }
 
-    const prefix = getPrefixForCourse(enquiry.course as Course);
+    const prefix = getCollegeName(enquiry.course as Course);
 
     const serial = await EnquiryApplicationId.findOneAndUpdate(
       { prefix: prefix },
@@ -222,13 +222,6 @@ export const updateStatus = (async (req: AuthenticatedRequest, res: Response) =>
 const generateUniversityId = (course: Course, photoSerialNumber: number) => {
   return `${TGI}${new Date().getFullYear().toString()}${course.toString()}${photoSerialNumber.toString()}`
 }
-
-
-const getPrefixForCourse = (course: Course): FormNoPrefixes => {
-  if (course === Course.MBA) return FormNoPrefixes.TIMS;
-  if (course === Course.LLB) return FormNoPrefixes.TCL;
-  return FormNoPrefixes.TIHS;
-};
 
 
 const getCollegeName = (course: Course): FormNoPrefixes => {

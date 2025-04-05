@@ -107,6 +107,7 @@ export const createEnquiryStep2 = expressAsyncHandler(functionLevelLogger(async 
     }
 
     catch (error) {
+      console.log(error);
       await session.abortTransaction();
       session.endSession();
       throw createHttpError('Could not update successfully');
