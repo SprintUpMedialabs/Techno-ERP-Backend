@@ -12,7 +12,7 @@ export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedReque
     let {
         startDate,
         endDate,
-        location = [],
+        city = [],
         assignedTo = [],
         source = [],
         gender = []
@@ -20,8 +20,8 @@ export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedReque
 
     const query: Record<string, any> = {};
 
-    if (location.length > 0) {
-        query.city = { $in: location };
+    if (city.length > 0) {
+        query.city = { $in: city };
     }
 
     if (startDate || endDate) {
@@ -78,8 +78,8 @@ export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedReque
                 $group: {
                     _id: null,
                     // New Fields for Second Collection
-                    footFall: { $sum: { $cond: [{ $eq: ['$campusVisit', true] }, 1, 0] } }, // Count where campusVisit is true
-                    noFootFall: { $sum: { $cond: [{ $eq: ['$campusVisit', false] }, 1, 0] } }, // Count where campusVisit is false
+                    footFall: { $sum: { $cond: [{ $eq: ['$footFall', true] }, 1, 0] } }, // Count where campusVisit is true
+                    noFootFall: { $sum: { $cond: [{ $eq: ['$footFall', false] }, 1, 0] } }, // Count where campusVisit is false
                     unconfirmed: { $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.UNCONFIRMED] }, 1, 0] } }, // Count where finalConversion is 'PENDING'
                     dead: { $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.DEAD] }, 1, 0] } }, // Count where finalConversion is 'NOT_CONVERTED'
                     admissions: { $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.CONVERTED] }, 1, 0] } }, // Count where finalConversion is 'CONVERTED'
