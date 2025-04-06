@@ -1,68 +1,63 @@
 import { z } from 'zod';
-import { Course, Gender, LeadType, Locations, Marketing_Source } from '../../config/constants';
+import { Course, FinalConversionType, Gender, LeadType, Locations, Marketing_Source } from '../../config/constants';
 import { contactNumberSchema, objectIdSchema, requestDateSchema } from '../../validators/commonSchema';
 
-export const leadSchema = z.object({
-  date:
-    z.date(),
+export const leadMasterSchema = z.object({
+  date: z.date(),
   source: z.nativeEnum(Marketing_Source).optional(),
   name: z.string().min(1, 'Name field is required'),
   phoneNumber: contactNumberSchema,
-
-  altPhoneNumber: contactNumberSchema
-    .optional(),
+  altPhoneNumber: contactNumberSchema.optional(),
   email: z.string().email('Invalid Email Format').optional(),
   gender: z.nativeEnum(Gender).default(Gender.NOT_TO_MENTION),
-  location: z.nativeEnum(Locations).optional(),
+  area : z.string().optional(),
+  city : z.nativeEnum(Locations).optional(),
   course: z.nativeEnum(Course).optional(),
   assignedTo: objectIdSchema, // TODO: need to test this
-  leadType: z.nativeEnum(LeadType).default(LeadType.ORANGE),
-  remarks: z.string().optional(),
+  leadType: z.nativeEnum(LeadType).default(LeadType.OPEN),
   leadTypeModifiedDate: z.date().optional(),
-  nextDueDate: z
-    .date()
-    .optional()
-});
-export type ILead = z.infer<typeof leadSchema>;
-
-
-export const leadRequestSchema = z.object({
-  date: requestDateSchema,
-  source: z.string().optional(),
-  name: z.string().min(1, 'Name field is required'),
-  phoneNumber: contactNumberSchema,
-  altPhoneNumber: contactNumberSchema
-    .optional(),
-  email: z.string().email('Invalid Email Format').optional(),
-  gender: z.nativeEnum(Gender).default(Gender.NOT_TO_MENTION),
-  location: z.nativeEnum(Locations).optional(),
-  course: z.nativeEnum(Course).optional(),
-  assignedTo: objectIdSchema, // TODO: need to test this
-  leadType: z.nativeEnum(LeadType).default(LeadType.ORANGE),
+  nextDueDate: z.date().optional(),
+  footFall: z.boolean().optional(),   //This is referring to Campus Visit
+  finalConversion: z.nativeEnum(FinalConversionType).optional().default(FinalConversionType.PENDING),
   remarks: z.string().optional(),
-  leadTypeModifiedDate: z.date().optional(),
-  nextDueDate: requestDateSchema
-    .optional()
-});
-export type ILeadRequest = z.infer<typeof leadRequestSchema>;
+  leadsFollowUpCount : z.number().optional().default(0),
+  yellowLeadsFollowUpCount : z.number().optional().default(0)
+})
 
+export const leadSchema = leadMasterSchema.omit({ 
+  finalConversion : true, 
+  remarks : true,
+  footFall : true, 
+  yellowLeadsFollowUpCount : true
+}).strict();
 
-export const updateLeadRequestSchema = z.object({
+export const yellowLeadSchema = leadMasterSchema.omit({ leadType : true, leadsFollowUpCount : true }).strict();
+
+export const leadRequestSchema = leadSchema.extend({
+  date : requestDateSchema,
+  nextDueDate: requestDateSchema.optional()
+})
+
+export const updateLeadRequestSchema = leadRequestSchema.extend({
   _id: objectIdSchema,
-  name: z.string().min(1, 'Name field is required').optional(),
-  phoneNumber: contactNumberSchema
-    .optional(),
-  altPhoneNumber: contactNumberSchema
-    .optional(),
-  email: z.string().email('Invalid Email Format').optional(),
+  phoneNumber: contactNumberSchema.optional(),
   gender: z.nativeEnum(Gender).optional(),
-  location: z.nativeEnum(Locations).optional(),
-  course: z.nativeEnum(Course).optional(),
   leadType: z.nativeEnum(LeadType).optional(),
-  remarks: z.string().optional(),
-  nextDueDate:
-    requestDateSchema
-      .optional()
-}).strict(); // strict will restrict extra properties
+}).omit({ source : true }).strict(); // strict will restrict extra properties
 
+export const yellowLeadUpdateSchema = yellowLeadSchema.extend({
+    _id: objectIdSchema,
+    name: z.string().optional(),
+    phoneNumber: contactNumberSchema.optional(),
+    campusVisit: z.boolean().optional(),
+}).strict();
+
+export type ILeadMaster = z.infer<typeof leadMasterSchema>;
+export type ILead = z.infer<typeof leadSchema>;
+export type IYellowLead = z.infer<typeof yellowLeadSchema>;
 export type IUpdateLeadRequestSchema = z.infer<typeof updateLeadRequestSchema>;
+export type ILeadRequest = z.infer<typeof leadRequestSchema>;
+export type IYellowLeadUpdate = z.infer<typeof yellowLeadUpdateSchema>;
+
+
+
