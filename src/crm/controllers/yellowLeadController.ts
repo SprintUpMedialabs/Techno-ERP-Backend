@@ -28,7 +28,7 @@ export const updateYellowLead = expressAsyncHandler(async (req: Request, res: Re
   if (isCampusVisitChangedToYes && wasFinalConversionNoFootfall) {
     updateData.finalConversion = FinalConversionType.UNCONFIRMED;
   }
-  
+
   const updatedYellowLead = await LeadMaster.findByIdAndUpdate(updateData._id, updateData, {
     new: true,
     runValidators: true
@@ -121,8 +121,8 @@ export const getYellowLeadsAnalytics = expressAsyncHandler(async (req: Request, 
         campusVisitTrueCount: 1,
         activeYellowLeadsCount: 1,
         deadLeadCount: 1,
-        admissions : 1,
-        unconfirmed : 1
+        admissions: 1,
+        unconfirmed: 1
       }
     }
   ]);
@@ -135,8 +135,8 @@ export const getYellowLeadsAnalytics = expressAsyncHandler(async (req: Request, 
         campusVisitTrueCount: 0,
         activeYellowLeadsCount: 0,
         deadLeadCount: 0,
-        admissions : 0,
-        unconfirmed : 0
+        admissions: 0,
+        unconfirmed: 0
       };
 
   return formatResponse(res, 200, 'Yellow leads analytics fetched successfully', true, result);
