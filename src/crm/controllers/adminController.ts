@@ -65,7 +65,8 @@ export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedReque
                     black: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.COURSE_UNAVAILABLE] }, 1, 0] } }, // Count leads where leadType is 'COURSE_UNAVAILABLE'
                     red: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.DEAD] }, 1, 0] } }, // Count leads where leadType is 'NOT_INTERESTED'
                     blue: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.NO_CLARITY] }, 1, 0] } }, // Count leads where leadType is 'NO_CLARITY'
-                    yellow: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.INTERESTED] }, 1, 0] } }, // Count leads where leadType is 'INTERESTED'
+                    activeLeads: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.INTERESTED] }, 1, 0] } }, // Count leads where leadType is 'INTERESTED'
+                    invalidType: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.INVALID] }, 1, 0] } }
                 }
             }
         ]), LeadMaster.aggregate([
@@ -77,9 +78,9 @@ export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedReque
                 $group: {
                     _id: null,
                     // New Fields for Second Collection
-                    campusVisit: { $sum: { $cond: [{ $eq: ['$campusVisit', true] }, 1, 0] } }, // Count where campusVisit is true
-                    noCampusVisit: { $sum: { $cond: [{ $eq: ['$campusVisit', false] }, 1, 0] } }, // Count where campusVisit is false
-                    unconfirmed: { $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.PENDING] }, 1, 0] } }, // Count where finalConversion is 'PENDING'
+                    footFall: { $sum: { $cond: [{ $eq: ['$campusVisit', true] }, 1, 0] } }, // Count where campusVisit is true
+                    noFootFall: { $sum: { $cond: [{ $eq: ['$campusVisit', false] }, 1, 0] } }, // Count where campusVisit is false
+                    unconfirmed: { $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.UNCONFIRMED] }, 1, 0] } }, // Count where finalConversion is 'PENDING'
                     dead: { $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.DEAD] }, 1, 0] } }, // Count where finalConversion is 'NOT_CONVERTED'
                     admissions: { $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.CONVERTED] }, 1, 0] } }, // Count where finalConversion is 'CONVERTED'
                 }
@@ -102,11 +103,11 @@ export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedReque
                 black: 0,
                 red: 0,
                 blue: 0,
-                yellow: 0
+                activeLeads: 0
             },
             yellowLeadsAnalytics: yellowLeadAnalytics.length > 0 ? yellowLeadAnalytics[0] : {
-                campusVisit: 0,
-                noCampusVisit: 0,
+                footFall: 0,
+                noFootFall: 0,
                 unconfirmed: 0,
                 declined: 0,
                 finalConversion: 0

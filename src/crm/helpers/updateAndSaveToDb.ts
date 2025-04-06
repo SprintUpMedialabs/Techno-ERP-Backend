@@ -146,7 +146,8 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) =>
       report.rowsFailed++;
       if (e.err.code === 11000) {
         report.duplicateRowIds.push(e.err.index + lastSavedIndex + 1);
-      } else {
+      } 
+      else {
         report.otherIssue.push({ rowId: e.err.index + lastSavedIndex + 1, issue: e.err.errmsg });
       }
     });
