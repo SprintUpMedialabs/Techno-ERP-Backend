@@ -19,8 +19,8 @@ export const parseFilter = (req: AuthenticatedRequest) => {
     assignedTo = [],
     page = 1,
     limit = 10,
-    sortBy,
-    orderBy = OrderBy.ASC,
+    sortBy = [],
+    orderBy = [],
     search = '',
   } = req.body;
 
@@ -98,12 +98,24 @@ export const parseFilter = (req: AuthenticatedRequest) => {
     }
   }
 
+
+
+  const reversedSortBy = [...sortBy].reverse();
+  const reversedOrderBy = [...orderBy].reverse();
+
   let sort: any = {};
-  if (sortBy === SortableFields.DATE || sortBy === SortableFields.NEXT_DUE_DATE) {
-    sort[sortBy] = orderBy === OrderBy.DESC ? -1 : 1;
-  } else if (sortBy === SortableFields.LTC_DATE) {
-    sort['createdAt'] = orderBy === OrderBy.DESC ? -1 : 1;
-  }
+
+  reversedSortBy.forEach((field, index) => {
+  const direction = reversedOrderBy[index] === OrderBy.DESC ? -1 : 1;
+
+    if (field === SortableFields.LTC_DATE) {
+      sort['leadTypeModifiedDate'] = direction;
+    } 
+    else {
+      sort[field] = direction;
+    }
+  });
+
 
   return {
     search: search,

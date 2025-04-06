@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { Course, FinalConversionType, Gender, LeadType, Locations, Marketing_Source } from '../../config/constants';
 import { contactNumberSchema, objectIdSchema, requestDateSchema } from '../../validators/commonSchema';
+import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 
 export const leadMasterSchema = z.object({
   date: z.date(),
@@ -40,9 +41,12 @@ export const leadRequestSchema = leadSchema.extend({
 
 export const updateLeadRequestSchema = leadRequestSchema.extend({
   _id: objectIdSchema,
+  date : requestDateSchema.optional(),
   phoneNumber: contactNumberSchema.optional(),
   gender: z.nativeEnum(Gender).optional(),
   leadType: z.nativeEnum(LeadType).optional(),
+  assignedTo: objectIdSchema.optional(),
+  nextDueDate : requestDateSchema.transform((date) => convertToMongoDate(date) as Date).optional(),
 }).omit({ source : true }).strict(); // strict will restrict extra properties
 
 export const yellowLeadUpdateSchema = yellowLeadSchema.extend({
@@ -50,6 +54,9 @@ export const yellowLeadUpdateSchema = yellowLeadSchema.extend({
     name: z.string().optional(),
     phoneNumber: contactNumberSchema.optional(),
     campusVisit: z.boolean().optional(),
+    assignedTo: objectIdSchema.optional(),
+    date : requestDateSchema.transform((date) => convertToMongoDate(date) as Date).optional(),
+    nextDueDate : requestDateSchema.transform((date) => convertToMongoDate(date) as Date).optional(),
 }).strict();
 
 export type ILeadMaster = z.infer<typeof leadMasterSchema>;

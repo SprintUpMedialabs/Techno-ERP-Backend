@@ -23,6 +23,7 @@ export const getFilteredLeadData = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const { query, search, page, limit, sort } = parseFilter(req);
 
+
     console.log(query);
     if (search.trim()) {
       query.$and = [
@@ -95,6 +96,8 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
 
   const validation = updateLeadRequestSchema.safeParse(leadRequestData);
 
+  // console.log(validation.error);
+
   if (!validation.success) {
     throw createHttpError(400, validation.error.errors[0]);
   }
@@ -124,8 +127,8 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
         runValidators: true
       }
     );
-    console.log('after updating from controller');
-    console.log(updatedData);
+    // console.log('after updating from controller');
+    // console.log(updatedData);
 
     return formatResponse(res, 200, 'Data Updated Successfully!', true, updatedData);
   }
