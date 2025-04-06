@@ -1,13 +1,13 @@
 import createHttpError from 'http-errors';
 import mongoose, { Document, Schema } from 'mongoose';
-import { COLLECTION_NAMES, Course, Gender, LeadType, Locations } from '../../config/constants';
+import { COLLECTION_NAMES, Course, FinalConversionType, Gender, LeadType, Locations } from '../../config/constants';
 import { convertToDDMMYYYY, convertToMongoDate } from '../../utils/convertDateToFormatedDate';
-import { ILead } from '../validators/leads';
+import { ILeadMaster } from '../validators/leads';
 import moment from 'moment-timezone';
 
-export interface ILeadDocument extends ILead, Document { }
+export interface ILeadMasterDocument extends ILeadMaster, Document { }
 
-const leadSchema = new Schema<ILeadDocument>(
+const leadSchema = new Schema<ILeadMasterDocument>(
   {
     // Change format to DD/MM/YYYY and add error message
     date: {
@@ -24,7 +24,6 @@ const leadSchema = new Schema<ILeadDocument>(
       required: [true, 'Name is required'],
       match: [/^[A-Za-z\s]+$/, 'Name can only contain alphabets and spaces']
     },
-
     // Must be a unique Indian phone number (+91 followed by 10 digits)
     phoneNumber: {
       type: String,
@@ -32,19 +31,16 @@ const leadSchema = new Schema<ILeadDocument>(
       unique: [true, 'Phone Number already exists'],
       match: [/^\d{10}$/, 'Invalid phone number format, expected: 10 digits']
     },
-
     // Optional alternate phone number; must follow the same format as phoneNumber
     altPhoneNumber: {
       type: String,
       match: [/^\d{10}$/, 'Invalid alternative phone number format, expected: 10 digits']
     },
-
     // Email validation using regex
     email: {
       type: String,
       match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Invalid email format']
     },
-
     // Optional gender field that must be one of the predefined enum values
     gender: {
       type: String,
@@ -53,16 +49,20 @@ const leadSchema = new Schema<ILeadDocument>(
         message: 'Invalid gender value'
       }
     },
+    area: {
+      type: String,
+    },
 
-    location: {
+    city: {
       type: String,
       enum: {
         values: Object.values(Locations),
-        message: 'Invalid Location Value'
+        message: 'Invalid City Value'
       }
     },
     course: {
-      type: String, enum: {
+      type: String, 
+      enum: {
         values: Object.values(Course),
         message: 'Invalid Course Value'
       }
@@ -81,7 +81,7 @@ const leadSchema = new Schema<ILeadDocument>(
         values: Object.values(LeadType),
         message: 'Invalid lead type'
       },
-      default: LeadType.ORANGE
+      default: LeadType.OPEN
     },
 
     remarks: { type: String },
@@ -92,6 +92,20 @@ const leadSchema = new Schema<ILeadDocument>(
       set: (value: string) => {
         return convertToMongoDate(value);
       }
+    },
+    footFall: { type: Boolean, default: false },
+    finalConversion: { 
+      type: String, enum: Object.values(FinalConversionType),
+      default: FinalConversionType.PENDING
+    },
+
+    leadsFollowUpCount : {
+      type : Number,
+      default : 0
+    },
+    yellowLeadsFollowUpCount : {
+      type : Number,
+      default : 0
     }
   },
   { timestamps: true }
@@ -135,4 +149,4 @@ const transformDates = (_: any, ret: any) => {
 leadSchema.set('toJSON', { transform: transformDates });
 leadSchema.set('toObject', { transform: transformDates });
 
-export const Lead = mongoose.model<ILeadDocument>(COLLECTION_NAMES.LEAD, leadSchema);
+export const LeadMaster = mongoose.model<ILeadMasterDocument>(COLLECTION_NAMES.LEAD, leadSchema);

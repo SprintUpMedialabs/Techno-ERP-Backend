@@ -2,56 +2,22 @@ import { Request, Response } from 'express';
 import expressAsyncHandler from 'express-async-handler';
 import createHttpError from 'http-errors';
 import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
-import { FinalConversionType, Marketing_Source } from '../../config/constants';
-import logger from '../../config/logger';
-import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
+import { FinalConversionType, LeadType } from '../../config/constants';
 import { parseFilter } from '../helpers/parseFilter';
-import { YellowLead } from '../models/yellowLead';
-import { ILead } from '../validators/leads';
-import {
-  IYellowLead,
-  IYellowLeadUpdate,
-  yellowLeadSchema,
-  yellowLeadUpdateSchema
-} from '../validators/yellowLead';
 import { formatResponse } from '../../utils/formatResponse';
-
-export const createYellowLead = async (leadData: ILead) => {
-  const yellowLead: IYellowLead = {
-    date: leadData.date,
-    name: leadData.name,
-    phoneNumber: leadData.phoneNumber,
-    email: leadData.email ?? '',
-    gender: leadData.gender,
-    campusVisit: false,
-    assignedTo: leadData.assignedTo,
-    source: leadData.source ?? Marketing_Source.SCHOOL
-  };
-
-  if (leadData.nextDueDate && convertToMongoDate(leadData.nextDueDate) > new Date()) {
-    yellowLead.nextDueDate = convertToMongoDate(leadData.nextDueDate);
-  }
-
-  const validation = yellowLeadSchema.safeParse(yellowLead);
-  if (!validation.success) {
-    throw createHttpError(400, validation.error.errors[0]);
-  }
-  console.log(yellowLead);
-  await YellowLead.create(yellowLead);
-
-  logger.info('Yellow lead object created successfully');
-};
+import { LeadMaster } from '../models/lead';
+import { IYellowLeadUpdate, yellowLeadUpdateSchema } from '../validators/leads';
 
 export const updateYellowLead = expressAsyncHandler(async (req: Request, res: Response) => {
   const updateData: IYellowLeadUpdate = req.body;
 
-  // console.log(updateData);
   const validation = yellowLeadUpdateSchema.safeParse(updateData);
+  console.log(validation.error);
   if (!validation.success) {
     throw createHttpError(400, validation.error.errors[0]);
   }
 
-  const updatedYellowLead = await YellowLead.findByIdAndUpdate(updateData._id, updateData, {
+  const updatedYellowLead = await LeadMaster.findByIdAndUpdate(updateData._id, updateData, {
     new: true,
     runValidators: true
   });
@@ -67,6 +33,8 @@ export const getFilteredYellowLeads = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const { query, search, page, limit, sort } = parseFilter(req);
 
+    query.leadType = LeadType.INTERESTED;
+
     if (search.trim()) {
       query.$and = [
         ...(query.$and || []), // Preserve existing AND conditions if any
@@ -81,16 +49,9 @@ export const getFilteredYellowLeads = expressAsyncHandler(
 
     const skip = (page - 1) * limit;
 
-    let leadsQuery = YellowLead.find(query);
-
-    // console.log(leadsQuery);
-    if (Object.keys(sort).length > 0) {
-      leadsQuery = leadsQuery.sort(sort);
-    }
-
     const [yellowLeads, totalLeads] = await Promise.all([
-      YellowLead.find(query).sort(sort).skip(skip).limit(limit),
-      YellowLead.countDocuments(query),
+      LeadMaster.find(query).sort(sort).skip(skip).limit(limit),
+      LeadMaster.countDocuments(query),
     ]);
 
     return formatResponse(res, 200, 'Filtered yellow leads fetched successfully', true, {
@@ -105,7 +66,9 @@ export const getFilteredYellowLeads = expressAsyncHandler(
 export const getYellowLeadsAnalytics = expressAsyncHandler(async (req: Request, res: Response) => {
   const { query } = parseFilter(req);
 
-  const analytics = await YellowLead.aggregate([
+  query.leadType = LeadType.INTERESTED;
+
+  const analytics = await LeadMaster.aggregate([
     { $match: query },
     {
       $group: {
@@ -119,8 +82,8 @@ export const getYellowLeadsAnalytics = expressAsyncHandler(async (req: Request, 
             $cond: [
               {
                 $and: [
-                  { $ne: ['$finalConversion', FinalConversionType.RED] },
-                  { $ne: ['$finalConversion', FinalConversionType.GREEN] }
+                  { $ne: ['$finalConversion', FinalConversionType.DEAD] },
+                  { $ne: ['$finalConversion', FinalConversionType.CONVERTED] }
                 ]
               },
               1,
@@ -129,7 +92,10 @@ export const getYellowLeadsAnalytics = expressAsyncHandler(async (req: Request, 
           }
         },
         deadLeadCount: {
-          $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.RED] }, 1, 0] }
+          $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.DEAD] }, 1, 0] }
+        },
+        convertedLeadCount: {
+          $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.CONVERTED] }, 1, 0] }
         }
       }
     },
@@ -139,7 +105,8 @@ export const getYellowLeadsAnalytics = expressAsyncHandler(async (req: Request, 
         allLeadsCount: 1,
         campusVisitTrueCount: 1,
         activeYellowLeadsCount: 1,
-        deadLeadCount: 1
+        deadLeadCount: 1,
+        convertedLeadCount : 1
       }
     }
   ]);
@@ -151,7 +118,8 @@ export const getYellowLeadsAnalytics = expressAsyncHandler(async (req: Request, 
         allLeadsCount: 0,
         campusVisitTrueCount: 0,
         activeYellowLeadsCount: 0,
-        deadLeadCount: 0
+        deadLeadCount: 0,
+        convertedLeadCount : 0
       };
 
   return formatResponse(res, 200, 'Yellow leads analytics fetched successfully', true, result);
