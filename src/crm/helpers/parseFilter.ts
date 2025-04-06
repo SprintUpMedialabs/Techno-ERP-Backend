@@ -102,7 +102,7 @@ export const parseFilter = (req: AuthenticatedRequest) => {
   if (sortBy === SortableFields.DATE || sortBy === SortableFields.NEXT_DUE_DATE) {
     sort[sortBy] = orderBy === OrderBy.DESC ? -1 : 1;
   } else if (sortBy === SortableFields.LTC_DATE) {
-    sort['createdAt'] = orderBy === OrderBy.DESC ? -1 : 1;
+    sort['leadTypeModifiedDate'] = orderBy === OrderBy.DESC ? -1 : 1;
   }
 
   return {

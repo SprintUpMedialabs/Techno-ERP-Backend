@@ -5,7 +5,7 @@ import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest
 import { LeadType } from '../../config/constants';
 import { readFromGoogleSheet } from '../helpers/googleSheetOperations';
 import { parseFilter } from '../helpers/parseFilter';
-import { saveDataToDb } from '../helpers/updateAndSaveToDb';import { IUpdateLeadRequestSchema, updateLeadRequestSchema } from '../validators/leads';
+import { saveDataToDb } from '../helpers/updateAndSaveToDb'; import { IUpdateLeadRequestSchema, updateLeadRequestSchema } from '../validators/leads';
 import { formatResponse } from '../../utils/formatResponse';
 import { LeadMaster } from '../models/lead';
 
@@ -23,7 +23,6 @@ export const getFilteredLeadData = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const { query, search, page, limit, sort } = parseFilter(req);
 
-    console.log(query);
     if (search.trim()) {
       query.$and = [
         ...(query.$and || []),
@@ -114,8 +113,7 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
     if (leadRequestData.leadType && existingLead.leadType != leadRequestData.leadType) {
       leadTypeModifiedDate = new Date();
     }
-    console.log('before updating from controller');
-    console.log(leadRequestData);
+
     const updatedData = await LeadMaster.findByIdAndUpdate(
       existingLead._id,
       { ...leadRequestData, leadTypeModifiedDate },
@@ -124,8 +122,6 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
         runValidators: true
       }
     );
-    console.log('after updating from controller');
-    console.log(updatedData);
 
     return formatResponse(res, 200, 'Data Updated Successfully!', true, updatedData);
   }
