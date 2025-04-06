@@ -49,7 +49,7 @@ const leadsToBeInserted = async (
         const existingUser = await User.findOne({ email: assignedToEmail });
         if (existingUser && existingUser.roles.includes(UserRoles.EMPLOYEE_MARKETING)) {
           assignedToID = existingUser._id as Types.ObjectId;
-          MarketingEmployees.set(assignedToEmail, assignedToID!);
+          MarketingEmployees.set(assignedToEmail, assignedToID);
         } else {
           if (!existingUser) {
             report.otherIssue.push({
@@ -61,8 +61,8 @@ const leadsToBeInserted = async (
               rowId: correspondingSheetIndex,
               issue: 'Assigned to is not a Marketing Employee'
             });
-            continue;
           }
+          continue;
         }
       }
 
@@ -86,8 +86,6 @@ const leadsToBeInserted = async (
       }
 
       const leadDataValidation = leadRequestSchema.safeParse(leadData);
-
-      console.log(leadDataValidation.error)
 
       if (leadDataValidation.success) {
         dataToInsert.push(leadDataValidation.data);
@@ -123,7 +121,7 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) =>
     assignedToNotFound: [],
     emptyRows: []
   };
-  
+
   const dataToInsert = await leadsToBeInserted(latestData, report, lastSavedIndex);
   if (!dataToInsert || dataToInsert.length === 0) {
     if (report.rowsFailed != 0) {
@@ -146,11 +144,11 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) =>
       report.rowsFailed++;
       if (e.err.code === 11000) {
         report.duplicateRowIds.push(e.err.index + lastSavedIndex + 1);
-      } else {
+      }
+      else {
         report.otherIssue.push({ rowId: e.err.index + lastSavedIndex + 1, issue: e.err.errmsg });
       }
     });
-    // console.log(report);
   }
 
   if (report.rowsFailed != 0) {

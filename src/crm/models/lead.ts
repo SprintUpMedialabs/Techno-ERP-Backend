@@ -16,20 +16,25 @@ const leadSchema = new Schema<ILeadMasterDocument>(
       set: (value: string) => { return convertToMongoDate(value) }
     },
 
-    source: { type: String },
+    source: { 
+      type: String,
+      index : true
+    },
 
     // Accepts only alphabets (both uppercase and lowercase) and spaces
     name: {
       type: String,
       required: [true, 'Name is required'],
-      match: [/^[A-Za-z\s]+$/, 'Name can only contain alphabets and spaces']
+      match: [/^[A-Za-z\s]+$/, 'Name can only contain alphabets and spaces'],
+      index : true
     },
     // Must be a unique Indian phone number (+91 followed by 10 digits)
     phoneNumber: {
       type: String,
       required: [true, 'Phone Number is required'],
       unique: [true, 'Phone Number already exists'],
-      match: [/^\d{10}$/, 'Invalid phone number format, expected: 10 digits']
+      match: [/^\d{10}$/, 'Invalid phone number format, expected: 10 digits'],
+      index : true
     },
     // Optional alternate phone number; must follow the same format as phoneNumber
     altPhoneNumber: {
@@ -96,7 +101,7 @@ const leadSchema = new Schema<ILeadMasterDocument>(
     footFall: { type: Boolean, default: false },
     finalConversion: { 
       type: String, enum: Object.values(FinalConversionType),
-      default: FinalConversionType.PENDING
+      default: FinalConversionType.NO_FOOTFALL
     },
 
     leadsFollowUpCount : {

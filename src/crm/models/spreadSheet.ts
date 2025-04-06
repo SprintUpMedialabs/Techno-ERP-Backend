@@ -1,7 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
-import { ISpreadSheetMetaData } from '../validators/spreadSheet';
-import createHttpError from 'http-errors';
 import { COLLECTION_NAMES } from '../../config/constants';
+import { ISpreadSheetMetaData } from '../validators/spreadSheet';
 
 export interface ISpreadSheetMetaDataDocument extends ISpreadSheetMetaData, Document {}
 

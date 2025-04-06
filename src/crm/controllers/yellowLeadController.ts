@@ -17,6 +17,18 @@ export const updateYellowLead = expressAsyncHandler(async (req: Request, res: Re
     throw createHttpError(400, validation.error.errors[0]);
   }
 
+  const existingLead = await LeadMaster.findById(updateData._id);
+  if (!existingLead) {
+    throw createHttpError(404, 'Yellow lead not found.');
+  }
+
+  const isCampusVisitChangedToYes = updateData.footFall === true && existingLead.footFall !== true;
+  const wasFinalConversionNoFootfall = existingLead.finalConversion === FinalConversionType.NO_FOOTFALL;
+
+  if (isCampusVisitChangedToYes && wasFinalConversionNoFootfall) {
+    updateData.finalConversion = FinalConversionType.UNCONFIRMED;
+  }
+
   const updatedYellowLead = await LeadMaster.findByIdAndUpdate(updateData._id, updateData, {
     new: true,
     runValidators: true
@@ -75,7 +87,7 @@ export const getYellowLeadsAnalytics = expressAsyncHandler(async (req: Request, 
         _id: null,
         allLeadsCount: { $sum: 1 },
         campusVisitTrueCount: {
-          $sum: { $cond: [{ $eq: ['$campusVisit', true] }, 1, 0] }
+          $sum: { $cond: [{ $eq: ['$footFall', true] }, 1, 0] }
         },
         activeYellowLeadsCount: {
           $sum: {
@@ -94,8 +106,11 @@ export const getYellowLeadsAnalytics = expressAsyncHandler(async (req: Request, 
         deadLeadCount: {
           $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.DEAD] }, 1, 0] }
         },
-        convertedLeadCount: {
+        admissions: {
           $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.CONVERTED] }, 1, 0] }
+        },
+        unconfirmed: {
+          $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.UNCONFIRMED] }, 1, 0] }
         }
       }
     },
@@ -106,7 +121,8 @@ export const getYellowLeadsAnalytics = expressAsyncHandler(async (req: Request, 
         campusVisitTrueCount: 1,
         activeYellowLeadsCount: 1,
         deadLeadCount: 1,
-        convertedLeadCount : 1
+        admissions: 1,
+        unconfirmed: 1
       }
     }
   ]);
@@ -119,7 +135,8 @@ export const getYellowLeadsAnalytics = expressAsyncHandler(async (req: Request, 
         campusVisitTrueCount: 0,
         activeYellowLeadsCount: 0,
         deadLeadCount: 0,
-        convertedLeadCount : 0
+        admissions: 0,
+        unconfirmed: 0
       };
 
   return formatResponse(res, 200, 'Yellow leads analytics fetched successfully', true, result);
