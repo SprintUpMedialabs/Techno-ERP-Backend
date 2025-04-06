@@ -15,7 +15,7 @@ export const parseFilter = (req: AuthenticatedRequest) => {
     leadType = [],
     finalConversionType = [], // related to yellow lead table
     course = [],
-    location = [],
+    city = [],
     assignedTo = [],
     page = 1,
     limit = 10,
@@ -30,7 +30,7 @@ export const parseFilter = (req: AuthenticatedRequest) => {
     leadType,
     finalConversionType,
     course,
-    location,
+    city,
     assignedTo,
     startLTCDate,
     endLTCDate,
@@ -50,8 +50,8 @@ export const parseFilter = (req: AuthenticatedRequest) => {
     query.course = { $in: filters.course };
   }
 
-  if (filters.location.length > 0) {
-    query.location = { $in: filters.location };
+  if (filters.city.length > 0) {
+    query.city = { $in: filters.city };
   }
 
   console.log("Before mapping:", filters.assignedTo);
