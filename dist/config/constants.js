@@ -34,10 +34,12 @@ var LeadType;
     LeadType["NO_CLARITY"] = "NO_CLARITY";
     LeadType["INTERESTED"] = "INTERESTED";
     LeadType["DID_NOT_PICK"] = "DID_NOT_PICK";
+    LeadType["INVALID"] = "INVALID";
 })(LeadType || (exports.LeadType = LeadType = {}));
 var FinalConversionType;
 (function (FinalConversionType) {
-    FinalConversionType["PENDING"] = "PENDING";
+    FinalConversionType["NO_FOOTFALL"] = "NO_FOOTFALL";
+    FinalConversionType["UNCONFIRMED"] = "UNCONFIRMED";
     FinalConversionType["CONVERTED"] = "CONVERTED";
     FinalConversionType["DEAD"] = "DEAD";
 })(FinalConversionType || (exports.FinalConversionType = FinalConversionType = {}));

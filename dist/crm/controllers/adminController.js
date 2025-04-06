@@ -20,10 +20,10 @@ const formatResponse_1 = require("../../utils/formatResponse");
 const mongoose_1 = __importDefault(require("mongoose"));
 const lead_1 = require("../models/lead");
 exports.adminAnalytics = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    let { startDate, endDate, location = [], assignedTo = [], source = [], gender = [] } = req.body;
+    let { startDate, endDate, city = [], assignedTo = [], source = [], gender = [] } = req.body;
     const query = {};
-    if (location.length > 0) {
-        query.city = { $in: location };
+    if (city.length > 0) {
+        query.city = { $in: city };
     }
     if (startDate || endDate) {
         query.date = {};
@@ -60,7 +60,8 @@ exports.adminAnalytics = (0, express_async_handler_1.default)((req, res) => __aw
                     black: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.COURSE_UNAVAILABLE] }, 1, 0] } }, // Count leads where leadType is 'COURSE_UNAVAILABLE'
                     red: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.DEAD] }, 1, 0] } }, // Count leads where leadType is 'NOT_INTERESTED'
                     blue: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.NO_CLARITY] }, 1, 0] } }, // Count leads where leadType is 'NO_CLARITY'
-                    yellow: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.INTERESTED] }, 1, 0] } }, // Count leads where leadType is 'INTERESTED'
+                    activeLeads: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.INTERESTED] }, 1, 0] } }, // Count leads where leadType is 'INTERESTED'
+                    invalidType: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.INVALID] }, 1, 0] } }
                 }
             }
         ]), lead_1.LeadMaster.aggregate([
@@ -69,9 +70,9 @@ exports.adminAnalytics = (0, express_async_handler_1.default)((req, res) => __aw
                 $group: {
                     _id: null,
                     // New Fields for Second Collection
-                    campusVisit: { $sum: { $cond: [{ $eq: ['$campusVisit', true] }, 1, 0] } }, // Count where campusVisit is true
-                    noCampusVisit: { $sum: { $cond: [{ $eq: ['$campusVisit', false] }, 1, 0] } }, // Count where campusVisit is false
-                    unconfirmed: { $sum: { $cond: [{ $eq: ['$finalConversion', constants_1.FinalConversionType.PENDING] }, 1, 0] } }, // Count where finalConversion is 'PENDING'
+                    footFall: { $sum: { $cond: [{ $eq: ['$footFall', true] }, 1, 0] } }, // Count where campusVisit is true
+                    noFootFall: { $sum: { $cond: [{ $eq: ['$footFall', false] }, 1, 0] } }, // Count where campusVisit is false
+                    unconfirmed: { $sum: { $cond: [{ $eq: ['$finalConversion', constants_1.FinalConversionType.UNCONFIRMED] }, 1, 0] } }, // Count where finalConversion is 'PENDING'
                     dead: { $sum: { $cond: [{ $eq: ['$finalConversion', constants_1.FinalConversionType.DEAD] }, 1, 0] } }, // Count where finalConversion is 'NOT_CONVERTED'
                     admissions: { $sum: { $cond: [{ $eq: ['$finalConversion', constants_1.FinalConversionType.CONVERTED] }, 1, 0] } }, // Count where finalConversion is 'CONVERTED'
                 }
@@ -89,11 +90,11 @@ exports.adminAnalytics = (0, express_async_handler_1.default)((req, res) => __aw
             black: 0,
             red: 0,
             blue: 0,
-            yellow: 0
+            activeLeads: 0
         },
         yellowLeadsAnalytics: yellowLeadAnalytics.length > 0 ? yellowLeadAnalytics[0] : {
-            campusVisit: 0,
-            noCampusVisit: 0,
+            footFall: 0,
+            noFootFall: 0,
             unconfirmed: 0,
             declined: 0,
             finalConversion: 0

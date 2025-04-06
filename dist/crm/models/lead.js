@@ -49,19 +49,24 @@ const leadSchema = new mongoose_1.Schema({
         required: [true, 'Date is required'],
         set: (value) => { return (0, convertDateToFormatedDate_1.convertToMongoDate)(value); }
     },
-    source: { type: String },
+    source: {
+        type: String,
+        index: true
+    },
     // Accepts only alphabets (both uppercase and lowercase) and spaces
     name: {
         type: String,
         required: [true, 'Name is required'],
-        match: [/^[A-Za-z\s]+$/, 'Name can only contain alphabets and spaces']
+        match: [/^[A-Za-z\s]+$/, 'Name can only contain alphabets and spaces'],
+        index: true
     },
     // Must be a unique Indian phone number (+91 followed by 10 digits)
     phoneNumber: {
         type: String,
         required: [true, 'Phone Number is required'],
         unique: [true, 'Phone Number already exists'],
-        match: [/^\d{10}$/, 'Invalid phone number format, expected: 10 digits']
+        match: [/^\d{10}$/, 'Invalid phone number format, expected: 10 digits'],
+        index: true
     },
     // Optional alternate phone number; must follow the same format as phoneNumber
     altPhoneNumber: {
@@ -123,7 +128,7 @@ const leadSchema = new mongoose_1.Schema({
     footFall: { type: Boolean, default: false },
     finalConversion: {
         type: String, enum: Object.values(constants_1.FinalConversionType),
-        default: constants_1.FinalConversionType.PENDING
+        default: constants_1.FinalConversionType.NO_FOOTFALL
     },
     leadsFollowUpCount: {
         type: Number,

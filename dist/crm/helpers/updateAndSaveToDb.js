@@ -64,8 +64,8 @@ const leadsToBeInserted = (latestData, report, lastSavedIndex) => __awaiter(void
                             rowId: correspondingSheetIndex,
                             issue: 'Assigned to is not a Marketing Employee'
                         });
-                        continue;
                     }
+                    continue;
                 }
             }
             let leadData = {
@@ -84,7 +84,6 @@ const leadsToBeInserted = (latestData, report, lastSavedIndex) => __awaiter(void
                 leadData.gender = constants_1.Gender[row[marketingSheetHeader_1.MarketingsheetHeaders.Gender]];
             }
             const leadDataValidation = leads_1.leadRequestSchema.safeParse(leadData);
-            console.log(leadDataValidation.error);
             if (leadDataValidation.success) {
                 dataToInsert.push(leadDataValidation.data);
             }
@@ -140,7 +139,6 @@ const saveDataToDb = (latestData, lastSavedIndex) => __awaiter(void 0, void 0, v
                 report.otherIssue.push({ rowId: e.err.index + lastSavedIndex + 1, issue: e.err.errmsg });
             }
         });
-        // console.log(report);
     }
     if (report.rowsFailed != 0) {
         (0, mailer_1.sendEmail)(secrets_1.LEAD_MARKETING_EMAIL, 'Lead Processing Report', (0, formatReport_1.formatReport)(report));

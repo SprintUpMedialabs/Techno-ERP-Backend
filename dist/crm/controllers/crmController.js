@@ -91,7 +91,6 @@ exports.getAllLeadAnalytics = (0, express_async_handler_1.default)((req, res) =>
 exports.updateData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const leadRequestData = req.body;
     const validation = leads_1.updateLeadRequestSchema.safeParse(leadRequestData);
-    // console.log(validation.error);
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }

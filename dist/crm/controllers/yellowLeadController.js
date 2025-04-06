@@ -27,6 +27,15 @@ exports.updateYellowLead = (0, express_async_handler_1.default)((req, res) => __
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }
+    const existingLead = yield lead_1.LeadMaster.findById(updateData._id);
+    if (!existingLead) {
+        throw (0, http_errors_1.default)(404, 'Yellow lead not found.');
+    }
+    const isCampusVisitChangedToYes = updateData.footFall === true && existingLead.footFall !== true;
+    const wasFinalConversionNoFootfall = existingLead.finalConversion === constants_1.FinalConversionType.NO_FOOTFALL;
+    if (isCampusVisitChangedToYes && wasFinalConversionNoFootfall) {
+        updateData.finalConversion = constants_1.FinalConversionType.UNCONFIRMED;
+    }
     const updatedYellowLead = yield lead_1.LeadMaster.findByIdAndUpdate(updateData._id, updateData, {
         new: true,
         runValidators: true
@@ -72,7 +81,7 @@ exports.getYellowLeadsAnalytics = (0, express_async_handler_1.default)((req, res
                 _id: null,
                 allLeadsCount: { $sum: 1 },
                 campusVisitTrueCount: {
-                    $sum: { $cond: [{ $eq: ['$campusVisit', true] }, 1, 0] }
+                    $sum: { $cond: [{ $eq: ['$footFall', true] }, 1, 0] }
                 },
                 activeYellowLeadsCount: {
                     $sum: {
@@ -91,8 +100,11 @@ exports.getYellowLeadsAnalytics = (0, express_async_handler_1.default)((req, res
                 deadLeadCount: {
                     $sum: { $cond: [{ $eq: ['$finalConversion', constants_1.FinalConversionType.DEAD] }, 1, 0] }
                 },
-                convertedLeadCount: {
+                admissions: {
                     $sum: { $cond: [{ $eq: ['$finalConversion', constants_1.FinalConversionType.CONVERTED] }, 1, 0] }
+                },
+                unconfirmed: {
+                    $sum: { $cond: [{ $eq: ['$finalConversion', constants_1.FinalConversionType.UNCONFIRMED] }, 1, 0] }
                 }
             }
         },
@@ -103,7 +115,8 @@ exports.getYellowLeadsAnalytics = (0, express_async_handler_1.default)((req, res
                 campusVisitTrueCount: 1,
                 activeYellowLeadsCount: 1,
                 deadLeadCount: 1,
-                convertedLeadCount: 1
+                admissions: 1,
+                unconfirmed: 1
             }
         }
     ]);
@@ -114,7 +127,8 @@ exports.getYellowLeadsAnalytics = (0, express_async_handler_1.default)((req, res
             campusVisitTrueCount: 0,
             activeYellowLeadsCount: 0,
             deadLeadCount: 0,
-            convertedLeadCount: 0
+            admissions: 0,
+            unconfirmed: 0
         };
     return (0, formatResponse_1.formatResponse)(res, 200, 'Yellow leads analytics fetched successfully', true, result);
 }));

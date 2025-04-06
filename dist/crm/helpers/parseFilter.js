@@ -13,14 +13,14 @@ const parseFilter = (req) => {
     const { startDate, endDate, startLTCDate, // related to yellow lead table
     endLTCDate, // related to yellow lead table
     leadType = [], finalConversionType = [], // related to yellow lead table
-    course = [], location = [], assignedTo = [], page = 1, limit = 10, sortBy = [], orderBy = [], search = '', } = req.body;
+    course = [], city = [], assignedTo = [], page = 1, limit = 10, sortBy = [], orderBy = [], search = '', } = req.body;
     const filters = {
         startDate,
         endDate,
         leadType,
         finalConversionType,
         course,
-        location,
+        city,
         assignedTo,
         startLTCDate,
         endLTCDate,
@@ -35,8 +35,8 @@ const parseFilter = (req) => {
     if (filters.course.length > 0) {
         query.course = { $in: filters.course };
     }
-    if (filters.location.length > 0) {
-        query.location = { $in: filters.location };
+    if (filters.city.length > 0) {
+        query.city = { $in: filters.city };
     }
     console.log("Before mapping:", filters.assignedTo);
     filters.assignedTo = filters.assignedTo.map(id => new mongoose_1.default.Types.ObjectId(id));
