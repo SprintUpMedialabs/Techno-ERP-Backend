@@ -5,7 +5,7 @@ import logger from '../../config/logger';
 import { sendEmail } from '../../config/mailer';
 import { LEAD_MARKETING_EMAIL } from '../../secrets';
 import { MarketingsheetHeaders } from '../enums/marketingSheetHeader';
-import { Lead } from '../models/leads';
+import { LeadMaster } from '../models/lead';
 import { IMarketingSpreadsheetProcessReport } from '../types/marketingSpreadsheet';
 import { ILeadRequest, leadRequestSchema } from '../validators/leads';
 import { formatReport } from './formatReport';
@@ -74,7 +74,7 @@ const leadsToBeInserted = async (
         altPhoneNumber: row[MarketingsheetHeaders.AltPhoneNumber] || '',
         email: row[MarketingsheetHeaders.Email],
         gender: Gender.NOT_TO_MENTION,
-        location: row[MarketingsheetHeaders.Location] || '',
+        city: row[MarketingsheetHeaders.City] || '',
         assignedTo: assignedToID
       };
 
@@ -86,6 +86,8 @@ const leadsToBeInserted = async (
       }
 
       const leadDataValidation = leadRequestSchema.safeParse(leadData);
+
+      console.log(leadDataValidation.error)
 
       if (leadDataValidation.success) {
         dataToInsert.push(leadDataValidation.data);
@@ -135,7 +137,7 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) =>
   }
 
   try {
-    const insertedData = await Lead.insertMany(dataToInsert, { ordered: false, throwOnValidationError: true });
+    const insertedData = await LeadMaster.insertMany(dataToInsert, { ordered: false, throwOnValidationError: true });
     report.actullyProcessedRows = insertedData.length;
   } catch (error: any) {
     report.actullyProcessedRows = error.result.insertedCount;

@@ -94,6 +94,8 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
 
   const validation = updateLeadRequestSchema.safeParse(leadRequestData);
 
+  // console.log(validation.error);
+
   if (!validation.success) {
     throw createHttpError(400, validation.error.errors[0]);
   }

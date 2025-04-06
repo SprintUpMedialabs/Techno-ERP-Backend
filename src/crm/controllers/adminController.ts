@@ -21,7 +21,7 @@ export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedReque
     const query: Record<string, any> = {};
 
     if (location.length > 0) {
-        query.location = { $in: location };
+        query.city = { $in: location };
     }
 
     if (startDate || endDate) {
@@ -80,8 +80,8 @@ export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedReque
                     campusVisit: { $sum: { $cond: [{ $eq: ['$campusVisit', true] }, 1, 0] } }, // Count where campusVisit is true
                     noCampusVisit: { $sum: { $cond: [{ $eq: ['$campusVisit', false] }, 1, 0] } }, // Count where campusVisit is false
                     unconfirmed: { $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.PENDING] }, 1, 0] } }, // Count where finalConversion is 'PENDING'
-                    declined: { $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.DEAD] }, 1, 0] } }, // Count where finalConversion is 'NOT_CONVERTED'
-                    finalConversion: { $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.CONVERTED] }, 1, 0] } }, // Count where finalConversion is 'CONVERTED'
+                    dead: { $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.DEAD] }, 1, 0] } }, // Count where finalConversion is 'NOT_CONVERTED'
+                    admissions: { $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.CONVERTED] }, 1, 0] } }, // Count where finalConversion is 'CONVERTED'
                 }
             }
         ])
