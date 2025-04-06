@@ -16,15 +16,14 @@ exports.adminAnalytics = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const constants_1 = require("../../config/constants");
 const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
-const leads_1 = require("../models/leads");
-const yellowLead_1 = require("../models/yellowLead");
 const formatResponse_1 = require("../../utils/formatResponse");
 const mongoose_1 = __importDefault(require("mongoose"));
+const lead_1 = require("../models/lead");
 exports.adminAnalytics = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let { startDate, endDate, location = [], assignedTo = [], source = [], gender = [] } = req.body;
     const query = {};
     if (location.length > 0) {
-        query.location = { $in: location };
+        query.city = { $in: location };
     }
     if (startDate || endDate) {
         query.date = {};
@@ -49,32 +48,32 @@ exports.adminAnalytics = (0, express_async_handler_1.default)((req, res) => __aw
     }
     // console.log(query);
     const [allLeadAnalytics, yellowLeadAnalytics] = yield Promise.all([
-        leads_1.Lead.aggregate([
+        lead_1.LeadMaster.aggregate([
             { $match: query }, // Apply Filters
             {
                 $group: {
                     _id: null,
                     allLeads: { $sum: 1 }, // Count total leads
-                    reached: { $sum: { $cond: [{ $ne: ['$leadType', constants_1.LeadType.ORANGE] }, 1, 0] } }, // Count leads where leadType is NOT 'OPEN'
-                    notReached: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.ORANGE] }, 1, 0] } }, // Count leads where leadType is 'OPEN'
-                    white: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.WHITE] }, 1, 0] } }, // Count leads where leadType is 'DID_NOT_PICK'
-                    black: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.BLACK] }, 1, 0] } }, // Count leads where leadType is 'COURSE_UNAVAILABLE'
-                    red: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.RED] }, 1, 0] } }, // Count leads where leadType is 'NOT_INTERESTED'
-                    blue: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.BLUE] }, 1, 0] } }, // Count leads where leadType is 'NO_CLARITY'
-                    yellow: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.YELLOW] }, 1, 0] } }, // Count leads where leadType is 'INTERESTED'
+                    reached: { $sum: { $cond: [{ $ne: ['$leadType', constants_1.LeadType.OPEN] }, 1, 0] } }, // Count leads where leadType is NOT 'OPEN'
+                    notReached: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.OPEN] }, 1, 0] } }, // Count leads where leadType is 'OPEN'
+                    white: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.DID_NOT_PICK] }, 1, 0] } }, // Count leads where leadType is 'DID_NOT_PICK'
+                    black: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.COURSE_UNAVAILABLE] }, 1, 0] } }, // Count leads where leadType is 'COURSE_UNAVAILABLE'
+                    red: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.DEAD] }, 1, 0] } }, // Count leads where leadType is 'NOT_INTERESTED'
+                    blue: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.NO_CLARITY] }, 1, 0] } }, // Count leads where leadType is 'NO_CLARITY'
+                    yellow: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.INTERESTED] }, 1, 0] } }, // Count leads where leadType is 'INTERESTED'
                 }
             }
-        ]), yellowLead_1.YellowLead.aggregate([
-            { $match: query }, // in query we have issue
+        ]), lead_1.LeadMaster.aggregate([
+            { $match: Object.assign(Object.assign({}, query), { leadType: constants_1.LeadType.INTERESTED }) }, // in query we have issue
             {
                 $group: {
                     _id: null,
                     // New Fields for Second Collection
                     campusVisit: { $sum: { $cond: [{ $eq: ['$campusVisit', true] }, 1, 0] } }, // Count where campusVisit is true
                     noCampusVisit: { $sum: { $cond: [{ $eq: ['$campusVisit', false] }, 1, 0] } }, // Count where campusVisit is false
-                    unconfirmed: { $sum: { $cond: [{ $eq: ['$finalConversion', constants_1.FinalConversionType.PINK] }, 1, 0] } }, // Count where finalConversion is 'PENDING'
-                    declined: { $sum: { $cond: [{ $eq: ['$finalConversion', constants_1.FinalConversionType.RED] }, 1, 0] } }, // Count where finalConversion is 'NOT_CONVERTED'
-                    finalConversion: { $sum: { $cond: [{ $eq: ['$finalConversion', constants_1.FinalConversionType.GREEN] }, 1, 0] } }, // Count where finalConversion is 'CONVERTED'
+                    unconfirmed: { $sum: { $cond: [{ $eq: ['$finalConversion', constants_1.FinalConversionType.PENDING] }, 1, 0] } }, // Count where finalConversion is 'PENDING'
+                    dead: { $sum: { $cond: [{ $eq: ['$finalConversion', constants_1.FinalConversionType.DEAD] }, 1, 0] } }, // Count where finalConversion is 'NOT_CONVERTED'
+                    admissions: { $sum: { $cond: [{ $eq: ['$finalConversion', constants_1.FinalConversionType.CONVERTED] }, 1, 0] } }, // Count where finalConversion is 'CONVERTED'
                 }
             }
         ])

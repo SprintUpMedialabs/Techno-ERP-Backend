@@ -19,10 +19,9 @@ const constants_1 = require("../../config/constants");
 const googleSheetOperations_1 = require("../helpers/googleSheetOperations");
 const parseFilter_1 = require("../helpers/parseFilter");
 const updateAndSaveToDb_1 = require("../helpers/updateAndSaveToDb");
-const leads_1 = require("../models/leads");
-const leads_2 = require("../validators/leads");
-const yellowLeadController_1 = require("./yellowLeadController");
+const leads_1 = require("../validators/leads");
 const formatResponse_1 = require("../../utils/formatResponse");
+const lead_1 = require("../models/lead");
 exports.uploadData = (0, express_async_handler_1.default)((_, res) => __awaiter(void 0, void 0, void 0, function* () {
     const latestData = yield (0, googleSheetOperations_1.readFromGoogleSheet)();
     if (!latestData) {
@@ -35,7 +34,6 @@ exports.uploadData = (0, express_async_handler_1.default)((_, res) => __awaiter(
 }));
 exports.getFilteredLeadData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { query, search, page, limit, sort } = (0, parseFilter_1.parseFilter)(req);
-    console.log(query);
     if (search.trim()) {
         query.$and = [
             ...(query.$and || []),
@@ -48,13 +46,13 @@ exports.getFilteredLeadData = (0, express_async_handler_1.default)((req, res) =>
         ];
     }
     const skip = (page - 1) * limit;
-    let leadsQuery = leads_1.Lead.find(query);
+    let leadsQuery = lead_1.LeadMaster.find(query);
     if (Object.keys(sort).length > 0) {
         leadsQuery = leadsQuery.sort(sort);
     }
     const [leads, totalLeads] = yield Promise.all([
         leadsQuery.skip(skip).limit(limit),
-        leads_1.Lead.countDocuments(query),
+        lead_1.LeadMaster.countDocuments(query),
     ]);
     return (0, formatResponse_1.formatResponse)(res, 200, 'Filtered leads fetched successfully', true, {
         leads,
@@ -64,19 +62,20 @@ exports.getFilteredLeadData = (0, express_async_handler_1.default)((req, res) =>
     });
 }));
 exports.getAllLeadAnalytics = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d, _e, _f, _g, _h;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
     const { query } = (0, parseFilter_1.parseFilter)(req);
     console.log(query);
     // 🔹 Running Aggregate Pipeline
-    const analytics = yield leads_1.Lead.aggregate([
+    const analytics = yield lead_1.LeadMaster.aggregate([
         { $match: query }, // Apply Filters
         {
             $group: {
                 _id: null,
                 totalLeads: { $sum: 1 }, // Count total leads
-                openLeads: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.ORANGE] }, 1, 0] } }, // Count OPEN leads
-                interestedLeads: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.YELLOW] }, 1, 0] } }, // Count INTERESTED leads
-                notInterestedLeads: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.RED] }, 1, 0] } } // Count NOT_INTERESTED leads
+                openLeads: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.OPEN] }, 1, 0] } }, // Count OPEN leads
+                interestedLeads: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.INTERESTED] }, 1, 0] } }, // Count INTERESTED leads
+                notInterestedLeads: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.DEAD] }, 1, 0] } }, // Count NOT_INTERESTED leads,
+                neutralLeads: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.NO_CLARITY] }, 1, 0] } }
             }
         }
     ]);
@@ -85,38 +84,30 @@ exports.getAllLeadAnalytics = (0, express_async_handler_1.default)((req, res) =>
         totalLeads: (_b = (_a = analytics[0]) === null || _a === void 0 ? void 0 : _a.totalLeads) !== null && _b !== void 0 ? _b : 0,
         openLeads: (_d = (_c = analytics[0]) === null || _c === void 0 ? void 0 : _c.openLeads) !== null && _d !== void 0 ? _d : 0,
         interestedLeads: (_f = (_e = analytics[0]) === null || _e === void 0 ? void 0 : _e.interestedLeads) !== null && _f !== void 0 ? _f : 0,
-        notInterestedLeads: (_h = (_g = analytics[0]) === null || _g === void 0 ? void 0 : _g.notInterestedLeads) !== null && _h !== void 0 ? _h : 0
+        notInterestedLeads: (_h = (_g = analytics[0]) === null || _g === void 0 ? void 0 : _g.notInterestedLeads) !== null && _h !== void 0 ? _h : 0,
+        neutralLeads: (_k = (_j = analytics[0]) === null || _j === void 0 ? void 0 : _j.neutralLeads) !== null && _k !== void 0 ? _k : 0
     });
 }));
 exports.updateData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const leadRequestData = req.body;
-    const validation = leads_2.updateLeadRequestSchema.safeParse(leadRequestData);
+    const validation = leads_1.updateLeadRequestSchema.safeParse(leadRequestData);
+    // console.log(validation.error);
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }
-    const existingLead = yield leads_1.Lead.findById(leadRequestData._id);
+    const existingLead = yield lead_1.LeadMaster.findById(leadRequestData._id);
     if (existingLead) {
-        if (existingLead.leadType === constants_1.LeadType.YELLOW) {
+        if (existingLead.leadType === constants_1.LeadType.INTERESTED) {
             throw (0, http_errors_1.default)(400, 'Sorry, this lead can only be updated from the yellow leads tracker!');
         }
         let leadTypeModifiedDate = existingLead.leadTypeModifiedDate;
         if (leadRequestData.leadType && existingLead.leadType != leadRequestData.leadType) {
             leadTypeModifiedDate = new Date();
         }
-        console.log('before updating from controller');
-        console.log(leadRequestData);
-        const updatedData = yield leads_1.Lead.findByIdAndUpdate(existingLead._id, Object.assign(Object.assign({}, leadRequestData), { leadTypeModifiedDate }), {
+        const updatedData = yield lead_1.LeadMaster.findByIdAndUpdate(existingLead._id, Object.assign(Object.assign({}, leadRequestData), { leadTypeModifiedDate }), {
             new: true,
             runValidators: true
         });
-        console.log('after updating from controller');
-        console.log(updatedData);
-        if (leadRequestData.leadType && existingLead.leadType != leadRequestData.leadType) {
-            if (leadRequestData.leadType === constants_1.LeadType.YELLOW) {
-                (0, yellowLeadController_1.createYellowLead)(updatedData);
-                console.log('Yellow lead created successfully');
-            }
-        }
         return (0, formatResponse_1.formatResponse)(res, 200, 'Data Updated Successfully!', true, updatedData);
     }
     else {

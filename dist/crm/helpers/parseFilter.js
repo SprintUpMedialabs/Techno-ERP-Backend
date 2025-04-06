@@ -13,7 +13,7 @@ const parseFilter = (req) => {
     const { startDate, endDate, startLTCDate, // related to yellow lead table
     endLTCDate, // related to yellow lead table
     leadType = [], finalConversionType = [], // related to yellow lead table
-    course = [], location = [], assignedTo = [], page = 1, limit = 10, sortBy, orderBy = "asc" /* OrderBy.ASC */, search = '', } = req.body;
+    course = [], location = [], assignedTo = [], page = 1, limit = 10, sortBy = [], orderBy = [], search = '', } = req.body;
     const filters = {
         startDate,
         endDate,
@@ -51,9 +51,6 @@ const parseFilter = (req) => {
         if (filters.assignedTo.length > 0) {
             query.assignedTo = { $in: filters.assignedTo };
         }
-        // else {
-        //   query.assignedTo = { $exists: true };
-        // }
     }
     if (filters.startDate || filters.endDate) {
         query.date = {};
@@ -73,13 +70,18 @@ const parseFilter = (req) => {
             query.createdAt.$lte = (0, convertDateToFormatedDate_1.convertToMongoDate)(filters.endLTCDate);
         }
     }
+    const reversedSortBy = [...sortBy].reverse();
+    const reversedOrderBy = [...orderBy].reverse();
     let sort = {};
-    if (sortBy === "date" /* SortableFields.DATE */ || sortBy === "nextDueDate" /* SortableFields.NEXT_DUE_DATE */) {
-        sort[sortBy] = orderBy === "desc" /* OrderBy.DESC */ ? -1 : 1;
-    }
-    else if (sortBy === "startLTCDate" /* SortableFields.LTC_DATE */) {
-        sort['createdAt'] = orderBy === "desc" /* OrderBy.DESC */ ? -1 : 1;
-    }
+    reversedSortBy.forEach((field, index) => {
+        const direction = reversedOrderBy[index] === "desc" /* OrderBy.DESC */ ? -1 : 1;
+        if (field === "startLTCDate" /* SortableFields.LTC_DATE */) {
+            sort['leadTypeModifiedDate'] = direction;
+        }
+        else {
+            sort[field] = direction;
+        }
+    });
     return {
         search: search,
         query: query,

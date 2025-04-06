@@ -19,8 +19,8 @@ const logger_1 = __importDefault(require("../../config/logger"));
 const mailer_1 = require("../../config/mailer");
 const secrets_1 = require("../../secrets");
 const marketingSheetHeader_1 = require("../enums/marketingSheetHeader");
-const leads_1 = require("../models/leads");
-const leads_2 = require("../validators/leads");
+const lead_1 = require("../models/lead");
+const leads_1 = require("../validators/leads");
 const formatReport_1 = require("./formatReport");
 const googleSheetOperations_1 = require("./googleSheetOperations");
 const leadsToBeInserted = (latestData, report, lastSavedIndex) => __awaiter(void 0, void 0, void 0, function* () {
@@ -76,14 +76,15 @@ const leadsToBeInserted = (latestData, report, lastSavedIndex) => __awaiter(void
                 altPhoneNumber: row[marketingSheetHeader_1.MarketingsheetHeaders.AltPhoneNumber] || '',
                 email: row[marketingSheetHeader_1.MarketingsheetHeaders.Email],
                 gender: constants_1.Gender.NOT_TO_MENTION,
-                location: row[marketingSheetHeader_1.MarketingsheetHeaders.Location] || '',
+                city: row[marketingSheetHeader_1.MarketingsheetHeaders.City] || '',
                 assignedTo: assignedToID
             };
             if (row[marketingSheetHeader_1.MarketingsheetHeaders.Gender] &&
                 constants_1.Gender[row[marketingSheetHeader_1.MarketingsheetHeaders.Gender]]) {
                 leadData.gender = constants_1.Gender[row[marketingSheetHeader_1.MarketingsheetHeaders.Gender]];
             }
-            const leadDataValidation = leads_2.leadRequestSchema.safeParse(leadData);
+            const leadDataValidation = leads_1.leadRequestSchema.safeParse(leadData);
+            console.log(leadDataValidation.error);
             if (leadDataValidation.success) {
                 dataToInsert.push(leadDataValidation.data);
             }
@@ -125,7 +126,7 @@ const saveDataToDb = (latestData, lastSavedIndex) => __awaiter(void 0, void 0, v
         return;
     }
     try {
-        const insertedData = yield leads_1.Lead.insertMany(dataToInsert, { ordered: false, throwOnValidationError: true });
+        const insertedData = yield lead_1.LeadMaster.insertMany(dataToInsert, { ordered: false, throwOnValidationError: true });
         report.actullyProcessedRows = insertedData.length;
     }
     catch (error) {

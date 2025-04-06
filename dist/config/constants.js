@@ -28,19 +28,18 @@ var Source;
 })(Source || (exports.Source = Source = {}));
 var LeadType;
 (function (LeadType) {
-    LeadType["ORANGE"] = "OPEN";
-    LeadType["RED"] = "NOT_INTERESTED";
-    LeadType["BLACK"] = "COURSE_UNAVAILABLE";
-    LeadType["BLUE"] = "NO_CLARITY";
-    LeadType["YELLOW"] = "INTERESTED";
-    LeadType["GREEN"] = "ADMISSION";
-    LeadType["WHITE"] = "DID_NOT_PICK";
+    LeadType["OPEN"] = "OPEN";
+    LeadType["DEAD"] = "DEAD";
+    LeadType["COURSE_UNAVAILABLE"] = "COURSE_UNAVAILABLE";
+    LeadType["NO_CLARITY"] = "NO_CLARITY";
+    LeadType["INTERESTED"] = "INTERESTED";
+    LeadType["DID_NOT_PICK"] = "DID_NOT_PICK";
 })(LeadType || (exports.LeadType = LeadType = {}));
 var FinalConversionType;
 (function (FinalConversionType) {
-    FinalConversionType["PINK"] = "PENDING";
-    FinalConversionType["GREEN"] = "CONVERTED";
-    FinalConversionType["RED"] = "NOT_CONVERTED";
+    FinalConversionType["PENDING"] = "PENDING";
+    FinalConversionType["CONVERTED"] = "CONVERTED";
+    FinalConversionType["DEAD"] = "DEAD";
 })(FinalConversionType || (exports.FinalConversionType = FinalConversionType = {}));
 var Marketing_Source;
 (function (Marketing_Source) {

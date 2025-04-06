@@ -10,7 +10,7 @@ var MarketingsheetHeaders;
     MarketingsheetHeaders[MarketingsheetHeaders["AltPhoneNumber"] = 4] = "AltPhoneNumber";
     MarketingsheetHeaders[MarketingsheetHeaders["Email"] = 5] = "Email";
     MarketingsheetHeaders[MarketingsheetHeaders["Gender"] = 6] = "Gender";
-    MarketingsheetHeaders[MarketingsheetHeaders["Location"] = 7] = "Location";
+    MarketingsheetHeaders[MarketingsheetHeaders["City"] = 7] = "City";
     MarketingsheetHeaders[MarketingsheetHeaders["Course"] = 8] = "Course";
     MarketingsheetHeaders[MarketingsheetHeaders["AssignedTo"] = 9] = "AssignedTo";
 })(MarketingsheetHeaders || (exports.MarketingsheetHeaders = MarketingsheetHeaders = {}));
