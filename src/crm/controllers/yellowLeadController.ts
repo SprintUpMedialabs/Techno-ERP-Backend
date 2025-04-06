@@ -11,7 +11,6 @@ import { IYellowLeadUpdate, yellowLeadUpdateSchema } from '../validators/leads';
 export const updateYellowLead = expressAsyncHandler(async (req: Request, res: Response) => {
   const updateData: IYellowLeadUpdate = req.body;
 
-  // console.log(updateData);
   const validation = yellowLeadUpdateSchema.safeParse(updateData);
   console.log(validation.error);
   if (!validation.success) {
@@ -61,13 +60,6 @@ export const getFilteredYellowLeads = expressAsyncHandler(
     }
 
     const skip = (page - 1) * limit;
-
-    let leadsQuery = LeadMaster.find(query);
-
-    // console.log(leadsQuery);
-    if (Object.keys(sort).length > 0) {
-      leadsQuery = leadsQuery.sort(sort);
-    }
 
     const [yellowLeads, totalLeads] = await Promise.all([
       LeadMaster.find(query).sort(sort).skip(skip).limit(limit),

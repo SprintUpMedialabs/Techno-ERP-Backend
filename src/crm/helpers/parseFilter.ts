@@ -72,9 +72,6 @@ export const parseFilter = (req: AuthenticatedRequest) => {
     if (filters.assignedTo.length > 0) {
       query.assignedTo = { $in: filters.assignedTo };
     } 
-    // else {
-    //   query.assignedTo = { $exists: true };
-    // }
   }
 
 

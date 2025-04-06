@@ -105,10 +105,12 @@ const leadSchema = new Schema<ILeadMasterDocument>(
     },
 
     leadsFollowUpCount : {
-      type : Number
+      type : Number,
+      default : 0
     },
     yellowLeadsFollowUpCount : {
-      type : Number
+      type : Number,
+      default : 0
     }
   },
   { timestamps: true }

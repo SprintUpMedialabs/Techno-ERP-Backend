@@ -9,4 +9,4 @@ userRouter.get('/profile', authenticate, authorize([UserRoles.BASIC_USER]), user
 
 userRouter.get('/get-user', authenticate, authorize([UserRoles.BASIC_USER]), getUserByRole);
 
-userRouter.get('/fetch-dropdown', authenticate, authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING]), fetchDropdownsBasedOnPage)
+userRouter.get('/fetch-dropdown', authenticate, authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING]), fetchDropdownsBasedOnPage);
