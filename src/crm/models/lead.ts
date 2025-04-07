@@ -158,4 +158,4 @@ const transformDates = (_: any, ret: any) => {
 leadSchema.set('toJSON', { transform: transformDates });
 leadSchema.set('toObject', { transform: transformDates });
 
-export const LeadMaster = mongoose.model<ILeadMasterDocument>(COLLECTION_NAMES.LEAD + '1', leadSchema);
+export const LeadMaster = mongoose.model<ILeadMasterDocument>(COLLECTION_NAMES.LEAD, leadSchema);
