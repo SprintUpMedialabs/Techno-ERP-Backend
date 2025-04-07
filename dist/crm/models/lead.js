@@ -177,4 +177,4 @@ const transformDates = (_, ret) => {
 };
 leadSchema.set('toJSON', { transform: transformDates });
 leadSchema.set('toObject', { transform: transformDates });
-exports.LeadMaster = mongoose_1.default.model(constants_1.COLLECTION_NAMES.LEAD + '1', leadSchema);
+exports.LeadMaster = mongoose_1.default.model(constants_1.COLLECTION_NAMES.LEAD, leadSchema);
