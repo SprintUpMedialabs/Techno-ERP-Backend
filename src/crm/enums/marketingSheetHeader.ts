@@ -8,5 +8,6 @@ export enum MarketingsheetHeaders {
   Gender = 6,
   City = 7,
   Course = 8,
-  AssignedTo = 9
+  AssignedTo = 9,
+  SchoolName = 10
 }
