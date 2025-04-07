@@ -27,8 +27,7 @@ export const leadMasterSchema = z.object({
 })
 
 export const leadSchema = leadMasterSchema.omit({ 
-  finalConversion : true, 
-  remarks : true,
+  finalConversion : true,
   footFall : true, 
   yellowLeadsFollowUpCount : true
 }).strict();
