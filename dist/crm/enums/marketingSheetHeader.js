@@ -13,4 +13,5 @@ var MarketingsheetHeaders;
     MarketingsheetHeaders[MarketingsheetHeaders["City"] = 7] = "City";
     MarketingsheetHeaders[MarketingsheetHeaders["Course"] = 8] = "Course";
     MarketingsheetHeaders[MarketingsheetHeaders["AssignedTo"] = 9] = "AssignedTo";
+    MarketingsheetHeaders[MarketingsheetHeaders["SchoolName"] = 10] = "SchoolName";
 })(MarketingsheetHeaders || (exports.MarketingsheetHeaders = MarketingsheetHeaders = {}));

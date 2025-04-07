@@ -8,7 +8,8 @@ const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDa
 exports.leadMasterSchema = zod_1.z.object({
     date: zod_1.z.date(),
     source: zod_1.z.nativeEnum(constants_1.Marketing_Source).optional(),
-    name: zod_1.z.string().min(1, 'Name field is required'),
+    schoolName: zod_1.z.string().optional(),
+    name: zod_1.z.string().nonempty('Name field is required').regex(/^[A-Za-z\s]+$/, 'Name can only contain alphabets and spaces'),
     phoneNumber: commonSchema_1.contactNumberSchema,
     altPhoneNumber: commonSchema_1.contactNumberSchema.optional(),
     email: zod_1.z.string().email('Invalid Email Format').optional(),

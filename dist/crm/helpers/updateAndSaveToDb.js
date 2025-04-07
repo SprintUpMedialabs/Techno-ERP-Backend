@@ -77,7 +77,8 @@ const leadsToBeInserted = (latestData, report, lastSavedIndex) => __awaiter(void
                 email: row[marketingSheetHeader_1.MarketingsheetHeaders.Email],
                 gender: constants_1.Gender.NOT_TO_MENTION,
                 city: row[marketingSheetHeader_1.MarketingsheetHeaders.City] || '',
-                assignedTo: assignedToID
+                assignedTo: assignedToID,
+                schoolName: row[marketingSheetHeader_1.MarketingsheetHeaders.SchoolName] || ''
             };
             if (row[marketingSheetHeader_1.MarketingsheetHeaders.Gender] &&
                 constants_1.Gender[row[marketingSheetHeader_1.MarketingsheetHeaders.Gender]]) {
@@ -124,6 +125,7 @@ const saveDataToDb = (latestData, lastSavedIndex) => __awaiter(void 0, void 0, v
         (0, googleSheetOperations_1.updateStatusForMarketingSheet)(lastSavedIndex + latestData.length, lastSavedIndex);
         return;
     }
+    console.log(dataToInsert);
     try {
         const insertedData = yield lead_1.LeadMaster.insertMany(dataToInsert, { ordered: false, throwOnValidationError: true });
         report.actullyProcessedRows = insertedData.length;

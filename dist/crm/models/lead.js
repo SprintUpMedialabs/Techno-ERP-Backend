@@ -51,27 +51,27 @@ const leadSchema = new mongoose_1.Schema({
     },
     source: {
         type: String,
-        index: true
+    },
+    schoolName: {
+        type: String,
     },
     // Accepts only alphabets (both uppercase and lowercase) and spaces
     name: {
         type: String,
         required: [true, 'Name is required'],
         match: [/^[A-Za-z\s]+$/, 'Name can only contain alphabets and spaces'],
-        index: true
     },
     // Must be a unique Indian phone number (+91 followed by 10 digits)
     phoneNumber: {
         type: String,
         required: [true, 'Phone Number is required'],
-        unique: [true, 'Phone Number already exists'],
-        match: [/^\d{10}$/, 'Invalid phone number format, expected: 10 digits'],
-        index: true
+        // unique: [true, 'Phone Number already exists'],
+        match: [/^[1-9]\d{9}$/, 'Invalid contact number format. Expected: 1234567890'],
     },
     // Optional alternate phone number; must follow the same format as phoneNumber
     altPhoneNumber: {
         type: String,
-        match: [/^\d{10}$/, 'Invalid alternative phone number format, expected: 10 digits']
+        match: [/^[1-9]\d{9}$/, 'Invalid contact number format. Expected: 1234567890']
     },
     // Email validation using regex
     email: {
@@ -139,6 +139,7 @@ const leadSchema = new mongoose_1.Schema({
         default: 0
     }
 }, { timestamps: true });
+leadSchema.index({ source: 1, name: 1, phoneNumber: 1 }, { unique: true, name: 'unique_lead_combo' });
 const handleMongooseError = (error, next) => {
     if (error.code === 11000) {
         throw (0, http_errors_1.default)(400, 'Phone Number already exists');
@@ -176,4 +177,4 @@ const transformDates = (_, ret) => {
 };
 leadSchema.set('toJSON', { transform: transformDates });
 leadSchema.set('toObject', { transform: transformDates });
-exports.LeadMaster = mongoose_1.default.model(constants_1.COLLECTION_NAMES.LEAD, leadSchema);
+exports.LeadMaster = mongoose_1.default.model(constants_1.COLLECTION_NAMES.LEAD + '1', leadSchema);
