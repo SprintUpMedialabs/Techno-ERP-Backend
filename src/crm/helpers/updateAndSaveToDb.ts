@@ -75,7 +75,8 @@ const leadsToBeInserted = async (
         email: row[MarketingsheetHeaders.Email],
         gender: Gender.NOT_TO_MENTION,
         city: row[MarketingsheetHeaders.City] || '',
-        assignedTo: assignedToID
+        assignedTo: assignedToID,
+        schoolName: row[MarketingsheetHeaders.SchoolName] || ''
       };
 
       if (
@@ -133,7 +134,7 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) =>
     updateStatusForMarketingSheet(lastSavedIndex + latestData.length, lastSavedIndex);
     return;
   }
-
+  console.log(dataToInsert);
   try {
     const insertedData = await LeadMaster.insertMany(dataToInsert, { ordered: false, throwOnValidationError: true });
     report.actullyProcessedRows = insertedData.length;
