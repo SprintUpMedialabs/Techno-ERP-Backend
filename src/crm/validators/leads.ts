@@ -12,8 +12,8 @@ export const leadMasterSchema = z.object({
   altPhoneNumber: contactNumberSchema.optional(),
   email: z.string().email('Invalid Email Format').optional(),
   gender: z.nativeEnum(Gender).default(Gender.NOT_TO_MENTION),
-  area : z.string().optional(),
-  city : z.nativeEnum(Locations).optional(),
+  area: z.string().optional(),
+  city: z.nativeEnum(Locations).optional(),
   course: z.nativeEnum(Course).optional(),
   assignedTo: objectIdSchema, // TODO: need to test this
   leadType: z.nativeEnum(LeadType).default(LeadType.OPEN),
@@ -22,41 +22,40 @@ export const leadMasterSchema = z.object({
   footFall: z.boolean().optional(),   //This is referring to Campus Visit
   finalConversion: z.nativeEnum(FinalConversionType).optional().default(FinalConversionType.NO_FOOTFALL),
   remarks: z.string().optional(),
-  leadsFollowUpCount : z.number().optional().default(0),
-  yellowLeadsFollowUpCount : z.number().optional().default(0)
+  leadsFollowUpCount: z.number().optional().default(0),
+  yellowLeadsFollowUpCount: z.number().optional().default(0)
 })
 
-export const leadSchema = leadMasterSchema.omit({ 
-  finalConversion : true,
-  footFall : true, 
-  yellowLeadsFollowUpCount : true
+export const leadSchema = leadMasterSchema.omit({
+  finalConversion: true,
+  footFall: true,
+  yellowLeadsFollowUpCount: true
 }).strict();
 
-export const yellowLeadSchema = leadMasterSchema.omit({ leadType : true, leadsFollowUpCount : true }).strict();
+export const yellowLeadSchema = leadMasterSchema.omit({ leadType: true, leadsFollowUpCount: true, leadTypeModifiedDate: true }).strict();
 
 export const leadRequestSchema = leadSchema.extend({
-  date : requestDateSchema,
+  date: requestDateSchema,
   nextDueDate: requestDateSchema.optional()
-})
+}).omit({ leadTypeModifiedDate: true })
 
 export const updateLeadRequestSchema = leadRequestSchema.extend({
   _id: objectIdSchema,
-  date : requestDateSchema.optional(),
+  date: requestDateSchema.optional(),
   phoneNumber: contactNumberSchema.optional(),
   gender: z.nativeEnum(Gender).optional(),
   leadType: z.nativeEnum(LeadType).optional(),
   assignedTo: objectIdSchema.optional(),
-  nextDueDate : requestDateSchema.transform((date) => convertToMongoDate(date) as Date).optional(),
-}).omit({ source : true }).strict(); // strict will restrict extra properties
+  nextDueDate: requestDateSchema.transform((date) => convertToMongoDate(date) as Date).optional(),
+}).omit({ source: true }).strict(); // strict will restrict extra properties
 
 export const yellowLeadUpdateSchema = yellowLeadSchema.extend({
-    _id: objectIdSchema,
-    name: z.string().optional(),
-    phoneNumber: contactNumberSchema.optional(),
-    campusVisit: z.boolean().optional(),
-    assignedTo: objectIdSchema.optional(),
-    date : requestDateSchema.transform((date) => convertToMongoDate(date) as Date).optional(),
-    nextDueDate : requestDateSchema.transform((date) => convertToMongoDate(date) as Date).optional(),
+  _id: objectIdSchema,
+  name: z.string().optional(),
+  phoneNumber: contactNumberSchema.optional(),
+  assignedTo: objectIdSchema.optional(),
+  date: requestDateSchema.transform((date) => convertToMongoDate(date) as Date).optional(),
+  nextDueDate: requestDateSchema.transform((date) => convertToMongoDate(date) as Date).optional(),
 }).strict();
 
 export type ILeadMaster = z.infer<typeof leadMasterSchema>;
