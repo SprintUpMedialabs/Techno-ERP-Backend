@@ -164,7 +164,9 @@ leadSchema.post('findOneAndUpdate', function (error, doc, next) {
 const transformDates = (_, ret) => {
     ['leadTypeModifiedDate', 'nextDueDate', 'date'].forEach((key) => {
         if (key == 'leadTypeModifiedDate') {
-            ret[key] = (0, moment_timezone_1.default)(ret[key]).tz('Asia/Kolkata').format('DD/MM/YYYY | HH:mm');
+            if (ret[key]) {
+                ret[key] = (0, moment_timezone_1.default)(ret[key]).tz('Asia/Kolkata').format('DD/MM/YYYY | HH:mm');
+            }
         }
         else if (ret[key]) {
             ret[key] = (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(ret[key]);
