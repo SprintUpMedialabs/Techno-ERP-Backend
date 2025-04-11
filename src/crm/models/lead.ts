@@ -144,7 +144,9 @@ leadSchema.post('findOneAndUpdate', function (error: any, doc: any, next: Functi
 const transformDates = (_: any, ret: any) => {
   ['leadTypeModifiedDate', 'nextDueDate', 'date'].forEach((key) => {
     if (key == 'leadTypeModifiedDate') {
-      ret[key] = moment(ret[key]).tz('Asia/Kolkata').format('DD/MM/YYYY | HH:mm');
+      if (ret[key]) {
+        ret[key] = moment(ret[key]).tz('Asia/Kolkata').format('DD/MM/YYYY | HH:mm');
+      }
     } else if (ret[key]) {
       ret[key] = convertToDDMMYYYY(ret[key]);
     }
