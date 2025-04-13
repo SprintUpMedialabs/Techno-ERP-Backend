@@ -231,7 +231,7 @@ exports.enquirySchema = new mongoose_1.Schema({
         type: String
     },
     entranceExamDetails: {
-        type: [entranceExamDetail_1.entranceExamDetailSchema]
+        type: entranceExamDetail_1.entranceExamDetailSchema
     },
     studentFee: {
         type: mongoose_1.Schema.Types.ObjectId,
