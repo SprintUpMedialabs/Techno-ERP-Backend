@@ -199,7 +199,7 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
       type: String
     },
     entranceExamDetails: {
-      type: [entranceExamDetailSchema]
+      type: entranceExamDetailSchema
     },
     studentFee: {
       type: Schema.Types.ObjectId,
