@@ -38,11 +38,15 @@ export const feesRequestSchema = studentFeesSchema.omit({ feeStatus: true }).ext
     enquiryId: objectIdSchema,
     feesClearanceDate : requestDateSchema.transform((date) =>
         convertToMongoDate(date) as Date
-    )
+    ),
+    counsellor: z.array(z.union([objectIdSchema, z.enum(['other'])])).optional(),
+    telecaller: z.array(z.union([objectIdSchema, z.enum(['other'])])).optional(),
 });
 
 export const feesUpdateSchema = feesRequestSchema.extend({
-    id: objectIdSchema  //This is referring to the fees table _id
+    id: objectIdSchema, //This is referring to the fees table _id
+    counsellor: z.array(z.union([objectIdSchema, z.enum(['other'])])).optional(),
+    telecaller: z.array(z.union([objectIdSchema, z.enum(['other'])])).optional(),
 }).omit({  enquiryId : true });
 
 
@@ -58,7 +62,11 @@ export const feesDraftRequestSchema = feesRequestSchema.extend({
 }).strict();
 
 
-export const feesDraftUpdateSchema = feesDraftRequestSchema.extend({id : objectIdSchema}).partial().strict()
+export const feesDraftUpdateSchema = feesDraftRequestSchema.extend({
+    id : objectIdSchema,
+    counsellor: z.array(z.union([objectIdSchema, z.enum(['other'])])).optional(),
+    telecaller: z.array(z.union([objectIdSchema, z.enum(['other'])])).optional(),
+}).partial().strict()
 
 
 export type IOtherFeesSchema = z.infer<typeof otherFeesSchema>;

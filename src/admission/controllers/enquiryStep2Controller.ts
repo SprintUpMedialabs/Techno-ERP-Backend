@@ -31,7 +31,7 @@ export const createEnquiryStep2 = expressAsyncHandler(functionLevelLogger(async 
   
     await checkIfStudentAdmitted(validation.data.enquiryId);
     let feesDraft;
-  
+    let feesDraftCreated;
     try {
       const enquiry = await Enquiry.findOne(
         {
@@ -40,7 +40,9 @@ export const createEnquiryStep2 = expressAsyncHandler(functionLevelLogger(async 
         },
         {
           course: 1,
-          studentFeeDraft: 1
+          studentFeeDraft: 1,
+          // telecaller : 1,
+          // counsellor : 1
         }
       ).session(session).lean();
   
@@ -80,28 +82,40 @@ export const createEnquiryStep2 = expressAsyncHandler(functionLevelLogger(async 
   
       feesDraft = await StudentFeesModel.create([feeData], { session });
   
+      feesDraftCreated = {
+        ...feesDraft,
+        telecaller : data.telecaller ? data.telecaller : enquiry.telecaller,
+        counsellor : data.counsellor ? data.counsellor : enquiry.counsellor
+      };
+
       if (!feesDraft) {
         throw createHttpError(404, 'Failed to update Fees');
       }
   
+      const enquiryUpdatePayload: Record<string, any> = {
+        studentFee: feesDraft[0]._id,
+        studentFeeDraft: null,
+      };
+      
+      if (data.counsellor){
+        enquiryUpdatePayload.counsellor = data.counsellor;
+      }
+      if (data.telecaller) {
+        enquiryUpdatePayload.telecaller = data.telecaller;
+      }
+      
       await Enquiry.findByIdAndUpdate(
         data.enquiryId,
-        {
-          $set: {
-            studentFee: feesDraft[0]._id,
-            studentFeeDraft: null,
-            counsellor: data.counsellor,
-            telecaller: data.telecaller
-          }
-        },
+        { $set: enquiryUpdatePayload },
         { new: true, session }
       );
+      
 
       if (enquiry?.studentFeeDraft) 
       {
          await StudentFeesDraftModel.findByIdAndDelete(enquiry.studentFeeDraft, { session });
       }
-  
+
       await session.commitTransaction();
       session.endSession();
     }
@@ -112,7 +126,7 @@ export const createEnquiryStep2 = expressAsyncHandler(functionLevelLogger(async 
       session.endSession();
       throw createHttpError('Could not update successfully');
     }
-    return formatResponse(res, 201, 'Fees created successfully', true, feesDraft);
+    return formatResponse(res, 201, 'Fees created successfully', true, feesDraftCreated);
 }));
   
   

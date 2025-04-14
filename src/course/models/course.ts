@@ -1,84 +1,32 @@
-import createHttpError from "http-errors";
-import { Schema, Types } from "mongoose";
-import { Course } from "../../config/constants";
-import { convertToDDMMYYYY } from "../../utils/convertDateToFormatedDate";
+import mongoose, { Schema } from "mongoose";
 import { ICourseSchema } from "../validators/courseSchema";
-import { semesterSchema } from "./semester";
+import { semesterModelSchema } from "./semester";
+import { COLLECTION_NAMES } from "../../config/constants";
 
-export interface ICourseDocument extends ICourseSchema, Document {
-    semester: [typeof semesterSchema]
-}
+export interface ICourseDocument extends ICourseSchema, Document {};
 
-export interface ICourseResponseDocument extends ICourseSchema, Document {
-    _id: Types.ObjectId;
-    semester: [typeof semesterSchema]
-}
-
-export const courseSchema = new Schema<ICourseDocument>({
-    academicYear: {
-        type: String,
-        required: [true, "Academic year is required"],
-        match: [/^\d{4}-\d{4}$/, "Invalid academic year format (YYYY-YYYY)"]
+const courseModelSchema = new Schema<ICourseDocument>({
+    courseName: { type: String, required: true },
+    courseCode: { type: String, required: true },
+    collegeName: { type: String, required: true },
+    departmentMetaDataId : {
+        type : Schema.Types.ObjectId,
+        ref : COLLECTION_NAMES.DEPARTMENT_META_DATA
     },
-    courseCode: {
-        type: String,
-        required: [true, "Course code is required"]
+    startingYear: {
+      type: Number,
+      required: true,
+      min: [1000, "Starting year must be a valid 4-digit year"], 
+      max: [9999, "Starting year must be a valid 4-digit year"], 
     },
-    courseName: {
-        type: String,
-        required: [true, "Course Name is required"],
-    },
-    collegeName: {
-        type: String,
-        required: [true, "College name is required"],
-        minlength: [3, "College name must be at least 3 characters long"],
-        maxlength: [100, "College name must be at most 100 characters long"]
-    },
-    totalSemesters: {
-        type: Number,
-        required: [true, "Total number of semesters is required"],
-        min: [1, "At least one semester is required"],
+    totalSemesters : {
+        type : Number
     },
     semester: {
-        type: [semesterSchema],
-        default: [],
-    }
-},
-    {
-        timestamps: true
-    }
-);
+        type : [semesterModelSchema],
+        default : []
+    } 
+}, { timestamps : true} );
 
+export const Course = mongoose.model<ICourseDocument>(COLLECTION_NAMES.COURSE, courseModelSchema);
 
-const handleMongooseError = (error: any, next: Function) => {
-    if (error.name === 'ValidationError') {
-        const firstError = error.errors[Object.keys(error.errors)[0]];
-        throw createHttpError(400, firstError.message);
-    }
-    else if (error.code === 11000) {
-        throw createHttpError(400, "Course with this courseCode already exists");       //If course would be duplicated in department, this error would handle that
-    }
-    else if (error.name == 'MongooseError') {
-        throw createHttpError(400, `${error.message}`);
-    } else {
-        next(error);
-    }
-};
-
-courseSchema.post('save', function (error: any, doc: any, next: Function) {
-    handleMongooseError(error, next);
-});
-
-courseSchema.post('findOneAndUpdate', function (error: any, doc: any, next: Function) {
-    handleMongooseError(error, next);
-});
-
-const transformDates = (_: any, ret: any) => {
-    delete ret.createdAt;
-    delete ret.updatedAt;
-    delete ret.__v;
-    return ret;
-};
-
-courseSchema.set('toJSON', { transform: transformDates });
-courseSchema.set('toObject', { transform: transformDates });

@@ -6,7 +6,8 @@ import { admissionRoute } from './admission/routes';
 import feesRouter from './fees/courseAndOtherFees.routes';
 import { courseRoute } from './course/routes/courseRoute';
 import { studentDataRoute } from './student-data/routes/studentRoute';
-import { departmentRoute } from './course/routes/departmentRoute';
+import { departmentRoute } from './course-backup/routes/departmentRoute';
+import { departmentMetaDataRoute } from './course/routes/departmentMetaDataRoute';
 
 export const apiRouter = express.Router();
 
@@ -39,6 +40,17 @@ apiRouter.use('/fees-structure',feesRouter);
  * Contains the router for Department Module
  */
 apiRouter.use('/department', departmentRoute);
+
+/**
+ * Contains the router for Course Module
+ */
+apiRouter.use('/course', courseRoute);
+
+/**
+ * Contains the router for Department Module
+ */
+apiRouter.use('/department-metadata', departmentMetaDataRoute);
+
 
 /**
  * Contains the router for Student Data Module

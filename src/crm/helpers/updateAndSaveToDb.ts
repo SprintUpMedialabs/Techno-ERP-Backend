@@ -90,7 +90,8 @@ const leadsToBeInserted = async (
 
       if (leadDataValidation.success) {
         dataToInsert.push(leadDataValidation.data);
-      } else {
+      } 
+      else {
         report.rowsFailed++;
         report.otherIssue.push({
           rowId: correspondingSheetIndex,
@@ -104,7 +105,8 @@ const leadsToBeInserted = async (
           leadDataValidation.error.errors
         );
       }
-    } catch (error) {
+    } 
+    catch (error) {
       logger.error(`Error processing row: ${JSON.stringify(row)}`, error);
     }
   }

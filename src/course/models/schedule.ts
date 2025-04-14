@@ -1,83 +1,84 @@
 import { Schema } from "mongoose";
-import { IScheduleSchema } from "../validators/scheduleSchema";
-import { convertToDDMMYYYY, convertToMongoDate } from "../../utils/convertDateToFormatedDate";
-import createHttpError from "http-errors";
+import { ILecturePlanSchema, IPracticalPlanSchema, IScheduleSchema } from "../validators/scheduleSchema";
+import { COLLECTION_NAMES, LectureConfirmation } from "../../config/constants";
+import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
 
-export interface IScheduleDocument extends IScheduleSchema, Document { }
+export interface ILecturePlanDocument extends ILecturePlanSchema, Document {};
+export interface IPracticalPlanDocument extends IPracticalPlanSchema, Document {};
+export interface IScheduleDocument extends IScheduleSchema, Document {};
 
-export const scheduleSchema = new Schema<IScheduleDocument>({
+export const lecturePlanModelSchema = new Schema<ILecturePlanDocument>({
+    unit: { 
+        type: Number, 
+        required: [true, 'Unit Number is required.'], 
+        min: [0, 'Unit Number must be a valid value.'] 
+    },
     lectureNumber: { 
         type: Number, 
-        min: [1, "Lecture number must be greater than 0"],
+        required: [true, 'Lecture Number is required.'], 
+        min: [0, 'Lecture number must be a valid value.'] 
     },
     topicName: { 
-        type: String, 
-        minlength: [3, "Topic name must be at least 3 characters long"],
-        maxlength: [100, "Topic name must be at most 100 characters long"]
+        type: Number, 
+        required: [true, 'Topic Name is required.'] 
     },
-    description: { 
-        type: String, 
-        maxlength: [500, "Description must be at most 500 characters long"]
+    instructor: {
+        type: Schema.Types.ObjectId,
+        ref: COLLECTION_NAMES.USER,
     },
     plannedDate: { 
-        type: Date,
-        set: (value: string) => {
-            return convertToMongoDate(value);
-        }
-    },
-    dateOfLecture: { 
         type: Date, 
+        required: [true, 'Planned Date is required'], 
         set: (value: string) => {
             return convertToMongoDate(value);
         }
     },
-    confirmation: { 
-        type: Boolean, 
+    actualDate: { 
+        type: Date,
+        set: (value: string | undefined) => {
+            return value ? convertToMongoDate(value) : undefined;
+        },
+    },
+    classStrength: { 
+        type: Number, 
+    },
+    attendance: {
+        type: Number,
+        validate: {
+            validator: function (this: ILecturePlanDocument, value: number) {
+                if (value === undefined || this.classStrength === undefined) 
+                {
+                    return true;
+                }
+                return value <= this.classStrength;
+            },
+            message: "Attendance cannot exceed class strength",
+        },
+    },
+    absent: { 
+        type: Number
+    },
+    confirmation: {
+        type: String,
+        enum : {
+            values : Object.values(LectureConfirmation),
+            message: 'Invalid Confirmation Value'
+        },
+        default: LectureConfirmation.TO_BE_DONE,
     },
     remarks: { 
-        type: String, 
-        maxlength: [200, "Remarks must be at most 200 characters long"] 
-    }
-});
-
-
-
-const handleMongooseError = (error: any, next: Function) => {
-    if (error.name === 'ValidationError') {
-        const firstError = error.errors[Object.keys(error.errors)[0]];
-        console.log(firstError.message)
-        throw createHttpError(400, firstError.message);
-    }
-    else if (error.code === 11000) {
-        throw createHttpError(400, "Semester with this semester details already exists");     
-    } 
-    else if (error.name == 'MongooseError') {
-        console.log(error.message);
-        throw createHttpError(400, `${error.message}`);
-    } else {
-        next(error);
-    }
-};
-
-scheduleSchema.post('save', function (error: any, doc: any, next: Function) {
-    handleMongooseError(error, next);
-});
-
-scheduleSchema.post('findOneAndUpdate', function (error: any, doc: any, next: Function) {
-    handleMongooseError(error, next);
-});
-
-const transformDates = (_: any, ret: any) => {
-    ['plannedDate', 'dateOfLecture'].forEach((key) => {
-        if (ret[key]) {
-            ret[key] = convertToDDMMYYYY(ret[key]);
+        type: String 
+    },
+    documents: [
+        { 
+            type: String
         }
-    });
-    delete ret.createdAt;
-    delete ret.updatedAt;
-    delete ret.__v;
-    return ret;
-};
+    ],
+});
 
-scheduleSchema.set('toJSON', { transform: transformDates });
-scheduleSchema.set('toObject', { transform: transformDates });
+
+export const scheduleModelSchema = new Schema<IScheduleDocument>({
+    lecturePlan: [lecturePlanModelSchema],
+    practicalPlan: [lecturePlanModelSchema],
+    additionalResources: [{ type: String }],
+});
