@@ -1,18 +1,10 @@
 import { z } from "zod";
-import { objectIdSchema } from "../../validators/commonSchema";
+import { subjectSchema } from "./subjectSchema";
 
 export const semesterSchema = z.object({
-    semesterNumber: z.number().min(1).max(10, "Semester number should be between 1 and 10"),
+    semesterNumber: z.number().nonnegative("Semester Number should be a valid non negative integer"),
+    academicYear: z.string().regex(/^\d{4}-\d{4}$/, "Academic year must be in the format YYYY-YYYY"),
+    subjects: z.array(subjectSchema),
 });
 
-export const semesterRequestSchema = semesterSchema.extend({
-    courseId: objectIdSchema
-});
-
-// export const semesterUpdateSchema = semesterSchema.extend({
-//     semesterId: objectIdSchema
-// })
-
-export type ISemesterCreateSchema = z.infer<typeof semesterRequestSchema>;
-// export type ISemesterUpdateSchema = z.infer<typeof semesterUpdateSchema>;
 export type ISemesterSchema = z.infer<typeof semesterSchema>;

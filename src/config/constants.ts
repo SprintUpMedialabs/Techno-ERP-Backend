@@ -299,5 +299,14 @@ export enum COLLECTION_NAMES {
   SPREADSHEET_META_DATA = 'spreadSheetMetaData',
   YELLOW_LEAD = 'YellowLead',
   COURSE_OTHER_FEES = 'CourseAndOtherFees',
-  STUDENT = 'Student'
+  STUDENT = 'Student',
+  DEPARTMENT_META_DATA = 'DepartmentMetaData',
+  COURSE = 'Course'
+}
+
+
+export enum LectureConfirmation{
+  CONFIRMED = 'CONFIRMED',
+  DELAYED = 'DELAYED',
+  TO_BE_DONE = 'TO_BE_DONE'
 }

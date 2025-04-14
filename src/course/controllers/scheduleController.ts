@@ -1,144 +1,166 @@
-import { Response } from "express";
 import expressAsyncHandler from "express-async-handler";
-import createHttpError from "http-errors";
-import { Types } from "mongoose";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
+import { Response } from "express";
+import mongoose from "mongoose";
+import { Course } from "../models/course";
 import { formatResponse } from "../../utils/formatResponse";
-import { DepartmentModel } from "../models/department";
-import { IScheduleRequestSchema, IScheduleUpdateSchema, scheduleRequestSchema, scheduleUpdateSchema } from "../validators/scheduleSchema";
+import { createLecturePlanSchema, ICreateLecturePlanSchema } from "../validators/scheduleSchema";
+import createHttpError from "http-errors";
 
+export const getScheduleInformation = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  let { courseId, semesterId, subjectId, instructorId, search, page = 1, limit = 10 } = req.body;
 
-export const createSchedule = expressAsyncHandler(async (req : AuthenticatedRequest, res: Response) => {
+  courseId = new mongoose.Types.ObjectId(courseId);
+  semesterId = new mongoose.Types.ObjectId(semesterId);
+  subjectId = new mongoose.Types.ObjectId(subjectId);
+  instructorId = new mongoose.Types.ObjectId(instructorId);
 
-    const createScheduleData : IScheduleRequestSchema = req.body;
-    const validation = scheduleRequestSchema.safeParse(createScheduleData);
-
-    if(!validation.success)
+  const pipeline = [
     {
-        throw createHttpError(400, validation.error.errors[0]);
-    }
-
-    const { subjectId, lectureNumber, topicName, description, plannedDate, dateOfLecture, confirmation, remarks } = validation.data;
-
-    const newSchedule = {
-        lectureNumber, 
-        topicName,
-        description,
-        plannedDate, 
-        dateOfLecture, 
-        confirmation, 
-        remarks
-    };
-
-    const updatedDepartment = await DepartmentModel.findOneAndUpdate(
-        {
-            "courses.semester.subjectDetails._id": subjectId
+      $match: {
+        _id: courseId,
+      },
+    },
+    {
+      $addFields: {
+        semesterDetails: {
+          $first: {
+            $filter: {
+              input: "$semester",
+              as: "sem",
+              cond: {
+                $eq: ["$$sem._id", semesterId],
+              },
+            },
+          },
         },
-        {
-            $push: { "courses.$.semester.$[sem].subjectDetails.$[subj].schedule": newSchedule }
-        },
-        {
-            new: true,
-            arrayFilters: [
-                { "sem.subjectDetails._id": subjectId },
-                { "subj._id": subjectId }
+      },
+    },
+    {
+      $addFields: {
+        courseYear: {
+          $switch: {
+            branches: [
+              {
+                case: { $in: ["$semesterDetails.semesterNumber", [1, 2]] },
+                then: "First",
+              },
+              {
+                case: { $in: ["$semesterDetails.semesterNumber", [3, 4]] },
+                then: "Second",
+              },
+              {
+                case: { $in: ["$semesterDetails.semesterNumber", [5, 6]] },
+                then: "Third",
+              },
+              {
+                case: { $in: ["$semesterDetails.semesterNumber", [7, 8]] },
+                then: "Fourth",
+              },
             ],
-            projection: {
-                "courses": {
-                    $elemMatch: {
-                        "semester.subjectDetails._id": subjectId 
-                    }
-                }
-            }
-        }
-    );
-
-    return formatResponse(res, 201, "Schedule Created Successfully", true, updatedDepartment);
-});
-
-
-
-export const updateSchedule = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-
-    const updateScheduleData : IScheduleUpdateSchema = req.body;
-    const validation = scheduleUpdateSchema.safeParse(updateScheduleData);
-
-    if(!validation.success)
-        throw createHttpError(400, validation.error.errors[0]);
-
-
-    const { scheduleId, topicName, lectureNumber, description, dateOfLecture, plannedDate, confirmation, remarks} = validation.data;
-
-
-    const updatedDepartment = await DepartmentModel.findOneAndUpdate(
-        {
-            "courses.semester.subjectDetails.schedule._id": scheduleId
+            default: "Unknown",
+          },
         },
-        {
-            $set: {
-                "courses.$.semester.$[sem].subjectDetails.$[subj].schedule.$[sched].lectureNumber": lectureNumber,
-                "courses.$.semester.$[sem].subjectDetails.$[subj].schedule.$[sched].topicName": topicName,
-                "courses.$.semester.$[sem].subjectDetails.$[subj].schedule.$[sched].description": description,
-                "courses.$.semester.$[sem].subjectDetails.$[subj].schedule.$[sched].plannedDate": plannedDate,
-                "courses.$.semester.$[sem].subjectDetails.$[subj].schedule.$[sched].dateOfLecture": dateOfLecture,
-                "courses.$.semester.$[sem].subjectDetails.$[subj].schedule.$[sched].confirmation": confirmation,
-                "courses.$.semester.$[sem].subjectDetails.$[subj].schedule.$[sched].remarks": remarks
-            }
+      },
+    },
+    {
+      $unwind: "$semesterDetails.subjects",
+    },
+    {
+      $match: {
+        "semesterDetails.subjects._id": subjectId,
+      },
+    },
+    {
+      $addFields: {
+        matchingLecturePlans: {
+          $filter: {
+            input: "$semesterDetails.subjects.schedule.lecturePlan",
+            as: "lp",
+            cond: {
+              $eq: ["$$lp.instructor", instructorId],
+            },
+          },
         },
-        {
-            new: true,
-            arrayFilters: [
-                { "sem.subjectDetails.schedule._id" : scheduleId },
-                { "subj.schedule._id": scheduleId },
-                { "sched._id": scheduleId }
-            ],
-            projection: {
-                "courses": {
-                    $elemMatch: {
-                        "semester.subjectDetails.schedule._id": scheduleId 
-                    }
-                }
-            }
-        }
-    );
-
-
-    return formatResponse(res, 200, "Schedule Updated Successfully", true, updatedDepartment);
-});
-
-
-export const deleteSchedule = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const { subjectId, scheduleId } = req.body;
-
-    if (!Types.ObjectId.isValid(subjectId) || !Types.ObjectId.isValid(scheduleId)) {
-        throw createHttpError(400, "Invalid subjectId or scheduleId");
-    }
-
-    const updatedDepartment = await DepartmentModel.findOneAndUpdate(
-        {
-            "courses.semester.subjectDetails._id": subjectId,
-            "courses.semester.subjectDetails.schedule._id": scheduleId
+        matchingPracticalPlans: {
+          $filter: {
+            input: "$semesterDetails.subjects.schedule.practicalPlan",
+            as: "pp",
+            cond: {
+              $eq: ["$$pp.instructor", instructorId],
+            },
+          },
         },
-        {
-            $pull: {
-                "courses.$.semester.$[sem].subjectDetails.$[subj].schedule": { _id: scheduleId }
-            }
-        },
-        {
-            new: true, 
-            arrayFilters: [
-                { "sem.subjectDetails._id": subjectId }, 
-                { "subj._id": subjectId } 
-            ],
-            projection: {
-                "courses": {
-                    $elemMatch: {
-                        "semester.subjectDetails._id": subjectId 
-                    }
-                }
-            }
-        }
-    );
+      },
+    },
+    {
+      $lookup: {
+        from: "Users",
+        localField: "semesterDetails.subjects.instructor",
+        foreignField: "_id",
+        as: "instructorDetails",
+      },
+    },
+    { $unwind: "$instructorDetails" },
+    {
+      $lookup: {
+        from: "departmentmetadatas",
+        localField: "departmentMetaDataId",
+        foreignField: "_id",
+        as: "departmentMetaData",
+      },
+    },
+    { $unwind: "$departmentMetaData" },
+    {
+      $project: {
+        subjectName: "$semesterDetails.subjects.subjectName",
+        subjectCode: "$semesterDetails.subjects.subjectCode",
+        instructorName: "$instructorDetails.name",
 
-    return formatResponse(res, 200, "Schedule deleted successfully", true, updatedDepartment);
-});
+        courseId: "$_id",
+        courseName: "$courseName",
+        courseCode: "$courseCode",
+        courseYear: "$courseYear",
+
+        semesterId: "$semesterDetails._id",
+        semesterNumber: "$semesterDetails.semesterNumber",
+
+        subjectId: "$semesterDetails.subjects._id",
+        instructorId: "$instructorDetails._id",
+        departmentMetaDataId: "$departmentMetaData._id",
+
+        departmentName: "$departmentMetaData.departmentName",
+        departmentHOD: "$departmentMetaData.departmentHOD",
+        collegeName: "$collegeName",
+
+        schedule: {
+          lecturePlan: "$matchingLecturePlans",
+          practicalPlan: "$matchingPracticalPlans",
+          additionalResources: "$semesterDetails.subjects.schedule.additionalResources",
+        },
+      },
+    },
+  ];
+
+  let subjectDetails = await Course.aggregate(pipeline);
+
+  let payload = subjectDetails[0];
+
+  return formatResponse(res, 200, 'Plans fetched successfully', true, payload);
+})
+
+
+export const createLecturePlan = expressAsyncHandler((req : AuthenticatedRequest, res : Response) => {
+  const lecturePlanData : ICreateLecturePlanSchema = req.body;
+
+  const validation = createLecturePlanSchema.safeParse(lecturePlanData);
+
+  if(!validation.success)
+    throw createHttpError(400, validation.error.errors[0]);
+
+  let { courseId, semesterId, subjectId, instructorId, ...lecturePlan } = lecturePlanData;
+
+
+  //Ahiya thi baaki che.
+
+})
