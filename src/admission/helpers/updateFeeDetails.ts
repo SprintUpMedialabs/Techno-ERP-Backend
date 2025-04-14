@@ -21,7 +21,9 @@ export const updateFeeDetails = async (applicationStatusList: ApplicationStatus[
       applicationStatus: { $nin: [...applicationStatusList] }
      }, 
      {
-        course: 1 // Only return course field
+        course: 1, // Only return course field
+        telecaller : 1,
+        counsellor : 1
      })
      .lean();
   
@@ -31,7 +33,8 @@ export const updateFeeDetails = async (applicationStatusList: ApplicationStatus[
     }
   
     await checkIfStudentAdmitted(enquiry._id);
-  
+ 
+
     const otherFees = await fetchOtherFees();
     const semWiseFee = await fetchCourseFeeByCourse(enquiry?.course.toString() ?? '');
   
@@ -44,7 +47,9 @@ export const updateFeeDetails = async (applicationStatusList: ApplicationStatus[
       semWiseFees: validation.data.semWiseFees.map((semFee, index: number) => ({
         finalFee: semFee.finalFee,
         feeAmount: (semWiseFee?.fee[index]) ?? 0
-      }))
+      })),
+      // counsellor : validation.data.counsellor,
+      // telecaller : validation.data.telecaller
     }
   
     const feesDraft = await StudentFeesModel.findByIdAndUpdate(
@@ -52,12 +57,33 @@ export const updateFeeDetails = async (applicationStatusList: ApplicationStatus[
       { $set: feeData },
       { new: true, runValidators: true }
     );
-  
+
+    const enquiryUpdatePayload: Record<string, any> = {};
+    if (studentFeesData.counsellor) 
+    {
+      enquiryUpdatePayload.counsellor = studentFeesData.counsellor;
+    }
+    
+    if (studentFeesData.telecaller) 
+    {
+      enquiryUpdatePayload.telecaller = studentFeesData.telecaller;
+    }
+
+    if (Object.keys(enquiryUpdatePayload).length > 0) {
+      await Enquiry.findByIdAndUpdate(enquiry._id, {
+        $set: enquiryUpdatePayload
+      });
+    }
+    
     if (!feesDraft) 
     {
       throw createHttpError(404, 'Failed to update Fees Details');
     }
-    return feesDraft;
+    return {
+      ...feesDraft,
+      telecaller : enquiryUpdatePayload.telecaller ? enquiryUpdatePayload.telecaller : enquiry.telecaller ,
+      counsellor : enquiryUpdatePayload.counsellor ? enquiryUpdatePayload.counsellor : enquiry.counsellor
+    };
 
 }
   

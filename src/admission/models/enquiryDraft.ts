@@ -1,7 +1,7 @@
 import createHttpError from "http-errors";
 import mongoose, { Schema } from "mongoose"
 import { convertToDDMMYYYY, convertToMongoDate } from "../../utils/convertDateToFormatedDate";
-import { AdmissionMode, AdmissionReference, Category, COLLECTION_NAMES, Course, Gender } from "../../config/constants";
+import { AdmissionMode, AdmissionReference, ApplicationStatus, Category, COLLECTION_NAMES, Course, Gender } from "../../config/constants";
 import { IEnquirySchema } from "../validators/enquiry";
 import { contactNumberSchema, emailSchema } from "../../validators/commonSchema";
 import { academicDetailFormSchema } from "./academicDetail";
@@ -183,11 +183,18 @@ export const enquiryDraftSchema = new Schema<IEnquiryDraftDocument>(
                 message: 'Invalid gender value'
             }
         },
+        applicationStatus: {
+            type: String,
+            enum: {
+              values: Object.values(ApplicationStatus),
+              message: 'Invalid Application Status value'
+            },
+            default: ApplicationStatus.STEP_1,
+            required: true
+        },
     },
     { timestamps: true }
 );
-
-
 
 const handleDraftMongooseError = (error: any, next: Function) => {
     if (error.name === 'ValidationError') {
