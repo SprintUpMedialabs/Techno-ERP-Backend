@@ -8,93 +8,205 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteSubject = exports.updateSubject = exports.createSubject = void 0;
+exports.createSubject = exports.getSubjectInformation = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
-const http_errors_1 = __importDefault(require("http-errors"));
-const mongoose_1 = require("mongoose");
-const department_1 = require("../models/department");
-const subjectDetailsSchema_1 = require("../validators/subjectDetailsSchema");
+const mongoose_1 = __importDefault(require("mongoose"));
+const course_1 = require("../models/course");
 const formatResponse_1 = require("../../utils/formatResponse");
+const subjectSchema_1 = require("../validators/subjectSchema");
+const http_errors_1 = __importDefault(require("http-errors"));
+exports.getSubjectInformation = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    let { courseId, semesterId, search, page = 1, limit = 10 } = req.body;
+    console.log(courseId);
+    courseId = new mongoose_1.default.Types.ObjectId(courseId);
+    semesterId = new mongoose_1.default.Types.ObjectId(semesterId);
+    const skip = (page - 1) * limit;
+    // console.log(courseId);
+    // console.log(semesterId);
+    const pipeline = [
+        { $match: { _id: courseId } },
+        {
+            $addFields: {
+                semesterDetails: {
+                    $filter: {
+                        input: "$semester",
+                        as: "sem",
+                        cond: { $eq: ["$$sem._id", semesterId] },
+                    },
+                },
+            },
+        },
+        {
+            $lookup: {
+                from: "departmentmetadatas",
+                localField: "departmentMetaDataId",
+                foreignField: "_id",
+                as: "departmentMetaData",
+            },
+        },
+        { $unwind: "$departmentMetaData" },
+        { $unwind: "$semesterDetails" },
+        {
+            $addFields: {
+                courseYear: {
+                    $switch: {
+                        branches: [
+                            {
+                                case: { $in: ["$semesterDetails.semesterNumber", [1, 2]] },
+                                then: "First",
+                            },
+                            {
+                                case: { $in: ["$semesterDetails.semesterNumber", [3, 4]] },
+                                then: "Second",
+                            },
+                            {
+                                case: { $in: ["$semesterDetails.semesterNumber", [5, 6]] },
+                                then: "Third",
+                            },
+                            {
+                                case: { $in: ["$semesterDetails.semesterNumber", [7, 8]] },
+                                then: "Fourth",
+                            },
+                        ],
+                        default: "Unknown",
+                    },
+                },
+            },
+        },
+        {
+            $match: { "semesterDetails._id": semesterId },
+        },
+        {
+            $unwind: "$semesterDetails.subjects"
+        },
+        {
+            $match: search ? {
+                $or: [
+                    { "semesterDetails.subjects.subjectName": { $regex: search, $options: "i" } },
+                    { "semesterDetails.subjects.subjectCode": { $regex: search, $options: "i" } }
+                ]
+            } : {}
+        },
+        {
+            $lookup: {
+                from: "users",
+                localField: "semester.subjects.instructor",
+                foreignField: "_id",
+                as: "instructorDetails",
+            },
+        },
+        {
+            $unwind: "$instructorDetails"
+        },
+        {
+            $addFields: {
+                subjectDetails: {
+                    subjectId: "$semesterDetails.subjects._id",
+                    subjectName: "$semesterDetails.subjects.subjectName",
+                    subjectCode: "$semesterDetails.subjects.subjectCode",
+                    instructorName: "$instructorDetails.firstName",
+                    instructorId: "$instructorDetails._id",
+                    numberOfLectures: {
+                        $size: {
+                            $filter: {
+                                input: "$semesterDetails.subjects.schedule.lecturePlan",
+                                as: "lecture",
+                                cond: { $eq: ["$$lecture.instructor", "$instructorDetails._id"] }
+                            }
+                        }
+                    }
+                },
+            }
+        },
+        {
+            $group: {
+                _id: {
+                    courseId: "$_id",
+                    courseName: "$courseName",
+                    courseCode: "$courseCode",
+                    semesterId: "$semesterDetails._id",
+                    semesterNumber: "$semesterDetails.semesterNumber",
+                    academicYear: "$semesterDetails.academicYear",
+                    courseYear: "$courseYear",
+                    collegeName: "$collegeName",
+                    departmentName: "$departmentMetaData.departmentName",
+                    departmentHOD: "$departmentMetaData.departmentHOD",
+                },
+                subjectDetails: { $push: "$subjectDetails" },
+            },
+        },
+        {
+            $project: {
+                _id: 0,
+                courseId: "$_id.courseId",
+                courseName: "$_id.courseName",
+                courseCode: "$_id.courseCode",
+                semesterId: "$_id.semesterId",
+                semesterNumber: "$_id.semesterNumber",
+                academicYear: "$_id.academicYear",
+                courseYear: "$_id.courseYear",
+                collegeName: "$_id.collegeName",
+                departmentName: "$_id.departmentName",
+                departmentHOD: "$_id.departmentHOD",
+                subjectDetails: 1
+            }
+        },
+        { $skip: skip },
+        { $limit: limit },
+    ];
+    let subjectDetails = yield course_1.Course.aggregate(pipeline);
+    let payload = subjectDetails[0];
+    const totalCount = yield course_1.Course.aggregate([
+        { $match: { _id: courseId } },
+        { $unwind: "$semester" },
+        { $match: { "semester._id": semesterId } },
+        { $unwind: "$semester.subjects" },
+        {
+            $project: {
+                instructors: "$semester.subjects.instructor",
+            },
+        },
+        { $unwind: "$instructors" },
+        { $count: "totalCount" },
+    ]);
+    const totalItems = totalCount.length ? totalCount[0].totalCount : 0;
+    const totalPages = Math.ceil(totalItems / limit);
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Subject Details fetched for course and semester', true, {
+        payload,
+        pagination: {
+            totalItems,
+            totalPages,
+            currentPage: page,
+            limit,
+        },
+    });
+}));
 exports.createSubject = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const subjectData = req.body;
-    const validation = subjectDetailsSchema_1.subjectDetailsRequestSchema.safeParse(subjectData);
-    if (!validation.success) {
+    const validation = subjectSchema_1.createSubjectSchema.safeParse(subjectData);
+    if (!validation.success)
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
-    }
-    const _a = validation.data, { semesterId } = _a, subjectCreateData = __rest(_a, ["semesterId"]);
-    const updatedDepartment = yield department_1.DepartmentModel.findOneAndUpdate({ "courses.semester._id": validation.data.semesterId }, { $push: { "courses.$[].semester.$[sem].subjectDetails": Object.assign(Object.assign({}, subjectCreateData), { schedule: [] }) } }, {
-        arrayFilters: [{ "sem._id": semesterId }],
-        new: true,
-        runValidators: true
-    });
-    const updatedCourse = yield department_1.DepartmentModel.findOne({ "courses.semester._id": semesterId }, { "courses.$": 1 });
-    if (!updatedDepartment) {
-        throw (0, http_errors_1.default)(404, "Failed creating subject");
-    }
-    return (0, formatResponse_1.formatResponse)(res, 201, 'Subject Added successfully', true, updatedCourse);
-}));
-exports.updateSubject = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const subjectData = req.body;
-    const validation = subjectDetailsSchema_1.subjectDetailsUpdateSchema.safeParse(subjectData);
-    if (!validation.success) {
-        throw (0, http_errors_1.default)(400, validation.error.errors[0]);
-    }
-    const _a = validation.data, { subjectId } = _a, subjectUpdateData = __rest(_a, ["subjectId"]);
-    console.log(subjectUpdateData);
-    const updatedDepartment = yield department_1.DepartmentModel.findOneAndUpdate({ "courses.semester.subjectDetails._id": subjectId }, {
-        $set: {
-            "courses.$.semester.$[sem].subjectDetails.$[subj].subjectName": subjectUpdateData.subjectName,
-            "courses.$.semester.$[sem].subjectDetails.$[subj].subjectCode": subjectUpdateData.subjectCode,
-            "courses.$.semester.$[sem].subjectDetails.$[subj].instructor": subjectUpdateData.instructor,
-        }
-    }, {
-        arrayFilters: [
-            { "sem.subjectDetails._id": subjectId },
-            { "subj._id": subjectId }
-        ],
-        projection: { "courses.$": 1 }
-    });
-    return (0, formatResponse_1.formatResponse)(res, 200, 'Subject Updated Successfully', true, updatedDepartment);
-}));
-exports.deleteSubject = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { subjectId, semesterId } = req.body;
-    if (!mongoose_1.Types.ObjectId.isValid(subjectId) || !mongoose_1.Types.ObjectId.isValid(semesterId)) {
-        throw (0, http_errors_1.default)(400, "Invalid subjectId or semesterId");
-    }
-    const updatedDepartment = yield department_1.DepartmentModel.findOneAndUpdate({
-        "courses.semester._id": semesterId,
-        "courses.semester.subjectDetails._id": subjectId
-    }, {
-        $pull: {
-            "courses.$.semester.$[sem].subjectDetails": { _id: subjectId }
-        }
-    }, {
-        new: true,
-        arrayFilters: [
-            { "sem._id": semesterId }
-        ],
-        projection: {
-            "courses": {
-                $elemMatch: {
-                    "semester._id": semesterId
-                }
+    let { courseId, semesterId } = subjectData;
+    const { subjectName, subjectCode, instructor } = subjectData;
+    courseId = new mongoose_1.default.Types.ObjectId(courseId);
+    semesterId = new mongoose_1.default.Types.ObjectId(semesterId);
+    const instructorIds = instructor || [];
+    const instructorObjectIDs = instructorIds.map(id => new mongoose_1.default.Types.ObjectId(id));
+    const updateSemesterInformation = yield course_1.Course.updateOne({ _id: courseId, "semester._id": semesterId }, {
+        $push: {
+            "semester.$.subjects": {
+                subjectName,
+                subjectCode,
+                instructor: instructorObjectIDs,
             }
         }
     });
-    return (0, formatResponse_1.formatResponse)(res, 200, "Subject deleted successfully", true, updatedDepartment);
+    if (updateSemesterInformation.modifiedCount === 0) {
+        throw (0, http_errors_1.default)(404, 'Error occurred saving the subject information');
+    }
+    return (0, formatResponse_1.formatResponse)(res, 201, 'Successfully added subject information', true, updateSemesterInformation);
 }));

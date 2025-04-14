@@ -1,11 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.semesterRequestSchema = exports.semesterSchema = void 0;
+exports.semesterSchema = void 0;
 const zod_1 = require("zod");
-const commonSchema_1 = require("../../validators/commonSchema");
+const subjectSchema_1 = require("./subjectSchema");
 exports.semesterSchema = zod_1.z.object({
-    semesterNumber: zod_1.z.number().min(1).max(10, "Semester number should be between 1 and 10"),
-});
-exports.semesterRequestSchema = exports.semesterSchema.extend({
-    courseId: commonSchema_1.objectIdSchema
+    semesterNumber: zod_1.z.number().nonnegative("Semester Number should be a valid non negative integer"),
+    academicYear: zod_1.z.string().regex(/^\d{4}-\d{4}$/, "Academic year must be in the format YYYY-YYYY"),
+    subjects: zod_1.z.array(subjectSchema_1.subjectSchema),
 });

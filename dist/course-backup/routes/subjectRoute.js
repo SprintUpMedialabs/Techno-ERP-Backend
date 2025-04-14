@@ -4,10 +4,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.subjectRoute = void 0;
+const express_1 = __importDefault(require("express"));
 const constants_1 = require("../../config/constants");
 const jwtAuthenticationMiddleware_1 = require("../../middleware/jwtAuthenticationMiddleware");
-const express_1 = __importDefault(require("express"));
+const scheduleRoute_1 = require("./scheduleRoute");
 const subjectController_1 = require("../controllers/subjectController");
 exports.subjectRoute = express_1.default.Router();
 exports.subjectRoute.post('/', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER]), subjectController_1.createSubject);
-exports.subjectRoute.post('/subject-info', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER]), subjectController_1.getSubjectInformation);
+exports.subjectRoute.put('/', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER]), subjectController_1.updateSubject);
+exports.subjectRoute.delete('/', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER]), subjectController_1.deleteSubject);
+exports.subjectRoute.use('/schedule', scheduleRoute_1.scheduleRoute);

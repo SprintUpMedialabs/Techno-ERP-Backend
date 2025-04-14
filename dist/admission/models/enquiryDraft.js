@@ -210,6 +210,15 @@ exports.enquiryDraftSchema = new mongoose_1.Schema({
             message: 'Invalid gender value'
         }
     },
+    applicationStatus: {
+        type: String,
+        enum: {
+            values: Object.values(constants_1.ApplicationStatus),
+            message: 'Invalid Application Status value'
+        },
+        default: constants_1.ApplicationStatus.STEP_1,
+        required: true
+    },
 }, { timestamps: true });
 const handleDraftMongooseError = (error, next) => {
     if (error.name === 'ValidationError') {

@@ -8,113 +8,164 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteSchedule = exports.updateSchedule = exports.createSchedule = void 0;
+exports.createLecturePlan = exports.getScheduleInformation = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
-const http_errors_1 = __importDefault(require("http-errors"));
-const mongoose_1 = require("mongoose");
+const mongoose_1 = __importDefault(require("mongoose"));
+const course_1 = require("../models/course");
 const formatResponse_1 = require("../../utils/formatResponse");
-const department_1 = require("../models/department");
 const scheduleSchema_1 = require("../validators/scheduleSchema");
-exports.createSchedule = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const createScheduleData = req.body;
-    const validation = scheduleSchema_1.scheduleRequestSchema.safeParse(createScheduleData);
-    if (!validation.success) {
-        throw (0, http_errors_1.default)(400, validation.error.errors[0]);
-    }
-    const { subjectId, lectureNumber, topicName, description, plannedDate, dateOfLecture, confirmation, remarks } = validation.data;
-    const newSchedule = {
-        lectureNumber,
-        topicName,
-        description,
-        plannedDate,
-        dateOfLecture,
-        confirmation,
-        remarks
-    };
-    const updatedDepartment = yield department_1.DepartmentModel.findOneAndUpdate({
-        "courses.semester.subjectDetails._id": subjectId
-    }, {
-        $push: { "courses.$.semester.$[sem].subjectDetails.$[subj].schedule": newSchedule }
-    }, {
-        new: true,
-        arrayFilters: [
-            { "sem.subjectDetails._id": subjectId },
-            { "subj._id": subjectId }
-        ],
-        projection: {
-            "courses": {
-                $elemMatch: {
-                    "semester.subjectDetails._id": subjectId
-                }
-            }
-        }
-    });
-    return (0, formatResponse_1.formatResponse)(res, 201, "Schedule Created Successfully", true, updatedDepartment);
+const http_errors_1 = __importDefault(require("http-errors"));
+exports.getScheduleInformation = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    let { courseId, semesterId, subjectId, instructorId, search, page = 1, limit = 10 } = req.body;
+    courseId = new mongoose_1.default.Types.ObjectId(courseId);
+    semesterId = new mongoose_1.default.Types.ObjectId(semesterId);
+    subjectId = new mongoose_1.default.Types.ObjectId(subjectId);
+    instructorId = new mongoose_1.default.Types.ObjectId(instructorId);
+    const pipeline = [
+        {
+            $match: {
+                _id: courseId,
+            },
+        },
+        {
+            $addFields: {
+                semesterDetails: {
+                    $first: {
+                        $filter: {
+                            input: "$semester",
+                            as: "sem",
+                            cond: {
+                                $eq: ["$$sem._id", semesterId],
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        {
+            $addFields: {
+                courseYear: {
+                    $switch: {
+                        branches: [
+                            {
+                                case: { $in: ["$semesterDetails.semesterNumber", [1, 2]] },
+                                then: "First",
+                            },
+                            {
+                                case: { $in: ["$semesterDetails.semesterNumber", [3, 4]] },
+                                then: "Second",
+                            },
+                            {
+                                case: { $in: ["$semesterDetails.semesterNumber", [5, 6]] },
+                                then: "Third",
+                            },
+                            {
+                                case: { $in: ["$semesterDetails.semesterNumber", [7, 8]] },
+                                then: "Fourth",
+                            },
+                        ],
+                        default: "Unknown",
+                    },
+                },
+            },
+        },
+        {
+            $unwind: "$semesterDetails.subjects",
+        },
+        {
+            $match: {
+                "semesterDetails.subjects._id": subjectId,
+            },
+        },
+        {
+            $addFields: {
+                matchingLecturePlans: {
+                    $filter: {
+                        input: "$semesterDetails.subjects.schedule.lecturePlan",
+                        as: "lp",
+                        cond: {
+                            $eq: ["$$lp.instructor", instructorId],
+                        },
+                    },
+                },
+                matchingPracticalPlans: {
+                    $filter: {
+                        input: "$semesterDetails.subjects.schedule.practicalPlan",
+                        as: "pp",
+                        cond: {
+                            $eq: ["$$pp.instructor", instructorId],
+                        },
+                    },
+                },
+            },
+        },
+        {
+            $lookup: {
+                from: "Users",
+                localField: "semesterDetails.subjects.instructor",
+                foreignField: "_id",
+                as: "instructorDetails",
+            },
+        },
+        { $unwind: "$instructorDetails" },
+        {
+            $lookup: {
+                from: "departmentmetadatas",
+                localField: "departmentMetaDataId",
+                foreignField: "_id",
+                as: "departmentMetaData",
+            },
+        },
+        { $unwind: "$departmentMetaData" },
+        {
+            $project: {
+                subjectName: "$semesterDetails.subjects.subjectName",
+                subjectCode: "$semesterDetails.subjects.subjectCode",
+                instructorName: "$instructorDetails.name",
+                courseId: "$_id",
+                courseName: "$courseName",
+                courseCode: "$courseCode",
+                courseYear: "$courseYear",
+                semesterId: "$semesterDetails._id",
+                semesterNumber: "$semesterDetails.semesterNumber",
+                subjectId: "$semesterDetails.subjects._id",
+                instructorId: "$instructorDetails._id",
+                departmentMetaDataId: "$departmentMetaData._id",
+                departmentName: "$departmentMetaData.departmentName",
+                departmentHOD: "$departmentMetaData.departmentHOD",
+                collegeName: "$collegeName",
+                schedule: {
+                    lecturePlan: "$matchingLecturePlans",
+                    practicalPlan: "$matchingPracticalPlans",
+                    additionalResources: "$semesterDetails.subjects.schedule.additionalResources",
+                },
+            },
+        },
+    ];
+    let subjectDetails = yield course_1.Course.aggregate(pipeline);
+    let payload = subjectDetails[0];
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Plans fetched successfully', true, payload);
 }));
-exports.updateSchedule = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const updateScheduleData = req.body;
-    const validation = scheduleSchema_1.scheduleUpdateSchema.safeParse(updateScheduleData);
+exports.createLecturePlan = (0, express_async_handler_1.default)((req, res) => {
+    const lecturePlanData = req.body;
+    const validation = scheduleSchema_1.createLecturePlanSchema.safeParse(lecturePlanData);
     if (!validation.success)
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
-    const { scheduleId, topicName, lectureNumber, description, dateOfLecture, plannedDate, confirmation, remarks } = validation.data;
-    const updatedDepartment = yield department_1.DepartmentModel.findOneAndUpdate({
-        "courses.semester.subjectDetails.schedule._id": scheduleId
-    }, {
-        $set: {
-            "courses.$.semester.$[sem].subjectDetails.$[subj].schedule.$[sched].lectureNumber": lectureNumber,
-            "courses.$.semester.$[sem].subjectDetails.$[subj].schedule.$[sched].topicName": topicName,
-            "courses.$.semester.$[sem].subjectDetails.$[subj].schedule.$[sched].description": description,
-            "courses.$.semester.$[sem].subjectDetails.$[subj].schedule.$[sched].plannedDate": plannedDate,
-            "courses.$.semester.$[sem].subjectDetails.$[subj].schedule.$[sched].dateOfLecture": dateOfLecture,
-            "courses.$.semester.$[sem].subjectDetails.$[subj].schedule.$[sched].confirmation": confirmation,
-            "courses.$.semester.$[sem].subjectDetails.$[subj].schedule.$[sched].remarks": remarks
-        }
-    }, {
-        new: true,
-        arrayFilters: [
-            { "sem.subjectDetails.schedule._id": scheduleId },
-            { "subj.schedule._id": scheduleId },
-            { "sched._id": scheduleId }
-        ],
-        projection: {
-            "courses": {
-                $elemMatch: {
-                    "semester.subjectDetails.schedule._id": scheduleId
-                }
-            }
-        }
-    });
-    return (0, formatResponse_1.formatResponse)(res, 200, "Schedule Updated Successfully", true, updatedDepartment);
-}));
-exports.deleteSchedule = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { subjectId, scheduleId } = req.body;
-    if (!mongoose_1.Types.ObjectId.isValid(subjectId) || !mongoose_1.Types.ObjectId.isValid(scheduleId)) {
-        throw (0, http_errors_1.default)(400, "Invalid subjectId or scheduleId");
-    }
-    const updatedDepartment = yield department_1.DepartmentModel.findOneAndUpdate({
-        "courses.semester.subjectDetails._id": subjectId,
-        "courses.semester.subjectDetails.schedule._id": scheduleId
-    }, {
-        $pull: {
-            "courses.$.semester.$[sem].subjectDetails.$[subj].schedule": { _id: scheduleId }
-        }
-    }, {
-        new: true,
-        arrayFilters: [
-            { "sem.subjectDetails._id": subjectId },
-            { "subj._id": subjectId }
-        ],
-        projection: {
-            "courses": {
-                $elemMatch: {
-                    "semester.subjectDetails._id": subjectId
-                }
-            }
-        }
-    });
-    return (0, formatResponse_1.formatResponse)(res, 200, "Schedule deleted successfully", true, updatedDepartment);
-}));
+    let { courseId, semesterId, subjectId, instructorId } = lecturePlanData, lecturePlan = __rest(lecturePlanData, ["courseId", "semesterId", "subjectId", "instructorId"]);
+    //Ahiya thi baaki che.
+});

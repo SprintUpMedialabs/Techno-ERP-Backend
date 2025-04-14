@@ -38,13 +38,16 @@ exports.createEnquiryStep2 = (0, express_async_handler_1.default)((0, functionLe
     session.startTransaction();
     yield (0, checkIfStudentAdmitted_1.checkIfStudentAdmitted)(validation.data.enquiryId);
     let feesDraft;
+    let feesDraftCreated;
     try {
         const enquiry = yield enquiry_1.Enquiry.findOne({
             _id: data.enquiryId,
             applicationStatus: constants_1.ApplicationStatus.STEP_2
         }, {
             course: 1,
-            studentFeeDraft: 1
+            studentFeeDraft: 1,
+            // telecaller : 1,
+            // counsellor : 1
         }).session(session).lean();
         if (!enquiry) {
             throw (0, http_errors_1.default)(404, 'Enquiry with particular ID not found!');
@@ -69,17 +72,21 @@ exports.createEnquiryStep2 = (0, express_async_handler_1.default)((0, functionLe
                 });
             }) });
         feesDraft = yield studentFees_1.StudentFeesModel.create([feeData], { session });
+        feesDraftCreated = Object.assign(Object.assign({}, feesDraft), { telecaller: data.telecaller ? data.telecaller : enquiry.telecaller, counsellor: data.counsellor ? data.counsellor : enquiry.counsellor });
         if (!feesDraft) {
             throw (0, http_errors_1.default)(404, 'Failed to update Fees');
         }
-        yield enquiry_1.Enquiry.findByIdAndUpdate(data.enquiryId, {
-            $set: {
-                studentFee: feesDraft[0]._id,
-                studentFeeDraft: null,
-                counsellor: data.counsellor,
-                telecaller: data.telecaller
-            }
-        }, { new: true, session });
+        const enquiryUpdatePayload = {
+            studentFee: feesDraft[0]._id,
+            studentFeeDraft: null,
+        };
+        if (data.counsellor) {
+            enquiryUpdatePayload.counsellor = data.counsellor;
+        }
+        if (data.telecaller) {
+            enquiryUpdatePayload.telecaller = data.telecaller;
+        }
+        yield enquiry_1.Enquiry.findByIdAndUpdate(data.enquiryId, { $set: enquiryUpdatePayload }, { new: true, session });
         if (enquiry === null || enquiry === void 0 ? void 0 : enquiry.studentFeeDraft) {
             yield studentFeesDraft_1.StudentFeesDraftModel.findByIdAndDelete(enquiry.studentFeeDraft, { session });
         }
@@ -92,7 +99,7 @@ exports.createEnquiryStep2 = (0, express_async_handler_1.default)((0, functionLe
         session.endSession();
         throw (0, http_errors_1.default)('Could not update successfully');
     }
-    return (0, formatResponse_1.formatResponse)(res, 201, 'Fees created successfully', true, feesDraft);
+    return (0, formatResponse_1.formatResponse)(res, 201, 'Fees created successfully', true, feesDraftCreated);
 })));
 exports.updateEnquiryStep2ById = (0, express_async_handler_1.default)((0, functionLevelLogging_1.functionLevelLogger)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const feesDraftUpdateData = req.body;

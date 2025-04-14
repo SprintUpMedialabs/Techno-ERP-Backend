@@ -30,7 +30,9 @@ const updateFeeDetails = (applicationStatusList, studentFeesData) => __awaiter(v
         studentFee: studentFeesData.id,
         applicationStatus: { $nin: [...applicationStatusList] }
     }, {
-        course: 1 // Only return course field
+        course: 1, // Only return course field
+        telecaller: 1,
+        counsellor: 1
     })
         .lean();
     if (!enquiry) {
@@ -50,9 +52,21 @@ const updateFeeDetails = (applicationStatusList, studentFeesData) => __awaiter(v
             });
         }) });
     const feesDraft = yield studentFees_1.StudentFeesModel.findByIdAndUpdate(studentFeesData.id, { $set: feeData }, { new: true, runValidators: true });
+    const enquiryUpdatePayload = {};
+    if (studentFeesData.counsellor) {
+        enquiryUpdatePayload.counsellor = studentFeesData.counsellor;
+    }
+    if (studentFeesData.telecaller) {
+        enquiryUpdatePayload.telecaller = studentFeesData.telecaller;
+    }
+    if (Object.keys(enquiryUpdatePayload).length > 0) {
+        yield enquiry_1.Enquiry.findByIdAndUpdate(enquiry._id, {
+            $set: enquiryUpdatePayload
+        });
+    }
     if (!feesDraft) {
         throw (0, http_errors_1.default)(404, 'Failed to update Fees Details');
     }
-    return feesDraft;
+    return Object.assign(Object.assign({}, feesDraft), { telecaller: enquiryUpdatePayload.telecaller ? enquiryUpdatePayload.telecaller : enquiry.telecaller, counsellor: enquiryUpdatePayload.counsellor ? enquiryUpdatePayload.counsellor : enquiry.counsellor });
 });
 exports.updateFeeDetails = updateFeeDetails;

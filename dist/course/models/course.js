@@ -1,70 +1,63 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.courseSchema = void 0;
-const http_errors_1 = __importDefault(require("http-errors"));
-const mongoose_1 = require("mongoose");
+exports.Course = void 0;
+const mongoose_1 = __importStar(require("mongoose"));
 const semester_1 = require("./semester");
-exports.courseSchema = new mongoose_1.Schema({
-    academicYear: {
-        type: String,
-        required: [true, "Academic year is required"],
-        match: [/^\d{4}-\d{4}$/, "Invalid academic year format (YYYY-YYYY)"]
+const constants_1 = require("../../config/constants");
+;
+const courseModelSchema = new mongoose_1.Schema({
+    courseName: { type: String, required: true },
+    courseCode: { type: String, required: true },
+    collegeName: { type: String, required: true },
+    departmentMetaDataId: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: constants_1.COLLECTION_NAMES.DEPARTMENT_META_DATA
     },
-    courseCode: {
-        type: String,
-        required: [true, "Course code is required"]
-    },
-    courseName: {
-        type: String,
-        required: [true, "Course Name is required"],
-    },
-    collegeName: {
-        type: String,
-        required: [true, "College name is required"],
-        minlength: [3, "College name must be at least 3 characters long"],
-        maxlength: [100, "College name must be at most 100 characters long"]
+    startingYear: {
+        type: Number,
+        required: true,
+        min: [1000, "Starting year must be a valid 4-digit year"],
+        max: [9999, "Starting year must be a valid 4-digit year"],
     },
     totalSemesters: {
-        type: Number,
-        required: [true, "Total number of semesters is required"],
-        min: [1, "At least one semester is required"],
+        type: Number
     },
     semester: {
-        type: [semester_1.semesterSchema],
-        default: [],
+        type: [semester_1.semesterModelSchema],
+        default: []
     }
-}, {
-    timestamps: true
-});
-const handleMongooseError = (error, next) => {
-    if (error.name === 'ValidationError') {
-        const firstError = error.errors[Object.keys(error.errors)[0]];
-        throw (0, http_errors_1.default)(400, firstError.message);
-    }
-    else if (error.code === 11000) {
-        throw (0, http_errors_1.default)(400, "Course with this courseCode already exists"); //If course would be duplicated in department, this error would handle that
-    }
-    else if (error.name == 'MongooseError') {
-        throw (0, http_errors_1.default)(400, `${error.message}`);
-    }
-    else {
-        next(error);
-    }
-};
-exports.courseSchema.post('save', function (error, doc, next) {
-    handleMongooseError(error, next);
-});
-exports.courseSchema.post('findOneAndUpdate', function (error, doc, next) {
-    handleMongooseError(error, next);
-});
-const transformDates = (_, ret) => {
-    delete ret.createdAt;
-    delete ret.updatedAt;
-    delete ret.__v;
-    return ret;
-};
-exports.courseSchema.set('toJSON', { transform: transformDates });
-exports.courseSchema.set('toObject', { transform: transformDates });
+}, { timestamps: true });
+exports.Course = mongoose_1.default.model(constants_1.COLLECTION_NAMES.COURSE, courseModelSchema);

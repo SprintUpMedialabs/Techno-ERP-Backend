@@ -1,64 +1,60 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.subjectDetailsSchema = void 0;
-const mongoose_1 = require("mongoose");
-const schedule_1 = require("./schedule");
-const http_errors_1 = __importDefault(require("http-errors"));
+exports.subjectModelSchema = void 0;
+const mongoose_1 = __importStar(require("mongoose"));
 const constants_1 = require("../../config/constants");
-exports.subjectDetailsSchema = new mongoose_1.Schema({
+const schedule_1 = require("./schedule");
+;
+exports.subjectModelSchema = new mongoose_1.Schema({
     subjectName: {
         type: String,
-        required: [true, "Subject name is required"],
-        minlength: [3, "Subject name must be at least 3 characters long"],
-        maxlength: [100, "Subject name must be at most 100 characters long"],
-    },
-    instructor: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        ref: constants_1.COLLECTION_NAMES.USER,
-        required: [true, "Instructor information is required"],
+        required: [true, "Subject Name is required."],
     },
     subjectCode: {
         type: String,
-        required: [true, "Subject code is required"],
-        minlength: [3, "Subject code must be at least 3 characters long"],
-        maxlength: [10, "Subject code must be at most 10 characters long"]
+        required: [true, "Subject Code is required."],
     },
+    instructor: [
+        {
+            type: mongoose_1.default.Schema.Types.ObjectId,
+            ref: constants_1.COLLECTION_NAMES.USER
+        }
+    ],
     schedule: {
-        type: [schedule_1.scheduleSchema],
-        default: []
+        type: schedule_1.scheduleModelSchema,
+        default: {}
     }
 });
-const handleMongooseError = (error, next) => {
-    if (error.name === 'ValidationError') {
-        const firstError = error.errors[Object.keys(error.errors)[0]];
-        console.log(firstError.message);
-        throw (0, http_errors_1.default)(400, firstError.message);
-    }
-    else if (error.code === 11000) {
-        throw (0, http_errors_1.default)(400, "Department with this department details already exists"); //If course would be duplicated in department, this error would handle that
-    }
-    else if (error.name == 'MongooseError') {
-        console.log(error.message);
-        throw (0, http_errors_1.default)(400, `${error.message}`);
-    }
-    else {
-        next(error);
-    }
-};
-exports.subjectDetailsSchema.post('save', function (error, doc, next) {
-    handleMongooseError(error, next);
-});
-exports.subjectDetailsSchema.post('findOneAndUpdate', function (error, doc, next) {
-    handleMongooseError(error, next);
-});
-const transformDates = (_, ret) => {
-    delete ret.createdAt;
-    delete ret.updatedAt;
-    delete ret.__v;
-    return ret;
-};
-exports.subjectDetailsSchema.set('toJSON', { transform: transformDates });
-exports.subjectDetailsSchema.set('toObject', { transform: transformDates });
