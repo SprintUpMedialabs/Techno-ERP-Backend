@@ -14,6 +14,7 @@ const courseRoute_1 = require("./course/routes/courseRoute");
 const studentRoute_1 = require("./student-data/routes/studentRoute");
 const departmentRoute_1 = require("./course-backup/routes/departmentRoute");
 const departmentMetaDataRoute_1 = require("./course/routes/departmentMetaDataRoute");
+const dropDownRoute_1 = require("./utilityModules/dropdown/dropDownRoute");
 exports.apiRouter = express_1.default.Router();
 /**
  * Contains the router for Authentication
@@ -51,3 +52,4 @@ exports.apiRouter.use('/department-metadata', departmentMetaDataRoute_1.departme
  * Contains the router for Student Data Module
  */
 exports.apiRouter.use('/student-data', studentRoute_1.studentDataRoute);
+exports.apiRouter.use('/dropdown', dropDownRoute_1.dropDownRoute);

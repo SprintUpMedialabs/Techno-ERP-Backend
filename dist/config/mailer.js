@@ -37,7 +37,7 @@ const sendEmail = (to, subject, text) => __awaiter(void 0, void 0, void 0, funct
     };
     transport.sendMail(mailOptions, function (err, info) {
         if (err) {
-            logger_1.default.error(err);
+            console.log(err);
         }
         else {
             logger_1.default.info('Mail sent successfully');
