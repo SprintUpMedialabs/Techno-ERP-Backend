@@ -40,7 +40,8 @@ exports.createFeeDraft = (0, express_async_handler_1.default)((0, functionLevelL
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0].message);
     }
-    const enquiry = yield enquiry_1.Enquiry.findOne({ _id: data.enquiryId,
+    const enquiry = yield enquiry_1.Enquiry.findOne({
+        _id: data.enquiryId,
         applicationStatus: constants_1.ApplicationStatus.STEP_2
     }, { course: 1 })
         .lean();
@@ -49,7 +50,8 @@ exports.createFeeDraft = (0, express_async_handler_1.default)((0, functionLevelL
     }
     const otherFees = yield (0, courseAndOtherFees_controller_1.fetchOtherFees)();
     const semWiseFee = yield (0, courseAndOtherFees_controller_1.fetchCourseFeeByCourse)(enquiry.course.toString());
-    const feeData = Object.assign(Object.assign({}, validation.data), { otherFees: ((_a = validation.data.otherFees) === null || _a === void 0 ? void 0 : _a.map(fee => {
+    const _c = validation.data, { counsellor, telecaller } = _c, feeRelatedData = __rest(_c, ["counsellor", "telecaller"]);
+    const feeData = Object.assign(Object.assign({}, feeRelatedData), { otherFees: ((_a = feeRelatedData.otherFees) === null || _a === void 0 ? void 0 : _a.map(fee => {
             var _a, _b, _c, _d, _e;
             let feeAmount = fee.feeAmount;
             if (fee.type === constants_1.FeeType.SEM1FEE) {
@@ -59,7 +61,7 @@ exports.createFeeDraft = (0, express_async_handler_1.default)((0, functionLevelL
                 feeAmount = (_c = feeAmount !== null && feeAmount !== void 0 ? feeAmount : (_b = otherFees === null || otherFees === void 0 ? void 0 : otherFees.find(otherFee => otherFee.type === fee.type)) === null || _b === void 0 ? void 0 : _b.fee) !== null && _c !== void 0 ? _c : 0;
             }
             return Object.assign(Object.assign({}, fee), { feeAmount, finalFee: (_d = fee.finalFee) !== null && _d !== void 0 ? _d : 0, feesDepositedTOA: (_e = fee.feesDepositedTOA) !== null && _e !== void 0 ? _e : 0 });
-        })) || [], semWiseFees: ((_b = validation.data.semWiseFees) === null || _b === void 0 ? void 0 : _b.map((semFee, index) => {
+        })) || [], semWiseFees: ((_b = feeRelatedData.semWiseFees) === null || _b === void 0 ? void 0 : _b.map((semFee, index) => {
             var _a, _b, _c;
             return ({
                 feeAmount: (_b = (_a = semFee.feeAmount) !== null && _a !== void 0 ? _a : semWiseFee === null || semWiseFee === void 0 ? void 0 : semWiseFee.fee[index]) !== null && _b !== void 0 ? _b : 0,
@@ -67,14 +69,13 @@ exports.createFeeDraft = (0, express_async_handler_1.default)((0, functionLevelL
             });
         })) || [] });
     const feesDraft = yield studentFeesDraft_1.StudentFeesDraftModel.create(feeData);
-    yield enquiry_1.Enquiry.findByIdAndUpdate(data.enquiryId, { $set: { studentFeeDraft: feesDraft._id } });
+    yield enquiry_1.Enquiry.findByIdAndUpdate(data.enquiryId, { $set: { studentFeeDraft: feesDraft._id, counsellor, telecaller } });
     return (0, formatResponse_1.formatResponse)(res, 201, 'Fees Draft created successfully', true, feesDraft);
 })));
 exports.updateFeeDraft = (0, express_async_handler_1.default)((0, functionLevelLogging_1.functionLevelLogger)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     let data = req.body;
-    let { id, enquiryId } = data, feesDraftUpdateData = __rest(data, ["id", "enquiryId"]);
-    const validation = studentFees_1.feesDraftUpdateSchema.safeParse(feesDraftUpdateData);
+    const validation = studentFees_1.feesDraftUpdateSchema.safeParse(data);
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0].message);
     }
@@ -88,7 +89,9 @@ exports.updateFeeDraft = (0, express_async_handler_1.default)((0, functionLevelL
     }
     const otherFees = yield (0, courseAndOtherFees_controller_1.fetchOtherFees)();
     const semWiseFee = yield (0, courseAndOtherFees_controller_1.fetchCourseFeeByCourse)(enquiry.course.toString());
-    const updateData = Object.assign(Object.assign({}, validation.data), { otherFees: ((_a = validation.data.otherFees) === null || _a === void 0 ? void 0 : _a.map(fee => {
+    // DTODO: remove telecaller and counsellor from updatedData
+    const _c = validation.data, { counsellor, telecaller } = _c, feeRelatedData = __rest(_c, ["counsellor", "telecaller"]);
+    const updateData = Object.assign(Object.assign({}, feeRelatedData), { otherFees: ((_a = feeRelatedData.otherFees) === null || _a === void 0 ? void 0 : _a.map(fee => {
             var _a, _b, _c, _d, _e;
             let feeAmount = fee.feeAmount;
             if (fee.type === constants_1.FeeType.SEM1FEE) {
@@ -98,13 +101,14 @@ exports.updateFeeDraft = (0, express_async_handler_1.default)((0, functionLevelL
                 feeAmount = (_c = feeAmount !== null && feeAmount !== void 0 ? feeAmount : (_b = otherFees === null || otherFees === void 0 ? void 0 : otherFees.find(otherFee => otherFee.type === fee.type)) === null || _b === void 0 ? void 0 : _b.fee) !== null && _c !== void 0 ? _c : 0;
             }
             return Object.assign(Object.assign({}, fee), { feeAmount, finalFee: (_d = fee.finalFee) !== null && _d !== void 0 ? _d : 0, feesDepositedTOA: (_e = fee.feesDepositedTOA) !== null && _e !== void 0 ? _e : 0 });
-        })) || [], semWiseFees: ((_b = validation.data.semWiseFees) === null || _b === void 0 ? void 0 : _b.map((semFee, index) => {
+        })) || [], semWiseFees: ((_b = feeRelatedData.semWiseFees) === null || _b === void 0 ? void 0 : _b.map((semFee, index) => {
             var _a, _b, _c;
             return ({
                 feeAmount: (_b = (_a = semFee.feeAmount) !== null && _a !== void 0 ? _a : semWiseFee === null || semWiseFee === void 0 ? void 0 : semWiseFee.fee[index]) !== null && _b !== void 0 ? _b : 0,
                 finalFee: (_c = semFee.finalFee) !== null && _c !== void 0 ? _c : 0
             });
         })) || [] });
-    const updatedDraft = yield studentFeesDraft_1.StudentFeesDraftModel.findByIdAndUpdate(id, { $set: updateData }, { new: true, runValidators: true });
+    const updatedDraft = yield studentFeesDraft_1.StudentFeesDraftModel.findByIdAndUpdate(data.id, { $set: updateData }, { new: true, runValidators: true });
+    yield enquiry_1.Enquiry.findByIdAndUpdate(data.enquiryId, { $set: { counsellor, telecaller } });
     return (0, formatResponse_1.formatResponse)(res, 200, 'Fees Draft updated successfully', true, updatedDraft);
 })));

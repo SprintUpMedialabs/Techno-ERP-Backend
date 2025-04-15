@@ -22,8 +22,6 @@ const studentFeesSchema = zod_1.z.object({
     semWiseFees: zod_1.z.array(exports.singleSemSchema),
     feeStatus: zod_1.z.nativeEnum(constants_1.FeeStatus).default(constants_1.FeeStatus.DRAFT).optional(),
     feesClearanceDate: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)),
-    counsellor: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])])).optional(),
-    telecaller: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])])).optional(),
     remarks: zod_1.z.string().optional()
 });
 exports.feesRequestSchema = studentFeesSchema.omit({ feeStatus: true }).extend({
@@ -36,19 +34,12 @@ exports.feesRequestSchema = studentFeesSchema.omit({ feeStatus: true }).extend({
 });
 exports.feesUpdateSchema = exports.feesRequestSchema.extend({
     id: commonSchema_1.objectIdSchema, //This is referring to the fees table _id
-    counsellor: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])])).optional(),
-    telecaller: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])])).optional(),
-}).omit({ enquiryId: true });
+}).omit({ enquiryId: true }).strict();
 exports.feesDraftRequestSchema = exports.feesRequestSchema.extend({
     otherFees: zod_1.z.array(exports.otherFeesSchema.partial()).optional(),
     semWiseFees: zod_1.z.array(exports.singleSemSchema.partial()).optional(),
-    enquiryId: commonSchema_1.objectIdSchema,
     feesClearanceDate: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)).optional(),
-    counsellor: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])])).optional(),
-    telecaller: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])])).optional()
 }).strict();
 exports.feesDraftUpdateSchema = exports.feesDraftRequestSchema.extend({
     id: commonSchema_1.objectIdSchema,
-    counsellor: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])])).optional(),
-    telecaller: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])])).optional(),
-}).partial().strict();
+}).strict();

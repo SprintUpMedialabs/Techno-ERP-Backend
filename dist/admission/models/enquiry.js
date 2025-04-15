@@ -73,6 +73,10 @@ exports.enquirySchema = new mongoose_1.Schema({
             return (0, convertDateToFormatedDate_1.convertToMongoDate)(value);
         }
     },
+    bloodGroup: {
+        type: String,
+        enum: Object.values(constants_1.BloodGroup)
+    },
     studentName: {
         type: String,
         required: [true, 'Student Name is required']
@@ -153,6 +157,13 @@ exports.enquirySchema = new mongoose_1.Schema({
             message: 'Invalid Admission Reference value'
         },
         required: true
+    },
+    aadharNumber: {
+        type: String,
+        validate: {
+            validator: (aadhar) => aadhar.length === 12,
+            message: 'Invalid Aadhar Number'
+        }
     },
     address: {
         type: address_1.addressSchema,
