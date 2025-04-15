@@ -31,7 +31,7 @@ export const sendEmail = async (to: string, subject: string, text: string) => {
 
   transport.sendMail(mailOptions, function (err, info) {
     if (err) {
-      logger.error(err);
+      console.log(err);
     } else {
       logger.info('Mail sent successfully');
     }
