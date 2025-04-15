@@ -22,14 +22,12 @@ exports.semesterSchema = new mongoose_1.Schema({
 const handleMongooseError = (error, next) => {
     if (error.name === 'ValidationError') {
         const firstError = error.errors[Object.keys(error.errors)[0]];
-        console.log(firstError.message);
         throw (0, http_errors_1.default)(400, firstError.message);
     }
     else if (error.code === 11000) {
         throw (0, http_errors_1.default)(400, "Semester with this semester details already exists");
     }
     else if (error.name == 'MongooseError') {
-        console.log(error.message);
         throw (0, http_errors_1.default)(400, `${error.message}`);
     }
     else {

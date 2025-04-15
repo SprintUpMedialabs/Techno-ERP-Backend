@@ -54,7 +54,6 @@ dotenv_1.default.config({ path: path_1.default.resolve(__dirname, envFile) });
 (0, validateEnv_1.validateEnvVariables)();
 app.use(express_1.default.json());
 app.use((0, cookie_parser_1.default)());
-console.log(process.env.NODE_ENV);
 const allowedOrigins = process.env.NODE_ENV === 'production'
     ? [process.env.FRONTEND_URL] // PROD ENV
     : '*'; // Allow all origins in DEV ENV

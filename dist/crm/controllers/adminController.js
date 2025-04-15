@@ -46,7 +46,6 @@ exports.adminAnalytics = (0, express_async_handler_1.default)((req, res) => __aw
     if (gender.length > 0) {
         query.gender = { $in: gender };
     }
-    // console.log(query);
     const [allLeadAnalytics, yellowLeadAnalytics] = yield Promise.all([
         lead_1.LeadMaster.aggregate([
             { $match: query }, // Apply Filters
@@ -79,8 +78,6 @@ exports.adminAnalytics = (0, express_async_handler_1.default)((req, res) => __aw
             }
         ])
     ]);
-    // console.log(allLeadAnalytics);
-    // console.log(yellowLeadAnalytics);
     return (0, formatResponse_1.formatResponse)(res, 200, 'Analytics fetched successfully', true, {
         allLeadsAnalytics: allLeadAnalytics.length > 0 ? allLeadAnalytics[0] : {
             allLeads: 0,

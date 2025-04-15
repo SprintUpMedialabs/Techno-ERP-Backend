@@ -41,7 +41,6 @@ exports.createEnquiryStep2 = (0, express_async_handler_1.default)((0, functionLe
     var _a, _b;
     const data = req.body;
     const validation = studentFees_2.feesRequestSchema.safeParse(data);
-    console.log(validation.error);
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }
@@ -110,7 +109,6 @@ exports.createEnquiryStep2 = (0, express_async_handler_1.default)((0, functionLe
         session.endSession();
     }
     catch (error) {
-        console.log(error);
         yield session.abortTransaction();
         session.endSession();
         throw (0, http_errors_1.default)('Could not update successfully');

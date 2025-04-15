@@ -21,12 +21,9 @@ const subjectSchema_1 = require("../validators/subjectSchema");
 const http_errors_1 = __importDefault(require("http-errors"));
 exports.getSubjectInformation = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let { courseId, semesterId, search, page = 1, limit = 10 } = req.body;
-    console.log(courseId);
     courseId = new mongoose_1.default.Types.ObjectId(courseId);
     semesterId = new mongoose_1.default.Types.ObjectId(semesterId);
     const skip = (page - 1) * limit;
-    // console.log(courseId);
-    // console.log(semesterId);
     const pipeline = [
         { $match: { _id: courseId } },
         {

@@ -32,14 +32,11 @@ const readFromGoogleSheet = () => __awaiter(void 0, void 0, void 0, function* ()
         spreadsheetId: secrets_1.MARKETING_SHEET_ID,
         range
     });
-    console.log("Sheet response successfully generated");
     const rowData = sheetResponse.data.values;
     if (!rowData || rowData.length === 0) {
         logger_1.default.info('No new data found in the sheet.');
         return;
     }
-    console.log(rowData.length);
-    console.log(lastSavedIndex);
     const newLastReadIndex = lastSavedIndex + rowData.length;
     logger_1.default.info(`New Last Read Index: ${newLastReadIndex}`);
     return {

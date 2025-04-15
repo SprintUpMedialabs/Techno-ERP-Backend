@@ -35,9 +35,7 @@ const connectToDatabase = () => __awaiter(void 0, void 0, void 0, function* () {
 const initializeDB = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const existingDoc = yield spreadSheet_1.SpreadSheetMetaData.find({ name: constants_1.MARKETING_SHEET });
-        //console.log(existingDoc);
         if (existingDoc.length == 0) {
-            console.log(existingDoc);
             yield spreadSheet_1.SpreadSheetMetaData.create({
                 name: constants_1.MARKETING_SHEET,
                 lastIdxMarketingSheet: 1

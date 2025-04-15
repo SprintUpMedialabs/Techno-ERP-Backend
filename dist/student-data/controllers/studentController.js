@@ -156,7 +156,6 @@ exports.updateStudentFee = (0, express_async_handler_1.default)((req, res) => __
     var _a;
     const feesDraftUpdateData = req.body;
     const validation = studentFees_1.feesUpdateSchema.safeParse(feesDraftUpdateData);
-    console.log(validation.error);
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }

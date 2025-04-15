@@ -38,9 +38,7 @@ const parseFilter = (req) => {
     if (filters.city.length > 0) {
         query.city = { $in: filters.city };
     }
-    console.log("Before mapping:", filters.assignedTo);
     filters.assignedTo = filters.assignedTo.map(id => new mongoose_1.default.Types.ObjectId(id));
-    console.log("After mapping:", filters.assignedTo);
     if (((_a = req.data) === null || _a === void 0 ? void 0 : _a.roles.includes(constants_1.UserRoles.EMPLOYEE_MARKETING)) &&
         !((_b = req.data) === null || _b === void 0 ? void 0 : _b.roles.includes(constants_1.UserRoles.LEAD_MARKETING)) &&
         !((_c = req.data) === null || _c === void 0 ? void 0 : _c.roles.includes(constants_1.UserRoles.ADMIN))) {

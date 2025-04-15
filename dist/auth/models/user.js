@@ -94,7 +94,6 @@ const userSchema = new mongoose_1.Schema({
     }
 }, { timestamps: true });
 const handleMongooseError = (error, next) => {
-    console.log(error);
     if (error.name === 'ValidationError') {
         const firstError = error.errors[Object.keys(error.errors)[0]];
         throw (0, http_errors_1.default)(400, firstError.message);
