@@ -8,7 +8,6 @@ const http_errors_1 = __importDefault(require("http-errors"));
 const mongoose_1 = require("mongoose");
 const constants_1 = require("../../config/constants");
 const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
-const commonSchema_1 = require("../../validators/commonSchema");
 const studentFees_1 = require("./studentFees");
 const StudentFeesDraftSchema = new mongoose_1.Schema({
     otherFees: {
@@ -33,31 +32,39 @@ const StudentFeesDraftSchema = new mongoose_1.Schema({
         type: Date,
         required: false
     },
-    counsellor: {
-        type: mongoose_1.Schema.Types.Mixed, // Allows ObjectId or String
-        validate: {
-            validator: function (value) {
-                // Allow null or undefined
-                if (value === null || value === undefined)
-                    return true;
-                // Check for valid ObjectId
-                const isObjectId = mongoose_1.Types.ObjectId.isValid(value);
-                // Allow string 'other'
-                const isOther = value === 'other';
-                return isObjectId || isOther;
-            },
-            message: props => `'${props.value}' is not a valid counsellor (must be ObjectId or 'other')`
-        },
-        required: false,
-    },
-    approvedBy: {
-        type: String,
-        validate: {
-            validator: (email) => commonSchema_1.emailSchema.safeParse(email).success,
-            message: 'Invalid email format'
-        },
-        required: false
-    },
+    // counsellor: {
+    //   type: [Schema.Types.Mixed],
+    //   validate: {
+    //     validator: function (values) {
+    //       if (!Array.isArray(values)) return false;
+    //       return values.every(value => {
+    //         if (value === null || value === undefined) return true;
+    //         const isObjectId = mongoose.Types.ObjectId.isValid(value);
+    //         const isOther = value === 'other';
+    //         return isObjectId || isOther;
+    //       });
+    //     },
+    //     message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
+    //   }
+    // },
+    // telecaller: {
+    //   type: [Schema.Types.Mixed],
+    //   validate: {
+    //     validator: function (values) {
+    //       if (!Array.isArray(values)) return false;
+    //       return values.every(value => {
+    //         if (value === null || value === undefined) return true;
+    //         const isObjectId = mongoose.Types.ObjectId.isValid(value);
+    //         const isOther = value === 'other';
+    //         return isObjectId || isOther;
+    //       });
+    //     },
+    //     message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
+    //   }
+    // },
+    remarks: {
+        type: String
+    }
 }, { timestamps: true });
 const handleMongooseError = (error, next) => {
     if (error.name === 'ValidationError') {
@@ -90,4 +97,4 @@ const transformDates = (_, ret) => {
 };
 StudentFeesDraftSchema.set('toJSON', { transform: transformDates });
 StudentFeesDraftSchema.set('toObject', { transform: transformDates });
-exports.StudentFeesDraftModel = (0, mongoose_1.model)('studentFeeDraft', StudentFeesDraftSchema);
+exports.StudentFeesDraftModel = (0, mongoose_1.model)(constants_1.COLLECTION_NAMES.STUDENT_FEE_DRAFT, StudentFeesDraftSchema);

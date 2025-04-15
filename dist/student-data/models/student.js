@@ -201,23 +201,29 @@ const studentSchema = new mongoose_1.Schema({
         },
         required: true
     },
-    approvedBy: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        optional: true
-    },
     preRegNumber: {
         type: String,
         optional: true
     },
     counsellor: {
-        type: mongoose_1.Schema.Types.Mixed,
+        type: [mongoose_1.Schema.Types.Mixed],
         validate: {
-            validator: function (value) {
-                return (value === 'other' ||
-                    mongoose_1.Types.ObjectId.isValid(value));
+            validator: function (values) {
+                if (!Array.isArray(values))
+                    return false; // Ensure it's an array
+                return values.every(value => {
+                    // Allow null or undefined
+                    if (value === null || value === undefined)
+                        return true;
+                    // Check for valid ObjectId
+                    const isObjectId = mongoose_1.default.Types.ObjectId.isValid(value);
+                    // Allow string 'other'
+                    const isOther = value === 'other';
+                    return isObjectId || isOther;
+                });
             },
-            message: 'Counsellor must be a valid ObjectId or "other"',
-        },
+            message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
+        }
     },
     admittedThrough: {
         type: String,
@@ -251,7 +257,7 @@ studentSchema.post('findOneAndUpdate', function (error, doc, next) {
     handleMongooseError(error, next);
 });
 const transformDates = (_, ret) => {
-    ['dateOfEnquiry', 'dateOfAdmission', 'dateOfBirth'].forEach((key) => {
+    ['dateOfEnquiry', 'dateOfAdmission', 'dateOfBirth', 'dueBy'].forEach((key) => {
         if (ret[key]) {
             ret[key] = (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(ret[key]);
         }
@@ -260,4 +266,4 @@ const transformDates = (_, ret) => {
 };
 studentSchema.set('toJSON', { transform: transformDates });
 studentSchema.set('toObject', { transform: transformDates });
-exports.Student = mongoose_1.default.model('Student', studentSchema);
+exports.Student = mongoose_1.default.model(constants_1.COLLECTION_NAMES.STUDENT, studentSchema);

@@ -157,47 +157,48 @@ exports.enquiryDraftSchema = new mongoose_1.Schema({
     },
     // DTODO: here we have id and other 2 value [so type should be according to that]
     counsellor: {
-        type: mongoose_1.Schema.Types.Mixed, // Allows ObjectId or String
+        type: [mongoose_1.Schema.Types.Mixed], // Allows ObjectId or String
         validate: {
-            validator: function (value) {
-                // Allow null or undefined
-                if (value === null || value === undefined)
-                    return true;
-                // Check for valid ObjectId
-                const isObjectId = mongoose_1.default.Types.ObjectId.isValid(value);
-                // Allow string 'other'
-                const isOther = value === 'other';
-                return isObjectId || isOther;
+            validator: function (values) {
+                if (!Array.isArray(values))
+                    return false; // Ensure it's an array
+                return values.every(value => {
+                    // Allow null or undefined
+                    if (value === null || value === undefined)
+                        return true;
+                    // Check for valid ObjectId
+                    const isObjectId = mongoose_1.default.Types.ObjectId.isValid(value);
+                    // Allow string 'other'
+                    const isOther = value === 'other';
+                    return isObjectId || isOther;
+                });
             },
-            message: props => `'${props.value}' is not a valid counsellor (must be ObjectId or 'other')`
+            message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
         },
         required: false,
     },
     // DTODO: here we have id and other 2 value [so type should be according to that]
     // this change need to be done in other models [studentFeesDraft, studentFees, enquiry]
     telecaller: {
-        type: mongoose_1.Schema.Types.Mixed, // Allows ObjectId or String
+        type: [mongoose_1.Schema.Types.Mixed], // Allows ObjectId or String
         validate: {
-            validator: function (value) {
-                // Allow null or undefined
-                if (value === null || value === undefined)
-                    return true;
-                // Check for valid ObjectId
-                const isObjectId = mongoose_1.default.Types.ObjectId.isValid(value);
-                // Allow string 'other'
-                const isOther = value === 'other';
-                return isObjectId || isOther;
+            validator: function (values) {
+                if (!Array.isArray(values))
+                    return false; // Ensure it's an array
+                return values.every(value => {
+                    // Allow null or undefined
+                    if (value === null || value === undefined)
+                        return true;
+                    // Check for valid ObjectId
+                    const isObjectId = mongoose_1.default.Types.ObjectId.isValid(value);
+                    // Allow string 'other'
+                    const isOther = value === 'other';
+                    return isObjectId || isOther;
+                });
             },
-            message: props => `'${props.value}' is not a valid counsellor (must be ObjectId or 'other')`
+            message: props => `'${props.value}' contains an invalid telecaller (must be ObjectId or 'other')`
         },
         required: false,
-    },
-    dateOfCounselling: {
-        type: Date,
-        required: false,
-        set: (value) => {
-            return (0, convertDateToFormatedDate_1.convertToMongoDate)(value);
-        }
     },
     remarks: {
         type: String
@@ -208,6 +209,15 @@ exports.enquiryDraftSchema = new mongoose_1.Schema({
             values: Object.values(constants_1.Gender),
             message: 'Invalid gender value'
         }
+    },
+    applicationStatus: {
+        type: String,
+        enum: {
+            values: Object.values(constants_1.ApplicationStatus),
+            message: 'Invalid Application Status value'
+        },
+        default: constants_1.ApplicationStatus.STEP_1,
+        required: true
     },
 }, { timestamps: true });
 const handleDraftMongooseError = (error, next) => {
@@ -226,7 +236,7 @@ exports.enquiryDraftSchema.post('findOneAndUpdate', function (error, doc, next) 
     handleDraftMongooseError(error, next);
 });
 const transformDates = (_, ret) => {
-    ['dateOfEnquiry', 'dateOfBirth', 'dateOfCounselling'].forEach((key) => {
+    ['dateOfEnquiry', 'dateOfBirth'].forEach((key) => {
         if (ret[key]) {
             ret[key] = (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(ret[key]);
         }
@@ -238,4 +248,4 @@ const transformDates = (_, ret) => {
 };
 exports.enquiryDraftSchema.set('toJSON', { transform: transformDates });
 exports.enquiryDraftSchema.set('toObject', { transform: transformDates });
-exports.EnquiryDraft = mongoose_1.default.model('EnquiryDraft', exports.enquiryDraftSchema);
+exports.EnquiryDraft = mongoose_1.default.model(constants_1.COLLECTION_NAMES.ENQUIRY_DRAFT, exports.enquiryDraftSchema);

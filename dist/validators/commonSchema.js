@@ -8,8 +8,10 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const zod_1 = require("zod");
 const constants_1 = require("../config/constants");
 exports.objectIdSchema = zod_1.z.custom((id) => {
+    console.log(id);
+    console.log(mongoose_1.default.Types.ObjectId.isValid(id));
     return mongoose_1.default.Types.ObjectId.isValid(id);
-}, { message: "Invalid ObjectId" });
+}, { message: "This is not a valid ObjectId" });
 exports.requestDateSchema = zod_1.z
     .string()
     .regex(/^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/, 'Date must be in DD/MM/YYYY format');

@@ -12,5 +12,6 @@ const studentController_1 = require("../controllers/studentController");
 exports.studentDataRoute = express_1.default.Router();
 exports.studentDataRoute.post('/search', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER]), studentController_1.getStudentData);
 exports.studentDataRoute.get('/:id', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER]), studentController_1.getStudentDataById);
-exports.studentDataRoute.put('/:id', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER]), studentController_1.updateStudentById);
+exports.studentDataRoute.put('/', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER]), studentController_1.updateStudentById);
+exports.studentDataRoute.put('/fee', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER]), studentController_1.updateStudentFee);
 exports.studentDataRoute.put('/update-document', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER]), multerConfig_1.default.single('document'), studentController_1.updateStudentDocuments);

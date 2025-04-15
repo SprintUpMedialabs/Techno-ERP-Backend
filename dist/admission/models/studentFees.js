@@ -8,7 +8,6 @@ const mongoose_1 = require("mongoose");
 const constants_1 = require("../../config/constants");
 const http_errors_1 = __importDefault(require("http-errors"));
 const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
-const commonSchema_1 = require("../../validators/commonSchema");
 //Other fees schema
 exports.OtherFeesSchema = new mongoose_1.Schema({
     type: {
@@ -25,9 +24,6 @@ exports.OtherFeesSchema = new mongoose_1.Schema({
         type: Number,
         default: 0
     },
-    remarks: {
-        type: String
-    }
 });
 //Sem wise schema
 exports.SingleSemWiseFeesSchema = new mongoose_1.Schema({
@@ -58,30 +54,44 @@ const StudentFeesSchema = new mongoose_1.Schema({
     feesClearanceDate: {
         type: Date
     },
-    counsellor: {
-        type: mongoose_1.Schema.Types.Mixed, // Allows ObjectId or String
-        validate: {
-            validator: function (value) {
-                // Allow null or undefined
-                if (value === null || value === undefined)
-                    return true;
-                // Check for valid ObjectId
-                const isObjectId = mongoose_1.Types.ObjectId.isValid(value);
-                // Allow string 'other'
-                const isOther = value === 'other';
-                return isObjectId || isOther;
-            },
-            message: props => `'${props.value}' is not a valid counsellor (must be ObjectId or 'other')`
-        },
-        required: true,
-    },
-    approvedBy: {
-        type: String,
-        validate: {
-            validator: (email) => commonSchema_1.emailSchema.safeParse(email).success,
-            message: 'Invalid email format'
-        },
-    },
+    // counsellor: {
+    //     type: [Schema.Types.Mixed], // Allows ObjectId or String
+    //     validate: {
+    //         validator: function (values) {
+    //             if (!Array.isArray(values)) return false; // Ensure it's an array
+    //             return values.every(value => {
+    //                 // Allow null or undefined
+    //                 if (value === null || value === undefined) return true;
+    //                 // Check for valid ObjectId
+    //                 const isObjectId = mongoose.Types.ObjectId.isValid(value);
+    //                 // Allow string 'other'
+    //                 const isOther = value === 'other';
+    //                 return isObjectId || isOther;
+    //             });
+    //         },
+    //         message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
+    //     },
+    //     required: true,
+    // },
+    // telecaller: {
+    //     type: [Schema.Types.Mixed], // Allows ObjectId or String
+    //     validate: {
+    //         validator: function (values) {
+    //             if (!Array.isArray(values)) return false; // Ensure it's an array
+    //             return values.every(value => {
+    //                 // Allow null or undefined
+    //                 if (value === null || value === undefined) return true;
+    //                 // Check for valid ObjectId
+    //                 const isObjectId = mongoose.Types.ObjectId.isValid(value);
+    //                 // Allow string 'other'
+    //                 const isOther = value === 'other';
+    //                 return isObjectId || isOther;
+    //             });
+    //         },
+    //         message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
+    //     },
+    //     required: true,
+    // }
 }, { timestamps: true });
 const handleMongooseError = (error, next) => {
     if (error.name === 'ValidationError') {
@@ -114,4 +124,4 @@ const transformDates = (_, ret) => {
 };
 StudentFeesSchema.set('toJSON', { transform: transformDates });
 StudentFeesSchema.set('toObject', { transform: transformDates });
-exports.StudentFeesModel = (0, mongoose_1.model)('studentFee', StudentFeesSchema);
+exports.StudentFeesModel = (0, mongoose_1.model)(constants_1.COLLECTION_NAMES.STUDENT_FEE, StudentFeesSchema);

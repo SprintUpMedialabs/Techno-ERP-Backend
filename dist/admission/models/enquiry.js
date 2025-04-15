@@ -55,6 +55,7 @@ const academicDetail_1 = require("./academicDetail");
 const address_1 = require("./address");
 const previousCollegeData_1 = require("./previousCollegeData");
 const singleDocument_1 = require("./singleDocument");
+const entranceExamDetail_1 = require("./entranceExamDetail");
 exports.enquirySchema = new mongoose_1.Schema({
     admissionMode: {
         type: String,
@@ -71,6 +72,10 @@ exports.enquirySchema = new mongoose_1.Schema({
         set: (value) => {
             return (0, convertDateToFormatedDate_1.convertToMongoDate)(value);
         }
+    },
+    bloodGroup: {
+        type: String,
+        enum: Object.values(constants_1.BloodGroup)
     },
     studentName: {
         type: String,
@@ -128,11 +133,6 @@ exports.enquirySchema = new mongoose_1.Schema({
         set: (value) => {
             return (0, convertDateToFormatedDate_1.convertToMongoDate)(value);
         }
-        // set: (value: string) => {
-        //   let convertedDate = convertToMongoDate(value);
-        //   if (!convertedDate) throw createHttpError(400,'Invalid date format, expected DD-MM-YYYY');
-        //   return convertedDate;
-        // }
     },
     category: {
         type: String,
@@ -158,6 +158,13 @@ exports.enquirySchema = new mongoose_1.Schema({
         },
         required: true
     },
+    aadharNumber: {
+        type: String,
+        validate: {
+            validator: (aadhar) => aadhar.length === 12,
+            message: 'Invalid Aadhar Number'
+        }
+    },
     address: {
         type: address_1.addressSchema,
         minlength: [5, 'Address must be at least 5 characters long']
@@ -168,6 +175,30 @@ exports.enquirySchema = new mongoose_1.Schema({
         required: false
     },
     telecaller: {
+        type: [mongoose_1.Schema.Types.Mixed], // Allows ObjectId or String
+        validate: {
+            validator: function (values) {
+                if (!Array.isArray(values))
+                    return false; // Ensure it's an array
+                return values.every(value => {
+                    // Allow null or undefined
+                    if (value === null || value === undefined)
+                        return true;
+                    // Check for valid ObjectId
+                    const isObjectId = mongoose_1.default.Types.ObjectId.isValid(value);
+                    // Allow string 'other'
+                    const isOther = value === 'other';
+                    return isObjectId || isOther;
+                });
+            },
+            message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
+        },
+        required: true,
+    },
+    remarks: {
+        type: String
+    },
+    admittedBy: {
         type: mongoose_1.Schema.Types.Mixed, // Allows ObjectId or String
         validate: {
             validator: function (value) {
@@ -175,29 +206,13 @@ exports.enquirySchema = new mongoose_1.Schema({
                 if (value === null || value === undefined)
                     return true;
                 // Check for valid ObjectId
-                const isObjectId = mongoose_1.default.Types.ObjectId.isValid(value);
+                const isObjectId = mongoose_1.Types.ObjectId.isValid(value);
                 // Allow string 'other'
                 const isOther = value === 'other';
                 return isObjectId || isOther;
             },
             message: props => `'${props.value}' is not a valid counsellor (must be ObjectId or 'other')`
         },
-        required: true,
-    },
-    dateOfCounselling: {
-        type: Date,
-        required: false,
-        set: (value) => {
-            return (0, convertDateToFormatedDate_1.convertToMongoDate)(value);
-        }
-    },
-    remarks: {
-        type: String
-    },
-    approvedBy: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        ref: 'user',
-        required: false
     },
     dateOfAdmission: {
         type: Date,
@@ -209,14 +224,34 @@ exports.enquirySchema = new mongoose_1.Schema({
     documents: {
         type: [singleDocument_1.singleDocumentSchema]
     },
+    stateOfDomicile: {
+        type: String,
+        enum: {
+            values: Object.values(constants_1.StatesOfIndia),
+            message: 'Invalid state of domicile value'
+        }
+    },
+    areaType: {
+        type: String,
+        enum: {
+            values: Object.values(constants_1.AreaType),
+            message: 'Invalid area type'
+        }
+    },
+    nationality: {
+        type: String
+    },
+    entranceExamDetails: {
+        type: entranceExamDetail_1.entranceExamDetailSchema
+    },
     studentFee: {
         type: mongoose_1.Schema.Types.ObjectId,
-        ref: 'studentFee', // Refer to FeesDraft model
+        ref: constants_1.COLLECTION_NAMES.STUDENT_FEE, // Refer to FeesDraft model
         required: false
     },
     studentFeeDraft: {
         type: mongoose_1.Schema.Types.ObjectId,
-        ref: 'studentFeeDraft',
+        ref: constants_1.COLLECTION_NAMES.STUDENT_FEE_DRAFT,
         required: false
     },
     gender: {
@@ -236,14 +271,28 @@ exports.enquirySchema = new mongoose_1.Schema({
         required: true
     },
     counsellor: {
-        type: mongoose_1.Schema.Types.Mixed,
+        type: [mongoose_1.Schema.Types.Mixed],
         validate: {
-            validator: function (value) {
-                return (value === 'other' ||
-                    mongoose_1.Types.ObjectId.isValid(value));
+            validator: function (values) {
+                if (!Array.isArray(values))
+                    return false; // Ensure it's an array
+                return values.every(value => {
+                    // Allow null or undefined
+                    if (value === null || value === undefined)
+                        return true;
+                    // Check for valid ObjectId
+                    const isObjectId = mongoose_1.default.Types.ObjectId.isValid(value);
+                    // Allow string 'other'
+                    const isOther = value === 'other';
+                    return isObjectId || isOther;
+                });
             },
-            message: 'Counsellor must be a valid ObjectId or "other"',
+            message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
         },
+    },
+    religion: {
+        type: String,
+        enum: Object.values(constants_1.Religion)
     },
     admittedThrough: {
         type: String,
@@ -284,7 +333,7 @@ exports.enquirySchema.post('findOneAndUpdate', function (error, doc, next) {
     handleMongooseError(error, next);
 });
 const transformDates = (_, ret) => {
-    ['dateOfEnquiry', 'dateOfAdmission', 'dateOfBirth', 'dateOfCounselling'].forEach((key) => {
+    ['dateOfEnquiry', 'dateOfAdmission', 'dateOfBirth', 'dueBy'].forEach((key) => {
         if (ret[key]) {
             ret[key] = (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(ret[key]);
         }
@@ -296,4 +345,4 @@ const transformDates = (_, ret) => {
 };
 exports.enquirySchema.set('toJSON', { transform: transformDates });
 exports.enquirySchema.set('toObject', { transform: transformDates });
-exports.Enquiry = mongoose_1.default.model('Enquiry', exports.enquirySchema);
+exports.Enquiry = mongoose_1.default.model(constants_1.COLLECTION_NAMES.ENQUIRY, exports.enquirySchema);
