@@ -41,7 +41,10 @@ const http_errors_1 = __importDefault(require("http-errors"));
 const mongoose_1 = __importStar(require("mongoose"));
 const constants_1 = require("../../config/constants");
 const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
+<<<<<<< HEAD
 const moment_timezone_1 = __importDefault(require("moment-timezone"));
+=======
+>>>>>>> develop
 const leadSchema = new mongoose_1.Schema({
     // Change format to DD/MM/YYYY and add error message
     date: {
@@ -93,10 +96,17 @@ const leadSchema = new mongoose_1.Schema({
             values: Object.values(constants_1.Course),
             message: 'Invalid Course Value'
         }
+<<<<<<< HEAD
     },
     // Required field with a custom validation error message
     assignedTo: {
         type: mongoose_1.Schema.Types.ObjectId,
+=======
+    }, // TODO: need to test this as we added enum
+    // Required field with a custom validation error message
+    assignedTo: {
+        type: mongoose_1.Schema.Types.ObjectId, // TODO: this need to be tested
+>>>>>>> develop
         required: [true, 'Assigned To is required']
     },
     // Must be one of the predefined lead types; defaults to "ORANGE"
@@ -140,10 +150,14 @@ leadSchema.post('findOneAndUpdate', function (error, doc, next) {
 });
 const transformDates = (_, ret) => {
     ['leadTypeModifiedDate', 'nextDueDate', 'date'].forEach((key) => {
+<<<<<<< HEAD
         if (key == 'leadTypeModifiedDate') {
             ret[key] = (0, moment_timezone_1.default)(ret[key]).tz('Asia/Kolkata').format('DD/MM/YYYY | HH:mm');
         }
         else if (ret[key]) {
+=======
+        if (ret[key]) {
+>>>>>>> develop
             ret[key] = (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(ret[key]);
         }
     });
@@ -154,4 +168,8 @@ const transformDates = (_, ret) => {
 };
 leadSchema.set('toJSON', { transform: transformDates });
 leadSchema.set('toObject', { transform: transformDates });
+<<<<<<< HEAD
 exports.Lead = mongoose_1.default.model(constants_1.COLLECTION_NAMES.LEAD, leadSchema);
+=======
+exports.Lead = mongoose_1.default.model('Lead', leadSchema);
+>>>>>>> develop

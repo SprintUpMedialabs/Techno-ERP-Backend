@@ -9,7 +9,7 @@ export const formatResponse = <T>(
     return res.status(statusCode).json({
         MESSAGE: message,
         SUCCESS: success,
-        ERROR: error || null,
-        DATA: data || null
+        ERROR: error ?? null,
+        DATA: data ?? null
     });
 };

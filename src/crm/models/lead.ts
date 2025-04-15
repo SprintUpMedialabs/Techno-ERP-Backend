@@ -56,13 +56,8 @@ const leadSchema = new Schema<ILeadMasterDocument>(
     area: {
       type: String,
     },
-
     city: {
       type: String,
-      enum: {
-        values: Object.values(Locations),
-        message: 'Invalid City Value'
-      }
     },
     course: {
       type: String,
