@@ -4,8 +4,6 @@ import { Countries, Districts, StatesOfIndia, UserRoles } from '../config/consta
 
 export const objectIdSchema = z.custom<mongoose.Types.ObjectId>(
   (id) => {
-    console.log(id);
-    console.log(mongoose.Types.ObjectId.isValid(id));
     return mongoose.Types.ObjectId.isValid(id)
   },
   { message: "This is not a valid ObjectId" }

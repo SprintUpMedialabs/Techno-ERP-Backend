@@ -50,8 +50,6 @@ export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedReque
         query.gender = { $in: gender };
     }
 
-    // console.log(query);
-
     const [allLeadAnalytics, yellowLeadAnalytics] = await Promise.all([
         LeadMaster.aggregate([
             { $match: query }, // Apply Filters
@@ -87,10 +85,6 @@ export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedReque
             }
         ])
     ]);
-
-    // console.log(allLeadAnalytics);
-
-    // console.log(yellowLeadAnalytics);
 
     return formatResponse(res, 200, 'Analytics fetched successfully',
         true,

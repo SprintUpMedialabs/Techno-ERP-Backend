@@ -20,7 +20,6 @@ const requiredEnvVariables = [
 
 export const validateEnvVariables = (): void => {
   const missingVars = requiredEnvVariables.filter((envVar) => !process.env[envVar]);
-  // console.log(missingVars);
   if (missingVars.length > 0) {
     logger.error(`❌ Missing required environment variables: ${missingVars.join(', ')}`);
     process.exit(1); // Terminate the program

@@ -30,7 +30,6 @@ export const uploadToS3 = async (folderName: string, yearSubFolderName: string, 
     throw new Error(`Invalid file type: ${fileType}`);
   }
 
-  console.log(file.originalname);
   let extension = getFileExtension(file.originalname);
   const fileName = `${fileType}.${extension}`;
 
@@ -46,11 +45,9 @@ export const uploadToS3 = async (folderName: string, yearSubFolderName: string, 
 
   try {
     await s3Client.send(command);
-    console.log(`File uploaded successfully: ${objectKey}`);
     return `https://${AWS_BUCKET_NAME}.s3.amazonaws.com/${objectKey}`;
   }
   catch (err) {
-    console.error('Error uploading to S3:', err);
     throw err;
   }
 }

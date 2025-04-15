@@ -167,7 +167,6 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) =>
       }
     });
   }
-
   if (report.rowsFailed != 0) {
     sendEmail(LEAD_MARKETING_EMAIL, 'Lead Processing Report', formatReport(report));
     logger.info('Error report sent to Lead!');

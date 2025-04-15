@@ -214,7 +214,6 @@ export const updateStudentFee = expressAsyncHandler(async (req: AuthenticatedReq
 
   const validation = feesUpdateSchema.safeParse(feesDraftUpdateData);
 
-  console.log(validation.error)
   if (!validation.success) {
     throw createHttpError(400, validation.error.errors[0]);
   }
