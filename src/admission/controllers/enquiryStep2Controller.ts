@@ -54,9 +54,11 @@ export const createEnquiryStep2 = expressAsyncHandler(functionLevelLogger(async 
       const otherFees = await fetchOtherFees();
       const semWiseFee = await fetchCourseFeeByCourse(enquiry?.course.toString() ?? '');
   
+      const { counsellor, telecaller, ...feeRelatedData } = validation.data;
+
       const feeData: IStudentFeesSchema = {
-        ...validation.data,
-        otherFees: validation.data.otherFees?.map(fee => {
+        ...feeRelatedData,
+        otherFees: feeRelatedData.otherFees?.map(fee => {
           let feeAmount;
           if (fee.type === FeeType.SEM1FEE) 
           {
@@ -74,19 +76,19 @@ export const createEnquiryStep2 = expressAsyncHandler(functionLevelLogger(async 
             feesDepositedTOA: fee.feesDepositedTOA ?? 0
           };
         }) || [],
-        semWiseFees: validation.data.semWiseFees.map((semFee, index: number) => ({
+        semWiseFees: feeRelatedData.semWiseFees.map((semFee, index: number) => ({
           finalFee: semFee.finalFee,
           feeAmount: semWiseFee?.fee[index] ?? 0,
         })),
       };
-  
+      
       feesDraft = await StudentFeesModel.create([feeData], { session });
   
-      feesDraftCreated = {
-        ...feesDraft,
-        telecaller : data.telecaller ? data.telecaller : enquiry.telecaller,
-        counsellor : data.counsellor ? data.counsellor : enquiry.counsellor
-      };
+      // feesDraftCreated = {
+      //   ...feesDraft,
+      //   telecaller : data.telecaller ? data.telecaller : enquiry.telecaller,
+      //   counsellor : data.counsellor ? data.counsellor : enquiry.counsellor
+      // };
 
       if (!feesDraft) {
         throw createHttpError(404, 'Failed to update Fees');
@@ -137,4 +139,3 @@ export const updateEnquiryStep2ById = expressAsyncHandler(functionLevelLogger(as
     const feesDraft = await updateFeeDetails([ApplicationStatus.STEP_1, ApplicationStatus.STEP_3, ApplicationStatus.STEP_4], feesDraftUpdateData);
     return formatResponse(res, 200, 'Fees Draft updated successfully', true, feesDraft);
 }));
-  

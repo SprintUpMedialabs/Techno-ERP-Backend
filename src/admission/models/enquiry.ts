@@ -1,6 +1,6 @@
 import createHttpError from 'http-errors';
 import mongoose, { Schema, Types } from 'mongoose';
-import { AdmissionMode, AdmissionReference, AdmittedThrough, ApplicationStatus, AreaType, Category, COLLECTION_NAMES, Course, Gender, Religion, StatesOfIndia } from '../../config/constants';
+import { AdmissionMode, AdmissionReference, AdmittedThrough, ApplicationStatus, AreaType, BloodGroup, Category, COLLECTION_NAMES, Course, Gender, Religion, StatesOfIndia } from '../../config/constants';
 import { convertToDDMMYYYY, convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import { contactNumberSchema, emailSchema } from '../../validators/commonSchema';
 import { IEnquirySchema } from '../validators/enquiry';
@@ -35,6 +35,10 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
       set: (value: string) => {
         return convertToMongoDate(value);
       }
+    },
+    bloodGroup: {
+      type: String,
+      enum: Object.values(BloodGroup)
     },
     studentName: {
       type: String,
@@ -116,6 +120,13 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
         message: 'Invalid Admission Reference value'
       },
       required: true
+    },
+    aadharNumber: {
+      type: String,
+      validate: {
+        validator: (aadhar: string) => aadhar.length === 12,
+        message: 'Invalid Aadhar Number'
+      }
     },
     address: {
       type: addressSchema,
