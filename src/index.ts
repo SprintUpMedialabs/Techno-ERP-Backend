@@ -21,7 +21,7 @@ validateEnvVariables();
 
 app.use(express.json());
 app.use(cookieParser());
-console.log(process.env.NODE_ENV);
+
 const allowedOrigins =
   process.env.NODE_ENV === 'production'
     ? [process.env.FRONTEND_URL] // PROD ENV

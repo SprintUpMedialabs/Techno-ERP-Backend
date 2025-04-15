@@ -124,8 +124,6 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
 
   const validation = objectIdSchema.safeParse(id);
 
-  console.log(validation.error);
-
   if (!validation.success) {
     throw createHttpError(400, validation.error.errors[0]);
   }
@@ -173,7 +171,7 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
     );
 
     const studentValidation = studentSchema.safeParse(approvedEnquiry);
-    console.log(studentValidation.error)
+
     if (!studentValidation.success)
       throw createHttpError(400, studentValidation.error.errors[0]);
 

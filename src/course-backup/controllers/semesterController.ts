@@ -24,7 +24,6 @@ export const deleteSemester = expressAsyncHandler(async (req: AuthenticatedReque
         { new: true, projection: { "courses": { $elemMatch: { _id: courseId } } }, runValidators: true }
     );
 
-    console.log(updatedDepartment);
     if (!updatedDepartment || updatedDepartment.courses.length === 0) {
         throw createHttpError(404, "Semester not deleted.");
     }

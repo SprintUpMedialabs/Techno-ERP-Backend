@@ -51,10 +51,7 @@ export const updateSubject = expressAsyncHandler(async (req: AuthenticatedReques
         throw createHttpError(400, validation.error.errors[0]);
     }
 
-
     const { subjectId, ...subjectUpdateData } = validation.data;
-    console.log(subjectUpdateData);
-
 
     const updatedDepartment = await DepartmentModel.findOneAndUpdate(
         { "courses.semester.subjectDetails._id": subjectId }, 

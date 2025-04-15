@@ -21,9 +21,7 @@ const connectToDatabase = async (): Promise<void> => {
 export const initializeDB = async () => {
   try {
     const existingDoc = await SpreadSheetMetaData.find({ name: MARKETING_SHEET });
-    //console.log(existingDoc);
     if (existingDoc.length == 0) {
-      console.log(existingDoc);
       await SpreadSheetMetaData.create({
         name: MARKETING_SHEET,
         lastIdxMarketingSheet: 1
