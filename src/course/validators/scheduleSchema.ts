@@ -1,13 +1,13 @@
 import { z } from "zod";
 import { objectIdSchema, requestDateSchema } from "../../validators/commonSchema";
 import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
-import { LectureConfirmation } from "../../config/constants";
+import { LectureConfirmation, MaterialType } from "../../config/constants";
 
 export const baseLectureSchema = z.object({
     unit : z.number().nonnegative({ message : "Unit Number is required "}),
     lectureNumber : z.number().nonnegative({ message : "Lecture Number is required "}),
-    topicName : z.number(),
-    instructor : objectIdSchema,
+    topicName : z.string(),
+    instructor : objectIdSchema.optional(),
     plannedDate : requestDateSchema.transform((date) =>
         convertToMongoDate(date) as Date
     ),
@@ -22,7 +22,7 @@ export const baseLectureSchema = z.object({
     documents: z.array(z.string().url()).optional()
 })
 
-export const lecturePlanSchema = baseLectureSchema.superRefine(({ attendance, classStrength }, ctx) => {
+export const planSchema = baseLectureSchema.superRefine(({ attendance, classStrength }, ctx) => {
     if ( attendance !== undefined && classStrength !== undefined && attendance > classStrength) {
         ctx.addIssue({
         path: ["attendance"],
@@ -32,27 +32,48 @@ export const lecturePlanSchema = baseLectureSchema.superRefine(({ attendance, cl
     }
 });
 
-
-export const practicalPlanSchema = lecturePlanSchema;
-
-
 export const scheduleSchema = z.object({
-    lecturePlan: z.array(lecturePlanSchema),
-    practicalPlan: z.array(practicalPlanSchema),
+    lecturePlan: z.array(planSchema),
+    practicalPlan: z.array(planSchema),
     additionalResources: z.array(z.string().url()).optional()
 });
 
-export const createLecturePlanSchema = baseLectureSchema.extend({
+export const createPlanSchema = baseLectureSchema.extend({
+    type : z.nativeEnum(MaterialType),
     courseId : objectIdSchema,
     semesterId : objectIdSchema,
     subjectId : objectIdSchema,
     instructorId : objectIdSchema
 });
 
-export const createPracticalPlanSchema = createLecturePlanSchema;
+export const updatePlanSchema = z.object({
+    type : z.nativeEnum(MaterialType),
+    courseId : objectIdSchema,
+    semesterId : objectIdSchema,
+    subjectId : objectIdSchema,
+    instructorId : objectIdSchema,
+    data : z.array(baseLectureSchema.omit({ documents : true }).superRefine(({ attendance, classStrength }, ctx) => {
+        if ( attendance !== undefined && classStrength !== undefined && attendance > classStrength) {
+            ctx.addIssue({
+            path: ["attendance"],
+            message: "Attendance cannot exceed class strength",
+            code: z.ZodIssueCode.custom,
+          });
+        }
+    }))
+});
 
-export type ILecturePlanSchema = z.infer<typeof lecturePlanSchema>;
-export type ICreateLecturePlanSchema = z.infer<typeof createLecturePlanSchema>;
-export type IPracticalPlanSchema = z.infer<typeof practicalPlanSchema>;
-export type ICreatePracticalPlanSchema = z.infer<typeof createPracticalPlanSchema>;
+export const deletePlanSchema = z.object({
+    type : z.nativeEnum(MaterialType),
+    courseId : objectIdSchema,
+    semesterId : objectIdSchema,
+    subjectId : objectIdSchema,
+    instructorId : objectIdSchema,
+    planId : objectIdSchema
+})
+
+export type IPlanSchema = z.infer<typeof planSchema>;
+export type ICreatePlanSchema = z.infer<typeof createPlanSchema>;
+export type IUpdatePlanSchema = z.infer<typeof updatePlanSchema>;
+export type IDeletePlanSchema = z.infer<typeof deletePlanSchema>;
 export type IScheduleSchema = z.infer<typeof scheduleSchema>;  

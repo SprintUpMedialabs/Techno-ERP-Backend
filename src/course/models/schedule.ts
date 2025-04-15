@@ -1,13 +1,12 @@
 import { Schema } from "mongoose";
-import { ILecturePlanSchema, IPracticalPlanSchema, IScheduleSchema } from "../validators/scheduleSchema";
+import {  IPlanSchema, IScheduleSchema } from "../validators/scheduleSchema";
 import { COLLECTION_NAMES, LectureConfirmation } from "../../config/constants";
 import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
 
-export interface ILecturePlanDocument extends ILecturePlanSchema, Document {};
-export interface IPracticalPlanDocument extends IPracticalPlanSchema, Document {};
+export interface ILecturePlanDocument extends IPlanSchema, Document {};
 export interface IScheduleDocument extends IScheduleSchema, Document {};
 
-export const lecturePlanModelSchema = new Schema<ILecturePlanDocument>({
+export const planModelSchema = new Schema<ILecturePlanDocument>({
     unit: { 
         type: Number, 
         required: [true, 'Unit Number is required.'], 
@@ -19,7 +18,7 @@ export const lecturePlanModelSchema = new Schema<ILecturePlanDocument>({
         min: [0, 'Lecture number must be a valid value.'] 
     },
     topicName: { 
-        type: Number, 
+        type: String, 
         required: [true, 'Topic Name is required.'] 
     },
     instructor: {
@@ -78,7 +77,7 @@ export const lecturePlanModelSchema = new Schema<ILecturePlanDocument>({
 
 
 export const scheduleModelSchema = new Schema<IScheduleDocument>({
-    lecturePlan: [lecturePlanModelSchema],
-    practicalPlan: [lecturePlanModelSchema],
+    lecturePlan: [planModelSchema],
+    practicalPlan: [planModelSchema],
     additionalResources: [{ type: String }],
 });
