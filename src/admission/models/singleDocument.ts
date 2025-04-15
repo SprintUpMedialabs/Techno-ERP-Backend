@@ -1,8 +1,7 @@
 import { Schema } from "mongoose";
-import { ISingleDocumentSchema } from "../validators/singleDocumentSchema";
 import { DocumentType } from "../../config/constants";
-import { optional } from "zod";
-import { objectIdSchema } from "../../validators/commonSchema";
+import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
+import { ISingleDocumentSchema } from "../validators/singleDocumentSchema";
 export interface ISingleDocument extends ISingleDocumentSchema, Document {}
 
 export const singleDocumentSchema = new Schema({
@@ -11,10 +10,13 @@ export const singleDocumentSchema = new Schema({
       enum: Object.values(DocumentType)
     },
     fileUrl : {
-      type : String
+      type : String,
     },
     dueBy : {
       type: Date,
-      optional : true
+      required : false,
+      set: (value: string) => {
+        return convertToMongoDate(value);
+      }
     },
 });

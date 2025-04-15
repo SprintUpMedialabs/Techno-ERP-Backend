@@ -8,7 +8,6 @@ export const otherFeesSchema = z.object({
     feeAmount: z.number().min(0, 'Fee amount must be greater than 0'),
     finalFee: z.number().min(0, 'Final fees to be paid must be greater than 0'),
     feesDepositedTOA: z.number().min(0, 'Fees to be deposited must be greater then 0').default(0),
-    remarks: z.string()
 });
 
 export const singleSemSchema = z.object({
@@ -28,8 +27,7 @@ const studentFeesSchema = z.object({
     feesClearanceDate : requestDateSchema.transform((date) =>
         convertToMongoDate(date) as Date
     ),
-    approvedBy : z.string().email(),
-    counsellor: z.union([objectIdSchema, z.enum(['other'])]).optional(),
+    remarks : z.string().optional()
 });
 
 export const feesRequestSchema = studentFeesSchema.omit({ feeStatus: true }).extend({
@@ -38,27 +36,28 @@ export const feesRequestSchema = studentFeesSchema.omit({ feeStatus: true }).ext
     enquiryId: objectIdSchema,
     feesClearanceDate : requestDateSchema.transform((date) =>
         convertToMongoDate(date) as Date
-    )
+    ),
+    counsellor: z.array(z.union([objectIdSchema, z.enum(['other'])])).optional(),
+    telecaller: z.array(z.union([objectIdSchema, z.enum(['other'])])).optional(),
 });
 
 export const feesUpdateSchema = feesRequestSchema.extend({
-    id: objectIdSchema  //This is referring to the fees table _id
-}).omit({  enquiryId : true });
+    id: objectIdSchema, //This is referring to the fees table _id
+}).omit({  enquiryId : true }).strict();
 
 
 export const feesDraftRequestSchema = feesRequestSchema.extend({
     otherFees: z.array(otherFeesSchema.partial()).optional(),
     semWiseFees: z.array(singleSemSchema.partial()).optional(),
-    enquiryId : objectIdSchema,
     feesClearanceDate : requestDateSchema.transform((date) =>
         convertToMongoDate(date) as Date
     ).optional(),
-    approvedBy : z.string().email().optional(),
-    counsellor : z.union([objectIdSchema, z.enum(['other'])]).optional(),
 }).strict();
 
 
-export const feesDraftUpdateSchema = feesDraftRequestSchema.extend({id : objectIdSchema}).omit({ enquiryId : true }).partial().strict()
+export const feesDraftUpdateSchema = feesDraftRequestSchema.extend({
+    id : objectIdSchema,
+}).strict();
 
 
 export type IOtherFeesSchema = z.infer<typeof otherFeesSchema>;

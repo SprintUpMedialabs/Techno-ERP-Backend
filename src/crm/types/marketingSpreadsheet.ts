@@ -15,7 +15,7 @@ export interface IMarketingSpreadsheetProcessReport {
 // Interface for Filtering Leads
 export interface IAllLeadFilter {
   course: Course[]; // Accepts multiple course values as an array
-  location: Locations[]; // Array for multiple locations
+  city: Locations[]; // Array for multiple locations
   assignedTo: Types.ObjectId[]; // Array for multiple assigned users | TODO: need to test this 
   startDate?: string; // Date range start
   endDate?: string; // Date range end
@@ -26,7 +26,7 @@ export interface IAllLeadFilter {
 }
 
 export interface IAdminAnalyticsFilter {
-  location: Locations[]; // Array for multiple locations
+  city: Locations[]; // Array for multiple locations
   assignedTo: Types.ObjectId[]; // Array for multiple assigned users | TODO: need to test this
   startDate?: string; // Date range start
   endDate?: string; // Date range end

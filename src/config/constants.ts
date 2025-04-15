@@ -8,7 +8,8 @@ export enum UserRoles {
   BASIC_USER = 'BASIC_USER',
   COUNSELOR = 'COUNSELOR',
   REGISTAR = 'REGISTAR',
-  
+  HOD = 'HOD',
+  INSTRUCTOR = 'INSTRUCTOR'
 }
 
 export enum Gender {
@@ -25,24 +26,25 @@ export enum Source {
 
 
 export enum LeadType {
-  ORANGE = 'OPEN',
-  RED = 'NOT_INTERESTED',
-  BLACK = 'COURSE_UNAVAILABLE',
-  BLUE = 'NO_CLARITY',
-  YELLOW = 'INTERESTED',
-  GREEN = 'ADMISSION',
-  WHITE = 'DID_NOT_PICK'
+  OPEN = 'OPEN',
+  DEAD = 'DEAD',
+  COURSE_UNAVAILABLE = 'COURSE_UNAVAILABLE',
+  NO_CLARITY = 'NO_CLARITY',
+  INTERESTED = 'INTERESTED',
+  DID_NOT_PICK = 'DID_NOT_PICK',
+  INVALID = 'INVALID'
 }
 
 
 export enum FinalConversionType {
-  PINK = 'PENDING',
-  GREEN = 'CONVERTED',
-  RED = 'NOT_CONVERTED'
+  NO_FOOTFALL = 'NO_FOOTFALL',
+  UNCONFIRMED = 'UNCONFIRMED',
+  CONVERTED = 'CONVERTED',
+  DEAD = 'DEAD',
 }
 
 
-export enum Marketing_Source{
+export enum Marketing_Source {
   SCHOOL = 'School',
   DIGITAL_MARKETING = 'Digital_Marketing'
 }
@@ -170,17 +172,10 @@ export enum ApplicationStatus {
 }
 
 
-export enum MimeType {
-  PNG = 'image/png',
-  JPG = 'image/jpeg',
-  JPEG = 'image/jpeg',
-  PDF = 'application/pdf',
-}
-
-
 export enum ModuleNames {
   MARKETING = "MARKETING",
-  ADMISSION = "ADMISSION"
+  ADMISSION = "ADMISSION",
+  COURSE = "COURSE"
 }
 
 
@@ -204,7 +199,8 @@ export enum FeeType {
   UNIFORM = "UNIFORM",
   STUDENTWELFARE = "STUDENTWELFARE",
   BOOKBANK = "BOOKBANK",
-  EXAMFEES = "EXAMFEES"
+  EXAMFEES = "EXAMFEES",
+  SEM1FEE = "SEM1FEE"
 }
 
 
@@ -214,7 +210,7 @@ export enum FeeStatus {
 }
 
 
-export enum AdmissionMode{
+export enum AdmissionMode {
   ONLINE = "ONLINE",
   OFFLINE = "OFFLINE"
 }
@@ -275,6 +271,12 @@ export enum Districts {
   Unnao = "Unnao",
 }
 
+export enum AreaType{
+  URBAN = "URBAN",
+  RURAL = "RURAL",
+  OTHERS = "OTHERS"
+}
+
 
 export const ADMISSION = 'admissions'
 
@@ -283,3 +285,28 @@ export const PHOTO = "PHOTO";
 
 export const MARKETING_SHEET = 'Marketing Sheet'
 
+
+export enum COLLECTION_NAMES {
+  USER = 'User',
+  VERIFY_OTP = 'VerifyOtp',
+  ENQUIRY = 'Enquiry',
+  ENQUIRY_DRAFT = 'EnquiryDraft',
+  ENQUIRY_ID_META_DATA = 'EnquiryIdMetaData',
+  STUDENT_FEE = 'studentFee',
+  STUDENT_FEE_DRAFT = 'studentFeeDraft',
+  DEPARTMENT_COURSE = 'deptandcourse',
+  LEAD = 'Lead',
+  SPREADSHEET_META_DATA = 'spreadSheetMetaData',
+  YELLOW_LEAD = 'YellowLead',
+  COURSE_OTHER_FEES = 'CourseAndOtherFees',
+  STUDENT = 'Student',
+  DEPARTMENT_META_DATA = 'DepartmentMetaData',
+  COURSE = 'Course'
+}
+
+
+export enum LectureConfirmation{
+  CONFIRMED = 'CONFIRMED',
+  DELAYED = 'DELAYED',
+  TO_BE_DONE = 'TO_BE_DONE'
+}

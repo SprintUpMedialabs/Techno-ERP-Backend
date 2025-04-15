@@ -15,12 +15,12 @@ export const parseFilter = (req: AuthenticatedRequest) => {
     leadType = [],
     finalConversionType = [], // related to yellow lead table
     course = [],
-    location = [],
+    city = [],
     assignedTo = [],
     page = 1,
     limit = 10,
-    sortBy,
-    orderBy = OrderBy.ASC,
+    sortBy = [],
+    orderBy = [],
     search = '',
   } = req.body;
 
@@ -30,7 +30,7 @@ export const parseFilter = (req: AuthenticatedRequest) => {
     leadType,
     finalConversionType,
     course,
-    location,
+    city,
     assignedTo,
     startLTCDate,
     endLTCDate,
@@ -50,11 +50,14 @@ export const parseFilter = (req: AuthenticatedRequest) => {
     query.course = { $in: filters.course };
   }
 
-  if (filters.location.length > 0) {
-    query.location = { $in: filters.location };
+  if (filters.city.length > 0) {
+    query.city = { $in: filters.city };
   }
 
+  console.log("Before mapping:", filters.assignedTo);
   filters.assignedTo = filters.assignedTo.map(id => new mongoose.Types.ObjectId(id));
+  console.log("After mapping:", filters.assignedTo);
+
 
   if (
     req.data?.roles.includes(UserRoles.EMPLOYEE_MARKETING) &&
@@ -69,9 +72,6 @@ export const parseFilter = (req: AuthenticatedRequest) => {
     if (filters.assignedTo.length > 0) {
       query.assignedTo = { $in: filters.assignedTo };
     } 
-    // else {
-    //   query.assignedTo = { $exists: true };
-    // }
   }
 
 
@@ -95,12 +95,24 @@ export const parseFilter = (req: AuthenticatedRequest) => {
     }
   }
 
+
+
+  const reversedSortBy = [...sortBy].reverse();
+  const reversedOrderBy = [...orderBy].reverse();
+
   let sort: any = {};
-  if (sortBy === SortableFields.DATE || sortBy === SortableFields.NEXT_DUE_DATE) {
-    sort[sortBy] = orderBy === OrderBy.DESC ? -1 : 1;
-  } else if (sortBy === SortableFields.LTC_DATE) {
-    sort['createdAt'] = orderBy === OrderBy.DESC ? -1 : 1;
-  }
+
+  reversedSortBy.forEach((field, index) => {
+  const direction = reversedOrderBy[index] === OrderBy.DESC ? -1 : 1;
+
+    if (field === SortableFields.LTC_DATE) {
+      sort['leadTypeModifiedDate'] = direction;
+    } 
+    else {
+      sort[field] = direction;
+    }
+  });
+
 
   return {
     search: search,

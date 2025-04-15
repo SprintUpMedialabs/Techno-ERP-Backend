@@ -9,19 +9,22 @@ import cookieParser from 'cookie-parser';
 import connectToDatabase, { initializeDB } from './config/database';
 import { validateEnvVariables } from './config/validateEnv';
 import cors from 'cors';
+import path from 'path';
 
 const app = express();
 
-dotenv.config();
+const envFile = process.env.NODE_ENV === 'production' ? '.env.prod' : '.env.uat';
+dotenv.config({ path: path.resolve(__dirname, envFile) });
+
 
 validateEnvVariables();
 
 app.use(express.json());
 app.use(cookieParser());
-
+console.log(process.env.NODE_ENV);
 const allowedOrigins =
   process.env.NODE_ENV === 'production'
-    ? ['https://myepicfrontend.com'] // PROD ENV
+    ? [process.env.FRONTEND_URL] // PROD ENV
     : '*'; // Allow all origins in DEV ENV
 
 const corsOptions = {

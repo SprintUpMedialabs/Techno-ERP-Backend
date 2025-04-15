@@ -1,6 +1,6 @@
 import createHttpError from 'http-errors';
 import mongoose, { Schema, Types } from 'mongoose';
-import { AdmissionMode, AdmissionReference, AdmittedThrough, ApplicationStatus, Category, Course, Gender } from '../../config/constants';
+import { AdmissionMode, AdmissionReference, AdmittedThrough, ApplicationStatus, Category, COLLECTION_NAMES, Course, Gender } from '../../config/constants';
 import { convertToDDMMYYYY } from '../../utils/convertDateToFormatedDate';
 import { contactNumberSchema, emailSchema } from '../../validators/commonSchema';
 import { IStudentSchema } from '../validators/student';
@@ -16,6 +16,7 @@ export interface IStudentDocument extends IStudentSchema, Document {
   // photoNo : number;
   // universityId : string; 
   preRegNumber : string;
+  admittedThrough : string;
 }
 
 const studentSchema = new Schema<IStudentDocument>(
@@ -166,25 +167,31 @@ const studentSchema = new Schema<IStudentDocument>(
       },
       required: true
     },
-    approvedBy : {
-      type : Schema.Types.ObjectId,
-      optional : true
-    },
     preRegNumber : {
       type : String,
       optional : true
     },
     counsellor : {
-      type: Schema.Types.Mixed,
+      type:  [ Schema.Types.Mixed ],
       validate: {
-        validator: function (value: any) {
-          return (
-            value === 'other' || 
-            Types.ObjectId.isValid(value)
-          );
+        validator: function (values) {
+            if (!Array.isArray(values)) return false; // Ensure it's an array
+    
+            return values.every(value => {
+                // Allow null or undefined
+                if (value === null || value === undefined) return true;
+    
+                // Check for valid ObjectId
+                const isObjectId = mongoose.Types.ObjectId.isValid(value);
+    
+                // Allow string 'other'
+                const isOther = value === 'other';
+    
+                return isObjectId || isOther;
+            });
         },
-        message: 'Counsellor must be a valid ObjectId or "other"',
-      },
+        message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
+    }
     },
     admittedThrough : {
       type : String,
@@ -224,7 +231,7 @@ studentSchema.post('findOneAndUpdate', function (error: any, doc: any, next: Fun
 });
 
 const transformDates = (_: any, ret: any) => {
-  ['dateOfEnquiry', 'dateOfAdmission', 'dateOfBirth'].forEach((key) => {
+  ['dateOfEnquiry', 'dateOfAdmission', 'dateOfBirth', 'dueBy'].forEach((key) => {
     if (ret[key]) {
       ret[key] = convertToDDMMYYYY(ret[key]);
     }
@@ -235,4 +242,4 @@ const transformDates = (_: any, ret: any) => {
 studentSchema.set('toJSON', { transform: transformDates });
 studentSchema.set('toObject', { transform: transformDates });
 
-export const Student = mongoose.model<IStudentDocument>('Student', studentSchema);
+export const Student = mongoose.model<IStudentDocument>(COLLECTION_NAMES.STUDENT, studentSchema);

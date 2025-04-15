@@ -1,7 +1,7 @@
 import createHttpError from "http-errors";
 import mongoose, { Schema } from "mongoose"
 import { convertToDDMMYYYY, convertToMongoDate } from "../../utils/convertDateToFormatedDate";
-import { AdmissionMode, AdmissionReference, Category, Course, Gender } from "../../config/constants";
+import { AdmissionMode, AdmissionReference, ApplicationStatus, Category, COLLECTION_NAMES, Course, Gender } from "../../config/constants";
 import { IEnquirySchema } from "../validators/enquiry";
 import { contactNumberSchema, emailSchema } from "../../validators/commonSchema";
 import { academicDetailFormSchema } from "./academicDetail";
@@ -125,51 +125,52 @@ export const enquiryDraftSchema = new Schema<IEnquiryDraftDocument>(
         },
         // DTODO: here we have id and other 2 value [so type should be according to that]
         counsellor: {
-            type: Schema.Types.Mixed, // Allows ObjectId or String
+            type: [Schema.Types.Mixed], // Allows ObjectId or String
             validate: {
-                validator: function (value) {
-                    // Allow null or undefined
-                    if (value === null || value === undefined) return true;
-
-                    // Check for valid ObjectId
-                    const isObjectId = mongoose.Types.ObjectId.isValid(value);
-
-                    // Allow string 'other'
-                    const isOther = value === 'other';
-
-                    return isObjectId || isOther;
+                validator: function (values) {
+                    if (!Array.isArray(values)) return false; // Ensure it's an array
+            
+                    return values.every(value => {
+                        // Allow null or undefined
+                        if (value === null || value === undefined) return true;
+            
+                        // Check for valid ObjectId
+                        const isObjectId = mongoose.Types.ObjectId.isValid(value);
+            
+                        // Allow string 'other'
+                        const isOther = value === 'other';
+            
+                        return isObjectId || isOther;
+                    });
                 },
-                message: props => `'${props.value}' is not a valid counsellor (must be ObjectId or 'other')`
+                message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
             },
             required: false,
         },
         // DTODO: here we have id and other 2 value [so type should be according to that]
         // this change need to be done in other models [studentFeesDraft, studentFees, enquiry]
         telecaller: {
-            type: Schema.Types.Mixed, // Allows ObjectId or String
+            type: [ Schema.Types.Mixed ], // Allows ObjectId or String
             validate: {
-                validator: function (value) {
-                    // Allow null or undefined
-                    if (value === null || value === undefined) return true;
-
-                    // Check for valid ObjectId
-                    const isObjectId = mongoose.Types.ObjectId.isValid(value);
-
-                    // Allow string 'other'
-                    const isOther = value === 'other';
-
-                    return isObjectId || isOther;
+                validator: function (values) {
+                    if (!Array.isArray(values)) return false; // Ensure it's an array
+            
+                    return values.every(value => {
+                        // Allow null or undefined
+                        if (value === null || value === undefined) return true;
+            
+                        // Check for valid ObjectId
+                        const isObjectId = mongoose.Types.ObjectId.isValid(value);
+            
+                        // Allow string 'other'
+                        const isOther = value === 'other';
+            
+                        return isObjectId || isOther;
+                    });
                 },
-                message: props => `'${props.value}' is not a valid counsellor (must be ObjectId or 'other')`
+                message: props => `'${props.value}' contains an invalid telecaller (must be ObjectId or 'other')`
             },
             required: false,
-        },
-        dateOfCounselling: {
-            type: Date,
-            required: false,
-            set: (value: string) => {
-                return convertToMongoDate(value);
-            }
         },
         remarks: {
             type: String
@@ -182,11 +183,18 @@ export const enquiryDraftSchema = new Schema<IEnquiryDraftDocument>(
                 message: 'Invalid gender value'
             }
         },
+        applicationStatus: {
+            type: String,
+            enum: {
+              values: Object.values(ApplicationStatus),
+              message: 'Invalid Application Status value'
+            },
+            default: ApplicationStatus.STEP_1,
+            required: true
+        },
     },
     { timestamps: true }
 );
-
-
 
 const handleDraftMongooseError = (error: any, next: Function) => {
     if (error.name === 'ValidationError') {
@@ -207,7 +215,7 @@ enquiryDraftSchema.post('findOneAndUpdate', function (error: any, doc: any, next
 
 
 const transformDates = (_: any, ret: any) => {
-    ['dateOfEnquiry', 'dateOfBirth', 'dateOfCounselling'].forEach((key) => {
+    ['dateOfEnquiry', 'dateOfBirth'].forEach((key) => {
         if (ret[key]) {
             ret[key] = convertToDDMMYYYY(ret[key]);
         }
@@ -221,4 +229,4 @@ const transformDates = (_: any, ret: any) => {
 enquiryDraftSchema.set('toJSON', { transform: transformDates });
 enquiryDraftSchema.set('toObject', { transform: transformDates });
 
-export const EnquiryDraft = mongoose.model<IEnquiryDraftDocument>('EnquiryDraft', enquiryDraftSchema);
+export const EnquiryDraft = mongoose.model<IEnquiryDraftDocument>(COLLECTION_NAMES.ENQUIRY_DRAFT, enquiryDraftSchema);

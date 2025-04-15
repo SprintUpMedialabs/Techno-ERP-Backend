@@ -6,7 +6,8 @@ export enum MarketingsheetHeaders {
   AltPhoneNumber = 4,
   Email = 5,
   Gender = 6,
-  Location = 7,
+  City = 7,
   Course = 8,
-  AssignedTo = 9
+  AssignedTo = 9,
+  SchoolName = 10
 }
