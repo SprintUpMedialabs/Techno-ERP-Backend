@@ -23,7 +23,9 @@ const lead_1 = require("../models/lead");
 const leads_1 = require("../validators/leads");
 const formatReport_1 = require("./formatReport");
 const googleSheetOperations_1 = require("./googleSheetOperations");
-const leadsToBeInserted = (latestData, report, lastSavedIndex) => __awaiter(void 0, void 0, void 0, function* () {
+const dropDownMetaDeta_1 = require("../../utilityModules/dropdown/dropDownMetaDeta");
+const dropDownMetadataController_1 = require("../../utilityModules/dropdown/dropDownMetadataController");
+const leadsToBeInserted = (latestData, report, lastSavedIndex, citySet, sourceSet) => __awaiter(void 0, void 0, void 0, function* () {
     let MarketingEmployees = new Map();
     const dataToInsert = [];
     for (const index in latestData) {
@@ -68,24 +70,19 @@ const leadsToBeInserted = (latestData, report, lastSavedIndex) => __awaiter(void
                     continue;
                 }
             }
-            let leadData = {
-                date: row[marketingSheetHeader_1.MarketingsheetHeaders.Date],
-                source: row[marketingSheetHeader_1.MarketingsheetHeaders.Source] || '',
-                name: row[marketingSheetHeader_1.MarketingsheetHeaders.Name],
-                phoneNumber: row[marketingSheetHeader_1.MarketingsheetHeaders.PhoneNumber],
-                altPhoneNumber: row[marketingSheetHeader_1.MarketingsheetHeaders.AltPhoneNumber] || '',
-                email: row[marketingSheetHeader_1.MarketingsheetHeaders.Email],
-                gender: constants_1.Gender.NOT_TO_MENTION,
-                city: row[marketingSheetHeader_1.MarketingsheetHeaders.City] || '',
-                assignedTo: assignedToID,
-                schoolName: row[marketingSheetHeader_1.MarketingsheetHeaders.SchoolName] || ''
-            };
+            let leadData = Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({}, (row[marketingSheetHeader_1.MarketingsheetHeaders.Date] && { date: row[marketingSheetHeader_1.MarketingsheetHeaders.Date] })), (row[marketingSheetHeader_1.MarketingsheetHeaders.Source] && { source: row[marketingSheetHeader_1.MarketingsheetHeaders.Source] })), (row[marketingSheetHeader_1.MarketingsheetHeaders.Name] && { name: row[marketingSheetHeader_1.MarketingsheetHeaders.Name] })), (row[marketingSheetHeader_1.MarketingsheetHeaders.PhoneNumber] && { phoneNumber: row[marketingSheetHeader_1.MarketingsheetHeaders.PhoneNumber] })), (row[marketingSheetHeader_1.MarketingsheetHeaders.AltPhoneNumber] && { altPhoneNumber: row[marketingSheetHeader_1.MarketingsheetHeaders.AltPhoneNumber] })), (row[marketingSheetHeader_1.MarketingsheetHeaders.Email] && { email: row[marketingSheetHeader_1.MarketingsheetHeaders.Email] })), { gender: constants_1.Gender.NOT_TO_MENTION }), (row[marketingSheetHeader_1.MarketingsheetHeaders.City] && { city: row[marketingSheetHeader_1.MarketingsheetHeaders.City] })), (assignedToID && { assignedTo: assignedToID }));
             if (row[marketingSheetHeader_1.MarketingsheetHeaders.Gender] &&
                 constants_1.Gender[row[marketingSheetHeader_1.MarketingsheetHeaders.Gender]]) {
                 leadData.gender = constants_1.Gender[row[marketingSheetHeader_1.MarketingsheetHeaders.Gender]];
             }
             const leadDataValidation = leads_1.leadRequestSchema.safeParse(leadData);
             if (leadDataValidation.success) {
+                if (leadDataValidation.data.city) {
+                    citySet.add((0, dropDownMetadataController_1.formatDropdownValue)(leadDataValidation.data.city));
+                }
+                if (leadDataValidation.data.source) {
+                    sourceSet.add((0, dropDownMetadataController_1.formatDropdownValue)(leadDataValidation.data.source));
+                }
                 dataToInsert.push(leadDataValidation.data);
             }
             else {
@@ -115,7 +112,11 @@ const saveDataToDb = (latestData, lastSavedIndex) => __awaiter(void 0, void 0, v
         assignedToNotFound: [],
         emptyRows: []
     };
-    const dataToInsert = yield leadsToBeInserted(latestData, report, lastSavedIndex);
+    const cityDropDown = yield dropDownMetaDeta_1.DropDownMetaData.findOne({ type: constants_1.DropDownType.CITY });
+    const sourceDropDown = yield dropDownMetaDeta_1.DropDownMetaData.findOne({ type: constants_1.DropDownType.MAKRETING_SOURCE });
+    const citySet = new Set((cityDropDown === null || cityDropDown === void 0 ? void 0 : cityDropDown.value) || []);
+    const sourceSet = new Set((sourceDropDown === null || sourceDropDown === void 0 ? void 0 : sourceDropDown.value) || []);
+    const dataToInsert = yield leadsToBeInserted(latestData, report, lastSavedIndex, citySet, sourceSet);
     if (!dataToInsert || dataToInsert.length === 0) {
         if (report.rowsFailed != 0) {
             (0, mailer_1.sendEmail)(secrets_1.LEAD_MARKETING_EMAIL, 'Lead Processing Report', (0, formatReport_1.formatReport)(report));
@@ -125,7 +126,6 @@ const saveDataToDb = (latestData, lastSavedIndex) => __awaiter(void 0, void 0, v
         (0, googleSheetOperations_1.updateStatusForMarketingSheet)(lastSavedIndex + latestData.length, lastSavedIndex);
         return;
     }
-    console.log(dataToInsert);
     try {
         const insertedData = yield lead_1.LeadMaster.insertMany(dataToInsert, { ordered: false, throwOnValidationError: true });
         report.actullyProcessedRows = insertedData.length;
@@ -146,6 +146,8 @@ const saveDataToDb = (latestData, lastSavedIndex) => __awaiter(void 0, void 0, v
         (0, mailer_1.sendEmail)(secrets_1.LEAD_MARKETING_EMAIL, 'Lead Processing Report', (0, formatReport_1.formatReport)(report));
         logger_1.default.info('Error report sent to Lead!');
     }
+    yield (0, dropDownMetadataController_1.updateDropDownByType)(constants_1.DropDownType.CITY, Array.from(citySet));
+    yield (0, dropDownMetadataController_1.updateDropDownByType)(constants_1.DropDownType.MAKRETING_SOURCE, Array.from(sourceSet));
     (0, googleSheetOperations_1.updateStatusForMarketingSheet)(lastSavedIndex + latestData.length, lastSavedIndex);
 });
 exports.saveDataToDb = saveDataToDb;
