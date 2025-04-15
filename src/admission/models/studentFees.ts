@@ -1,5 +1,5 @@
-import { model, Schema, Types } from 'mongoose';
-import { FeeStatus, FeeType } from '../../config/constants';
+import mongoose, { model, Schema, Types } from 'mongoose';
+import { COLLECTION_NAMES, FeeStatus, FeeType } from '../../config/constants';
 import { IOtherFeesSchema, ISingleSemSchema, IStudentFeesSchema } from '../validators/studentFees';
 import createHttpError from 'http-errors';
 import { convertToDDMMYYYY } from '../../utils/convertDateToFormatedDate';
@@ -30,9 +30,6 @@ export const OtherFeesSchema = new Schema<IOtherFeesDocument>({
         type: Number,
         default: 0
     },
-    remarks: {
-        type: String
-    }
 });
 
 //Sem wise schema
@@ -67,32 +64,52 @@ const StudentFeesSchema = new Schema<IStudentFeesDocument>(
         feesClearanceDate: {
             type: Date
         },
-        counsellor: {
-            type: Schema.Types.Mixed, // Allows ObjectId or String
-            validate: {
-                validator: function (value) {
-                    // Allow null or undefined
-                    if (value === null || value === undefined) return true;
-
-                    // Check for valid ObjectId
-                    const isObjectId = Types.ObjectId.isValid(value);
-
-                    // Allow string 'other'
-                    const isOther = value === 'other';
-
-                    return isObjectId || isOther;
-                },
-                message: props => `'${props.value}' is not a valid counsellor (must be ObjectId or 'other')`
-            },
-            required: true,
-        },
-        approvedBy: {
-            type: String,
-            validate: {
-                validator: (email: string) => emailSchema.safeParse(email).success,
-                message: 'Invalid email format'
-            },
-        },
+        // counsellor: {
+        //     type: [Schema.Types.Mixed], // Allows ObjectId or String
+        //     validate: {
+        //         validator: function (values) {
+        //             if (!Array.isArray(values)) return false; // Ensure it's an array
+            
+        //             return values.every(value => {
+        //                 // Allow null or undefined
+        //                 if (value === null || value === undefined) return true;
+            
+        //                 // Check for valid ObjectId
+        //                 const isObjectId = mongoose.Types.ObjectId.isValid(value);
+            
+        //                 // Allow string 'other'
+        //                 const isOther = value === 'other';
+            
+        //                 return isObjectId || isOther;
+        //             });
+        //         },
+        //         message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
+        //     },
+        //     required: true,
+        // },
+        // telecaller: {
+        //     type: [Schema.Types.Mixed], // Allows ObjectId or String
+        //     validate: {
+        //         validator: function (values) {
+        //             if (!Array.isArray(values)) return false; // Ensure it's an array
+            
+        //             return values.every(value => {
+        //                 // Allow null or undefined
+        //                 if (value === null || value === undefined) return true;
+            
+        //                 // Check for valid ObjectId
+        //                 const isObjectId = mongoose.Types.ObjectId.isValid(value);
+            
+        //                 // Allow string 'other'
+        //                 const isOther = value === 'other';
+            
+        //                 return isObjectId || isOther;
+        //             });
+        //         },
+        //         message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
+        //     },
+        //     required: true,
+        // }
     },
     { timestamps: true }
 );
@@ -132,4 +149,4 @@ const transformDates = (_: any, ret: any) => {
 StudentFeesSchema.set('toJSON', { transform: transformDates });
 StudentFeesSchema.set('toObject', { transform: transformDates });
 
-export const StudentFeesModel = model('studentFee', StudentFeesSchema);
+export const StudentFeesModel = model(COLLECTION_NAMES.STUDENT_FEE, StudentFeesSchema);

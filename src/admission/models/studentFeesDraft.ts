@@ -1,6 +1,6 @@
 import createHttpError from 'http-errors';
-import { model, Schema, Types } from 'mongoose';
-import { FeeStatus } from '../../config/constants';
+import mongoose, { model, Schema, Types } from 'mongoose';
+import { COLLECTION_NAMES, FeeStatus } from '../../config/constants';
 import { convertToDDMMYYYY } from '../../utils/convertDateToFormatedDate';
 import { emailSchema } from '../../validators/commonSchema';
 import { IStudentFeesSchema } from '../validators/studentFees';
@@ -33,33 +33,46 @@ const StudentFeesDraftSchema = new Schema<IStudentFeesDocument>(
       type: Date,
       required: false
     },
-    counsellor: {
-      type: Schema.Types.Mixed, // Allows ObjectId or String
-      validate: {
-        validator: function (value) {
-          // Allow null or undefined
-          if (value === null || value === undefined) return true;
+    // counsellor: {
+    //   type: [Schema.Types.Mixed],
+    //   validate: {
+    //     validator: function (values) {
+    //       if (!Array.isArray(values)) return false;
 
-          // Check for valid ObjectId
-          const isObjectId = Types.ObjectId.isValid(value);
+    //       return values.every(value => {
+    //         if (value === null || value === undefined) return true;
 
-          // Allow string 'other'
-          const isOther = value === 'other';
+    //         const isObjectId = mongoose.Types.ObjectId.isValid(value);
 
-          return isObjectId || isOther;
-        },
-        message: props => `'${props.value}' is not a valid counsellor (must be ObjectId or 'other')`
-      },
-      required: false,
-    },
-    approvedBy: {
-      type: String,
-      validate: {
-        validator: (email: string) => emailSchema.safeParse(email).success,
-        message: 'Invalid email format'
-      },
-      required: false
-    },
+    //         const isOther = value === 'other';
+
+    //         return isObjectId || isOther;
+    //       });
+    //     },
+    //     message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
+    //   }
+    // },
+    // telecaller: {
+    //   type: [Schema.Types.Mixed],
+    //   validate: {
+    //     validator: function (values) {
+    //       if (!Array.isArray(values)) return false;
+    //       return values.every(value => {
+    //         if (value === null || value === undefined) return true;
+
+    //         const isObjectId = mongoose.Types.ObjectId.isValid(value);
+
+    //         const isOther = value === 'other';
+
+    //         return isObjectId || isOther;
+    //       });
+    //     },
+    //     message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
+    //   }
+    // },
+    remarks: {
+      type: String
+    }
   },
   { timestamps: true }
 );
@@ -99,4 +112,4 @@ const transformDates = (_: any, ret: any) => {
 StudentFeesDraftSchema.set('toJSON', { transform: transformDates });
 StudentFeesDraftSchema.set('toObject', { transform: transformDates });
 
-export const StudentFeesDraftModel = model('studentFeeDraft', StudentFeesDraftSchema);
+export const StudentFeesDraftModel = model(COLLECTION_NAMES.STUDENT_FEE_DRAFT, StudentFeesDraftSchema);

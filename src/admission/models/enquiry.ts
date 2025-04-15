@@ -1,6 +1,6 @@
 import createHttpError from 'http-errors';
 import mongoose, { Schema, Types } from 'mongoose';
-import { AdmissionMode, AdmissionReference, AdmittedThrough, ApplicationStatus, Category, Course, Gender } from '../../config/constants';
+import { AdmissionMode, AdmissionReference, AdmittedThrough, ApplicationStatus, AreaType, BloodGroup, Category, COLLECTION_NAMES, Course, Gender, Religion, StatesOfIndia } from '../../config/constants';
 import { convertToDDMMYYYY, convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import { contactNumberSchema, emailSchema } from '../../validators/commonSchema';
 import { IEnquirySchema } from '../validators/enquiry';
@@ -8,12 +8,14 @@ import { academicDetailFormSchema } from './academicDetail';
 import { addressSchema } from './address';
 import { previousCollegeDataSchema } from './previousCollegeData';
 import { singleDocumentSchema } from './singleDocument';
+import { entranceExamDetailSchema } from './entranceExamDetail';
 
 export interface IEnquiryDocument extends IEnquirySchema, Document {
   formNo: string;
   date: Date;
   photoNo: number;
   universityId: string;
+  admittedThrough: string;
 }
 
 export const enquirySchema = new Schema<IEnquiryDocument>(
@@ -33,6 +35,10 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
       set: (value: string) => {
         return convertToMongoDate(value);
       }
+    },
+    bloodGroup: {
+      type: String,
+      enum: Object.values(BloodGroup)
     },
     studentName: {
       type: String,
@@ -90,11 +96,6 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
       set: (value: string) => {
         return convertToMongoDate(value);
       }
-      // set: (value: string) => {
-      //   let convertedDate = convertToMongoDate(value);
-      //   if (!convertedDate) throw createHttpError(400,'Invalid date format, expected DD-MM-YYYY');
-      //   return convertedDate;
-      // }
     },
     category: {
       type: String,
@@ -120,6 +121,13 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
       },
       required: true
     },
+    aadharNumber: {
+      type: String,
+      validate: {
+        validator: (aadhar: string) => aadhar.length === 12,
+        message: 'Invalid Aadhar Number'
+      }
+    },
     address: {
       type: addressSchema,
       minlength: [5, 'Address must be at least 5 characters long']
@@ -130,6 +138,32 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
       required: false
     },
     telecaller: {
+      type: [Schema.Types.Mixed], // Allows ObjectId or String
+      validate: {
+        validator: function (values) {
+          if (!Array.isArray(values)) return false; // Ensure it's an array
+
+          return values.every(value => {
+            // Allow null or undefined
+            if (value === null || value === undefined) return true;
+
+            // Check for valid ObjectId
+            const isObjectId = mongoose.Types.ObjectId.isValid(value);
+
+            // Allow string 'other'
+            const isOther = value === 'other';
+
+            return isObjectId || isOther;
+          });
+        },
+        message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
+      },
+      required: true,
+    },
+    remarks: {
+      type: String
+    },
+    admittedBy: {
       type: Schema.Types.Mixed, // Allows ObjectId or String
       validate: {
         validator: function (value) {
@@ -137,7 +171,7 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
           if (value === null || value === undefined) return true;
 
           // Check for valid ObjectId
-          const isObjectId = mongoose.Types.ObjectId.isValid(value);
+          const isObjectId = Types.ObjectId.isValid(value);
 
           // Allow string 'other'
           const isOther = value === 'other';
@@ -146,22 +180,6 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
         },
         message: props => `'${props.value}' is not a valid counsellor (must be ObjectId or 'other')`
       },
-      required: true,
-    },
-    dateOfCounselling: {
-      type: Date,
-      required: false,
-      set: (value: string) => {
-        return convertToMongoDate(value);
-      }
-    },
-    remarks: {
-      type: String
-    },
-    approvedBy: {
-      type: Schema.Types.ObjectId,
-      ref: 'user',
-      required: false
     },
     dateOfAdmission: {
       type: Date,
@@ -174,14 +192,34 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
     documents: {
       type: [singleDocumentSchema]
     },
+    stateOfDomicile: {
+      type: String,
+      enum: {
+        values: Object.values(StatesOfIndia),
+        message: 'Invalid state of domicile value'
+      }
+    },
+    areaType: {
+      type: String,
+      enum: {
+        values: Object.values(AreaType),
+        message: 'Invalid area type'
+      }
+    },
+    nationality: {
+      type: String
+    },
+    entranceExamDetails: {
+      type: entranceExamDetailSchema
+    },
     studentFee: {
       type: Schema.Types.ObjectId,
-      ref: 'studentFee', // Refer to FeesDraft model
+      ref: COLLECTION_NAMES.STUDENT_FEE, // Refer to FeesDraft model
       required: false
     },
     studentFeeDraft: {
       type: Schema.Types.ObjectId,
-      ref: 'studentFeeDraft',
+      ref: COLLECTION_NAMES.STUDENT_FEE_DRAFT,
       required: false
     },
     gender: {
@@ -200,21 +238,35 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
       default: ApplicationStatus.STEP_1,
       required: true
     },
-    counsellor : {
-      type: Schema.Types.Mixed,
+    counsellor: {
+      type: [Schema.Types.Mixed],
       validate: {
-        validator: function (value: any) {
-          return (
-            value === 'other' || 
-            Types.ObjectId.isValid(value)
-          );
+        validator: function (values) {
+          if (!Array.isArray(values)) return false; // Ensure it's an array
+
+          return values.every(value => {
+            // Allow null or undefined
+            if (value === null || value === undefined) return true;
+
+            // Check for valid ObjectId
+            const isObjectId = mongoose.Types.ObjectId.isValid(value);
+
+            // Allow string 'other'
+            const isOther = value === 'other';
+
+            return isObjectId || isOther;
+          });
         },
-        message: 'Counsellor must be a valid ObjectId or "other"',
+        message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
       },
     },
-    admittedThrough : {
-      type : String,
-      enum : Object.values(AdmittedThrough)
+    religion: {
+      type: String,
+      enum: Object.values(Religion)
+    },
+    admittedThrough: {
+      type: String,
+      enum: Object.values(AdmittedThrough)
     },
     //Below IDs will be system generated
     universityId: {
@@ -259,7 +311,7 @@ enquirySchema.post('findOneAndUpdate', function (error: any, doc: any, next: Fun
 });
 
 const transformDates = (_: any, ret: any) => {
-  ['dateOfEnquiry', 'dateOfAdmission', 'dateOfBirth', 'dateOfCounselling'].forEach((key) => {
+  ['dateOfEnquiry', 'dateOfAdmission', 'dateOfBirth', 'dueBy'].forEach((key) => {
     if (ret[key]) {
       ret[key] = convertToDDMMYYYY(ret[key]);
     }
@@ -273,4 +325,4 @@ const transformDates = (_: any, ret: any) => {
 enquirySchema.set('toJSON', { transform: transformDates });
 enquirySchema.set('toObject', { transform: transformDates });
 
-export const Enquiry = mongoose.model<IEnquiryDocument>('Enquiry', enquirySchema);
+export const Enquiry = mongoose.model<IEnquiryDocument>(COLLECTION_NAMES.ENQUIRY, enquirySchema);

@@ -5,7 +5,7 @@ import logger from '../../config/logger';
 import { sendEmail } from '../../config/mailer';
 import { LEAD_MARKETING_EMAIL } from '../../secrets';
 import { MarketingsheetHeaders } from '../enums/marketingSheetHeader';
-import { Lead } from '../models/leads';
+import { LeadMaster } from '../models/lead';
 import { IMarketingSpreadsheetProcessReport } from '../types/marketingSpreadsheet';
 import { ILeadRequest, leadRequestSchema } from '../validators/leads';
 import { formatReport } from './formatReport';
@@ -49,7 +49,7 @@ const leadsToBeInserted = async (
         const existingUser = await User.findOne({ email: assignedToEmail });
         if (existingUser && existingUser.roles.includes(UserRoles.EMPLOYEE_MARKETING)) {
           assignedToID = existingUser._id as Types.ObjectId;
-          MarketingEmployees.set(assignedToEmail, assignedToID!);
+          MarketingEmployees.set(assignedToEmail, assignedToID);
         } else {
           if (!existingUser) {
             report.otherIssue.push({
@@ -61,8 +61,8 @@ const leadsToBeInserted = async (
               rowId: correspondingSheetIndex,
               issue: 'Assigned to is not a Marketing Employee'
             });
-            continue;
           }
+          continue;
         }
       }
 
@@ -74,8 +74,9 @@ const leadsToBeInserted = async (
         altPhoneNumber: row[MarketingsheetHeaders.AltPhoneNumber] || '',
         email: row[MarketingsheetHeaders.Email],
         gender: Gender.NOT_TO_MENTION,
-        location: row[MarketingsheetHeaders.Location] || '',
-        assignedTo: assignedToID
+        city: row[MarketingsheetHeaders.City] || '',
+        assignedTo: assignedToID,
+        schoolName: row[MarketingsheetHeaders.SchoolName] || ''
       };
 
       if (
@@ -89,7 +90,8 @@ const leadsToBeInserted = async (
 
       if (leadDataValidation.success) {
         dataToInsert.push(leadDataValidation.data);
-      } else {
+      } 
+      else {
         report.rowsFailed++;
         report.otherIssue.push({
           rowId: correspondingSheetIndex,
@@ -103,7 +105,8 @@ const leadsToBeInserted = async (
           leadDataValidation.error.errors
         );
       }
-    } catch (error) {
+    } 
+    catch (error) {
       logger.error(`Error processing row: ${JSON.stringify(row)}`, error);
     }
   }
@@ -121,7 +124,7 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) =>
     assignedToNotFound: [],
     emptyRows: []
   };
-  
+
   const dataToInsert = await leadsToBeInserted(latestData, report, lastSavedIndex);
   if (!dataToInsert || dataToInsert.length === 0) {
     if (report.rowsFailed != 0) {
@@ -133,9 +136,9 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) =>
     updateStatusForMarketingSheet(lastSavedIndex + latestData.length, lastSavedIndex);
     return;
   }
-
+  console.log(dataToInsert);
   try {
-    const insertedData = await Lead.insertMany(dataToInsert, { ordered: false, throwOnValidationError: true });
+    const insertedData = await LeadMaster.insertMany(dataToInsert, { ordered: false, throwOnValidationError: true });
     report.actullyProcessedRows = insertedData.length;
   } catch (error: any) {
     report.actullyProcessedRows = error.result.insertedCount;
@@ -144,11 +147,11 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) =>
       report.rowsFailed++;
       if (e.err.code === 11000) {
         report.duplicateRowIds.push(e.err.index + lastSavedIndex + 1);
-      } else {
+      }
+      else {
         report.otherIssue.push({ rowId: e.err.index + lastSavedIndex + 1, issue: e.err.errmsg });
       }
     });
-    // console.log(report);
   }
 
   if (report.rowsFailed != 0) {
