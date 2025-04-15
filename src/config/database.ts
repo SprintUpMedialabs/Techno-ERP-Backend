@@ -1,9 +1,10 @@
 import mongoose from 'mongoose';
 import { SpreadSheetMetaData } from '../crm/models/spreadSheet';
 import logger from './logger';
-import { FormNoPrefixes, MARKETING_SHEET, PHOTO } from './constants';
+import { DropDownType, FormNoPrefixes, MARKETING_SHEET, PHOTO } from './constants';
 import { MONGODB_DATABASE_NAME, MONGODB_DATABASE_URL } from '../secrets';
 import { EnquiryApplicationId } from '../admission/models/enquiryIdMetaDataSchema';
+import { DropDownMetaData } from '../utilityModules/dropdown/dropDownMetaDeta';
 
 const connectToDatabase = async (): Promise<void> => {
   try {
@@ -20,9 +21,7 @@ const connectToDatabase = async (): Promise<void> => {
 export const initializeDB = async () => {
   try {
     const existingDoc = await SpreadSheetMetaData.find({ name: MARKETING_SHEET });
-    //console.log(existingDoc);
     if (existingDoc.length == 0) {
-      console.log(existingDoc);
       await SpreadSheetMetaData.create({
         name: MARKETING_SHEET,
         lastIdxMarketingSheet: 1
@@ -47,6 +46,20 @@ export const initializeDB = async () => {
         logger.debug(`${prefix} serial number already exists`);
       }
     }
+
+    const existingCityDropDown = await DropDownMetaData.findOne({ type: DropDownType.CITY });
+    if (!existingCityDropDown) {
+      await DropDownMetaData.create({
+        type: DropDownType.CITY,
+      });
+    }
+    const existingSourceDropDown = await DropDownMetaData.findOne({ type: DropDownType.MAKRETING_SOURCE });
+    if (!existingSourceDropDown) {
+      await DropDownMetaData.create({
+        type: DropDownType.MAKRETING_SOURCE,
+      });
+    }
+
   } catch (error) {
     console.error('Error initializing database:', error);
     process.exit(1);

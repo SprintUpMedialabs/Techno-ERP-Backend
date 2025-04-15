@@ -9,8 +9,6 @@ import { checkIfStudentAdmitted } from "./checkIfStudentAdmitted";
 export const updateFeeDetails = async (applicationStatusList: ApplicationStatus[], studentFeesData: IFeesUpdateSchema) => {
     const validation = feesUpdateSchema.safeParse(studentFeesData);
   
-    console.log(validation.error);
-  
     if (!validation.success) 
     {
       throw createHttpError(400, validation.error.errors[0]);

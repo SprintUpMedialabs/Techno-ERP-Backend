@@ -6,7 +6,7 @@ export const objectIdSchema = z.custom<mongoose.Types.ObjectId>(
   (id) => {
     return mongoose.Types.ObjectId.isValid(id)
   },
-  { message: "Invalid ObjectId" }
+  { message: "This is not a valid ObjectId" }
 );
 
 export const requestDateSchema = z

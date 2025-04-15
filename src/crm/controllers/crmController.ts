@@ -60,7 +60,6 @@ export const getFilteredLeadData = expressAsyncHandler(
 export const getAllLeadAnalytics = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const { query } = parseFilter(req);
-    console.log(query);
     // 🔹 Running Aggregate Pipeline
     const analytics = await LeadMaster.aggregate([
       { $match: query }, // Apply Filters
@@ -76,8 +75,6 @@ export const getAllLeadAnalytics = expressAsyncHandler(
         }
       }
     ]);
-
-    console.log(analytics)
 
     return formatResponse(res, 200, 'Lead analytics fetched successfully', true, {
       totalLeads: analytics[0]?.totalLeads ?? 0,

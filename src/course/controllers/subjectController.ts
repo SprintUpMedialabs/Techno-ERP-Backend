@@ -10,13 +10,10 @@ import createHttpError from "http-errors";
 export const getSubjectInformation = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   let { courseId, semesterId, search, page = 1, limit = 10 } = req.body;
 
-  console.log(courseId);
   courseId = new mongoose.Types.ObjectId(courseId);
   semesterId = new mongoose.Types.ObjectId(semesterId);
   const skip = (page - 1) * limit;
 
-  // console.log(courseId);
-  // console.log(semesterId);
   const pipeline = [
     { $match: { _id: courseId } },
     {

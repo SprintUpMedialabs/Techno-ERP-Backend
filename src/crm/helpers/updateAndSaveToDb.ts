@@ -1,6 +1,6 @@
 import { Types } from 'mongoose';
 import { User } from '../../auth/models/user';
-import { Gender, UserRoles } from '../../config/constants';
+import { DropDownType, Gender, UserRoles } from '../../config/constants';
 import logger from '../../config/logger';
 import { sendEmail } from '../../config/mailer';
 import { LEAD_MARKETING_EMAIL } from '../../secrets';
@@ -10,11 +10,15 @@ import { IMarketingSpreadsheetProcessReport } from '../types/marketingSpreadshee
 import { ILeadRequest, leadRequestSchema } from '../validators/leads';
 import { formatReport } from './formatReport';
 import { updateStatusForMarketingSheet } from './googleSheetOperations';
+import { DropDownMetaData } from '../../utilityModules/dropdown/dropDownMetaDeta';
+import { formatDropdownValue, updateDropDownByType } from '../../utilityModules/dropdown/dropDownMetadataController';
 
 const leadsToBeInserted = async (
   latestData: any[],
   report: IMarketingSpreadsheetProcessReport,
-  lastSavedIndex: number
+  lastSavedIndex: number,
+  citySet: Set<string>,
+  sourceSet: Set<string>
 ) => {
   let MarketingEmployees: Map<string, Types.ObjectId> = new Map();
 
@@ -67,16 +71,15 @@ const leadsToBeInserted = async (
       }
 
       let leadData = {
-        date: row[MarketingsheetHeaders.Date],
-        source: row[MarketingsheetHeaders.Source] || '',
-        name: row[MarketingsheetHeaders.Name],
-        phoneNumber: row[MarketingsheetHeaders.PhoneNumber],
-        altPhoneNumber: row[MarketingsheetHeaders.AltPhoneNumber] || '',
-        email: row[MarketingsheetHeaders.Email],
+        ...(row[MarketingsheetHeaders.Date] && { date: row[MarketingsheetHeaders.Date] }),
+        ...(row[MarketingsheetHeaders.Source] && { source: row[MarketingsheetHeaders.Source] }),
+        ...(row[MarketingsheetHeaders.Name] && { name: row[MarketingsheetHeaders.Name] }),
+        ...(row[MarketingsheetHeaders.PhoneNumber] && { phoneNumber: row[MarketingsheetHeaders.PhoneNumber] }),
+        ...(row[MarketingsheetHeaders.AltPhoneNumber] && { altPhoneNumber: row[MarketingsheetHeaders.AltPhoneNumber] }),
+        ...(row[MarketingsheetHeaders.Email] && { email: row[MarketingsheetHeaders.Email] }),
         gender: Gender.NOT_TO_MENTION,
-        city: row[MarketingsheetHeaders.City] || '',
-        assignedTo: assignedToID,
-        schoolName: row[MarketingsheetHeaders.SchoolName] || ''
+        ...(row[MarketingsheetHeaders.City] && { city: row[MarketingsheetHeaders.City] }),
+        ...(assignedToID && { assignedTo: assignedToID }),
       };
 
       if (
@@ -89,8 +92,14 @@ const leadsToBeInserted = async (
       const leadDataValidation = leadRequestSchema.safeParse(leadData);
 
       if (leadDataValidation.success) {
+        if (leadDataValidation.data.city) {
+          citySet.add(formatDropdownValue(leadDataValidation.data.city));
+        }
+        if (leadDataValidation.data.source) {
+          sourceSet.add(formatDropdownValue(leadDataValidation.data.source));
+        }
         dataToInsert.push(leadDataValidation.data);
-      } 
+      }
       else {
         report.rowsFailed++;
         report.otherIssue.push({
@@ -105,7 +114,7 @@ const leadsToBeInserted = async (
           leadDataValidation.error.errors
         );
       }
-    } 
+    }
     catch (error) {
       logger.error(`Error processing row: ${JSON.stringify(row)}`, error);
     }
@@ -125,7 +134,12 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) =>
     emptyRows: []
   };
 
-  const dataToInsert = await leadsToBeInserted(latestData, report, lastSavedIndex);
+  const cityDropDown = await DropDownMetaData.findOne({ type: DropDownType.CITY });
+  const sourceDropDown = await DropDownMetaData.findOne({ type: DropDownType.MAKRETING_SOURCE });
+  const citySet = new Set(cityDropDown?.value || []);
+  const sourceSet = new Set(sourceDropDown?.value || []);
+
+  const dataToInsert = await leadsToBeInserted(latestData, report, lastSavedIndex, citySet, sourceSet);
   if (!dataToInsert || dataToInsert.length === 0) {
     if (report.rowsFailed != 0) {
       sendEmail(LEAD_MARKETING_EMAIL, 'Lead Processing Report', formatReport(report));
@@ -136,7 +150,7 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) =>
     updateStatusForMarketingSheet(lastSavedIndex + latestData.length, lastSavedIndex);
     return;
   }
-  console.log(dataToInsert);
+
   try {
     const insertedData = await LeadMaster.insertMany(dataToInsert, { ordered: false, throwOnValidationError: true });
     report.actullyProcessedRows = insertedData.length;
@@ -153,11 +167,11 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) =>
       }
     });
   }
-
   if (report.rowsFailed != 0) {
     sendEmail(LEAD_MARKETING_EMAIL, 'Lead Processing Report', formatReport(report));
     logger.info('Error report sent to Lead!');
   }
-
+  await updateDropDownByType(DropDownType.CITY, Array.from(citySet));
+  await updateDropDownByType(DropDownType.MAKRETING_SOURCE, Array.from(sourceSet));
   updateStatusForMarketingSheet(lastSavedIndex + latestData.length, lastSavedIndex);
 };

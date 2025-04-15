@@ -73,6 +73,11 @@ export enum AdmissionReference {
   Other = "Other"
 };
 
+export enum DropDownType{
+  CITY = "CITY",
+  MAKRETING_SOURCE = "MAKRETING_SOURCE"
+}
+
 
 export enum Course {
   BCOM = "BCOM",
@@ -301,7 +306,8 @@ export enum COLLECTION_NAMES {
   COURSE_OTHER_FEES = 'CourseAndOtherFees',
   STUDENT = 'Student',
   DEPARTMENT_META_DATA = 'DepartmentMetaData',
-  COURSE = 'Course'
+  COURSE = 'Course',
+  DROP_DOWN_META_DATA = 'DropDownMetaData'
 }
 
 

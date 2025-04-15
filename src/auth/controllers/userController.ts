@@ -21,8 +21,7 @@ export const userProfile = expressAsyncHandler(async (req: AuthenticatedRequest,
   const { id } = decodedData;
 
   const user = await User.findById(id);
-
-  console.log("User is : ", user);
+  
   return formatResponse(res, 200, 'Profile retrieved successfully', true, {
     userData: {
       id: user?._id,
