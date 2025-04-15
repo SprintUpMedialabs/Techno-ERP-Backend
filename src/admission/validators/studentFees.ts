@@ -27,8 +27,6 @@ const studentFeesSchema = z.object({
     feesClearanceDate : requestDateSchema.transform((date) =>
         convertToMongoDate(date) as Date
     ),
-    counsellor: z.array(z.union([objectIdSchema, z.enum(['other'])])).optional(),
-    telecaller: z.array(z.union([objectIdSchema, z.enum(['other'])])).optional(),
     remarks : z.string().optional()
 });
 
@@ -45,28 +43,21 @@ export const feesRequestSchema = studentFeesSchema.omit({ feeStatus: true }).ext
 
 export const feesUpdateSchema = feesRequestSchema.extend({
     id: objectIdSchema, //This is referring to the fees table _id
-    counsellor: z.array(z.union([objectIdSchema, z.enum(['other'])])).optional(),
-    telecaller: z.array(z.union([objectIdSchema, z.enum(['other'])])).optional(),
-}).omit({  enquiryId : true });
+}).omit({  enquiryId : true }).strict();
 
 
 export const feesDraftRequestSchema = feesRequestSchema.extend({
     otherFees: z.array(otherFeesSchema.partial()).optional(),
     semWiseFees: z.array(singleSemSchema.partial()).optional(),
-    enquiryId : objectIdSchema,
     feesClearanceDate : requestDateSchema.transform((date) =>
         convertToMongoDate(date) as Date
     ).optional(),
-    counsellor : z.array(z.union([objectIdSchema, z.enum(['other'])])).optional(),
-    telecaller : z.array(z.union([objectIdSchema, z.enum(['other'])])).optional()
 }).strict();
 
 
 export const feesDraftUpdateSchema = feesDraftRequestSchema.extend({
     id : objectIdSchema,
-    counsellor: z.array(z.union([objectIdSchema, z.enum(['other'])])).optional(),
-    telecaller: z.array(z.union([objectIdSchema, z.enum(['other'])])).optional(),
-}).partial().strict()
+}).strict();
 
 
 export type IOtherFeesSchema = z.infer<typeof otherFeesSchema>;
