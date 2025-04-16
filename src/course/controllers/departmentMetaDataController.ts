@@ -6,7 +6,7 @@ import createHttpError from "http-errors";
 import { DepartmentMetaData } from "../models/department";
 import { formatResponse } from "../../utils/formatResponse";
 
-export const createDepartmentMetaData = expressAsyncHandler((req : AuthenticatedRequest, res : Response)=>{
+export const createDepartmentMetaData = expressAsyncHandler(async (req : AuthenticatedRequest, res : Response)=>{
     const departmentMetaData : IDepartmentMetaDataSchema = req.body;
     const validation = departmentMetaDataSchema.safeParse(departmentMetaData);
 
@@ -14,7 +14,7 @@ export const createDepartmentMetaData = expressAsyncHandler((req : Authenticated
         throw createHttpError(400, validation.error.errors[0]);
 
     // DTODO : Do we want to keep check here : Check is there any existing course with incoming course name, set ending year there and then create new one.
-    const department = DepartmentMetaData.create(validation.data);
+    const department = await DepartmentMetaData.create(validation.data);
 
     if(!department)
     {
@@ -47,3 +47,18 @@ export const updateDepartmentMetaData = expressAsyncHandler(async (req : Authent
 
     return formatResponse(res, 201, 'Department Meta Data updated successfully', true, updatedDepartmentMetaData);
 });
+
+
+export const getDepartmentMetaData = expressAsyncHandler(async (req : AuthenticatedRequest, res : Response) => {
+    const departments = await DepartmentMetaData.find({});
+
+    const formattedDepartments = departments.map(dept => {
+        const { _id, ...deptInfo } = dept.toObject();
+        return {
+            departmentMetaDataId: _id,
+            ...deptInfo
+        };
+    });
+
+    return formatResponse(res, 200, 'Department metadata fetched successfully', true, formattedDepartments);
+})

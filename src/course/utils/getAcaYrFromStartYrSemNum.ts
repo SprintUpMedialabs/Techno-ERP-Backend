@@ -9,3 +9,23 @@ export const getAcaYrFromStartYrSemNum = (startYear : number, semesterNumber : n
     const academicEnd = academicStart + 1;
     return `${academicStart}-${academicEnd}`;
 }
+
+
+const yearMap: Record<number, string> = {
+    1: "First",
+    2: "Second",
+    3: "Third",
+    4: "Fourth",
+    5: "Fifth",
+    6: "Sixth"
+};
+
+export const getCourseYrFromSemNum = (semesterNumber: number): string => {
+    console.log(semesterNumber);
+    if (semesterNumber < 1) return "Unknown";
+
+    const yearNumber = Math.ceil(semesterNumber / 2);
+
+    console.log(yearNumber);
+    return yearMap[yearNumber] || "Unknown";
+};

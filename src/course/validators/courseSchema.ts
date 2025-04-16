@@ -14,5 +14,10 @@ export const courseSchema = z.object({
   semester: z.array(semesterSchema).optional(), 
 });
 
+export const courseUpdateSchema = courseSchema.extend({
+  courseId : objectIdSchema
+}).omit({ startingYear : true, totalSemesters : true, semester : true});
+
 
 export type ICourseSchema = z.infer<typeof courseSchema>;
+export type ICourseUpdateSchema = z.infer<typeof courseUpdateSchema>;
