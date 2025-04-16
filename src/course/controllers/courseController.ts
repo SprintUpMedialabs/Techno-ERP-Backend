@@ -130,20 +130,74 @@ export const updateCourse = expressAsyncHandler(async (req: AuthenticatedRequest
 
 
 export const searchCourses = expressAsyncHandler(async (req: Request, res: Response) => {
-    let { search, academicYear } = req.body;
+    let { search, academicYear, page, limit } = req.body;
 
-    let courseInformation = await getCourseInformation(search, academicYear);
-
-    if (courseInformation.length === 0)
-        return formatResponse(res, 200, 'No courses found', true, courseInformation);
+    let courseInformation = await getCourseInformation(search, academicYear, page, limit);
 
     return formatResponse(res, 200, 'Courses fetched successfully', true, courseInformation);
 });
 
 
-export const getCourseInformation = async (search: string, academicYear: string) => {
+export const getCourseInformation = async (search: string, academicYear: string, page: number = 1, limit: number = 10) => {
     console.log(search);
     console.log(academicYear);
+    // const pipeline = [
+    //     {
+    //         $match: {
+    //             $or: [
+    //                 { courseName: { $regex: search || "", $options: "i" } },
+    //                 { courseCode: { $regex: search || "", $options: "i" } },
+    //             ],
+    //         },
+    //     },
+    //     {
+    //         $unwind: "$semester",
+    //     },
+    //     {
+    //         $match: {
+    //             "semester.academicYear": academicYear,
+    //         },
+    //     },
+    //     {
+    //         $lookup: {
+    //             from: "departmentmetadatas",
+    //             localField: "departmentMetaDataId",
+    //             foreignField: "_id",
+    //             as: "departmentMetaData",
+    //         },
+    //     },
+    //     { $unwind: "$departmentMetaData" },
+    //     {
+    //         $project: {
+    //             _id : 0,
+    //             courseId: "$_id",
+    //             courseName: 1,
+    //             courseCode: 1,
+    //             semesterId: "$semester._id",
+    //             semesterNumber: "$semester.semesterNumber",
+    //             // courseYear :   `${getCourseYrFromSemNum(parseInt("$semester.semesterNumber"))}`,
+    //             courseYear: {
+    //                 $switch: {
+    //                   branches: [
+    //                     { case: { $eq: [{ $ceil: { $divide: ["$semester.semesterNumber", 2] } }, 1] }, then: "First" },
+    //                     { case: { $eq: [{ $ceil: { $divide: ["$semester.semesterNumber", 2] } }, 2] }, then: "Second" },
+    //                     { case: { $eq: [{ $ceil: { $divide: ["$semester.semesterNumber", 2] } }, 3] }, then: "Third" },
+    //                     { case: { $eq: [{ $ceil: { $divide: ["$semester.semesterNumber", 2] } }, 4] }, then: "Fourth" },
+    //                     { case: { $eq: [{ $ceil: { $divide: ["$semester.semesterNumber", 2] } }, 5] }, then: "Fifth" },
+    //                     { case: { $eq: [{ $ceil: { $divide: ["$semester.semesterNumber", 2] } }, 6] }, then: "Sixth" },
+    //                   ],
+    //                   default: "Unknown"
+    //                 }
+    //             },
+    //             academicYear: "$semester.academicYear",
+    //             departmentName: "$departmentMetaData.departmentName",
+    //             departmentHOD: "$departmentMetaData.departmentHOD",
+    //             numberOfSubjects: { $size: "$semester.subjects" },
+    //         },
+    //     },
+    // ];
+
+    const skip = (page - 1) * limit;
     const pipeline = [
         {
             $match: {
@@ -171,35 +225,57 @@ export const getCourseInformation = async (search: string, academicYear: string)
         },
         { $unwind: "$departmentMetaData" },
         {
-            $project: {
-                _id : 0,
-                courseId: "$_id",
-                courseName: 1,
-                courseCode: 1,
-                semesterId: "$semester._id",
-                semesterNumber: "$semester.semesterNumber",
-                // courseYear :   `${getCourseYrFromSemNum(parseInt("$semester.semesterNumber"))}`,
-                courseYear: {
-                    $switch: {
-                      branches: [
-                        { case: { $eq: [{ $ceil: { $divide: ["$semester.semesterNumber", 2] } }, 1] }, then: "First" },
-                        { case: { $eq: [{ $ceil: { $divide: ["$semester.semesterNumber", 2] } }, 2] }, then: "Second" },
-                        { case: { $eq: [{ $ceil: { $divide: ["$semester.semesterNumber", 2] } }, 3] }, then: "Third" },
-                        { case: { $eq: [{ $ceil: { $divide: ["$semester.semesterNumber", 2] } }, 4] }, then: "Fourth" },
-                        { case: { $eq: [{ $ceil: { $divide: ["$semester.semesterNumber", 2] } }, 5] }, then: "Fifth" },
-                        { case: { $eq: [{ $ceil: { $divide: ["$semester.semesterNumber", 2] } }, 6] }, then: "Sixth" },
-                      ],
-                      default: "Unknown"
-                    }
-                },
-                academicYear: "$semester.academicYear",
-                departmentName: "$departmentMetaData.departmentName",
-                departmentHOD: "$departmentMetaData.departmentHOD",
-                numberOfSubjects: { $size: "$semester.subjects" },
-            },
-        },
+            $facet: {
+                paginatedResults: [
+                    {
+                        $project: {
+                            _id: 0,
+                            courseId: "$_id",
+                            courseName: 1,
+                            courseCode: 1,
+                            semesterId: "$semester._id",
+                            semesterNumber: "$semester.semesterNumber",
+                            courseYear: {
+                                $switch: {
+                                    branches: [
+                                        { case: { $eq: [{ $ceil: { $divide: ["$semester.semesterNumber", 2] } }, 1] }, then: "First" },
+                                        { case: { $eq: [{ $ceil: { $divide: ["$semester.semesterNumber", 2] } }, 2] }, then: "Second" },
+                                        { case: { $eq: [{ $ceil: { $divide: ["$semester.semesterNumber", 2] } }, 3] }, then: "Third" },
+                                        { case: { $eq: [{ $ceil: { $divide: ["$semester.semesterNumber", 2] } }, 4] }, then: "Fourth" },
+                                        { case: { $eq: [{ $ceil: { $divide: ["$semester.semesterNumber", 2] } }, 5] }, then: "Fifth" },
+                                        { case: { $eq: [{ $ceil: { $divide: ["$semester.semesterNumber", 2] } }, 6] }, then: "Sixth" },
+                                    ],
+                                    default: "Unknown"
+                                }
+                            },
+                            academicYear: "$semester.academicYear",
+                            departmentName: "$departmentMetaData.departmentName",
+                            departmentHOD: "$departmentMetaData.departmentHOD",
+                            numberOfSubjects: { $size: "$semester.subjects" },
+                        }
+                    },
+                    { $skip: skip },
+                    { $limit: limit }
+                ],
+                totalCount: [
+                    { $count: "count" }
+                ]
+            }
+        }
     ];
 
-    const courseInformation = await Course.aggregate(pipeline);
-    return courseInformation;
+    const result = await Course.aggregate(pipeline);
+
+    const courseInformation = result[0]?.paginatedResults || [];
+    const totalItems = result[0]?.totalCount[0]?.count || 0;
+    const totalPages = Math.ceil(totalItems / limit);
+
+    return {
+        courseInformation,
+        pagination: {
+            currentPage: page,
+            totalItems,
+            totalPages,
+        }
+    }
 }

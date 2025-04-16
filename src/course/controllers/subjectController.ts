@@ -1,6 +1,6 @@
 import expressAsyncHandler from "express-async-handler";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
-import { response, Response } from "express";
+import { Response } from "express";
 import mongoose, { Mongoose } from "mongoose";
 import { Course } from "../models/course";
 import { formatResponse } from "../../utils/formatResponse";
@@ -11,8 +11,8 @@ import { deleteFromS3 } from "../config/s3Delete";
 export const getSubjectInformation = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   let { courseId, semesterId, search, page = 1, limit = 10 } = req.body;
 
-  const payload = fetchSubjectInformation(courseId, semesterId, search, page, limit);
-  return formatResponse(res, 200, 'Subject Details fetched for course and semester', true, payload);
+  const responsePayload = await fetchSubjectInformation(courseId, semesterId, search, page, limit);
+  return formatResponse(res, 200, 'Subject Details fetched for course and semester', true, responsePayload);
 });
 
 
@@ -51,7 +51,7 @@ export const createSubject = expressAsyncHandler(async (req: AuthenticatedReques
   if (updateSemesterInformation.modifiedCount === 0) {
     throw createHttpError(404, 'Error occurred saving the subject information');
   }
-  const responsePayload = fetchSubjectInformation(courseId.toString(), semesterId.toString(), "", 1, 10);
+  const responsePayload = await fetchSubjectInformation(courseId.toString(), semesterId.toString(), "", 1, 10);
 
   return formatResponse(res, 201, 'Successfully added subject information', true, responsePayload);
 });
@@ -94,7 +94,7 @@ export const updateSubject = expressAsyncHandler(async (req: AuthenticatedReques
     throw createHttpError(404, 'Subject not found in course');
   }
 
-  const responsePayload = fetchSubjectInformation(courseId.toString(), semesterId.toString(), "", 1, 10);
+  const responsePayload = await fetchSubjectInformation(courseId.toString(), semesterId.toString(), "", 1, 10);
 
   return formatResponse(res, 200, 'Subject updated successfully', true, responsePayload);
 });
@@ -354,30 +354,37 @@ export const fetchSubjectInformation = async (crsId: string, semId: string, sear
         subjectDetails: 1
       }
     },
-    // { $skip: skip },
-    // { $limit: limit },
+    { $skip: skip },
+    { $limit: limit },
   ];
 
   let subjectDetails = await Course.aggregate(pipeline);
 
-  let payload = subjectDetails[0];
+  let subjectInformation = subjectDetails[0];
 
-  // const totalCount = await Course.aggregate([
-  //   { $match: { _id: courseId } },
-  //   { $unwind: "$semester" },
-  //   { $match: { "semester._id": semesterId } },
-  //   { $unwind: "$semester.subjects" },
-  //   {
-  //     $project: {
-  //       instructors: "$semester.subjects.instructor",
-  //     },
-  //   },
-  //   { $unwind: "$instructors" },
-  //   { $count: "totalCount" },
-  // ]);
+  const totalCount = await Course.aggregate([
+    { $match: { _id: courseId } },
+    { $unwind: "$semester" },
+    { $match: { "semester._id": semesterId } },
+    { $unwind: "$semester.subjects" },
+    {
+      $project: {
+        instructors: "$semester.subjects.instructor",
+      },
+    },
+    { $unwind: "$instructors" },
+    { $count: "totalCount" },
+  ]);
 
-  // const totalItems = totalCount.length ? totalCount[0].totalCount : 0;
-  // const totalPages = Math.ceil(totalItems / limit);
+  const totalItems = totalCount.length ? totalCount[0].totalCount : 0;
+  const totalPages = Math.ceil(totalItems / limit);
 
-  return payload;
+  return {
+    subjectInformation,
+    pagination: {
+      currentPage: page,
+      totalItems,
+      totalPages,
+    }
+  };
 }
