@@ -4,7 +4,9 @@ import { COLLECTION_NAMES } from "../../config/constants";
 import { scheduleModelSchema } from "./schedule";
 import createHttpError from "http-errors";
 
-export interface ISubjectDocument extends ISubjectSchema, Document { };
+export interface ISubjectDocument extends ISubjectSchema, Document { 
+    isDeleted : boolean
+};
 
 export const subjectModelSchema = new Schema<ISubjectDocument>({
     subjectName: {
@@ -21,6 +23,10 @@ export const subjectModelSchema = new Schema<ISubjectDocument>({
             ref: COLLECTION_NAMES.USER
         }
     ],
+    isDeleted: {
+        type: Boolean,
+        default: false,
+    },
     schedule: {
         type: scheduleModelSchema,
         default: {}
