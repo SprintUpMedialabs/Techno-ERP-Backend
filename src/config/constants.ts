@@ -317,7 +317,7 @@ export enum LectureConfirmation{
   TO_BE_DONE = 'TO_BE_DONE'
 }
 
-export enum MaterialType{
+export enum CourseMaterialType{
   LPLAN = 'LPlan',
   PPLAN = 'PPlan',
   GENERAL = 'General'

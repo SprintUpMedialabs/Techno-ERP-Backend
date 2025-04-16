@@ -2,7 +2,7 @@ import expressAsyncHandler from "express-async-handler";
 import createHttpError from "http-errors";
 import mongoose from "mongoose";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
-import { MaterialType } from "../../config/constants";
+import { CourseMaterialType } from "../../config/constants";
 import { formatResponse } from "../../utils/formatResponse";
 import { Course } from "../models/course";
 import { Response } from "express"
@@ -13,13 +13,13 @@ const planConfigMap = {
     lecture: {
         mongoPlanPath: 'lecturePlan',
         planKey: 'lp',
-        materialType: MaterialType.LPLAN,
+        materialType: CourseMaterialType.LPLAN,
         successMessage: 'Lecture Plan uploaded successfully',
     },
     practical: {
         mongoPlanPath: 'practicalPlan',
         planKey: 'pp',
-        materialType: MaterialType.PPLAN,
+        materialType: CourseMaterialType.PPLAN,
         successMessage: 'Practical Plan uploaded successfully',
     },
 } as const;
@@ -53,7 +53,7 @@ export const uploadAdditionalResources = expressAsyncHandler(async (req: Authent
     let fileUrl;
 
     if (file) {
-        fileUrl = await uploadToS3(courseId, semesterId, subjectId, MaterialType.GENERAL, file);
+        fileUrl = await uploadToS3(courseId, semesterId, subjectId, CourseMaterialType.GENERAL, file);
     }
 
     console.log(fileUrl);
@@ -91,9 +91,9 @@ export const uploadAdditionalResources = expressAsyncHandler(async (req: Authent
 })
 
 
-export const uploadPlanDocument = async (crsId: string, semId: string, subId: string, insId: string, planId: string, planType: MaterialType, file: Express.Multer.File | undefined) => {
+export const uploadPlanDocument = async (crsId: string, semId: string, subId: string, insId: string, planId: string, planType: CourseMaterialType, file: Express.Multer.File | undefined) => {
 
-    const config = planType === MaterialType.LPLAN ? planConfigMap.lecture : planConfigMap.practical;
+    const config = planType === CourseMaterialType.LPLAN ? planConfigMap.lecture : planConfigMap.practical;
     console.log(config);
 
     console.log(crsId, semId, subId, planId, insId, file);

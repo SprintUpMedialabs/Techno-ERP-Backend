@@ -6,7 +6,7 @@ import { Course } from "../models/course";
 import { formatResponse } from "../../utils/formatResponse";
 import createHttpError from "http-errors";
 import { createPlanSchema, deletePlanSchema, ICreatePlanSchema, IDeletePlanSchema, IUpdatePlanSchema, updatePlanSchema } from "../validators/scheduleSchema";
-import { MaterialType } from "../../config/constants";
+import { CourseMaterialType } from "../../config/constants";
 import { deleteFromS3 } from "../config/s3Delete";
 
 const planConfigMap = {
@@ -31,14 +31,13 @@ export const createPlan = expressAsyncHandler(async (req: AuthenticatedRequest, 
   const planData: ICreatePlanSchema = req.body;
 
   const validation = createPlanSchema.safeParse(planData);
-  console.log(validation.error)
 
   if (!validation.success)
     throw createHttpError(400, validation.error.errors[0]);
 
   let { courseId, semesterId, subjectId, instructorId, type, ...planInformation } = planData;
 
-  const config = type === MaterialType.LPLAN ? planConfigMap.lecture : planConfigMap.practical;
+  const config = type === CourseMaterialType.LPLAN ? planConfigMap.lecture : planConfigMap.practical;
 
   courseId = new mongoose.Types.ObjectId(courseId);
   semesterId = new mongoose.Types.ObjectId(semesterId);
@@ -65,9 +64,9 @@ export const createPlan = expressAsyncHandler(async (req: AuthenticatedRequest, 
     }
   );
 
-  const responsePayload = await fetchScheduleInformation(courseId.toString(), semesterId.toString(), subjectId.toString(), instructorId.toString());
+  // const responsePayload = await fetchScheduleInformation(courseId.toString(), semesterId.toString(), subjectId.toString(), instructorId.toString());
 
-  return formatResponse(res, 200, config!.createSuccessMessage, true, responsePayload);
+  return formatResponse(res, 200, config!.createSuccessMessage, true, null);
 })
 
 
@@ -83,7 +82,7 @@ export const batchUpdatePlan = expressAsyncHandler(async (req: AuthenticatedRequ
 
   let { courseId, semesterId, subjectId, instructorId, type, data } = planData;
 
-  const config = type === MaterialType.LPLAN ? planConfigMap.lecture : planConfigMap.practical;
+  const config = type === CourseMaterialType.LPLAN ? planConfigMap.lecture : planConfigMap.practical;
 
 
   courseId = new mongoose.Types.ObjectId(courseId);
@@ -112,9 +111,9 @@ export const batchUpdatePlan = expressAsyncHandler(async (req: AuthenticatedRequ
   );
 
   console.log(updateResult.modifiedCount);
-  const responsePayload = await fetchScheduleInformation(courseId.toString(), semesterId.toString(), subjectId.toString(), instructorId.toString());
+  // const responsePayload = await fetchScheduleInformation(courseId.toString(), semesterId.toString(), subjectId.toString(), instructorId.toString());
 
-  return formatResponse(res, 200, config!.updateSuccessMessage, true, responsePayload);
+  return formatResponse(res, 200, config.updateSuccessMessage, true, null);
 })
 
 
@@ -129,7 +128,7 @@ export const deletePlan = expressAsyncHandler(async (req: AuthenticatedRequest, 
   let { courseId, semesterId, subjectId, instructorId, planId, type  } = planData;
 
   
-  const config = type === MaterialType.LPLAN ? planConfigMap.lecture : planConfigMap.practical;
+  const config = type === CourseMaterialType.LPLAN ? planConfigMap.lecture : planConfigMap.practical;
 
   courseId = new mongoose.Types.ObjectId(courseId);
   semesterId = new mongoose.Types.ObjectId(semesterId);
@@ -194,10 +193,10 @@ export const getScheduleInformation = expressAsyncHandler(async (req: Authentica
   return formatResponse(res, 200, 'Plans fetched successfully', true, payload);
 })
 
-
+// DTODO: delete from db as well + will need to remove duplicate entries also
 export const deleteFileFromS3UsingUrl = expressAsyncHandler(async (req : AuthenticatedRequest, res: Response) => {
 
-  const { documentUrl } = req.body;
+  const { documentUrl} = req.body;
   await deleteFromS3(documentUrl);
 
   return formatResponse(res, 200, 'Removed successfully from AWS', true);
@@ -252,6 +251,14 @@ export const fetchScheduleInformation = async (crsId: string, semId: string, sub
               {
                 case: { $in: ["$semesterDetails.semesterNumber", [7, 8]] },
                 then: "Fourth",
+              },
+              {
+                case: { $in: ["$semesterDetails.semesterNumber", [9, 10]] },
+                then: "Fifth",
+              },
+              {
+                case: { $in: ["$semesterDetails.semesterNumber", [11, 12]] },
+                then: "Sixth",
               },
             ],
             default: "Unknown",

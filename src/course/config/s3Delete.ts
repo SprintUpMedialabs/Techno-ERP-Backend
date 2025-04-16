@@ -19,6 +19,7 @@ import createHttpError from 'http-errors';
     }
   });
   
+  // DTODO: delete from db as well
   export const deleteFromS3 = async (documentLink: string) => {
     try {
       const url = new URL(documentLink);

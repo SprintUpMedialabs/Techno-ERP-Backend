@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { objectIdSchema, requestDateSchema } from "../../validators/commonSchema";
 import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
-import { LectureConfirmation, MaterialType } from "../../config/constants";
+import { LectureConfirmation, CourseMaterialType } from "../../config/constants";
 
 export const baseLectureSchema = z.object({
     unit : z.number().nonnegative({ message : "Unit Number is required "}),
@@ -39,7 +39,7 @@ export const scheduleSchema = z.object({
 });
 
 export const createPlanSchema = baseLectureSchema.extend({
-    type : z.nativeEnum(MaterialType),
+    type : z.nativeEnum(CourseMaterialType),
     courseId : objectIdSchema,
     semesterId : objectIdSchema,
     subjectId : objectIdSchema,
@@ -47,7 +47,7 @@ export const createPlanSchema = baseLectureSchema.extend({
 });
 
 export const updatePlanSchema = z.object({
-    type : z.nativeEnum(MaterialType),
+    type : z.nativeEnum(CourseMaterialType),
     courseId : objectIdSchema,
     semesterId : objectIdSchema,
     subjectId : objectIdSchema,
@@ -64,7 +64,7 @@ export const updatePlanSchema = z.object({
 });
 
 export const deletePlanSchema = z.object({
-    type : z.nativeEnum(MaterialType),
+    type : z.nativeEnum(CourseMaterialType),
     courseId : objectIdSchema,
     semesterId : objectIdSchema,
     subjectId : objectIdSchema,

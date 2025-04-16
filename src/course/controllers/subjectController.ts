@@ -267,6 +267,14 @@ export const fetchSubjectInformation = async (crsId: string, semId: string, sear
                 case: { $in: ["$semesterDetails.semesterNumber", [7, 8]] },
                 then: "Fourth",
               },
+              {
+                case: { $in: ["$semesterDetails.semesterNumber", [9, 10]] },
+                then: "Fifth",
+              },
+              {
+                case: { $in: ["$semesterDetails.semesterNumber", [11, 12]] },
+                then: "Sixth",
+              },
             ],
             default: "Unknown",
           },
@@ -354,37 +362,37 @@ export const fetchSubjectInformation = async (crsId: string, semId: string, sear
         subjectDetails: 1
       }
     },
-    { $skip: skip },
-    { $limit: limit },
+    // { $skip: skip },
+    // { $limit: limit },
   ];
 
   let subjectDetails = await Course.aggregate(pipeline);
 
   let subjectInformation = subjectDetails[0];
 
-  const totalCount = await Course.aggregate([
-    { $match: { _id: courseId } },
-    { $unwind: "$semester" },
-    { $match: { "semester._id": semesterId } },
-    { $unwind: "$semester.subjects" },
-    {
-      $project: {
-        instructors: "$semester.subjects.instructor",
-      },
-    },
-    { $unwind: "$instructors" },
-    { $count: "totalCount" },
-  ]);
+  // const totalCount = await Course.aggregate([
+  //   { $match: { _id: courseId } },
+  //   { $unwind: "$semester" },
+  //   { $match: { "semester._id": semesterId } },
+  //   { $unwind: "$semester.subjects" },
+  //   {
+  //     $project: {
+  //       instructors: "$semester.subjects.instructor",
+  //     },
+  //   },
+  //   { $unwind: "$instructors" },
+  //   { $count: "totalCount" },
+  // ]);
 
-  const totalItems = totalCount.length ? totalCount[0].totalCount : 0;
-  const totalPages = Math.ceil(totalItems / limit);
+  // const totalItems = totalCount.length ? totalCount[0].totalCount : 0;
+  // const totalPages = Math.ceil(totalItems / limit);
 
   return {
     subjectInformation,
-    pagination: {
-      currentPage: page,
-      totalItems,
-      totalPages,
-    }
+    // pagination: {
+    //   currentPage: page,
+    //   totalItems,
+    //   totalPages,
+    // }
   };
 }

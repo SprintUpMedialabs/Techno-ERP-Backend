@@ -16,11 +16,6 @@ export const createDepartmentMetaData = expressAsyncHandler(async (req : Authent
     // DTODO : Do we want to keep check here : Check is there any existing course with incoming course name, set ending year there and then create new one.
     const department = await DepartmentMetaData.create(validation.data);
 
-    if(!department)
-    {
-        throw createHttpError(500, 'Error occurred while saving the department meta data');
-    }
-
     return formatResponse(res, 201, 'Department Meta Data added successfully', true, department);
 });
 
@@ -40,16 +35,16 @@ export const updateDepartmentMetaData = expressAsyncHandler(async (req : Authent
         { new: true, runValidators : true } 
     );
 
-    if(!updatedDepartmentMetaData)
-    {
-        throw createHttpError(500, 'Error occurred while updating the department meta data');
+    if(!updatedDepartmentMetaData){
+        throw createHttpError(404, 'Department Meta Data not found');
     }
 
-    return formatResponse(res, 201, 'Department Meta Data updated successfully', true, updatedDepartmentMetaData);
+    return formatResponse(res, 200, 'Department Meta Data updated successfully', true, updatedDepartmentMetaData);
 });
 
 
 export const getDepartmentMetaData = expressAsyncHandler(async (req : AuthenticatedRequest, res : Response) => {
+    // DTODO: send only active department HOD
     const departments = await DepartmentMetaData.find({});
 
     const formattedDepartments = departments.map(dept => {

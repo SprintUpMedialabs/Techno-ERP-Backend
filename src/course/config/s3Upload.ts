@@ -5,7 +5,7 @@ import {
   AWS_REGION,
   AWS_SECRET_ACCESS_KEY
 } from '../../secrets'
-import { MaterialType } from '../../config/constants';
+import { CourseMaterialType } from '../../config/constants';
 
 const s3Client = new S3Client({
   region: AWS_REGION,
@@ -20,7 +20,7 @@ const getFileExtension = (fileName: string): string | null => {
   return match ? match[1] : null;
 };
 
-export const uploadToS3 = async (courseId : string, semesterId : string, subjectId : string, type : MaterialType, file: Express.Multer.File): Promise<string> => {
+export const uploadToS3 = async (courseId : string, semesterId : string, subjectId : string, type : CourseMaterialType, file: Express.Multer.File): Promise<string> => {
   
   const fileName = `${file.originalname}`;
 
