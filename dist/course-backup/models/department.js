@@ -63,14 +63,12 @@ const departmentSchema = new mongoose_1.Schema({
 const handleMongooseError = (error, next) => {
     if (error.name === 'ValidationError') {
         const firstError = error.errors[Object.keys(error.errors)[0]];
-        console.log(firstError.message);
         throw (0, http_errors_1.default)(400, firstError.message);
     }
     else if (error.code === 11000) {
         throw (0, http_errors_1.default)(400, "Department with this department details already exists"); //If course would be duplicated in department, this error would handle that
     }
     else if (error.name == 'MongooseError') {
-        console.log(error.message);
         throw (0, http_errors_1.default)(400, `${error.message}`);
     }
     else {

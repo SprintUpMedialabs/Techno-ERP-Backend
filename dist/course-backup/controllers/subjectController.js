@@ -55,7 +55,6 @@ exports.updateSubject = (0, express_async_handler_1.default)((req, res) => __awa
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }
     const _a = validation.data, { subjectId } = _a, subjectUpdateData = __rest(_a, ["subjectId"]);
-    console.log(subjectUpdateData);
     const updatedDepartment = yield department_1.DepartmentModel.findOneAndUpdate({ "courses.semester.subjectDetails._id": subjectId }, {
         $set: {
             "courses.$.semester.$[sem].subjectDetails.$[subj].subjectName": subjectUpdateData.subjectName,

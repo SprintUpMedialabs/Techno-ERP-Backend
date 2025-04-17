@@ -59,7 +59,6 @@ exports.createEnquiry = (0, express_async_handler_1.default)((0, functionLevelLo
 exports.updateEnquiryStep1ById = (0, express_async_handler_1.default)((0, functionLevelLogging_1.functionLevelLogger)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const validation = enquiry_2.enquiryStep1UpdateRequestSchema.safeParse(req.body);
     if (!validation.success) {
-        console.log(validation.error);
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }
     const _a = validation.data, { id } = _a, data = __rest(_a, ["id"]);

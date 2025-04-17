@@ -105,7 +105,6 @@ exports.getEnquiryById = (0, express_async_handler_1.default)((0, functionLevelL
 exports.approveEnquiry = (0, express_async_handler_1.default)((0, functionLevelLogging_1.functionLevelLogger)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.body;
     const validation = commonSchema_1.objectIdSchema.safeParse(id);
-    console.log(validation.error);
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }
@@ -131,7 +130,6 @@ exports.approveEnquiry = (0, express_async_handler_1.default)((0, functionLevelL
             },
         }, { runValidators: true, new: true, projection: { createdAt: 0, updatedAt: 0, __v: 0 }, session });
         const studentValidation = student_2.studentSchema.safeParse(approvedEnquiry);
-        console.log(studentValidation.error);
         if (!studentValidation.success)
             throw (0, http_errors_1.default)(400, studentValidation.error.errors[0]);
         const student = yield student_1.Student.create([Object.assign({ _id: enquiry._id }, studentValidation.data)], { session });

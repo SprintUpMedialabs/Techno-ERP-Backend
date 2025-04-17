@@ -64,7 +64,6 @@ exports.getFilteredLeadData = (0, express_async_handler_1.default)((req, res) =>
 exports.getAllLeadAnalytics = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
     const { query } = (0, parseFilter_1.parseFilter)(req);
-    console.log(query);
     // 🔹 Running Aggregate Pipeline
     const analytics = yield lead_1.LeadMaster.aggregate([
         { $match: query }, // Apply Filters
@@ -79,7 +78,6 @@ exports.getAllLeadAnalytics = (0, express_async_handler_1.default)((req, res) =>
             }
         }
     ]);
-    console.log(analytics);
     return (0, formatResponse_1.formatResponse)(res, 200, 'Lead analytics fetched successfully', true, {
         totalLeads: (_b = (_a = analytics[0]) === null || _a === void 0 ? void 0 : _a.totalLeads) !== null && _b !== void 0 ? _b : 0,
         openLeads: (_d = (_c = analytics[0]) === null || _c === void 0 ? void 0 : _c.openLeads) !== null && _d !== void 0 ? _d : 0,
@@ -96,9 +94,12 @@ exports.updateData = (0, express_async_handler_1.default)((req, res) => __awaite
     }
     const existingLead = yield lead_1.LeadMaster.findById(leadRequestData._id);
     if (existingLead) {
-        if (existingLead.leadType === constants_1.LeadType.INTERESTED) {
-            throw (0, http_errors_1.default)(400, 'Sorry, this lead can only be updated from the yellow leads tracker!');
-        }
+        // if (existingLead.leadType === LeadType.INTERESTED) {
+        //   throw createHttpError(
+        //     400,
+        //     'Sorry, this lead can only be updated from the yellow leads tracker!'
+        //   );
+        // }
         let leadTypeModifiedDate = existingLead.leadTypeModifiedDate;
         if (leadRequestData.leadType && existingLead.leadType != leadRequestData.leadType) {
             leadTypeModifiedDate = new Date();

@@ -23,7 +23,6 @@ const leads_1 = require("../validators/leads");
 exports.updateYellowLead = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const updateData = req.body;
     const validation = leads_1.yellowLeadUpdateSchema.safeParse(updateData);
-    console.log(validation.error);
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }
