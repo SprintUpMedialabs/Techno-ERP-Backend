@@ -22,15 +22,11 @@ export const readFromGoogleSheet = async () => {
     range
   });
 
-  console.log("Sheet response successfully generated");
   const rowData = sheetResponse.data.values;
   if (!rowData || rowData.length === 0) {
     logger.info('No new data found in the sheet.');
     return;
   }
-
-  console.log(rowData.length);
-  console.log(lastSavedIndex);
 
   const newLastReadIndex = lastSavedIndex + rowData.length;
   logger.info(`New Last Read Index: ${newLastReadIndex}`);

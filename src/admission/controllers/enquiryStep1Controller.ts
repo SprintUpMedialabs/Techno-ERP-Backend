@@ -12,37 +12,32 @@ import { checkIfStudentAdmitted } from "../helpers/checkIfStudentAdmitted";
 
 export const createEnquiry = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
 
-    const data: IEnquiryStep1RequestSchema = req.body;
-    const validation = enquiryStep1RequestSchema.safeParse(data);
+  const data: IEnquiryStep1RequestSchema = req.body;
+  const validation = enquiryStep1RequestSchema.safeParse(data);
 
-    if (!validation.success) 
-    {
-      throw createHttpError(400, validation.error.errors[0]);
-    }
+  if (!validation.success) {
+    throw createHttpError(400, validation.error.errors[0]);
+  }
 
-    const { id, ...enquiryData } = data;
+  const { id, ...enquiryData } = data;
 
-    const admittedThrough = enquiryData.course === Course.BED ? AdmittedThrough.COUNSELLING : AdmittedThrough.DIRECT;
+  const admittedThrough = enquiryData.course === Course.BED ? AdmittedThrough.COUNSELLING : AdmittedThrough.DIRECT;
 
-    let savedResult = await Enquiry.create({ ...enquiryData, admittedThrough });
+  let savedResult = await Enquiry.create({ ...enquiryData, admittedThrough });
 
-    if (savedResult) 
-    {
-      //Delete enquiry draft only if saving enquiry is successful.
-      if (id) 
-      {
-        const deletedDraft = await EnquiryDraft.findByIdAndDelete(id);
-        if (!deletedDraft) 
-        {
-          throw formatResponse(res, 494, 'Error occurred while deleting the enquiry draft', true);
-        }
+  if (savedResult) {
+    //Delete enquiry draft only if saving enquiry is successful.
+    if (id) {
+      const deletedDraft = await EnquiryDraft.findByIdAndDelete(id);
+      if (!deletedDraft) {
+        throw formatResponse(res, 494, 'Error occurred while deleting the enquiry draft', true);
       }
-      return formatResponse(res, 201, 'Enquiry created successfully', true, savedResult);
     }
-    else 
-    {
-      throw createHttpError(404, 'Error occurred creating enquiry');
-    }
+    return formatResponse(res, 201, 'Enquiry created successfully', true, savedResult);
+  }
+  else {
+    throw createHttpError(404, 'Error occurred creating enquiry');
+  }
 
 }));
 
@@ -51,9 +46,7 @@ export const createEnquiry = expressAsyncHandler(functionLevelLogger(async (req:
 export const updateEnquiryStep1ById = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
   const validation = enquiryStep1UpdateRequestSchema.safeParse(req.body);
 
-  if (!validation.success)
-  {
-    console.log(validation.error);
+  if (!validation.success) {
     throw createHttpError(400, validation.error.errors[0]);
   }
 

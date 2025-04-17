@@ -19,8 +19,7 @@ export const createEnquiryStep2 = expressAsyncHandler(functionLevelLogger(async 
     const data: IFeesRequestSchema = req.body;
   
     const validation = feesRequestSchema.safeParse(data);
-  
-    console.log(validation.error);
+
     if (!validation.success) {
       throw createHttpError(400, validation.error.errors[0]);
     }
@@ -123,7 +122,6 @@ export const createEnquiryStep2 = expressAsyncHandler(functionLevelLogger(async 
     }
 
     catch (error) {
-      console.log(error);
       await session.abortTransaction();
       session.endSession();
       throw createHttpError('Could not update successfully');
