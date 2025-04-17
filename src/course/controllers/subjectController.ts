@@ -101,12 +101,10 @@ export const updateSubject = expressAsyncHandler(async (req: AuthenticatedReques
 
 
 export const deleteSubject = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  console.log("Deleting subject");
+
   const deleteSubjectData: IDeleteSubjectSchema = req.body;
-  console.log(deleteSubjectData);
   const validation = deleteSubjectSchema.safeParse(deleteSubjectData);
 
-  console.log(validation.error);
 
   if (!validation.success)
     throw createHttpError(400, validation.error.errors[0]);
@@ -120,6 +118,33 @@ export const deleteSubject = expressAsyncHandler(async (req: AuthenticatedReques
 
   const session = await mongoose.startSession();
   try {
+
+    //First update DB and then in S3 to keep DB consistent.
+    session.startTransaction();
+
+    await Course.updateOne(
+      {
+        _id: courseId,
+        "semester._id": semesterId,
+        "semester.subjects._id": subjectId
+      },
+      {
+        $set: {
+          "semester.$[sem].subjects.$[subj].isDeleted": true
+        }
+      },
+      {
+        arrayFilters: [
+          { "sem._id": semesterId },
+          { "subj._id": subjectId }
+        ],
+        session
+      }
+    );
+
+    console.log("Object of subject updated in db");
+    await session.commitTransaction();
+
     const result = await Course.aggregate([
       { $match: { _id: courseId } },
       { $unwind: "$semester" },
@@ -163,7 +188,6 @@ export const deleteSubject = expressAsyncHandler(async (req: AuthenticatedReques
     let additionalResources = docs.additionalResources;
     let practicalPlanDocs = docs.practicalPlan;
     let lecturePlanDocs = docs.lecturePlan;
-
     let allDocs = [...additionalResources, ...practicalPlanDocs, ...lecturePlanDocs];
 
     console.log(allDocs);
@@ -172,31 +196,6 @@ export const deleteSubject = expressAsyncHandler(async (req: AuthenticatedReques
       await deleteFromS3(docUrl);
     }
 
-    // This we are keeping here because MongoDB transactions cannot be used to check if AWS deletion is successful or not, so if it would fail, then transaction won't be there, hence it would jump to catch block and no issue would be there.
-    session.startTransaction();
-
-    await Course.updateOne(
-      {
-        _id: courseId,
-        "semester._id": semesterId,
-        "semester.subjects._id": subjectId
-      },
-      {
-        $set: {
-          "semester.$[sem].subjects.$[subj].isDeleted": true
-        }
-      },
-      {
-        arrayFilters: [
-          { "sem._id": semesterId },
-          { "subj._id": subjectId }
-        ],
-        session
-      }
-    );
-
-    console.log("Object of subject updated in db");
-    await session.commitTransaction();
     session.endSession();
 
     const responsePayload = await fetchSubjectInformation(courseId.toString(), semesterId.toString(), "", 1, 10);

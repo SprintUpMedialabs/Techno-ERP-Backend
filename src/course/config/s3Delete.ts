@@ -19,7 +19,7 @@ import createHttpError from 'http-errors';
     }
   });
   
-  // DTODO: delete from db as well
+  // DTODO (DONE): delete from db as well => Logic added in deleteFileUsingUrl() in scheduleController.ts
   export const deleteFromS3 = async (documentLink: string) => {
     try {
       const url = new URL(documentLink);

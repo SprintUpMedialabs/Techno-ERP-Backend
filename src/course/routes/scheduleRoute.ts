@@ -1,7 +1,7 @@
 import { UserRoles } from "../../config/constants";
 import { authenticate, authorize } from "../../middleware/jwtAuthenticationMiddleware";
 import express from 'express';
-import { batchUpdatePlan, createPlan, deleteFileFromS3UsingUrl, deletePlan, getScheduleInformation } from "../controllers/scheduleController";
+import { batchUpdatePlan, createPlan, deleteFileUsingUrl, deletePlan, getScheduleInformation } from "../controllers/scheduleController";
 import upload from "../../config/multerConfig";
 import { uploadAdditionalResources, uploadScheduleDocument } from "../controllers/uploadScheduleDocumentController";
 export const scheduleRoute = express.Router()
@@ -46,8 +46,8 @@ scheduleRoute.put('/upload-additional-resource',
 );
 
 
-scheduleRoute.post('/delete-file', 
+scheduleRoute.delete('/delete-file', 
     authenticate,
     authorize([UserRoles.BASIC_USER]),
-    deleteFileFromS3UsingUrl
+    deleteFileUsingUrl
 );

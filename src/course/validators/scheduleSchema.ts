@@ -72,8 +72,18 @@ export const deletePlanSchema = z.object({
     planId : objectIdSchema
 })
 
+export const deleteFileUsingUrlSchema = z.object({
+    type : z.nativeEnum(CourseMaterialType).optional(),
+    courseId : objectIdSchema,
+    semesterId : objectIdSchema,
+    subjectId : objectIdSchema,
+    planId : objectIdSchema.optional(),
+    documentUrl : z.string()
+})
+
 export type IPlanSchema = z.infer<typeof planSchema>;
 export type ICreatePlanSchema = z.infer<typeof createPlanSchema>;
 export type IUpdatePlanSchema = z.infer<typeof updatePlanSchema>;
 export type IDeletePlanSchema = z.infer<typeof deletePlanSchema>;
 export type IScheduleSchema = z.infer<typeof scheduleSchema>;  
+export type IDeleteFileSchema = z.infer<typeof deleteFileUsingUrlSchema>;
