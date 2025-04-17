@@ -98,12 +98,12 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
   const existingLead = await LeadMaster.findById(leadRequestData._id);
 
   if (existingLead) {
-    if (existingLead.leadType === LeadType.INTERESTED) {
-      throw createHttpError(
-        400,
-        'Sorry, this lead can only be updated from the yellow leads tracker!'
-      );
-    }
+    // if (existingLead.leadType === LeadType.INTERESTED) {
+    //   throw createHttpError(
+    //     400,
+    //     'Sorry, this lead can only be updated from the yellow leads tracker!'
+    //   );
+    // }
 
     let leadTypeModifiedDate = existingLead.leadTypeModifiedDate;
 
