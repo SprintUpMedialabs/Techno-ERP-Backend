@@ -29,3 +29,7 @@ export const AWS_REGION = process.env.AWS_REGION!;
 export const AWS_BUCKET_NAME = process.env.AWS_BUCKET_NAME!;
 
 export const NODE_ENV = process.env.NODE_ENV!;
+
+export const AUDIT_LOG_SERVICE_URL = process.env.AUDIT_LOG_SERVICE_URL!;
+
+export const SERVICE_AUTH_TOKEN = process.env.SERVICE_AUTH_TOKEN!;

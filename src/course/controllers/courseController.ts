@@ -11,8 +11,7 @@ export const createCourse = expressAsyncHandler(async (req : AuthenticatedReques
     const courseData : ICourseSchema = req.body;
     const validation = courseSchema.safeParse(courseData);
     
-    if(!validation.success)
-    {
+    if(!validation.success){
         throw createHttpError(400, validation.error.errors[0]);
     }
 

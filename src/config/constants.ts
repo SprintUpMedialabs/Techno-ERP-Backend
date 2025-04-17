@@ -316,3 +316,10 @@ export enum LectureConfirmation{
   DELAYED = 'DELAYED',
   TO_BE_DONE = 'TO_BE_DONE'
 }
+
+export enum RequestAction {
+  PUT = "PUT",
+  POST = "POST",
+  DELETE = "DELETE",
+  PATCH = "PATCH",
+}
