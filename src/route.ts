@@ -6,9 +6,9 @@ import { admissionRoute } from './admission/routes';
 import feesRouter from './fees/courseAndOtherFees.routes';
 import { courseRoute } from './course/routes/courseRoute';
 import { studentDataRoute } from './student-data/routes/studentRoute';
-import { departmentRoute } from './course-backup/routes/departmentRoute';
 import { departmentMetaDataRoute } from './course/routes/departmentMetaDataRoute';
 import { dropDownRoute } from './utilityModules/dropdown/dropDownRoute';
+import { testRoute } from './course/routes/testRoute';
 
 export const apiRouter = express.Router();
 
@@ -17,35 +17,36 @@ export const apiRouter = express.Router();
  */
 apiRouter.use('/auth', authRouter);
 
+
 /**
  * Contains the router for User
  */
 apiRouter.use('/user', userRouter);
+
 
 /**
  * Contains the router for CRM Module
  */
 apiRouter.use('/crm', crmRoute);
 
+
 /**
  * Contains the router for Admission Module
  */
 apiRouter.use('/admission',admissionRoute);
+
 
 /**
  * Contains the router for Fees Module
  */
 apiRouter.use('/fees-structure',feesRouter);
 
-/**
- * Contains the router for Department Module
- */
-apiRouter.use('/department', departmentRoute);
 
 /**
  * Contains the router for Course Module
  */
 apiRouter.use('/course', courseRoute);
+
 
 /**
  * Contains the router for Department Module
@@ -58,4 +59,14 @@ apiRouter.use('/department-metadata', departmentMetaDataRoute);
  */
 apiRouter.use('/student-data', studentDataRoute);
 
+
+/**
+ * Contains the router for Dropdown related information
+ */
 apiRouter.use('/dropdown', dropDownRoute);
+
+
+/**
+ * Contains the router for Testing Purpose
+ */
+apiRouter.use('/test', testRoute);

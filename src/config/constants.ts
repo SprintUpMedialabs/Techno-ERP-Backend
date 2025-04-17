@@ -323,3 +323,9 @@ export enum RequestAction {
   DELETE = "DELETE",
   PATCH = "PATCH",
 }
+
+export enum CourseMaterialType{
+  LPLAN = 'LPlan',
+  PPLAN = 'PPlan',
+  GENERAL = 'General'
+}

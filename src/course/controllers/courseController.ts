@@ -1,17 +1,19 @@
 import expressAsyncHandler from "express-async-handler";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
 import { Response, Request } from "express";
-import { courseSchema, ICourseSchema } from "../validators/courseSchema";
+import { courseSchema, courseUpdateSchema, ICourseSchema, ICourseUpdateSchema } from "../validators/courseSchema";
 import createHttpError from "http-errors";
 import { getAcaYrFromStartYrSemNum } from "../utils/getAcaYrFromStartYrSemNum";
 import { Course } from "../models/course";
 import { formatResponse } from "../../utils/formatResponse";
+import { getCurrentAcademicYear } from "../utils/getCurrentAcademicYear";
+import mongoose from "mongoose";
 
-export const createCourse = expressAsyncHandler(async (req : AuthenticatedRequest, res: Response) => {
-    const courseData : ICourseSchema = req.body;
+export const createCourse = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const courseData: ICourseSchema = req.body;
     const validation = courseSchema.safeParse(courseData);
-    
-    if(!validation.success){
+
+    if (!validation.success) {
         throw createHttpError(400, validation.error.errors[0]);
     }
 
@@ -21,19 +23,143 @@ export const createCourse = expressAsyncHandler(async (req : AuthenticatedReques
         subjects: [],
     }));
 
-    const course = await Course.create({ 
+    await Course.create({
         ...courseData,
-        semester : semester
+        semester: semester
     });
 
-    if(!course)
-        throw createHttpError(500, 'Error occurred creating course');
+    // const courseInformation = await getCourseInformation("", getCurrentAcademicYear());
 
-    return formatResponse(res, 201, 'Course created successfully', true, course);
+    return formatResponse(res, 201, 'Course created successfully', true, null);
+});
+
+
+export const updateCourse = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const updateCourseData: ICourseUpdateSchema = req.body;
+
+    const validation = courseUpdateSchema.safeParse(updateCourseData);
+
+    if (!validation.success) {
+        throw createHttpError(400, validation.error.errors[0]);
+    }
+
+    let { courseId, courseName, courseCode, collegeName, departmentMetaDataId } = validation.data;
+
+
+    courseId = new mongoose.Types.ObjectId(courseId);
+    departmentMetaDataId = new mongoose.Types.ObjectId(departmentMetaDataId);
+
+    const updateResult = await Course.updateOne(
+        { _id: courseId },
+        {
+            $set: {
+                courseName,
+                courseCode,
+                collegeName,
+                departmentMetaDataId: departmentMetaDataId,
+            },
+        }
+    );
+
+    if (updateResult.modifiedCount === 0) {
+        throw createHttpError(404, 'Course not found or no changes made');
+    }
+
+    // const responsePayload = getCourseInformation("", getCurrentAcademicYear());
+
+    return formatResponse(res, 200, 'Course updated successfully', true, null);
 })
 
 
+export const searchCourses = expressAsyncHandler(async (req: Request, res: Response) => {
+    let { search, academicYear, page, limit } = req.body;
 
-export const searchCourses = async (req: Request, res: Response) => {
-        //DTODO : Baaki che aa vadu, will do after discussion with DA 
-};
+    let courseInformation = await getCourseInformation(search, academicYear, page, limit);
+
+    return formatResponse(res, 200, 'Courses fetched successfully', true, courseInformation);
+});
+
+
+export const getCourseInformation = async (search: string, academicYear: string, page: number = 1, limit: number = 10) => {
+    const skip = (page - 1) * limit;
+    const pipeline = [
+        {
+            $match: {
+                $or: [
+                    { courseName: { $regex: search || "", $options: "i" } },
+                    { courseCode: { $regex: search || "", $options: "i" } },
+                ],
+            },
+        },
+        {
+            $unwind: "$semester",
+        },
+        {
+            $match: {
+                "semester.academicYear": academicYear,
+            },
+        },
+        {
+            $lookup: {
+                from: "departmentmetadatas",
+                localField: "departmentMetaDataId",
+                foreignField: "_id",
+                as: "departmentMetaData",
+            },
+        },
+        { $unwind: "$departmentMetaData" },
+        {
+            $facet: {
+                paginatedResults: [
+                    {
+                        $project: {
+                            _id: 0,
+                            courseId: "$_id",
+                            courseName: 1,
+                            courseCode: 1,
+                            semesterId: "$semester._id",
+                            semesterNumber: "$semester.semesterNumber",
+                            courseYear: {
+                                $switch: {
+                                    branches: [
+                                        { case: { $eq: [{ $ceil: { $divide: ["$semester.semesterNumber", 2] } }, 1] }, then: "First" },
+                                        { case: { $eq: [{ $ceil: { $divide: ["$semester.semesterNumber", 2] } }, 2] }, then: "Second" },
+                                        { case: { $eq: [{ $ceil: { $divide: ["$semester.semesterNumber", 2] } }, 3] }, then: "Third" },
+                                        { case: { $eq: [{ $ceil: { $divide: ["$semester.semesterNumber", 2] } }, 4] }, then: "Fourth" },
+                                        { case: { $eq: [{ $ceil: { $divide: ["$semester.semesterNumber", 2] } }, 5] }, then: "Fifth" },
+                                        { case: { $eq: [{ $ceil: { $divide: ["$semester.semesterNumber", 2] } }, 6] }, then: "Sixth" },
+                                    ],
+                                    default: "Unknown"
+                                }
+                            },
+                            academicYear: "$semester.academicYear",
+                            departmentName: "$departmentMetaData.departmentName",
+                            departmentHOD: "$departmentMetaData.departmentHOD",
+                            numberOfSubjects: { $size: "$semester.subjects" },
+                        }
+                    },
+                    { $skip: skip },
+                    { $limit: limit }
+                ],
+                totalCount: [
+                    { $count: "count" }
+                ]
+            }
+        }
+    ];
+
+    const result = await Course.aggregate(pipeline);
+
+    const courseInformation = result[0]?.paginatedResults || [];
+    const totalItems = result[0]?.totalCount[0]?.count || 0;
+    const totalPages = Math.ceil(totalItems / limit);
+
+    return {
+        courseInformation,
+        pagination: {
+            currentPage: page,
+            totalItems,
+            totalPages,
+        }
+    }
+}
