@@ -16,7 +16,8 @@ const requiredEnvVariables = [
   'MARKETING_SHEET_PAGE_NAME',
   'LEAD_MARKETING_EMAIL',
   'MARKETING_SHEET_ID',
-  'AUDIT_LOG_SERVICE_URL'
+  'AUDIT_LOG_SERVICE_URL',
+  'SERVICE_AUTH_TOKEN'
 ];
 
 export const validateEnvVariables = (): void => {
