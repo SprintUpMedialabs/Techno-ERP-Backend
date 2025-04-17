@@ -1,13 +1,16 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.scheduleModelSchema = exports.lecturePlanModelSchema = void 0;
+exports.scheduleModelSchema = exports.planModelSchema = void 0;
 const mongoose_1 = require("mongoose");
 const constants_1 = require("../../config/constants");
 const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
+const http_errors_1 = __importDefault(require("http-errors"));
 ;
 ;
-;
-exports.lecturePlanModelSchema = new mongoose_1.Schema({
+exports.planModelSchema = new mongoose_1.Schema({
     unit: {
         type: Number,
         required: [true, 'Unit Number is required.'],
@@ -19,7 +22,7 @@ exports.lecturePlanModelSchema = new mongoose_1.Schema({
         min: [0, 'Lecture number must be a valid value.']
     },
     topicName: {
-        type: Number,
+        type: String,
         required: [true, 'Topic Name is required.']
     },
     instructor: {
@@ -75,7 +78,38 @@ exports.lecturePlanModelSchema = new mongoose_1.Schema({
     ],
 });
 exports.scheduleModelSchema = new mongoose_1.Schema({
-    lecturePlan: [exports.lecturePlanModelSchema],
-    practicalPlan: [exports.lecturePlanModelSchema],
+    lecturePlan: [exports.planModelSchema],
+    practicalPlan: [exports.planModelSchema],
     additionalResources: [{ type: String }],
 });
+const handleMongooseError = (error, next) => {
+    if (error.name === 'ValidationError') {
+        const firstError = error.errors[Object.keys(error.errors)[0]];
+        throw (0, http_errors_1.default)(400, firstError.message);
+    }
+    else if (error.name == 'MongooseError') {
+        throw (0, http_errors_1.default)(400, `${error.message}`);
+    }
+    else {
+        next(error);
+    }
+};
+exports.scheduleModelSchema.post('save', function (error, doc, next) {
+    handleMongooseError(error, next);
+});
+exports.scheduleModelSchema.post('findOneAndUpdate', function (error, doc, next) {
+    handleMongooseError(error, next);
+});
+const transformDates = (_, ret) => {
+    ['actualDate', 'plannedDate'].forEach((key) => {
+        if (ret[key]) {
+            ret[key] = (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(ret[key]);
+        }
+    });
+    delete ret.createdAt;
+    delete ret.updatedAt;
+    delete ret.__v;
+    return ret;
+};
+exports.scheduleModelSchema.set('toJSON', { transform: transformDates });
+exports.scheduleModelSchema.set('toObject', { transform: transformDates });

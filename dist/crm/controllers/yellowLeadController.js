@@ -20,7 +20,10 @@ const parseFilter_1 = require("../helpers/parseFilter");
 const formatResponse_1 = require("../../utils/formatResponse");
 const lead_1 = require("../models/lead");
 const leads_1 = require("../validators/leads");
+const axiosInstance_1 = __importDefault(require("../../api/axiosInstance"));
+const endPoints_1 = require("../../api/endPoints");
 exports.updateYellowLead = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     const updateData = req.body;
     const validation = leads_1.yellowLeadUpdateSchema.safeParse(updateData);
     if (!validation.success) {
@@ -42,6 +45,13 @@ exports.updateYellowLead = (0, express_async_handler_1.default)((req, res) => __
     if (!updatedYellowLead) {
         throw (0, http_errors_1.default)(404, 'Yellow lead not found.');
     }
+    axiosInstance_1.default.post(`${endPoints_1.Endpoints.AuditLogService.MARKETING.SAVE_LEAD}`, {
+        documentId: updatedYellowLead === null || updatedYellowLead === void 0 ? void 0 : updatedYellowLead._id,
+        action: constants_1.RequestAction.POST,
+        payload: updatedYellowLead,
+        performedBy: (_a = req.data) === null || _a === void 0 ? void 0 : _a.id,
+        restEndpoint: '/api/update-yellow-lead',
+    });
     return (0, formatResponse_1.formatResponse)(res, 200, 'Yellow lead updated successfully', true, updatedYellowLead);
 }));
 exports.getFilteredYellowLeads = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {

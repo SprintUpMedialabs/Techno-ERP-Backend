@@ -110,7 +110,6 @@ export const updateStudentById = expressAsyncHandler(
 );
 
 
-// DTODO: same change => DONE, here and in enquiry documents both
 export const updateStudentDocuments = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
 
@@ -207,7 +206,7 @@ export const updateStudentDocuments = expressAsyncHandler(
   }
 );
 
-// DTODO: add fee update endpoint => DONE
+
 export const updateStudentFee = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const feesDraftUpdateData: IFeesUpdateSchema = req.body;
 

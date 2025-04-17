@@ -2,12 +2,14 @@ import { Response } from 'express';
 import expressAsyncHandler from 'express-async-handler';
 import createHttpError from 'http-errors';
 import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
-import { LeadType } from '../../config/constants';
+import { COLLECTION_NAMES, LeadType, RequestAction } from '../../config/constants';
 import { readFromGoogleSheet } from '../helpers/googleSheetOperations';
 import { parseFilter } from '../helpers/parseFilter';
 import { saveDataToDb } from '../helpers/updateAndSaveToDb'; import { IUpdateLeadRequestSchema, updateLeadRequestSchema } from '../validators/leads';
 import { formatResponse } from '../../utils/formatResponse';
 import { LeadMaster } from '../models/lead';
+import axiosInstance from '../../api/axiosInstance';
+import { Endpoints } from '../../api/endPoints';
 
 export const uploadData = expressAsyncHandler(async (_: AuthenticatedRequest, res: Response) => {
   const latestData = await readFromGoogleSheet();
@@ -119,6 +121,14 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
         runValidators: true
       }
     );
+
+    axiosInstance.post(`${Endpoints.AuditLogService.MARKETING.SAVE_LEAD}`, {
+      documentId: updatedData?._id,
+      action: RequestAction.POST,
+      payload: updatedData,
+      performedBy: req.data?.id,
+      restEndpoint: '/api/edit/crm',
+    });
 
     return formatResponse(res, 200, 'Data Updated Successfully!', true, updatedData);
   }

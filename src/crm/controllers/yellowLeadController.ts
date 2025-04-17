@@ -2,13 +2,15 @@ import { Request, Response } from 'express';
 import expressAsyncHandler from 'express-async-handler';
 import createHttpError from 'http-errors';
 import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
-import { FinalConversionType, LeadType } from '../../config/constants';
+import { FinalConversionType, LeadType, RequestAction } from '../../config/constants';
 import { parseFilter } from '../helpers/parseFilter';
 import { formatResponse } from '../../utils/formatResponse';
 import { LeadMaster } from '../models/lead';
 import { IYellowLeadUpdate, yellowLeadUpdateSchema } from '../validators/leads';
+import axiosInstance from '../../api/axiosInstance';
+import { Endpoints } from '../../api/endPoints';
 
-export const updateYellowLead = expressAsyncHandler(async (req: Request, res: Response) => {
+export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const updateData: IYellowLeadUpdate = req.body;
 
   const validation = yellowLeadUpdateSchema.safeParse(updateData);
@@ -36,6 +38,14 @@ export const updateYellowLead = expressAsyncHandler(async (req: Request, res: Re
   if (!updatedYellowLead) {
     throw createHttpError(404, 'Yellow lead not found.');
   }
+
+  axiosInstance.post(`${Endpoints.AuditLogService.MARKETING.SAVE_LEAD}`, {
+    documentId: updatedYellowLead?._id,
+    action: RequestAction.POST,
+    payload: updatedYellowLead,
+    performedBy: req.data?.id,
+    restEndpoint: '/api/update-yellow-lead',
+  });
 
   return formatResponse(res, 200, 'Yellow lead updated successfully', true, updatedYellowLead);
 });

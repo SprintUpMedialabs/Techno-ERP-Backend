@@ -32,11 +32,15 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.subjectModelSchema = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 const constants_1 = require("../../config/constants");
 const schedule_1 = require("./schedule");
+const http_errors_1 = __importDefault(require("http-errors"));
 ;
 exports.subjectModelSchema = new mongoose_1.Schema({
     subjectName: {
@@ -53,8 +57,38 @@ exports.subjectModelSchema = new mongoose_1.Schema({
             ref: constants_1.COLLECTION_NAMES.USER
         }
     ],
+    isDeleted: {
+        type: Boolean,
+        default: false,
+    },
     schedule: {
         type: schedule_1.scheduleModelSchema,
         default: {}
     }
 });
+const handleMongooseError = (error, next) => {
+    if (error.name === 'ValidationError') {
+        const firstError = error.errors[Object.keys(error.errors)[0]];
+        throw (0, http_errors_1.default)(400, firstError.message);
+    }
+    else if (error.name == 'MongooseError') {
+        throw (0, http_errors_1.default)(400, `${error.message}`);
+    }
+    else {
+        next(error);
+    }
+};
+exports.subjectModelSchema.post('save', function (error, doc, next) {
+    handleMongooseError(error, next);
+});
+exports.subjectModelSchema.post('findOneAndUpdate', function (error, doc, next) {
+    handleMongooseError(error, next);
+});
+const transformDates = (_, ret) => {
+    delete ret.createdAt;
+    delete ret.updatedAt;
+    delete ret.__v;
+    return ret;
+};
+exports.subjectModelSchema.set('toJSON', { transform: transformDates });
+exports.subjectModelSchema.set('toObject', { transform: transformDates });

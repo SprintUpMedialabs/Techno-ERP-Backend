@@ -32,10 +32,14 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DepartmentMetaData = exports.departmentModelSchema = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 const constants_1 = require("../../config/constants");
+const http_errors_1 = __importDefault(require("http-errors"));
 ;
 exports.departmentModelSchema = new mongoose_1.Schema({
     departmentName: {
@@ -59,4 +63,30 @@ exports.departmentModelSchema = new mongoose_1.Schema({
         type: Number,
     },
 }, { timestamps: true });
+const handleMongooseError = (error, next) => {
+    if (error.name === 'ValidationError') {
+        const firstError = error.errors[Object.keys(error.errors)[0]];
+        throw (0, http_errors_1.default)(400, firstError.message);
+    }
+    else if (error.name == 'MongooseError') {
+        throw (0, http_errors_1.default)(400, `${error.message}`);
+    }
+    else {
+        next(error);
+    }
+};
+exports.departmentModelSchema.post('save', function (error, doc, next) {
+    handleMongooseError(error, next);
+});
+exports.departmentModelSchema.post('findOneAndUpdate', function (error, doc, next) {
+    handleMongooseError(error, next);
+});
+const transformDates = (_, ret) => {
+    delete ret.createdAt;
+    delete ret.updatedAt;
+    delete ret.__v;
+    return ret;
+};
+exports.departmentModelSchema.set('toJSON', { transform: transformDates });
+exports.departmentModelSchema.set('toObject', { transform: transformDates });
 exports.DepartmentMetaData = mongoose_1.default.model(constants_1.COLLECTION_NAMES.DEPARTMENT_META_DATA, exports.departmentModelSchema);

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.LectureConfirmation = exports.COLLECTION_NAMES = exports.MARKETING_SHEET = exports.PHOTO = exports.TGI = exports.ADMISSION = exports.AreaType = exports.Districts = exports.Countries = exports.StatesOfIndia = exports.AdmissionMode = exports.FeeStatus = exports.FeeType = exports.Locations = exports.ModuleNames = exports.ApplicationStatus = exports.DocumentType = exports.AdmittedThrough = exports.BloodGroup = exports.Religion = exports.FormNoPrefixes = exports.EducationLevel = exports.Course = exports.DropDownType = exports.AdmissionReference = exports.Category = exports.Marketing_Source = exports.FinalConversionType = exports.LeadType = exports.Source = exports.Gender = exports.UserRoles = void 0;
+exports.CourseMaterialType = exports.RequestAction = exports.LectureConfirmation = exports.COLLECTION_NAMES = exports.MARKETING_SHEET = exports.PHOTO = exports.TGI = exports.ADMISSION = exports.AreaType = exports.Districts = exports.Countries = exports.StatesOfIndia = exports.AdmissionMode = exports.FeeStatus = exports.FeeType = exports.Locations = exports.ModuleNames = exports.ApplicationStatus = exports.DocumentType = exports.AdmittedThrough = exports.BloodGroup = exports.Religion = exports.FormNoPrefixes = exports.EducationLevel = exports.Course = exports.DropDownType = exports.AdmissionReference = exports.Category = exports.Marketing_Source = exports.FinalConversionType = exports.LeadType = exports.Source = exports.Gender = exports.UserRoles = void 0;
 /**
  * Marketing Module Enums
 */
@@ -296,3 +296,16 @@ var LectureConfirmation;
     LectureConfirmation["DELAYED"] = "DELAYED";
     LectureConfirmation["TO_BE_DONE"] = "TO_BE_DONE";
 })(LectureConfirmation || (exports.LectureConfirmation = LectureConfirmation = {}));
+var RequestAction;
+(function (RequestAction) {
+    RequestAction["PUT"] = "PUT";
+    RequestAction["POST"] = "POST";
+    RequestAction["DELETE"] = "DELETE";
+    RequestAction["PATCH"] = "PATCH";
+})(RequestAction || (exports.RequestAction = RequestAction = {}));
+var CourseMaterialType;
+(function (CourseMaterialType) {
+    CourseMaterialType["LPLAN"] = "LPlan";
+    CourseMaterialType["PPLAN"] = "PPlan";
+    CourseMaterialType["GENERAL"] = "General";
+})(CourseMaterialType || (exports.CourseMaterialType = CourseMaterialType = {}));
