@@ -94,9 +94,12 @@ exports.updateData = (0, express_async_handler_1.default)((req, res) => __awaite
     }
     const existingLead = yield lead_1.LeadMaster.findById(leadRequestData._id);
     if (existingLead) {
-        if (existingLead.leadType === constants_1.LeadType.INTERESTED) {
-            throw (0, http_errors_1.default)(400, 'Sorry, this lead can only be updated from the yellow leads tracker!');
-        }
+        // if (existingLead.leadType === LeadType.INTERESTED) {
+        //   throw createHttpError(
+        //     400,
+        //     'Sorry, this lead can only be updated from the yellow leads tracker!'
+        //   );
+        // }
         let leadTypeModifiedDate = existingLead.leadTypeModifiedDate;
         if (leadRequestData.leadType && existingLead.leadType != leadRequestData.leadType) {
             leadTypeModifiedDate = new Date();
