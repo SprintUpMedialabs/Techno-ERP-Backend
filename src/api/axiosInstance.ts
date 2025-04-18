@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+import axios, { AxiosInstance } from 'axios';
 import { AUDIT_LOG_SERVICE_URL, SERVICE_AUTH_TOKEN } from '../secrets';
 
 // Create instance
