@@ -10,6 +10,7 @@ import { formatResponse } from '../../utils/formatResponse';
 import { LeadMaster } from '../models/lead';
 import axiosInstance from '../../api/axiosInstance';
 import { Endpoints } from '../../api/endPoints';
+import { safeAxiosPost } from '../../api/safeAxios';
 
 export const uploadData = expressAsyncHandler(async (_: AuthenticatedRequest, res: Response) => {
   const latestData = await readFromGoogleSheet();
@@ -122,7 +123,7 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
       }
     );
 
-    axiosInstance.post(`${Endpoints.AuditLogService.MARKETING.SAVE_LEAD}`, {
+    safeAxiosPost(axiosInstance, `${Endpoints.AuditLogService.MARKETING.SAVE_LEAD}`, {
       documentId: updatedData?._id,
       action: RequestAction.POST,
       payload: updatedData,
