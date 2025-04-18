@@ -1,7 +1,7 @@
 import { UserRoles } from "../../config/constants";
 import { authenticate, authorize } from "../../middleware/jwtAuthenticationMiddleware";
 import express from 'express';
-import { createSubject, deleteSubject, getSubjectInformation, updateSubject } from "../controllers/subjectController";
+import { createSubject, deleteSubject, fetchSubjectInformationUsingFilters, getSubjectInformation, updateSubject } from "../controllers/subjectController";
 import { scheduleRoute } from "./scheduleRoute";
 
 export const subjectRoute = express.Router()
@@ -30,5 +30,10 @@ subjectRoute.post('/subject-details',
     getSubjectInformation
 );
 
+subjectRoute.post('/filtered-subject-details',
+    authenticate,
+    authorize([UserRoles.BASIC_USER]),
+    fetchSubjectInformationUsingFilters
+);
 
 subjectRoute.use('/schedule', scheduleRoute);
