@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.fetchSubjectInformation = exports.deleteSubject = exports.updateSubject = exports.createSubject = exports.getSubjectInformation = void 0;
+exports.fetchSubjectInformation = exports.fetchSubjectInformationUsingFilters = exports.deleteSubject = exports.updateSubject = exports.createSubject = exports.getSubjectInformation = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const course_1 = require("../models/course");
@@ -20,6 +20,7 @@ const formatResponse_1 = require("../../utils/formatResponse");
 const subjectSchema_1 = require("../validators/subjectSchema");
 const http_errors_1 = __importDefault(require("http-errors"));
 const s3Delete_1 = require("../config/s3Delete");
+const getCurrentAcademicYear_1 = require("../utils/getCurrentAcademicYear");
 exports.getSubjectInformation = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let { courseId, semesterId, search, page = 1, limit = 10 } = req.body;
     const responsePayload = yield (0, exports.fetchSubjectInformation)(courseId, semesterId, search, page, limit);
@@ -173,6 +174,85 @@ exports.deleteSubject = (0, express_async_handler_1.default)((req, res) => __awa
         yield session.endSession();
     }
 }));
+exports.fetchSubjectInformationUsingFilters = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { courseCode, semesterNumber, academicYear = (0, getCurrentAcademicYear_1.getCurrentAcademicYear)(), search, page = 1, limit = 10 } = req.body;
+    const skip = (page - 1) * limit;
+    const pipeline = [
+        ...(courseCode ? [{ $match: { courseCode } }] : []),
+        {
+            $addFields: {
+                semesterDetails: academicYear || semesterNumber ? {
+                    $filter: {
+                        input: "$semester",
+                        as: "sem",
+                        cond: {
+                            $and: [
+                                ...(academicYear ? [{ $eq: ["$$sem.academicYear", academicYear] }] : []),
+                                ...(semesterNumber ? [{ $eq: ["$$sem.semesterNumber", semesterNumber] }] : [])
+                            ]
+                        }
+                    }
+                } : "$semester"
+            }
+        },
+        { $unwind: "$semesterDetails" },
+        {
+            $addFields: {
+                courseYear: {
+                    $switch: {
+                        branches: [
+                            { case: { $in: ["$semesterDetails.semesterNumber", [1, 2]] }, then: "First" },
+                            { case: { $in: ["$semesterDetails.semesterNumber", [3, 4]] }, then: "Second" },
+                            { case: { $in: ["$semesterDetails.semesterNumber", [5, 6]] }, then: "Third" },
+                            { case: { $in: ["$semesterDetails.semesterNumber", [7, 8]] }, then: "Fourth" },
+                            { case: { $in: ["$semesterDetails.semesterNumber", [9, 10]] }, then: "Fifth" },
+                            { case: { $in: ["$semesterDetails.semesterNumber", [11, 12]] }, then: "Sixth" }
+                        ],
+                        default: "Unknown"
+                    }
+                }
+            }
+        },
+        { $unwind: "$semesterDetails.subjects" },
+        {
+            $match: Object.assign({ "semesterDetails.subjects.isDeleted": { $ne: true } }, (search && {
+                $or: [
+                    { "semesterDetails.subjects.subjectName": { $regex: search, $options: "i" } },
+                    { "semesterDetails.subjects.subjectCode": { $regex: search, $options: "i" } }
+                ]
+            }))
+        },
+        {
+            $lookup: {
+                from: "users",
+                localField: "semesterDetails.subjects.instructor",
+                foreignField: "_id",
+                as: "instructorDetails"
+            }
+        },
+        { $unwind: { path: "$instructorDetails", preserveNullAndEmptyArrays: true } },
+        {
+            $project: {
+                _id: 0,
+                courseId: "$_id",
+                semesterId: "$semesterDetails._id",
+                subjectId: "$semesterDetails.subjects._id",
+                instructorId: "$instructorDetails._id",
+                departmentMetaDataId: "$departmentMetaDataId",
+                subjectName: "$semesterDetails.subjects.subjectName",
+                subjectCode: "$semesterDetails.subjects.subjectCode",
+                instructor: "$instructorDetails.firstName",
+                courseName: "$courseName",
+                courseCode: "$courseCode",
+                courseYear: "$courseYear",
+                semester: "$semesterDetails.semesterNumber",
+                academicYear: "$semesterDetails.academicYear"
+            }
+        }
+    ];
+    const subjectInformation = yield course_1.Course.aggregate(pipeline);
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Subject information fetched successfully with filters', true, subjectInformation);
+}));
 const fetchSubjectInformation = (crsId_1, semId_1, search_1, ...args_1) => __awaiter(void 0, [crsId_1, semId_1, search_1, ...args_1], void 0, function* (crsId, semId, search, page = 1, limit = 10) {
     let courseId = new mongoose_1.default.Types.ObjectId(crsId);
     let semesterId = new mongoose_1.default.Types.ObjectId(semId);
@@ -313,33 +393,11 @@ const fetchSubjectInformation = (crsId_1, semId_1, search_1, ...args_1) => __awa
                 subjectDetails: 1
             }
         },
-        // { $skip: skip },
-        // { $limit: limit },
     ];
     let subjectDetails = yield course_1.Course.aggregate(pipeline);
     let subjectInformation = subjectDetails[0];
-    // const totalCount = await Course.aggregate([
-    //   { $match: { _id: courseId } },
-    //   { $unwind: "$semester" },
-    //   { $match: { "semester._id": semesterId } },
-    //   { $unwind: "$semester.subjects" },
-    //   {
-    //     $project: {
-    //       instructors: "$semester.subjects.instructor",
-    //     },
-    //   },
-    //   { $unwind: "$instructors" },
-    //   { $count: "totalCount" },
-    // ]);
-    // const totalItems = totalCount.length ? totalCount[0].totalCount : 0;
-    // const totalPages = Math.ceil(totalItems / limit);
     return {
         subjectInformation,
-        // pagination: {
-        //   currentPage: page,
-        //   totalItems,
-        //   totalPages,
-        // }
     };
 });
 exports.fetchSubjectInformation = fetchSubjectInformation;

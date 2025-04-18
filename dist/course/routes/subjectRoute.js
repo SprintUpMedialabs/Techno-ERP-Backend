@@ -14,4 +14,5 @@ exports.subjectRoute.post('/', jwtAuthenticationMiddleware_1.authenticate, (0, j
 exports.subjectRoute.put('/', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER]), subjectController_1.updateSubject);
 exports.subjectRoute.delete('/', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER]), subjectController_1.deleteSubject);
 exports.subjectRoute.post('/subject-details', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER]), subjectController_1.getSubjectInformation);
+exports.subjectRoute.post('/filtered-subject-details', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER]), subjectController_1.fetchSubjectInformationUsingFilters);
 exports.subjectRoute.use('/schedule', scheduleRoute_1.scheduleRoute);

@@ -34,9 +34,19 @@ exports.updateYellowLead = (0, express_async_handler_1.default)((req, res) => __
         throw (0, http_errors_1.default)(404, 'Yellow lead not found.');
     }
     const isCampusVisitChangedToYes = updateData.footFall === true && existingLead.footFall !== true;
-    const wasFinalConversionNoFootfall = existingLead.finalConversion === constants_1.FinalConversionType.NO_FOOTFALL;
-    if (isCampusVisitChangedToYes && wasFinalConversionNoFootfall) {
+    // If the campus visit is changed to yes, then the final conversion is set to unconfirmed
+    if (isCampusVisitChangedToYes) {
         updateData.finalConversion = constants_1.FinalConversionType.UNCONFIRMED;
+    }
+    // If the campus visit is no, then the final conversion can not be changed.
+    if (updateData.footFall === false) {
+        if (updateData.finalConversion !== constants_1.FinalConversionType.NO_FOOTFALL) {
+            throw (0, http_errors_1.default)(400, 'Final conversion can not be changed if campus visit is no.');
+        }
+    }
+    else if (updateData.finalConversion === constants_1.FinalConversionType.NO_FOOTFALL) {
+        // if footfall is yes, then final conversion can not be no footfall.
+        throw (0, http_errors_1.default)(400, 'Final conversion can not be no footfall if campus visit is yes.');
     }
     const updatedYellowLead = yield lead_1.LeadMaster.findByIdAndUpdate(updateData._id, updateData, {
         new: true,
@@ -93,18 +103,7 @@ exports.getYellowLeadsAnalytics = (0, express_async_handler_1.default)((req, res
                     $sum: { $cond: [{ $eq: ['$footFall', true] }, 1, 0] }
                 },
                 activeYellowLeadsCount: {
-                    $sum: {
-                        $cond: [
-                            {
-                                $and: [
-                                    { $ne: ['$finalConversion', constants_1.FinalConversionType.DEAD] },
-                                    { $ne: ['$finalConversion', constants_1.FinalConversionType.CONVERTED] }
-                                ]
-                            },
-                            1,
-                            0
-                        ]
-                    }
+                    $sum: { $cond: [{ $eq: ['$footFall', false] }, 1, 0] }
                 },
                 deadLeadCount: {
                     $sum: { $cond: [{ $eq: ['$finalConversion', constants_1.FinalConversionType.DEAD] }, 1, 0] }
