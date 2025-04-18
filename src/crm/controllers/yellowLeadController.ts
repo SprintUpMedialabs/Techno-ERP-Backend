@@ -24,11 +24,22 @@ export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedReq
   }
 
   const isCampusVisitChangedToYes = updateData.footFall === true && existingLead.footFall !== true;
-  const wasFinalConversionNoFootfall = existingLead.finalConversion === FinalConversionType.NO_FOOTFALL;
 
-  if (isCampusVisitChangedToYes && wasFinalConversionNoFootfall) {
+  // If the campus visit is changed to yes, then the final conversion is set to unconfirmed
+  if (isCampusVisitChangedToYes) {
     updateData.finalConversion = FinalConversionType.UNCONFIRMED;
   }
+
+  // If the campus visit is no, then the final conversion can not be changed.
+  if (updateData.footFall === false) {
+    if (updateData.finalConversion !== FinalConversionType.NO_FOOTFALL) {
+      throw createHttpError(400, 'Final conversion can not be changed if campus visit is no.');
+    }
+  } else if (updateData.finalConversion === FinalConversionType.NO_FOOTFALL) {
+    // if footfall is yes, then final conversion can not be no footfall.
+    throw createHttpError(400, 'Final conversion can not be no footfall if campus visit is yes.');
+  }
+
 
   const updatedYellowLead = await LeadMaster.findByIdAndUpdate(updateData._id, updateData, {
     new: true,
@@ -99,18 +110,7 @@ export const getYellowLeadsAnalytics = expressAsyncHandler(async (req: Request, 
           $sum: { $cond: [{ $eq: ['$footFall', true] }, 1, 0] }
         },
         activeYellowLeadsCount: {
-          $sum: {
-            $cond: [
-              {
-                $and: [
-                  { $ne: ['$finalConversion', FinalConversionType.DEAD] },
-                  { $ne: ['$finalConversion', FinalConversionType.CONVERTED] }
-                ]
-              },
-              1,
-              0
-            ]
-          }
+          $sum: { $cond: [{ $eq: ['$footFall', false] }, 1, 0] }
         },
         deadLeadCount: {
           $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.DEAD] }, 1, 0] }
