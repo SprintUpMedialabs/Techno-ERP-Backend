@@ -23,6 +23,7 @@ export interface IAllLeadFilter {
   finalConversionType: FinalConversionType[];
   startLTCDate?: string;
   endLTCDate?: string;
+  source: string[];
 }
 
 export interface IAdminAnalyticsFilter {
