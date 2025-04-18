@@ -22,6 +22,7 @@ export const parseFilter = (req: AuthenticatedRequest) => {
     sortBy = [],
     orderBy = [],
     search = '',
+    source = []
   } = req.body;
 
   const filters: IAllLeadFilter = {
@@ -34,6 +35,7 @@ export const parseFilter = (req: AuthenticatedRequest) => {
     assignedTo,
     startLTCDate,
     endLTCDate,
+    source
   };
 
   const query: any = {};
@@ -52,6 +54,10 @@ export const parseFilter = (req: AuthenticatedRequest) => {
 
   if (filters.city.length > 0) {
     query.city = { $in: filters.city };
+  }
+
+  if (filters.source.length > 0) {
+    query.source = { $in: filters.source };
   }
 
   filters.assignedTo = filters.assignedTo.map(id => new mongoose.Types.ObjectId(id));
