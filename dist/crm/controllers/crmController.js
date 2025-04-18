@@ -24,6 +24,7 @@ const formatResponse_1 = require("../../utils/formatResponse");
 const lead_1 = require("../models/lead");
 const axiosInstance_1 = __importDefault(require("../../api/axiosInstance"));
 const endPoints_1 = require("../../api/endPoints");
+const safeAxios_1 = require("../../api/safeAxios");
 exports.uploadData = (0, express_async_handler_1.default)((_, res) => __awaiter(void 0, void 0, void 0, function* () {
     const latestData = yield (0, googleSheetOperations_1.readFromGoogleSheet)();
     if (!latestData) {
@@ -111,7 +112,7 @@ exports.updateData = (0, express_async_handler_1.default)((req, res) => __awaite
             new: true,
             runValidators: true
         });
-        axiosInstance_1.default.post(`${endPoints_1.Endpoints.AuditLogService.MARKETING.SAVE_LEAD}`, {
+        (0, safeAxios_1.safeAxiosPost)(axiosInstance_1.default, `${endPoints_1.Endpoints.AuditLogService.MARKETING.SAVE_LEAD}`, {
             documentId: updatedData === null || updatedData === void 0 ? void 0 : updatedData._id,
             action: constants_1.RequestAction.POST,
             payload: updatedData,

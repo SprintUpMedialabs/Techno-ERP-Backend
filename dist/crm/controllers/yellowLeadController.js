@@ -22,8 +22,9 @@ const lead_1 = require("../models/lead");
 const leads_1 = require("../validators/leads");
 const axiosInstance_1 = __importDefault(require("../../api/axiosInstance"));
 const endPoints_1 = require("../../api/endPoints");
+const safeAxios_1 = require("../../api/safeAxios");
 exports.updateYellowLead = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _a, _b;
     const updateData = req.body;
     const validation = leads_1.yellowLeadUpdateSchema.safeParse(updateData);
     if (!validation.success) {
@@ -34,12 +35,17 @@ exports.updateYellowLead = (0, express_async_handler_1.default)((req, res) => __
         throw (0, http_errors_1.default)(404, 'Yellow lead not found.');
     }
     const isCampusVisitChangedToYes = updateData.footFall === true && existingLead.footFall !== true;
+    const isCampusVisitChangedToNo = updateData.footFall === false && existingLead.footFall !== false;
     // If the campus visit is changed to yes, then the final conversion is set to unconfirmed
     if (isCampusVisitChangedToYes) {
         updateData.finalConversion = constants_1.FinalConversionType.UNCONFIRMED;
     }
+    // If the campus visit is changed to no, then the final conversion can not be changed.
+    if (isCampusVisitChangedToNo) {
+        updateData.finalConversion = constants_1.FinalConversionType.NO_FOOTFALL;
+    }
     // If the campus visit is no, then the final conversion can not be changed.
-    if (updateData.footFall === false) {
+    if (((_a = updateData.footFall) !== null && _a !== void 0 ? _a : existingLead.footFall) === false) {
         if (updateData.finalConversion !== constants_1.FinalConversionType.NO_FOOTFALL) {
             throw (0, http_errors_1.default)(400, 'Final conversion can not be changed if campus visit is no.');
         }
@@ -55,11 +61,11 @@ exports.updateYellowLead = (0, express_async_handler_1.default)((req, res) => __
     if (!updatedYellowLead) {
         throw (0, http_errors_1.default)(404, 'Yellow lead not found.');
     }
-    axiosInstance_1.default.post(`${endPoints_1.Endpoints.AuditLogService.MARKETING.SAVE_LEAD}`, {
+    (0, safeAxios_1.safeAxiosPost)(axiosInstance_1.default, `${endPoints_1.Endpoints.AuditLogService.MARKETING.SAVE_LEAD}`, {
         documentId: updatedYellowLead === null || updatedYellowLead === void 0 ? void 0 : updatedYellowLead._id,
         action: constants_1.RequestAction.POST,
         payload: updatedYellowLead,
-        performedBy: (_a = req.data) === null || _a === void 0 ? void 0 : _a.id,
+        performedBy: (_b = req.data) === null || _b === void 0 ? void 0 : _b.id,
         restEndpoint: '/api/update-yellow-lead',
     });
     return (0, formatResponse_1.formatResponse)(res, 200, 'Yellow lead updated successfully', true, updatedYellowLead);
