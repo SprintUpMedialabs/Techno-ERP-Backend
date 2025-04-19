@@ -163,3 +163,26 @@ export const getCourseInformation = async (search: string, academicYear: string,
         }
     }
 }
+
+
+export const fetchAllUniqueCourses = expressAsyncHandler(async (req : AuthenticatedRequest, res : Response) => {
+
+    const pipeline = [
+        {
+          $group: {
+            _id: { courseCode: "$courseCode", courseName: "$courseName" }
+          }
+        },
+        {
+          $project: {
+            _id: 0,
+            courseCode: "$_id.courseCode",
+            courseName: "$_id.courseName"
+          }
+        }
+      ];
+
+      const courses = await Course.aggregate(pipeline);
+
+      return formatResponse(res, 200, 'Unique Courses fetched successfully', true, courses);
+})
