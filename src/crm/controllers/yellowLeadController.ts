@@ -9,6 +9,7 @@ import { LeadMaster } from '../models/lead';
 import { IYellowLeadUpdate, yellowLeadUpdateSchema } from '../validators/leads';
 import axiosInstance from '../../api/axiosInstance';
 import { Endpoints } from '../../api/endPoints';
+import { safeAxiosPost } from '../../api/safeAxios';
 
 export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const updateData: IYellowLeadUpdate = req.body;
@@ -24,11 +25,28 @@ export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedReq
   }
 
   const isCampusVisitChangedToYes = updateData.footFall === true && existingLead.footFall !== true;
-  const wasFinalConversionNoFootfall = existingLead.finalConversion === FinalConversionType.NO_FOOTFALL;
+  const isCampusVisitChangedToNo = updateData.footFall === false && existingLead.footFall !== false;
 
-  if (isCampusVisitChangedToYes && wasFinalConversionNoFootfall) {
+  // If the campus visit is changed to yes, then the final conversion is set to unconfirmed
+  if (isCampusVisitChangedToYes) {
     updateData.finalConversion = FinalConversionType.UNCONFIRMED;
   }
+
+  // If the campus visit is changed to no, then the final conversion can not be changed.
+  if (isCampusVisitChangedToNo) {
+    updateData.finalConversion = FinalConversionType.NO_FOOTFALL;
+  }
+
+  // If the campus visit is no, then the final conversion can not be changed.
+  if ((updateData.footFall ?? existingLead.footFall) === false) {
+    if (updateData.finalConversion !== FinalConversionType.NO_FOOTFALL) {
+      throw createHttpError(400, 'Final conversion can not be changed if campus visit is no.');
+    }
+  } else if (updateData.finalConversion === FinalConversionType.NO_FOOTFALL) {
+    // if footfall is yes, then final conversion can not be no footfall.
+    throw createHttpError(400, 'Final conversion can not be no footfall if campus visit is yes.');
+  }
+
 
   const updatedYellowLead = await LeadMaster.findByIdAndUpdate(updateData._id, updateData, {
     new: true,
@@ -39,7 +57,7 @@ export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedReq
     throw createHttpError(404, 'Yellow lead not found.');
   }
 
-  axiosInstance.post(`${Endpoints.AuditLogService.MARKETING.SAVE_LEAD}`, {
+  safeAxiosPost(axiosInstance, `${Endpoints.AuditLogService.MARKETING.SAVE_LEAD}`, {
     documentId: updatedYellowLead?._id,
     action: RequestAction.POST,
     payload: updatedYellowLead,
@@ -99,18 +117,7 @@ export const getYellowLeadsAnalytics = expressAsyncHandler(async (req: Request, 
           $sum: { $cond: [{ $eq: ['$footFall', true] }, 1, 0] }
         },
         activeYellowLeadsCount: {
-          $sum: {
-            $cond: [
-              {
-                $and: [
-                  { $ne: ['$finalConversion', FinalConversionType.DEAD] },
-                  { $ne: ['$finalConversion', FinalConversionType.CONVERTED] }
-                ]
-              },
-              1,
-              0
-            ]
-          }
+          $sum: { $cond: [{ $eq: ['$footFall', false] }, 1, 0] }
         },
         deadLeadCount: {
           $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.DEAD] }, 1, 0] }
