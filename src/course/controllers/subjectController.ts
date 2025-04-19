@@ -215,7 +215,8 @@ export const deleteSubject = expressAsyncHandler(async (req: AuthenticatedReques
 });
 
 export const fetchSubjectInformationUsingFilters = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  const { courseCode, semesterNumber, academicYear = getCurrentAcademicYear(), search, page = 1, limit = 10 } = req.body;
+  let { courseCode, semester, academicYear = getCurrentAcademicYear(), search, page = 1, limit = 10 } = req.body;
+  semester = parseInt(semester);
 
   const skip = (page - 1) * limit;
 
@@ -224,14 +225,14 @@ export const fetchSubjectInformationUsingFilters = expressAsyncHandler(async (re
 
     {
       $addFields: {
-        semesterDetails: academicYear || semesterNumber ? {
+        semesterDetails: academicYear || semester ? {
           $filter: {
             input: "$semester",
             as: "sem",
             cond: {
               $and: [
                 ...(academicYear ? [{ $eq: ["$$sem.academicYear", academicYear] }] : []),
-                ...(semesterNumber ? [{ $eq: ["$$sem.semesterNumber", semesterNumber] }] : [])
+                ...(semester ? [{ $eq: ["$$sem.semesterNumber", semester] }] : [])
               ]
             }
           }

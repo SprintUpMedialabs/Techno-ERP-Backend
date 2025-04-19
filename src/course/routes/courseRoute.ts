@@ -1,7 +1,7 @@
 import { UserRoles } from "../../config/constants";
 import { authenticate, authorize } from "../../middleware/jwtAuthenticationMiddleware";
 import express from 'express';
-import { createCourse, searchCourses, updateCourse } from "../controllers/courseController";
+import { createCourse, fetchAllUniqueCourses, searchCourses, updateCourse } from "../controllers/courseController";
 import { subjectRoute } from "./subjectRoute";
 
 export const courseRoute = express.Router()
@@ -24,5 +24,10 @@ courseRoute.post('/course-details',
     searchCourses
 );
 
+courseRoute.get('/unique-courses',
+    authenticate,
+    authorize([UserRoles.BASIC_USER]),
+    fetchAllUniqueCourses
+)
 
 courseRoute.use('/subject', subjectRoute);
