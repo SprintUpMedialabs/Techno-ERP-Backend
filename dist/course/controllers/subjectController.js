@@ -175,20 +175,21 @@ exports.deleteSubject = (0, express_async_handler_1.default)((req, res) => __awa
     }
 }));
 exports.fetchSubjectInformationUsingFilters = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { courseCode, semesterNumber, academicYear = (0, getCurrentAcademicYear_1.getCurrentAcademicYear)(), search, page = 1, limit = 10 } = req.body;
+    let { courseCode, semester, academicYear = (0, getCurrentAcademicYear_1.getCurrentAcademicYear)(), search, page = 1, limit = 10 } = req.body;
+    semester = parseInt(semester);
     const skip = (page - 1) * limit;
     const pipeline = [
         ...(courseCode ? [{ $match: { courseCode } }] : []),
         {
             $addFields: {
-                semesterDetails: academicYear || semesterNumber ? {
+                semesterDetails: academicYear || semester ? {
                     $filter: {
                         input: "$semester",
                         as: "sem",
                         cond: {
                             $and: [
                                 ...(academicYear ? [{ $eq: ["$$sem.academicYear", academicYear] }] : []),
-                                ...(semesterNumber ? [{ $eq: ["$$sem.semesterNumber", semesterNumber] }] : [])
+                                ...(semester ? [{ $eq: ["$$sem.semesterNumber", semester] }] : [])
                             ]
                         }
                     }

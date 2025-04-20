@@ -18,7 +18,7 @@ export const studentSchema = z.object({
   photoNo : z.number().min(100, 'Invalid Photo Number'),
   admissionMode: z.nativeEnum(AdmissionMode).default(AdmissionMode.OFFLINE),
   studentName: z.string({ required_error: "Student Name is required", }).nonempty('Student Name is required'),
-  semester : z.string().optional(),
+  semester : z.number().min(1, 'Invalid Semester').max(12, 'Invalid Semester').optional(),
   dateOfBirth: z.date().optional(),
   dateOfEnquiry: z.date().optional(),
   
@@ -56,7 +56,8 @@ export const studentSchema = z.object({
   aadharNumber: z.string().regex(/^\d{12}$/, 'Aadhar Number must be exactly 12 digits').optional(),
   religion: z.nativeEnum(Religion).optional(),
   bloodGroup: z.nativeEnum(BloodGroup).optional(),
-  preRegNumber : z.string().optional()            //This will be added here
+  preRegNumber : z.string().optional(),            //This will be added here
+  academicYear : z.number().optional()
 });
 
 

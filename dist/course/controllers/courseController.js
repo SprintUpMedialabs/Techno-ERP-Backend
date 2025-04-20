@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getCourseInformation = exports.searchCourses = exports.updateCourse = exports.createCourse = void 0;
+exports.fetchAllUniqueCourses = exports.getCourseInformation = exports.searchCourses = exports.updateCourse = exports.createCourse = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const courseSchema_1 = require("../validators/courseSchema");
 const http_errors_1 = __importDefault(require("http-errors"));
@@ -145,3 +145,21 @@ const getCourseInformation = (search_1, academicYear_1, ...args_1) => __awaiter(
     };
 });
 exports.getCourseInformation = getCourseInformation;
+exports.fetchAllUniqueCourses = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const pipeline = [
+        {
+            $group: {
+                _id: { courseCode: "$courseCode", courseName: "$courseName" }
+            }
+        },
+        {
+            $project: {
+                _id: 0,
+                courseCode: "$_id.courseCode",
+                courseName: "$_id.courseName"
+            }
+        }
+    ];
+    const courses = yield course_1.Course.aggregate(pipeline);
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Unique Courses fetched successfully', true, courses);
+}));
