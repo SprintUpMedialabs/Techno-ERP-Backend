@@ -60,7 +60,6 @@ export const getStudentData = expressAsyncHandler(
         fatherPhoneNumber: 1,
         course: 1,
         semester: 1,
-        dateOfAdmission: 1,
         academicYear: 1
       });
 

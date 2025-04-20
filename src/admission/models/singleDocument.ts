@@ -16,7 +16,7 @@ export const singleDocumentSchema = new Schema({
       type: Date,
       required : false,
       set: (value: string) => {
-        return convertToMongoDate(value);
+        return typeof value === 'string' ? convertToMongoDate(value) : value;
       }
     },
 });

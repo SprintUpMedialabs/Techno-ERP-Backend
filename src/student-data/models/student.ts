@@ -242,7 +242,7 @@ studentSchema.post('findOneAndUpdate', function (error: any, doc: any, next: Fun
 });
 
 const transformDates = (_: any, ret: any) => {
-  ['dateOfEnquiry', 'dateOfAdmission', 'dateOfBirth', 'dueBy'].forEach((key) => {
+  ['dateOfEnquiry', 'dateOfAdmission', 'dateOfBirth'].forEach((key) => {
     if (ret[key]) {
       ret[key] = convertToDDMMYYYY(ret[key]);
     }

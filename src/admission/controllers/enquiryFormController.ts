@@ -175,7 +175,7 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
     if (!studentValidation.success)
       throw createHttpError(400, studentValidation.error.errors[0]);
 
-
+    console.log(studentValidation.data);
     const student = await Student.create([{
       _id: enquiry._id,
       ...studentValidation.data,
