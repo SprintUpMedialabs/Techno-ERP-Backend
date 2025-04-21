@@ -3,6 +3,7 @@ import { ISubjectSchema } from "../validators/subjectSchema";
 import { COLLECTION_NAMES } from "../../config/constants";
 import { scheduleModelSchema } from "./schedule";
 import createHttpError from "http-errors";
+import { convertToDDMMYYYY } from "../../utils/convertDateToFormatedDate";
 
 export interface ISubjectDocument extends ISubjectSchema, Document { 
     isDeleted : boolean
@@ -55,6 +56,11 @@ subjectModelSchema.post('findOneAndUpdate', function (error: any, doc: any, next
 });
 
 const transformDates = (_: any, ret: any) => {
+    ['actualDate', 'plannedDate'].forEach((key) => {
+        if (ret[key]) {
+          ret[key] = convertToDDMMYYYY(ret[key]);
+        }
+    });
     delete ret.createdAt;
     delete ret.updatedAt;
     delete ret.__v;

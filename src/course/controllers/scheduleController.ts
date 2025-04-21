@@ -198,7 +198,7 @@ export const deletePlan = expressAsyncHandler(async (req: AuthenticatedRequest, 
 
 export const getScheduleInformation = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   let { courseId, semesterId, subjectId, instructorId, search, page = 1, limit = 10 } = req.body;
-  let payload = await fetchScheduleInformation(courseId, semesterId, subjectId, instructorId);
+  let payload = await fetchScheduleInformation(courseId, semesterId, subjectId, instructorId, search);
   return formatResponse(res, 200, 'Plans fetched successfully', true, payload);
 })
 

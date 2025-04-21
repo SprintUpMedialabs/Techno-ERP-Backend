@@ -2,6 +2,7 @@ import { Schema } from "mongoose";
 import { ISemesterSchema } from "../validators/semesterSchema";
 import { subjectModelSchema } from "./subject";
 import createHttpError from "http-errors";
+import { convertToDDMMYYYY } from "../../utils/convertDateToFormatedDate";
 
 export interface ISemesterDocument extends ISemesterSchema, Document {};
 
@@ -39,6 +40,11 @@ semesterModelSchema.post('findOneAndUpdate', function (error: any, doc: any, nex
 });
 
 const transformDates = (_: any, ret: any) => {
+  ['actualDate', 'plannedDate'].forEach((key) => {
+    if (ret[key]) {
+      ret[key] = convertToDDMMYYYY(ret[key]);
+    }
+  });
   delete ret.createdAt;
   delete ret.updatedAt;
   delete ret.__v;

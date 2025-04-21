@@ -3,6 +3,7 @@ import { ICourseSchema } from "../validators/courseSchema";
 import { semesterModelSchema } from "./semester";
 import { COLLECTION_NAMES } from "../../config/constants";
 import createHttpError from "http-errors";
+import { convertToDDMMYYYY } from "../../utils/convertDateToFormatedDate";
 
 export interface ICourseDocument extends ICourseSchema, Document {};
 
@@ -52,6 +53,11 @@ courseModelSchema.post('findOneAndUpdate', function (error: any, doc: any, next:
 });
 
 const transformDates = (_: any, ret: any) => {
+    ['actualDate', 'plannedDate'].forEach((key) => {
+        if (ret[key]) {
+          ret[key] = convertToDDMMYYYY(ret[key]);
+        }
+    });
     delete ret.createdAt;
     delete ret.updatedAt;
     delete ret.__v;

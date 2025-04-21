@@ -1,12 +1,14 @@
 import mongoose from "mongoose";
 import { Course } from "../models/course";
+import { convertToDDMMYYYY } from "../../utils/convertDateToFormatedDate";
+import { transformDates } from "../utils/transformDates";
 
-export const fetchScheduleInformation = async (crsId: string, semId: string, subId: string, insId: string) => {
+export const fetchScheduleInformation = async (crsId: string, semId: string, subId: string, insId: string, search? : string) => {
     let courseId = new mongoose.Types.ObjectId(crsId);
     let semesterId = new mongoose.Types.ObjectId(semId);
     let subjectId = new mongoose.Types.ObjectId(subId);
     let instructorId = new mongoose.Types.ObjectId(insId);
-
+    console.log(search);
     console.log(courseId, semesterId, subjectId, instructorId);
     const pipeline = [
         {
@@ -74,26 +76,33 @@ export const fetchScheduleInformation = async (crsId: string, semId: string, sub
         },
         {
             $addFields: {
-                matchingLecturePlans: {
-                    $filter: {
-                        input: "$semesterDetails.subjects.schedule.lecturePlan",
-                        as: "lp",
-                        cond: {
-                            $eq: ["$$lp.instructor", instructorId],
-                        },
-                    },
+              matchingLecturePlans: {
+                $filter: {
+                  input: "$semesterDetails.subjects.schedule.lecturePlan",
+                  as: "lp",
+                  cond: {
+                    $and: [
+                      { $eq: ["$$lp.instructor", instructorId] },
+                      ...(search ? [{ $regexMatch: { input: "$$lp.topicName", regex: search, options: "i" } }] : [])
+                    ]
+                  },
                 },
-                matchingPracticalPlans: {
-                    $filter: {
-                        input: "$semesterDetails.subjects.schedule.practicalPlan",
-                        as: "pp",
-                        cond: {
-                            $eq: ["$$pp.instructor", instructorId],
-                        },
-                    },
+              },
+              matchingPracticalPlans: {
+                $filter: {
+                  input: "$semesterDetails.subjects.schedule.practicalPlan",
+                  as: "pp",
+                  cond: {
+                    $and: [
+                      { $eq: ["$$pp.instructor", instructorId] },
+                      ...(search ? [{ $regexMatch: { input: "$$pp.topicName", regex: search, options: "i" } }] : [])
+                    ]
+                  },
                 },
+              },
             },
-        },
+          },
+          
         {
             $lookup: {
                 from: "users",
@@ -113,7 +122,7 @@ export const fetchScheduleInformation = async (crsId: string, semId: string, sub
         {
             $unwind: {
                 path: "$instructorDetails",
-                preserveNullAndEmptyArrays: true // safe if no match
+                preserveNullAndEmptyArrays: true 
             }
         },
         {
@@ -142,7 +151,7 @@ export const fetchScheduleInformation = async (crsId: string, semId: string, sub
                 courseYear: "$courseYear",
 
                 semesterNumber: "$semesterDetails.semesterNumber",
-
+                academicYear : "$semesterDetails.academicYear",
                 subjectName: "$semesterDetails.subjects.subjectName",
                 subjectCode: "$semesterDetails.subjects.subjectCode",
                 instructorName: "$instructorDetails.firstName",
@@ -161,8 +170,9 @@ export const fetchScheduleInformation = async (crsId: string, semId: string, sub
     ];
 
     let subjectDetails = await Course.aggregate(pipeline);
-
+    // console.log(typeof subjectDetails);
     let payload = subjectDetails[0];
-
+    payload = transformDates(payload);
     return payload;
 }
+
