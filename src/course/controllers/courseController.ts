@@ -6,8 +6,8 @@ import createHttpError from "http-errors";
 import { getAcaYrFromStartYrSemNum } from "../utils/getAcaYrFromStartYrSemNum";
 import { Course } from "../models/course";
 import { formatResponse } from "../../utils/formatResponse";
-import { getCurrentAcademicYear } from "../utils/getCurrentAcademicYear";
 import mongoose from "mongoose";
+import { fetchCourseIdFromSYCC } from "../helpers/fetchCourseId";
 
 export const createCourse = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const courseData: ICourseSchema = req.body;
@@ -165,24 +165,56 @@ export const getCourseInformation = async (search: string, academicYear: string,
 }
 
 
-export const fetchAllUniqueCourses = expressAsyncHandler(async (req : AuthenticatedRequest, res : Response) => {
+export const fetchAllUniqueCourses = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const currentYear = new Date().getFullYear();
 
     const pipeline = [
         {
-          $group: {
-            _id: { courseCode: "$courseCode", courseName: "$courseName" }
-          }
+            $addFields: {
+                courseEndYear: {
+                    $add: [
+                        "$startingYear",
+                        { $divide: ["$totalSemesters", 2] }
+                    ]
+                }
+            }
         },
         {
-          $project: {
-            _id: 0,
-            courseCode: "$_id.courseCode",
-            courseName: "$_id.courseName"
-          }
+            $match: {
+                courseEndYear: { $gt: currentYear }
+            }
+        },
+        {
+            $group: {
+                _id: {
+                    courseCode: "$courseCode",
+                    courseName: "$courseName"
+                }
+            }
+        },
+        {
+            $project: {
+                _id: 0,
+                courseCode: "$_id.courseCode",
+                courseName: "$_id.courseName"
+            }
         }
-      ];
+    ];
 
-      const courses = await Course.aggregate(pipeline);
+    const courses = await Course.aggregate(pipeline);
 
-      return formatResponse(res, 200, 'Unique Courses fetched successfully', true, courses);
-})
+    return formatResponse(res, 200, 'Unique Courses fetched successfully', true, courses);
+});
+
+
+export const fetchCourseId = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const { courseCode, startingYear } = req.body;
+    
+    const course = await fetchCourseIdFromSYCC(courseCode, startingYear);
+  
+    if (!course) {
+      return formatResponse(res, 404, 'Course not found', false);
+    }
+  
+    return formatResponse(res, 200, 'Course ID fetched successfully', true, course);
+});
