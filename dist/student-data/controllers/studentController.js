@@ -28,7 +28,7 @@ const studentFees_1 = require("../../admission/validators/studentFees");
 const courseAndOtherFees_controller_1 = require("../../fees/courseAndOtherFees.controller");
 const studentFees_2 = require("../../admission/models/studentFees");
 exports.getStudentData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    let { search, semester, course } = req.body;
+    let { search, semester, course, academicYear } = req.body;
     const studentFilter = {};
     if (semester) {
         studentFilter.semester = semester;
@@ -36,14 +36,17 @@ exports.getStudentData = (0, express_async_handler_1.default)((req, res) => __aw
     if (course) {
         studentFilter.course = course;
     }
+    if (academicYear) {
+        studentFilter.academicYear = academicYear;
+    }
     const validation = studentFilterSchema_1.studentFilterSchema.safeParse(studentFilter);
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }
     const baseFilter = {
         $or: [
-            { studentName: { $regex: search || "", $options: 'i' } },
-            { universityId: { $regex: search || "", $options: 'i' } }
+            { studentName: { $regex: search !== null && search !== void 0 ? search : "", $options: 'i' } },
+            { universityId: { $regex: search !== null && search !== void 0 ? search : "", $options: 'i' } }
         ],
     };
     const filter = Object.assign(Object.assign({}, baseFilter), studentFilter);
@@ -55,7 +58,9 @@ exports.getStudentData = (0, express_async_handler_1.default)((req, res) => __aw
         fatherName: 1,
         fatherPhoneNumber: 1,
         course: 1,
-        semester: 1
+        semester: 1,
+        dateOfAdmission: 1,
+        academicYear: 1
     });
     if (students.length > 0) {
         return (0, formatResponse_1.formatResponse)(res, 200, 'Students corresponding to your search', true, students);

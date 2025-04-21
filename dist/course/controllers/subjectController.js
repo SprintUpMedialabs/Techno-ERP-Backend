@@ -22,8 +22,8 @@ const http_errors_1 = __importDefault(require("http-errors"));
 const s3Delete_1 = require("../config/s3Delete");
 const getCurrentAcademicYear_1 = require("../utils/getCurrentAcademicYear");
 exports.getSubjectInformation = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    let { courseId, semesterId, search, page = 1, limit = 10 } = req.body;
-    const responsePayload = yield (0, exports.fetchSubjectInformation)(courseId, semesterId, search, page, limit);
+    let { courseId, semesterId, search } = req.body;
+    const responsePayload = yield (0, exports.fetchSubjectInformation)(courseId, semesterId, search);
     return (0, formatResponse_1.formatResponse)(res, 200, 'Subject Details fetched for course and semester', true, responsePayload);
 }));
 exports.createSubject = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -49,7 +49,7 @@ exports.createSubject = (0, express_async_handler_1.default)((req, res) => __awa
     if (updateSemesterInformation.modifiedCount === 0) {
         throw (0, http_errors_1.default)(404, 'Error occurred saving the subject information');
     }
-    const responsePayload = yield (0, exports.fetchSubjectInformation)(courseId.toString(), semesterId.toString(), "", 1, 10);
+    const responsePayload = yield (0, exports.fetchSubjectInformation)(courseId.toString(), semesterId.toString(), "");
     return (0, formatResponse_1.formatResponse)(res, 201, 'Successfully added subject information', true, responsePayload);
 }));
 exports.updateSubject = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -80,8 +80,8 @@ exports.updateSubject = (0, express_async_handler_1.default)((req, res) => __awa
     if (!updatedSubject) {
         throw (0, http_errors_1.default)(404, 'Subject not found in course');
     }
-    const responsePayload = yield (0, exports.fetchSubjectInformation)(courseId.toString(), semesterId.toString(), "", 1, 10);
-    return (0, formatResponse_1.formatResponse)(res, 200, 'Subject updated successfully', true, responsePayload);
+    // const responsePayload = await fetchSubjectInformation(courseId.toString(), semesterId.toString(), "", 1, 10);
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Subject updated successfully', true, null);
 }));
 exports.deleteSubject = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const deleteSubjectData = req.body;
@@ -161,8 +161,8 @@ exports.deleteSubject = (0, express_async_handler_1.default)((req, res) => __awa
             yield (0, s3Delete_1.deleteFromS3)(docUrl);
         }
         session.endSession();
-        const responsePayload = yield (0, exports.fetchSubjectInformation)(courseId.toString(), semesterId.toString(), "", 1, 10);
-        return (0, formatResponse_1.formatResponse)(res, 200, 'Subject Deleted Successfully', true, responsePayload);
+        // const responsePayload = await fetchSubjectInformation(courseId.toString(), semesterId.toString(), "", 1, 10);
+        return (0, formatResponse_1.formatResponse)(res, 200, 'Subject Deleted Successfully', true, null);
     }
     catch (error) {
         yield session.abortTransaction();
@@ -214,14 +214,46 @@ exports.fetchSubjectInformationUsingFilters = (0, express_async_handler_1.defaul
                 }
             }
         },
-        { $unwind: "$semesterDetails.subjects" },
         {
-            $match: Object.assign({ "semesterDetails.subjects.isDeleted": { $ne: true } }, (search && {
+            $unwind: {
+                path: "$semesterDetails.subjects",
+                preserveNullAndEmptyArrays: true
+            }
+        },
+        // {
+        //   $match: {
+        //     $or: [
+        //       { "semesterDetails.subjects": { $eq: null } },
+        //       {
+        //         $and: [
+        //           { "semesterDetails.subjects.isDeleted": { $ne: true } },
+        //           ...(search ? [{
+        //             $or: [
+        //               { "semesterDetails.subjects.subjectName": { $regex: search, $options: "i" } },
+        //               { "semesterDetails.subjects.subjectCode": { $regex: search, $options: "i" } }
+        //             ]
+        //           }] : [])
+        //         ]
+        //       }
+        //     ]
+        //   }
+        // },
+        {
+            $match: {
                 $or: [
-                    { "semesterDetails.subjects.subjectName": { $regex: search, $options: "i" } },
-                    { "semesterDetails.subjects.subjectCode": { $regex: search, $options: "i" } }
+                    { "semesterDetails.subjects": { $eq: null } },
+                    {
+                        "semesterDetails.subjects": {
+                            $elemMatch: Object.assign({ isDeleted: { $ne: true } }, (search && {
+                                $or: [
+                                    { subjectName: { $regex: search, $options: "i" } },
+                                    { subjectCode: { $regex: search, $options: "i" } },
+                                ]
+                            }))
+                        }
+                    }
                 ]
-            }))
+            }
         },
         {
             $lookup: {
@@ -255,6 +287,7 @@ exports.fetchSubjectInformationUsingFilters = (0, express_async_handler_1.defaul
     return (0, formatResponse_1.formatResponse)(res, 200, 'Subject information fetched successfully with filters', true, subjectInformation);
 }));
 const fetchSubjectInformation = (crsId_1, semId_1, search_1, ...args_1) => __awaiter(void 0, [crsId_1, semId_1, search_1, ...args_1], void 0, function* (crsId, semId, search, page = 1, limit = 10) {
+    console.log("Course ID : ", crsId);
     let courseId = new mongoose_1.default.Types.ObjectId(crsId);
     let semesterId = new mongoose_1.default.Types.ObjectId(semId);
     const skip = (page - 1) * limit;
@@ -263,10 +296,12 @@ const fetchSubjectInformation = (crsId_1, semId_1, search_1, ...args_1) => __awa
         {
             $addFields: {
                 semesterDetails: {
-                    $filter: {
-                        input: "$semester",
-                        as: "sem",
-                        cond: { $eq: ["$$sem._id", semesterId] },
+                    $first: {
+                        $filter: {
+                            input: "$semester",
+                            as: "sem",
+                            cond: { $eq: ["$$sem._id", semesterId] },
+                        },
                     },
                 },
             },
@@ -279,8 +314,7 @@ const fetchSubjectInformation = (crsId_1, semId_1, search_1, ...args_1) => __awa
                 as: "departmentMetaData",
             },
         },
-        { $unwind: "$departmentMetaData" },
-        { $unwind: "$semesterDetails" },
+        { $unwind: { path: "$departmentMetaData", preserveNullAndEmptyArrays: true } },
         {
             $addFields: {
                 courseYear: {
@@ -316,50 +350,81 @@ const fetchSubjectInformation = (crsId_1, semId_1, search_1, ...args_1) => __awa
                 },
             },
         },
+        // 🔍 Filter subjects into filteredSubjects array
         {
-            $match: { "semesterDetails._id": semesterId },
+            $addFields: {
+                filteredSubjects: {
+                    $filter: {
+                        input: "$semesterDetails.subjects",
+                        as: "subject",
+                        cond: {
+                            $and: [
+                                { $ne: ["$$subject.isDeleted", true] },
+                                ...(search
+                                    ? [
+                                        {
+                                            $or: [
+                                                {
+                                                    $regexMatch: {
+                                                        input: "$$subject.subjectName",
+                                                        regex: search,
+                                                        options: "i",
+                                                    },
+                                                },
+                                                {
+                                                    $regexMatch: {
+                                                        input: "$$subject.subjectCode",
+                                                        regex: search,
+                                                        options: "i",
+                                                    },
+                                                },
+                                            ],
+                                        },
+                                    ]
+                                    : []),
+                            ],
+                        },
+                    },
+                },
+            },
         },
-        {
-            $unwind: "$semesterDetails.subjects"
-        },
-        {
-            $match: Object.assign({ "semesterDetails.subjects.isDeleted": { $ne: true } }, (search && {
-                $or: [
-                    { "semesterDetails.subjects.subjectName": { $regex: search, $options: "i" } },
-                    { "semesterDetails.subjects.subjectCode": { $regex: search, $options: "i" } }
-                ]
-            }))
-        },
+        { $unwind: { path: "$filteredSubjects", preserveNullAndEmptyArrays: true } },
         {
             $lookup: {
                 from: "users",
-                localField: "semester.subjects.instructor",
+                localField: "filteredSubjects.instructor",
                 foreignField: "_id",
                 as: "instructorDetails",
             },
         },
-        {
-            $unwind: "$instructorDetails"
-        },
+        { $unwind: { path: "$instructorDetails", preserveNullAndEmptyArrays: true } },
         {
             $addFields: {
                 subjectDetails: {
-                    subjectId: "$semesterDetails.subjects._id",
-                    subjectName: "$semesterDetails.subjects.subjectName",
-                    subjectCode: "$semesterDetails.subjects.subjectCode",
+                    subjectId: "$filteredSubjects._id",
+                    subjectName: "$filteredSubjects.subjectName",
+                    subjectCode: "$filteredSubjects.subjectCode",
                     instructorName: "$instructorDetails.firstName",
                     instructorId: "$instructorDetails._id",
                     numberOfLectures: {
-                        $size: {
-                            $filter: {
-                                input: "$semesterDetails.subjects.schedule.lecturePlan",
-                                as: "lecture",
-                                cond: { $eq: ["$$lecture.instructor", "$instructorDetails._id"] }
-                            }
-                        }
-                    }
+                        $cond: [
+                            { $isArray: "$filteredSubjects.schedule.lecturePlan" },
+                            {
+                                $size: {
+                                    $filter: {
+                                        input: "$filteredSubjects.schedule.lecturePlan",
+                                        as: "lecture",
+                                        cond: {
+                                            $eq: ["$$lecture.instructor", "$instructorDetails._id"],
+                                        },
+                                    },
+                                },
+                            },
+                            0,
+                        ],
+                    },
                 },
-            }
+            },
         },
         {
             $group: {
@@ -391,14 +456,30 @@ const fetchSubjectInformation = (crsId_1, semId_1, search_1, ...args_1) => __awa
                 collegeName: "$_id.collegeName",
                 departmentName: "$_id.departmentName",
                 departmentHOD: "$_id.departmentHOD",
-                subjectDetails: 1
-            }
+                subjectDetails: {
+                    $filter: {
+                        input: "$subjectDetails",
+                        as: "subject",
+                        cond: {
+                            $and: [
+                                { $ne: ["$$subject", null] },
+                                { $ne: ["$$subject.subjectCode", undefined] },
+                                { $ne: ["$$subject.subjectName", undefined] },
+                                { $ne: ["$$subject.subjectCode", ""] },
+                                { $ne: ["$$subject.subjectName", ""] },
+                            ],
+                        },
+                    },
+                },
+            },
         },
     ];
-    let subjectDetails = yield course_1.Course.aggregate(pipeline);
-    let subjectInformation = subjectDetails[0];
-    return {
-        subjectInformation,
-    };
+    let subjectInfo = yield course_1.Course.aggregate(pipeline);
+    console.log("fetching subject details : ");
+    console.log(subjectInfo[0]);
+    subjectInfo[0].subjectDetails = subjectInfo[0].subjectDetails.filter((sub) => sub.subjectCode && sub.subjectName && sub.subjectCode !== "" && sub.subjectName !== "");
+    if (subjectInfo[0].subjectDetails === null)
+        subjectInfo[0].subjectDetails = [];
+    return { "subjectInformation": subjectInfo[0] };
 });
 exports.fetchSubjectInformation = fetchSubjectInformation;

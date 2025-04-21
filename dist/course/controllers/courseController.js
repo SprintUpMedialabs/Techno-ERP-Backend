@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.fetchAllUniqueCourses = exports.getCourseInformation = exports.searchCourses = exports.updateCourse = exports.createCourse = void 0;
+exports.fetchCourseId = exports.fetchAllUniqueCourses = exports.getCourseInformation = exports.searchCourses = exports.updateCourse = exports.createCourse = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const courseSchema_1 = require("../validators/courseSchema");
 const http_errors_1 = __importDefault(require("http-errors"));
@@ -20,6 +20,7 @@ const getAcaYrFromStartYrSemNum_1 = require("../utils/getAcaYrFromStartYrSemNum"
 const course_1 = require("../models/course");
 const formatResponse_1 = require("../../utils/formatResponse");
 const mongoose_1 = __importDefault(require("mongoose"));
+const fetchCourseId_1 = require("../helpers/fetchCourseId");
 exports.createCourse = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const courseData = req.body;
     const validation = courseSchema_1.courseSchema.safeParse(courseData);
@@ -146,10 +147,29 @@ const getCourseInformation = (search_1, academicYear_1, ...args_1) => __awaiter(
 });
 exports.getCourseInformation = getCourseInformation;
 exports.fetchAllUniqueCourses = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const currentYear = new Date().getFullYear();
     const pipeline = [
         {
+            $addFields: {
+                courseEndYear: {
+                    $add: [
+                        "$startingYear",
+                        { $divide: ["$totalSemesters", 2] }
+                    ]
+                }
+            }
+        },
+        {
+            $match: {
+                courseEndYear: { $gt: currentYear }
+            }
+        },
+        {
             $group: {
-                _id: { courseCode: "$courseCode", courseName: "$courseName" }
+                _id: {
+                    courseCode: "$courseCode",
+                    courseName: "$courseName"
+                }
             }
         },
         {
@@ -162,4 +182,12 @@ exports.fetchAllUniqueCourses = (0, express_async_handler_1.default)((req, res) 
     ];
     const courses = yield course_1.Course.aggregate(pipeline);
     return (0, formatResponse_1.formatResponse)(res, 200, 'Unique Courses fetched successfully', true, courses);
+}));
+exports.fetchCourseId = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { courseCode, startingYear } = req.body;
+    const course = yield (0, fetchCourseId_1.fetchCourseIdFromSYCC)(courseCode, startingYear);
+    if (!course) {
+        return (0, formatResponse_1.formatResponse)(res, 404, 'Course not found', false);
+    }
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Course ID fetched successfully', true, course);
 }));

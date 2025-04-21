@@ -41,6 +41,7 @@ const mongoose_1 = __importStar(require("mongoose"));
 const semester_1 = require("./semester");
 const constants_1 = require("../../config/constants");
 const http_errors_1 = __importDefault(require("http-errors"));
+const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
 ;
 const courseModelSchema = new mongoose_1.Schema({
     courseName: { type: String, required: true },
@@ -83,6 +84,11 @@ courseModelSchema.post('findOneAndUpdate', function (error, doc, next) {
     handleMongooseError(error, next);
 });
 const transformDates = (_, ret) => {
+    ['actualDate', 'plannedDate'].forEach((key) => {
+        if (ret[key]) {
+            ret[key] = (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(ret[key]);
+        }
+    });
     delete ret.createdAt;
     delete ret.updatedAt;
     delete ret.__v;

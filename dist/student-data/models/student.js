@@ -162,10 +162,11 @@ const studentSchema = new mongoose_1.Schema({
     },
     course: {
         type: String,
-        enum: {
-            values: Object.values(constants_1.Course),
-            message: 'Invalid Course value'
-        },
+        // TODO: gradully we need to remove this enum from every where as its going to come from dropdown meta data
+        // enum: {
+        //   values: Object.values(Course),
+        //   message: 'Invalid Course value'
+        // },
         required: true
     },
     remarks: {
@@ -230,8 +231,18 @@ const studentSchema = new mongoose_1.Schema({
         enum: Object.values(constants_1.AdmittedThrough)
     },
     semester: {
-        type: String
-    }
+        type: Number,
+        default: 1
+    },
+    academicYear: {
+        type: String,
+        match: /^\d{4}-\d{4}$/,
+        default: () => {
+            const currentDate = new Date();
+            const currentYear = currentDate.getFullYear();
+            return `${currentYear}-${(currentYear + 1).toString()}`;
+        }
+    },
 }, { timestamps: true });
 studentSchema.pre('save', function (next) {
     return __awaiter(this, void 0, void 0, function* () {

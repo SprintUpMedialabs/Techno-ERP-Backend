@@ -2,8 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.studentFilterSchema = void 0;
 const zod_1 = require("zod");
-const constants_1 = require("../../config/constants");
 exports.studentFilterSchema = zod_1.z.object({
-    course: zod_1.z.nativeEnum(constants_1.Course).optional(),
-    semester: zod_1.z.union([zod_1.z.string(), zod_1.z.number()]).optional()
+    course: zod_1.z.string().optional(),
+    semester: zod_1.z.number().min(1, 'Invalid Semester').max(12, 'Invalid Semester').optional(),
+    academicYear: zod_1.z.string().regex(/^\d{4}-\d{4}$/, 'Invalid Academic Year').optional(),
+    search: zod_1.z.string().optional()
 });

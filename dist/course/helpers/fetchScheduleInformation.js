@@ -15,11 +15,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.fetchScheduleInformation = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const course_1 = require("../models/course");
-const fetchScheduleInformation = (crsId, semId, subId, insId) => __awaiter(void 0, void 0, void 0, function* () {
+const transformDates_1 = require("../utils/transformDates");
+const fetchScheduleInformation = (crsId, semId, subId, insId, search) => __awaiter(void 0, void 0, void 0, function* () {
     let courseId = new mongoose_1.default.Types.ObjectId(crsId);
     let semesterId = new mongoose_1.default.Types.ObjectId(semId);
     let subjectId = new mongoose_1.default.Types.ObjectId(subId);
     let instructorId = new mongoose_1.default.Types.ObjectId(insId);
+    console.log(search);
     console.log(courseId, semesterId, subjectId, instructorId);
     const pipeline = [
         {
@@ -92,7 +94,10 @@ const fetchScheduleInformation = (crsId, semId, subId, insId) => __awaiter(void 
                         input: "$semesterDetails.subjects.schedule.lecturePlan",
                         as: "lp",
                         cond: {
-                            $eq: ["$$lp.instructor", instructorId],
+                            $and: [
+                                { $eq: ["$$lp.instructor", instructorId] },
+                                ...(search ? [{ $regexMatch: { input: "$$lp.topicName", regex: search, options: "i" } }] : [])
+                            ]
                         },
                     },
                 },
@@ -101,7 +106,10 @@ const fetchScheduleInformation = (crsId, semId, subId, insId) => __awaiter(void 
                         input: "$semesterDetails.subjects.schedule.practicalPlan",
                         as: "pp",
                         cond: {
-                            $eq: ["$$pp.instructor", instructorId],
+                            $and: [
+                                { $eq: ["$$pp.instructor", instructorId] },
+                                ...(search ? [{ $regexMatch: { input: "$$pp.topicName", regex: search, options: "i" } }] : [])
+                            ]
                         },
                     },
                 },
@@ -126,7 +134,7 @@ const fetchScheduleInformation = (crsId, semId, subId, insId) => __awaiter(void 
         {
             $unwind: {
                 path: "$instructorDetails",
-                preserveNullAndEmptyArrays: true // safe if no match
+                preserveNullAndEmptyArrays: true
             }
         },
         {
@@ -151,6 +159,7 @@ const fetchScheduleInformation = (crsId, semId, subId, insId) => __awaiter(void 
                 courseCode: "$courseCode",
                 courseYear: "$courseYear",
                 semesterNumber: "$semesterDetails.semesterNumber",
+                academicYear: "$semesterDetails.academicYear",
                 subjectName: "$semesterDetails.subjects.subjectName",
                 subjectCode: "$semesterDetails.subjects.subjectCode",
                 instructorName: "$instructorDetails.firstName",
@@ -166,7 +175,9 @@ const fetchScheduleInformation = (crsId, semId, subId, insId) => __awaiter(void 
         },
     ];
     let subjectDetails = yield course_1.Course.aggregate(pipeline);
+    // console.log(typeof subjectDetails);
     let payload = subjectDetails[0];
+    payload = (0, transformDates_1.transformDates)(payload);
     return payload;
 });
 exports.fetchScheduleInformation = fetchScheduleInformation;
