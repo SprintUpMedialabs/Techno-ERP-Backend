@@ -11,4 +11,7 @@ const courseController_1 = require("../controllers/courseController");
 const subjectRoute_1 = require("./subjectRoute");
 exports.courseRoute = express_1.default.Router();
 exports.courseRoute.post('/', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER]), courseController_1.createCourse);
+exports.courseRoute.put('/', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER]), courseController_1.updateCourse);
+exports.courseRoute.post('/course-details', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER]), courseController_1.searchCourses);
+exports.courseRoute.get('/unique-courses', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER]), courseController_1.fetchAllUniqueCourses);
 exports.courseRoute.use('/subject', subjectRoute_1.subjectRoute);

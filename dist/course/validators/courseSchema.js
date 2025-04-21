@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.courseSchema = void 0;
+exports.courseUpdateSchema = exports.courseSchema = void 0;
 const zod_1 = require("zod");
 const semesterSchema_1 = require("./semesterSchema");
 const commonSchema_1 = require("../../validators/commonSchema");
@@ -15,3 +15,6 @@ exports.courseSchema = zod_1.z.object({
     totalSemesters: zod_1.z.number(),
     semester: zod_1.z.array(semesterSchema_1.semesterSchema).optional(),
 });
+exports.courseUpdateSchema = exports.courseSchema.extend({
+    courseId: commonSchema_1.objectIdSchema
+}).omit({ startingYear: true, totalSemesters: true, semester: true });

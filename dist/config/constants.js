@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.LectureConfirmation = exports.COLLECTION_NAMES = exports.MARKETING_SHEET = exports.PHOTO = exports.TGI = exports.ADMISSION = exports.AreaType = exports.Districts = exports.Countries = exports.StatesOfIndia = exports.AdmissionMode = exports.FeeStatus = exports.FeeType = exports.Locations = exports.ModuleNames = exports.ApplicationStatus = exports.DocumentType = exports.AdmittedThrough = exports.BloodGroup = exports.Religion = exports.FormNoPrefixes = exports.EducationLevel = exports.Course = exports.AdmissionReference = exports.Category = exports.Marketing_Source = exports.FinalConversionType = exports.LeadType = exports.Source = exports.Gender = exports.UserRoles = void 0;
+exports.CourseMaterialType = exports.RequestAction = exports.LectureConfirmation = exports.COLLECTION_NAMES = exports.MARKETING_SHEET = exports.PHOTO = exports.TGI = exports.ADMISSION = exports.AreaType = exports.Districts = exports.Countries = exports.StatesOfIndia = exports.AdmissionMode = exports.FeeStatus = exports.FeeType = exports.Locations = exports.ModuleNames = exports.ApplicationStatus = exports.DocumentType = exports.AdmittedThrough = exports.BloodGroup = exports.Religion = exports.FormNoPrefixes = exports.EducationLevel = exports.Course = exports.DropDownType = exports.AdmissionReference = exports.Category = exports.Marketing_Source = exports.FinalConversionType = exports.LeadType = exports.Source = exports.Gender = exports.UserRoles = void 0;
 /**
  * Marketing Module Enums
 */
@@ -73,6 +73,11 @@ var AdmissionReference;
     AdmissionReference["Other"] = "Other";
 })(AdmissionReference || (exports.AdmissionReference = AdmissionReference = {}));
 ;
+var DropDownType;
+(function (DropDownType) {
+    DropDownType["CITY"] = "CITY";
+    DropDownType["MAKRETING_SOURCE"] = "MAKRETING_SOURCE";
+})(DropDownType || (exports.DropDownType = DropDownType = {}));
 var Course;
 (function (Course) {
     Course["BCOM"] = "BCOM";
@@ -283,6 +288,7 @@ var COLLECTION_NAMES;
     COLLECTION_NAMES["STUDENT"] = "Student";
     COLLECTION_NAMES["DEPARTMENT_META_DATA"] = "DepartmentMetaData";
     COLLECTION_NAMES["COURSE"] = "Course";
+    COLLECTION_NAMES["DROP_DOWN_META_DATA"] = "DropDownMetaData";
 })(COLLECTION_NAMES || (exports.COLLECTION_NAMES = COLLECTION_NAMES = {}));
 var LectureConfirmation;
 (function (LectureConfirmation) {
@@ -290,3 +296,16 @@ var LectureConfirmation;
     LectureConfirmation["DELAYED"] = "DELAYED";
     LectureConfirmation["TO_BE_DONE"] = "TO_BE_DONE";
 })(LectureConfirmation || (exports.LectureConfirmation = LectureConfirmation = {}));
+var RequestAction;
+(function (RequestAction) {
+    RequestAction["PUT"] = "PUT";
+    RequestAction["POST"] = "POST";
+    RequestAction["DELETE"] = "DELETE";
+    RequestAction["PATCH"] = "PATCH";
+})(RequestAction || (exports.RequestAction = RequestAction = {}));
+var CourseMaterialType;
+(function (CourseMaterialType) {
+    CourseMaterialType["LPLAN"] = "LPlan";
+    CourseMaterialType["PPLAN"] = "PPlan";
+    CourseMaterialType["GENERAL"] = "General";
+})(CourseMaterialType || (exports.CourseMaterialType = CourseMaterialType = {}));

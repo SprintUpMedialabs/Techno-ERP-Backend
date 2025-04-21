@@ -22,7 +22,6 @@ const checkIfStudentAdmitted_1 = require("./checkIfStudentAdmitted");
 const updateFeeDetails = (applicationStatusList, studentFeesData) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const validation = studentFees_2.feesUpdateSchema.safeParse(studentFeesData);
-    console.log(validation.error);
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }

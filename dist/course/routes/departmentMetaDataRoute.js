@@ -11,3 +11,4 @@ const departmentMetaDataController_1 = require("../controllers/departmentMetaDat
 exports.departmentMetaDataRoute = express_1.default.Router();
 exports.departmentMetaDataRoute.post('/', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER]), departmentMetaDataController_1.createDepartmentMetaData);
 exports.departmentMetaDataRoute.put('/', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER]), departmentMetaDataController_1.updateDepartmentMetaData);
+exports.departmentMetaDataRoute.get('/', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER]), departmentMetaDataController_1.getDepartmentMetaData);

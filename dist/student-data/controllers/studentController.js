@@ -87,7 +87,6 @@ exports.updateStudentById = (0, express_async_handler_1.default)((req, res) => _
     }
     return (0, formatResponse_1.formatResponse)(res, 200, 'Student Updated Successfully', true, updatedStudent);
 }));
-// DTODO: same change => DONE, here and in enquiry documents both
 exports.updateStudentDocuments = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     const { id, type, dueBy } = req.body;
@@ -151,12 +150,10 @@ exports.updateStudentDocuments = (0, express_async_handler_1.default)((req, res)
         return (0, formatResponse_1.formatResponse)(res, 200, 'New document created successfully', true, updatedData);
     }
 }));
-// DTODO: add fee update endpoint => DONE
 exports.updateStudentFee = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const feesDraftUpdateData = req.body;
     const validation = studentFees_1.feesUpdateSchema.safeParse(feesDraftUpdateData);
-    console.log(validation.error);
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }

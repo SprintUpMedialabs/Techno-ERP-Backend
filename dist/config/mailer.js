@@ -15,9 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendEmail = void 0;
 const nodemailer_1 = __importDefault(require("nodemailer"));
 const secrets_1 = require("../secrets");
-const dotenv_1 = __importDefault(require("dotenv"));
 const logger_1 = __importDefault(require("./logger"));
-dotenv_1.default.config();
 let transport = nodemailer_1.default.createTransport({
     host: secrets_1.NODEMAILER_HOST,
     port: Number(secrets_1.NODEMAILER_PORT),
@@ -37,7 +35,7 @@ const sendEmail = (to, subject, text) => __awaiter(void 0, void 0, void 0, funct
     };
     transport.sendMail(mailOptions, function (err, info) {
         if (err) {
-            logger_1.default.error(err);
+            console.log(err);
         }
         else {
             logger_1.default.info('Mail sent successfully');

@@ -20,11 +20,12 @@ const requiredEnvVariables = [
     'GOOGLE_SA_PRIVATE_KEY',
     'MARKETING_SHEET_PAGE_NAME',
     'LEAD_MARKETING_EMAIL',
-    'MARKETING_SHEET_ID'
+    'MARKETING_SHEET_ID',
+    'AUDIT_LOG_SERVICE_URL',
+    'SERVICE_AUTH_TOKEN'
 ];
 const validateEnvVariables = () => {
     const missingVars = requiredEnvVariables.filter((envVar) => !process.env[envVar]);
-    // console.log(missingVars);
     if (missingVars.length > 0) {
         logger_1.default.error(`❌ Missing required environment variables: ${missingVars.join(', ')}`);
         process.exit(1); // Terminate the program

@@ -7,7 +7,7 @@ import { formatResponse } from "../../utils/formatResponse";
 import { Course } from "../models/course";
 import { Response } from "express"
 import { uploadToS3 } from "../config/s3Upload";
-import { fetchScheduleInformation } from "./scheduleController";
+import { fetchScheduleInformation } from "../helpers/fetchScheduleInformation";
 
 const planConfigMap = {
     lecture: {

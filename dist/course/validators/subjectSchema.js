@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createSubjectSchema = exports.subjectSchema = void 0;
+exports.deleteSubjectSchema = exports.updateSubjectSchema = exports.createSubjectSchema = exports.subjectSchema = void 0;
 const zod_1 = require("zod");
 const scheduleSchema_1 = require("./scheduleSchema");
 const commonSchema_1 = require("../../validators/commonSchema");
@@ -14,3 +14,11 @@ exports.createSubjectSchema = exports.subjectSchema.extend({
     courseId: commonSchema_1.objectIdSchema,
     semesterId: commonSchema_1.objectIdSchema
 }).omit({ schedule: true });
+exports.updateSubjectSchema = exports.createSubjectSchema.extend({
+    subjectId: commonSchema_1.objectIdSchema
+});
+exports.deleteSubjectSchema = zod_1.z.object({
+    courseId: commonSchema_1.objectIdSchema,
+    semesterId: commonSchema_1.objectIdSchema,
+    subjectId: commonSchema_1.objectIdSchema
+});

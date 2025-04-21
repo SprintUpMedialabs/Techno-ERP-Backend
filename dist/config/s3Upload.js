@@ -29,7 +29,6 @@ const uploadToS3 = (folderName, yearSubFolderName, fileType, file) => __awaiter(
     if (!Object.values(constants_1.DocumentType).includes(fileType)) {
         throw new Error(`Invalid file type: ${fileType}`);
     }
-    console.log(file.originalname);
     let extension = getFileExtension(file.originalname);
     const fileName = `${fileType}.${extension}`;
     //Here we are considering subfolder for year, so that if we want to utilise same function for more than 1 use case, then same function can be used. Ex : year/admissions/student_id/name_of_file or year/finance/student_id/fee_reciept, etc.
@@ -42,11 +41,9 @@ const uploadToS3 = (folderName, yearSubFolderName, fileType, file) => __awaiter(
     });
     try {
         yield s3Client.send(command);
-        console.log(`File uploaded successfully: ${objectKey}`);
         return `https://${secrets_1.AWS_BUCKET_NAME}.s3.amazonaws.com/${objectKey}`;
     }
     catch (err) {
-        console.error('Error uploading to S3:', err);
         throw err;
     }
 });

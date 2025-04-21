@@ -91,10 +91,6 @@ const leadSchema = new mongoose_1.Schema({
     },
     city: {
         type: String,
-        enum: {
-            values: Object.values(constants_1.Locations),
-            message: 'Invalid City Value'
-        }
     },
     course: {
         type: String,

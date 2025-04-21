@@ -5,10 +5,7 @@ import {
   NODEMAILER_SENDER_ADDRESS,
   NODEMAILER_GMAIL_APP_PASSWORD
 } from '../secrets';
-import dotenv from 'dotenv';
 import logger from './logger';
-
-dotenv.config();
 
 let transport = nodemailer.createTransport({
   host: NODEMAILER_HOST,

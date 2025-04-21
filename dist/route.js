@@ -12,8 +12,9 @@ const routes_1 = require("./admission/routes");
 const courseAndOtherFees_routes_1 = __importDefault(require("./fees/courseAndOtherFees.routes"));
 const courseRoute_1 = require("./course/routes/courseRoute");
 const studentRoute_1 = require("./student-data/routes/studentRoute");
-const departmentRoute_1 = require("./course-backup/routes/departmentRoute");
 const departmentMetaDataRoute_1 = require("./course/routes/departmentMetaDataRoute");
+const dropDownRoute_1 = require("./utilityModules/dropdown/dropDownRoute");
+const testRoute_1 = require("./course/routes/testRoute");
 exports.apiRouter = express_1.default.Router();
 /**
  * Contains the router for Authentication
@@ -36,10 +37,6 @@ exports.apiRouter.use('/admission', routes_1.admissionRoute);
  */
 exports.apiRouter.use('/fees-structure', courseAndOtherFees_routes_1.default);
 /**
- * Contains the router for Department Module
- */
-exports.apiRouter.use('/department', departmentRoute_1.departmentRoute);
-/**
  * Contains the router for Course Module
  */
 exports.apiRouter.use('/course', courseRoute_1.courseRoute);
@@ -51,3 +48,11 @@ exports.apiRouter.use('/department-metadata', departmentMetaDataRoute_1.departme
  * Contains the router for Student Data Module
  */
 exports.apiRouter.use('/student-data', studentRoute_1.studentDataRoute);
+/**
+ * Contains the router for Dropdown related information
+ */
+exports.apiRouter.use('/dropdown', dropDownRoute_1.dropDownRoute);
+/**
+ * Contains the router for Testing Purpose
+ */
+exports.apiRouter.use('/test', testRoute_1.testRoute);

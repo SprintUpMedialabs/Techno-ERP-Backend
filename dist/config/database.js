@@ -19,6 +19,7 @@ const logger_1 = __importDefault(require("./logger"));
 const constants_1 = require("./constants");
 const secrets_1 = require("../secrets");
 const enquiryIdMetaDataSchema_1 = require("../admission/models/enquiryIdMetaDataSchema");
+const dropDownMetaDeta_1 = require("../utilityModules/dropdown/dropDownMetaDeta");
 const connectToDatabase = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield mongoose_1.default.connect(secrets_1.MONGODB_DATABASE_URL, {
@@ -34,9 +35,7 @@ const connectToDatabase = () => __awaiter(void 0, void 0, void 0, function* () {
 const initializeDB = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const existingDoc = yield spreadSheet_1.SpreadSheetMetaData.find({ name: constants_1.MARKETING_SHEET });
-        //console.log(existingDoc);
         if (existingDoc.length == 0) {
-            console.log(existingDoc);
             yield spreadSheet_1.SpreadSheetMetaData.create({
                 name: constants_1.MARKETING_SHEET,
                 lastIdxMarketingSheet: 1
@@ -59,6 +58,18 @@ const initializeDB = () => __awaiter(void 0, void 0, void 0, function* () {
             else {
                 logger_1.default.debug(`${prefix} serial number already exists`);
             }
+        }
+        const existingCityDropDown = yield dropDownMetaDeta_1.DropDownMetaData.findOne({ type: constants_1.DropDownType.CITY });
+        if (!existingCityDropDown) {
+            yield dropDownMetaDeta_1.DropDownMetaData.create({
+                type: constants_1.DropDownType.CITY,
+            });
+        }
+        const existingSourceDropDown = yield dropDownMetaDeta_1.DropDownMetaData.findOne({ type: constants_1.DropDownType.MAKRETING_SOURCE });
+        if (!existingSourceDropDown) {
+            yield dropDownMetaDeta_1.DropDownMetaData.create({
+                type: constants_1.DropDownType.MAKRETING_SOURCE,
+            });
         }
     }
     catch (error) {

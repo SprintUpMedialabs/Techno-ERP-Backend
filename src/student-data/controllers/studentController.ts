@@ -17,7 +17,7 @@ import { StudentFeesModel } from "../../admission/models/studentFees";
 
 export const getStudentData = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
-    let { search, semester, course } = req.body;
+    let { search, semester, course, academicYear } = req.body;
 
     const studentFilter: IStudentFilter = {}
 
@@ -29,6 +29,10 @@ export const getStudentData = expressAsyncHandler(
       studentFilter.course = course;
     }
 
+    if (academicYear) {
+      studentFilter.academicYear = academicYear;
+    }
+
     const validation = studentFilterSchema.safeParse(studentFilter);
 
     if (!validation.success) {
@@ -37,8 +41,8 @@ export const getStudentData = expressAsyncHandler(
 
     const baseFilter: any = {
       $or: [
-        { studentName: { $regex: search || "", $options: 'i' } },
-        { universityId: { $regex: search || "", $options: 'i' } }
+        { studentName: { $regex: search ?? "", $options: 'i' } },
+        { universityId: { $regex: search ?? "", $options: 'i' } }
       ],
     };
 
@@ -55,7 +59,9 @@ export const getStudentData = expressAsyncHandler(
         fatherName: 1,
         fatherPhoneNumber: 1,
         course: 1,
-        semester: 1
+        semester: 1,
+        dateOfAdmission: 1,
+        academicYear: 1
       });
 
     if (students.length > 0) {
@@ -220,7 +226,7 @@ export const updateStudentFee = expressAsyncHandler(async (req: AuthenticatedReq
   const studentFeeInfo = await Student.findOne({
     studentFee: feesDraftUpdateData.id,
   }, {
-    course: 1 
+    course: 1
   }
   ).lean();
 
