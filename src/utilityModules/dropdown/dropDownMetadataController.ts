@@ -23,9 +23,12 @@ export const getDropDownDataByType = expressAsyncHandler(async (req: Request, re
 });
 
 export const updateDropDownByType = async (type: DropDownType, value: string[]) => {
+    // Test: we need to test whether updated values are sorted or not
+    const sortedValues = value.sort((a, b) => a.localeCompare(b));
+
     await DropDownMetaData.findOneAndUpdate(
         { type },
-        { value },
+        { value: sortedValues },
         { new: true, runValidators: true }
     );
 }
