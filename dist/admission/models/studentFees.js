@@ -4,9 +4,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.StudentFeesModel = exports.SingleSemWiseFeesSchema = exports.OtherFeesSchema = void 0;
+const http_errors_1 = __importDefault(require("http-errors"));
 const mongoose_1 = require("mongoose");
 const constants_1 = require("../../config/constants");
-const http_errors_1 = __importDefault(require("http-errors"));
 const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
 //Other fees schema
 exports.OtherFeesSchema = new mongoose_1.Schema({
@@ -32,6 +32,14 @@ exports.SingleSemWiseFeesSchema = new mongoose_1.Schema({
     },
     finalFee: {
         type: Number,
+    },
+    dueDate: {
+        type: Date,
+        default: null
+    },
+    feesPaid: {
+        type: Number,
+        default: 0
     }
 }, { _id: false });
 //Fees draft for entire student
@@ -54,44 +62,6 @@ const StudentFeesSchema = new mongoose_1.Schema({
     feesClearanceDate: {
         type: Date
     },
-    // counsellor: {
-    //     type: [Schema.Types.Mixed], // Allows ObjectId or String
-    //     validate: {
-    //         validator: function (values) {
-    //             if (!Array.isArray(values)) return false; // Ensure it's an array
-    //             return values.every(value => {
-    //                 // Allow null or undefined
-    //                 if (value === null || value === undefined) return true;
-    //                 // Check for valid ObjectId
-    //                 const isObjectId = mongoose.Types.ObjectId.isValid(value);
-    //                 // Allow string 'other'
-    //                 const isOther = value === 'other';
-    //                 return isObjectId || isOther;
-    //             });
-    //         },
-    //         message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
-    //     },
-    //     required: true,
-    // },
-    // telecaller: {
-    //     type: [Schema.Types.Mixed], // Allows ObjectId or String
-    //     validate: {
-    //         validator: function (values) {
-    //             if (!Array.isArray(values)) return false; // Ensure it's an array
-    //             return values.every(value => {
-    //                 // Allow null or undefined
-    //                 if (value === null || value === undefined) return true;
-    //                 // Check for valid ObjectId
-    //                 const isObjectId = mongoose.Types.ObjectId.isValid(value);
-    //                 // Allow string 'other'
-    //                 const isOther = value === 'other';
-    //                 return isObjectId || isOther;
-    //             });
-    //         },
-    //         message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
-    //     },
-    //     required: true,
-    // }
 }, { timestamps: true });
 const handleMongooseError = (error, next) => {
     if (error.name === 'ValidationError') {

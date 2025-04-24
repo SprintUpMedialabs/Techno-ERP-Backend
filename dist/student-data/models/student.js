@@ -158,15 +158,11 @@ const studentSchema = new mongoose_1.Schema({
             values: Object.values(constants_1.AdmissionReference),
             message: 'Invalid Admission Reference value'
         },
-        required: true
+        required: [true, 'Admission Reference is required']
     },
     course: {
         type: String,
-        enum: {
-            values: Object.values(constants_1.Course),
-            message: 'Invalid Course value'
-        },
-        required: true
+        required: [true, 'Course is required']
     },
     remarks: {
         type: String
@@ -217,12 +213,12 @@ const studentSchema = new mongoose_1.Schema({
                         return true;
                     // Check for valid ObjectId
                     const isObjectId = mongoose_1.default.Types.ObjectId.isValid(value);
-                    // Allow string 'other'
-                    const isOther = value === 'other';
+                    // Allow string 'Other'
+                    const isOther = value === 'Other';
                     return isObjectId || isOther;
                 });
             },
-            message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
+            message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'Other')`
         }
     },
     admittedThrough: {
@@ -230,8 +226,18 @@ const studentSchema = new mongoose_1.Schema({
         enum: Object.values(constants_1.AdmittedThrough)
     },
     semester: {
-        type: String
-    }
+        type: Number,
+        default: 1
+    },
+    academicYear: {
+        type: String,
+        match: /^\d{4}-\d{4}$/,
+        default: () => {
+            const currentDate = new Date();
+            const currentYear = currentDate.getFullYear();
+            return `${currentYear}-${(currentYear + 1).toString()}`;
+        }
+    },
 }, { timestamps: true });
 studentSchema.pre('save', function (next) {
     return __awaiter(this, void 0, void 0, function* () {

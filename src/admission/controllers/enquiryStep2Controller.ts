@@ -78,6 +78,7 @@ export const createEnquiryStep2 = expressAsyncHandler(functionLevelLogger(async 
         semWiseFees: feeRelatedData.semWiseFees.map((semFee, index: number) => ({
           finalFee: semFee.finalFee,
           feeAmount: semWiseFee?.fee[index] ?? 0,
+          feesPaid:  0,
         })),
       };
       

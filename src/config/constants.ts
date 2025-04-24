@@ -223,48 +223,13 @@ export enum AdmissionMode {
 
 
 export enum StatesOfIndia {
-  AndhraPradesh = "Andhra Pradesh",
-  ArunachalPradesh = "Arunachal Pradesh",
-  Assam = "Assam",
-  Bihar = "Bihar",
-  Chhattisgarh = "Chhattisgarh",
-  Goa = "Goa",
-  Gujarat = "Gujarat",
-  Haryana = "Haryana",
-  HimachalPradesh = "Himachal Pradesh",
-  Jharkhand = "Jharkhand",
-  Karnataka = "Karnataka",
-  Kerala = "Kerala",
-  MadhyaPradesh = "Madhya Pradesh",
-  Maharashtra = "Maharashtra",
-  Manipur = "Manipur",
-  Meghalaya = "Meghalaya",
-  Mizoram = "Mizoram",
-  Nagaland = "Nagaland",
-  Odisha = "Odisha",
-  Punjab = "Punjab",
-  Rajasthan = "Rajasthan",
-  Sikkim = "Sikkim",
-  TamilNadu = "Tamil Nadu",
-  Telangana = "Telangana",
-  Tripura = "Tripura",
+  OTHER = "Other",
   UttarPradesh = "Uttar Pradesh",
-  Uttarakhand = "Uttarakhand",
-  WestBengal = "West Bengal",
 }
 
 export enum Countries {
   India = "India",
-  Pakistan = "Pakistan",
-  China = "China",
-  Nepal = "Nepal",
-  Bhutan = "Bhutan",
-  Bangladesh = "Bangladesh",
-  Myanmar = "Myanmar",
-  SriLanka = "Sri Lanka",
-  Afghanistan = "Afghanistan",
-  Maldives = "Maldives",
-  Thailand = "Thailand",
+  NON_INDIA = "Non-India"
 }
 
 export enum Districts {
@@ -315,4 +280,17 @@ export enum LectureConfirmation{
   CONFIRMED = 'CONFIRMED',
   DELAYED = 'DELAYED',
   TO_BE_DONE = 'TO_BE_DONE'
+}
+
+export enum RequestAction {
+  PUT = "PUT",
+  POST = "POST",
+  DELETE = "DELETE",
+  PATCH = "PATCH",
+}
+
+export enum CourseMaterialType{
+  LPLAN = 'LPlan',
+  PPLAN = 'PPlan',
+  GENERAL = 'General'
 }

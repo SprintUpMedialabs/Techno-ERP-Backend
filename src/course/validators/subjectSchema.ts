@@ -16,5 +16,17 @@ export const createSubjectSchema = subjectSchema.extend({
 }).omit({ schedule : true });
 
 
+export const updateSubjectSchema = createSubjectSchema.extend({
+    subjectId : objectIdSchema
+})
+
+export const deleteSubjectSchema = z.object({
+    courseId : objectIdSchema,
+    semesterId : objectIdSchema,
+    subjectId : objectIdSchema
+})
+
 export type ISubjectSchema = z.infer<typeof subjectSchema>;
 export type ICreateSubjectSchema = z.infer<typeof createSubjectSchema>;
+export type IUpdateSubjectSchema = z.infer<typeof updateSubjectSchema>;
+export type IDeleteSubjectSchema = z.infer<typeof deleteSubjectSchema>;

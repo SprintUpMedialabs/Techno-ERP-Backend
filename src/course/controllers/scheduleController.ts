@@ -1,166 +1,227 @@
 import expressAsyncHandler from "express-async-handler";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
 import { Response } from "express";
-import mongoose from "mongoose";
+import mongoose, { mongo } from "mongoose";
 import { Course } from "../models/course";
 import { formatResponse } from "../../utils/formatResponse";
-import { createLecturePlanSchema, ICreateLecturePlanSchema } from "../validators/scheduleSchema";
 import createHttpError from "http-errors";
+import { createPlanSchema, deleteFileUsingUrlSchema, deletePlanSchema, ICreatePlanSchema, IDeleteFileSchema, IDeletePlanSchema, IUpdatePlanSchema, updatePlanSchema } from "../validators/scheduleSchema";
+import { CourseMaterialType } from "../../config/constants";
+import { deleteFromS3 } from "../config/s3Delete";
+import { fetchScheduleInformation } from "../helpers/fetchScheduleInformation";
+import { deleteFromS3AndDB } from "../helpers/deleteFromS3AndDB";
 
-export const getScheduleInformation = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  let { courseId, semesterId, subjectId, instructorId, search, page = 1, limit = 10 } = req.body;
+export const planConfigMap = {
+  lecture: {
+    mongoPlanPath: 'lecturePlan',
+    planKey: 'lp',
+    createSuccessMessage: 'Lecture Plan created successfully',
+    updateSuccessMessage: 'Lecture Plan updated successfully',
+    deleteSuccessMessage: 'Lecture Plan deleted successfully'
+  },
+  practical: {
+    mongoPlanPath: 'practicalPlan',
+    planKey: 'pp',
+    createSuccessMessage: 'Practical Plan created successfully',
+    updateSuccessMessage: 'Practical Plan updated successfully',
+    deleteSuccessMessage: 'Practical Plan deleted successfully'
+  },
+} as const;
+
+
+export const createPlan = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const planData: ICreatePlanSchema = req.body;
+
+  const validation = createPlanSchema.safeParse(planData);
+
+  if (!validation.success)
+    throw createHttpError(400, validation.error.errors[0]);
+
+  let { courseId, semesterId, subjectId, instructorId, type, ...planInformation } = planData;
+
+  const config = type === CourseMaterialType.LPLAN ? planConfigMap.lecture : planConfigMap.practical;
 
   courseId = new mongoose.Types.ObjectId(courseId);
   semesterId = new mongoose.Types.ObjectId(semesterId);
   subjectId = new mongoose.Types.ObjectId(subjectId);
   instructorId = new mongoose.Types.ObjectId(instructorId);
 
-  const pipeline = [
+  planInformation.instructor = instructorId;
+
+  console.log(planInformation);
+
+  const createdSchedule = await Course.findByIdAndUpdate(
+    courseId,
     {
-      $match: {
+      $push: {
+        [`semester.$[sem].subjects.$[subj].schedule.${config!.mongoPlanPath}`]: planInformation,
+      }
+    },
+    {
+      new: true,
+      arrayFilters: [
+        { "sem._id": semesterId },
+        { "subj._id": subjectId }
+      ]
+    }
+  );
+  return formatResponse(res, 200, config!.createSuccessMessage, true, null);
+})
+
+
+
+export const batchUpdatePlan = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const planData: IUpdatePlanSchema = req.body;
+  console.log(planData.data)
+  const validation = updatePlanSchema.safeParse(planData);
+  console.log(validation.error)
+
+  console.log(planData.data);
+  if (!validation.success)
+    throw createHttpError(400, validation.error.errors[0]);
+
+  let { courseId, semesterId, subjectId, instructorId, type, data } = planData;
+
+  const config = type === CourseMaterialType.LPLAN ? planConfigMap.lecture : planConfigMap.practical;
+
+
+  courseId = new mongoose.Types.ObjectId(courseId);
+  semesterId = new mongoose.Types.ObjectId(semesterId);
+  subjectId = new mongoose.Types.ObjectId(subjectId);
+  instructorId = new mongoose.Types.ObjectId(instructorId);
+
+  console.log("Data to be updated", data);
+  const updateResult = await Course.updateOne(
+    {
+      _id: courseId,
+      "semester._id": semesterId,
+      "semester.subjects._id": subjectId,
+    },
+    {
+      $set: {
+        [`semester.$[sem].subjects.$[subj].schedule.${config.mongoPlanPath}`]: data,
+      },
+    },
+    {
+      arrayFilters: [
+        { "sem._id": semesterId },
+        { "subj._id": subjectId },
+      ],
+    }
+  );
+
+  console.log(updateResult.modifiedCount);
+  return formatResponse(res, 200, config.updateSuccessMessage, true, null);
+})
+
+
+
+export const deletePlan = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const planData: IDeletePlanSchema = req.body;
+
+  const validation = deletePlanSchema.safeParse(planData);
+  if (!validation.success)
+    throw createHttpError(400, validation.error.errors[0]);
+
+  let { courseId, semesterId, subjectId, instructorId, planId, type } = planData;
+
+  const config = type === CourseMaterialType.LPLAN ? planConfigMap.lecture : planConfigMap.practical;
+
+  courseId = new mongoose.Types.ObjectId(courseId);
+  semesterId = new mongoose.Types.ObjectId(semesterId);
+  subjectId = new mongoose.Types.ObjectId(subjectId);
+  instructorId = new mongoose.Types.ObjectId(instructorId);
+  planId = new mongoose.Types.ObjectId(planId);
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const result = await Course.aggregate([
+      { $match: { _id: courseId } },
+      { $unwind: "$semester" },
+      { $match: { "semester._id": semesterId } },
+      { $unwind: "$semester.subjects" },
+      { $match: { "semester.subjects._id": subjectId } },
+      { $unwind: `$semester.subjects.schedule.${config.mongoPlanPath}` },
+      {
+        $match: {
+          [`semester.subjects.schedule.${config.mongoPlanPath}._id`]: planId
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          plan: `$semester.subjects.schedule.${config.mongoPlanPath}.documents`,
+        },
+      },
+    ]);
+
+    const documents = result[0]?.plan || [];
+
+    await Course.updateOne(
+      {
         _id: courseId,
+        "semester._id": semesterId,
+        "semester.subjects._id": subjectId,
       },
-    },
-    {
-      $addFields: {
-        semesterDetails: {
-          $first: {
-            $filter: {
-              input: "$semester",
-              as: "sem",
-              cond: {
-                $eq: ["$$sem._id", semesterId],
-              },
-            },
-          },
-        },
+      {
+        $pull: {
+          [`semester.$[sem].subjects.$[subj].schedule.${config.mongoPlanPath}`]: { _id: planId }
+        }
       },
-    },
-    {
-      $addFields: {
-        courseYear: {
-          $switch: {
-            branches: [
-              {
-                case: { $in: ["$semesterDetails.semesterNumber", [1, 2]] },
-                then: "First",
-              },
-              {
-                case: { $in: ["$semesterDetails.semesterNumber", [3, 4]] },
-                then: "Second",
-              },
-              {
-                case: { $in: ["$semesterDetails.semesterNumber", [5, 6]] },
-                then: "Third",
-              },
-              {
-                case: { $in: ["$semesterDetails.semesterNumber", [7, 8]] },
-                then: "Fourth",
-              },
-            ],
-            default: "Unknown",
-          },
-        },
-      },
-    },
-    {
-      $unwind: "$semesterDetails.subjects",
-    },
-    {
-      $match: {
-        "semesterDetails.subjects._id": subjectId,
-      },
-    },
-    {
-      $addFields: {
-        matchingLecturePlans: {
-          $filter: {
-            input: "$semesterDetails.subjects.schedule.lecturePlan",
-            as: "lp",
-            cond: {
-              $eq: ["$$lp.instructor", instructorId],
-            },
-          },
-        },
-        matchingPracticalPlans: {
-          $filter: {
-            input: "$semesterDetails.subjects.schedule.practicalPlan",
-            as: "pp",
-            cond: {
-              $eq: ["$$pp.instructor", instructorId],
-            },
-          },
-        },
-      },
-    },
-    {
-      $lookup: {
-        from: "Users",
-        localField: "semesterDetails.subjects.instructor",
-        foreignField: "_id",
-        as: "instructorDetails",
-      },
-    },
-    { $unwind: "$instructorDetails" },
-    {
-      $lookup: {
-        from: "departmentmetadatas",
-        localField: "departmentMetaDataId",
-        foreignField: "_id",
-        as: "departmentMetaData",
-      },
-    },
-    { $unwind: "$departmentMetaData" },
-    {
-      $project: {
-        subjectName: "$semesterDetails.subjects.subjectName",
-        subjectCode: "$semesterDetails.subjects.subjectCode",
-        instructorName: "$instructorDetails.name",
+      {
+        session,
+        arrayFilters: [
+          { "sem._id": semesterId },
+          { "subj._id": subjectId },
+        ]
+      }
+    );
 
-        courseId: "$_id",
-        courseName: "$courseName",
-        courseCode: "$courseCode",
-        courseYear: "$courseYear",
+    await session.commitTransaction();
+    session.endSession();
 
-        semesterId: "$semesterDetails._id",
-        semesterNumber: "$semesterDetails.semesterNumber",
+    for (const docUrl of documents) {
+      await deleteFromS3(docUrl);
+    }
+    return formatResponse(res, 200, config.deleteSuccessMessage, true, null);
+  }
+  catch (error : any) {
+    await session.abortTransaction();
+    session.endSession();
+    throw createHttpError(404, error.message);
+  }
+});
 
-        subjectId: "$semesterDetails.subjects._id",
-        instructorId: "$instructorDetails._id",
-        departmentMetaDataId: "$departmentMetaData._id",
 
-        departmentName: "$departmentMetaData.departmentName",
-        departmentHOD: "$departmentMetaData.departmentHOD",
-        collegeName: "$collegeName",
 
-        schedule: {
-          lecturePlan: "$matchingLecturePlans",
-          practicalPlan: "$matchingPracticalPlans",
-          additionalResources: "$semesterDetails.subjects.schedule.additionalResources",
-        },
-      },
-    },
-  ];
-
-  let subjectDetails = await Course.aggregate(pipeline);
-
-  let payload = subjectDetails[0];
-
+export const getScheduleInformation = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  let { courseId, semesterId, subjectId, instructorId, search, page = 1, limit = 10 } = req.body;
+  let payload = await fetchScheduleInformation(courseId, semesterId, subjectId, instructorId, search);
   return formatResponse(res, 200, 'Plans fetched successfully', true, payload);
 })
 
 
-export const createLecturePlan = expressAsyncHandler((req : AuthenticatedRequest, res : Response) => {
-  const lecturePlanData : ICreateLecturePlanSchema = req.body;
+// DTODO (DONE) : delete from db as well + will need to remove duplicate entries also 
+export const deleteFileUsingUrl = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  
+  //In case of additional resource deletion, planId would be null, it will only be present for lecture plan and practical plan.
+  const deleteFileData : IDeleteFileSchema = req.body;
 
-  const validation = createLecturePlanSchema.safeParse(lecturePlanData);
+  const validation = deleteFileUsingUrlSchema.safeParse(deleteFileData);
 
   if(!validation.success)
     throw createHttpError(400, validation.error.errors[0]);
-
-  let { courseId, semesterId, subjectId, instructorId, ...lecturePlan } = lecturePlanData;
-
-
-  //Ahiya thi baaki che.
-
+  
+  try {
+    await deleteFromS3AndDB(validation.data.courseId.toString(), validation.data.semesterId.toString(), validation.data.subjectId.toString(), validation.data.planId?.toString(), validation.data.type ? validation.data.type : undefined, validation.data.documentUrl);
+  }
+  catch (error: any) {
+    throw createHttpError(404, error.message);
+  }
+  return formatResponse(res, 200, 'Removed successfully from AWS and database', true);
 })
+
+
+

@@ -32,36 +32,6 @@ const StudentFeesDraftSchema = new mongoose_1.Schema({
         type: Date,
         required: false
     },
-    // counsellor: {
-    //   type: [Schema.Types.Mixed],
-    //   validate: {
-    //     validator: function (values) {
-    //       if (!Array.isArray(values)) return false;
-    //       return values.every(value => {
-    //         if (value === null || value === undefined) return true;
-    //         const isObjectId = mongoose.Types.ObjectId.isValid(value);
-    //         const isOther = value === 'other';
-    //         return isObjectId || isOther;
-    //       });
-    //     },
-    //     message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
-    //   }
-    // },
-    // telecaller: {
-    //   type: [Schema.Types.Mixed],
-    //   validate: {
-    //     validator: function (values) {
-    //       if (!Array.isArray(values)) return false;
-    //       return values.every(value => {
-    //         if (value === null || value === undefined) return true;
-    //         const isObjectId = mongoose.Types.ObjectId.isValid(value);
-    //         const isOther = value === 'other';
-    //         return isObjectId || isOther;
-    //       });
-    //     },
-    //     message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
-    //   }
-    // },
     remarks: {
         type: String
     }

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAcaYrFromStartYrSemNum = void 0;
+exports.getCourseYrFromSemNum = exports.getAcaYrFromStartYrSemNum = void 0;
 //Here the semester number will be based on 1-based indexing
 // If my starting year is 2021 and I have taken a 4 year course.
 // Academic Year 1 = 2021-22
@@ -13,3 +13,20 @@ const getAcaYrFromStartYrSemNum = (startYear, semesterNumber) => {
     return `${academicStart}-${academicEnd}`;
 };
 exports.getAcaYrFromStartYrSemNum = getAcaYrFromStartYrSemNum;
+const yearMap = {
+    1: "First",
+    2: "Second",
+    3: "Third",
+    4: "Fourth",
+    5: "Fifth",
+    6: "Sixth"
+};
+const getCourseYrFromSemNum = (semesterNumber) => {
+    console.log(semesterNumber);
+    if (semesterNumber < 1)
+        return "Unknown";
+    const yearNumber = Math.ceil(semesterNumber / 2);
+    console.log(yearNumber);
+    return yearMap[yearNumber] || "Unknown";
+};
+exports.getCourseYrFromSemNum = getCourseYrFromSemNum;

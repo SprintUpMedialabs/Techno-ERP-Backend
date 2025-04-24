@@ -15,17 +15,17 @@ export interface IStudentDocument extends IStudentSchema, Document {
   // date: Date;
   // photoNo : number;
   // universityId : string; 
-  preRegNumber : string;
-  admittedThrough : string;
+  preRegNumber: string;
+  admittedThrough: string;
 }
 
 const studentSchema = new Schema<IStudentDocument>(
   {
-    universityId : {
-      type : String,
+    universityId: {
+      type: String,
     },
-    photoNo : {
-      type : Number,
+    photoNo: {
+      type: Number,
     },
     formNo: {
       type: String,
@@ -33,12 +33,12 @@ const studentSchema = new Schema<IStudentDocument>(
     dateOfEnquiry: {
       type: Date,
       required: true,
-      default : new Date(),   // DA Check : This won't come from input hence initialised it to new date.
+      default: new Date(),   // DA Check : This won't come from input hence initialised it to new date.
     },
     dateOfAdmission: {
       type: Date,
     },
-    admissionMode : {
+    admissionMode: {
       type: String,
       enum: {
         values: Object.values(AdmissionMode),
@@ -124,15 +124,11 @@ const studentSchema = new Schema<IStudentDocument>(
         values: Object.values(AdmissionReference),
         message: 'Invalid Admission Reference value'
       },
-      required: true
+      required: [true, 'Admission Reference is required']
     },
     course: {
       type: String,
-      enum: {
-        values: Object.values(Course),
-        message: 'Invalid Course value'
-      },
-      required: true
+      required: [true, 'Course is required']
     },
     remarks: {
       type: String
@@ -167,39 +163,49 @@ const studentSchema = new Schema<IStudentDocument>(
       },
       required: true
     },
-    preRegNumber : {
-      type : String,
-      optional : true
+    preRegNumber: {
+      type: String,
+      optional: true
     },
-    counsellor : {
-      type:  [ Schema.Types.Mixed ],
+    counsellor: {
+      type: [Schema.Types.Mixed],
       validate: {
         validator: function (values) {
-            if (!Array.isArray(values)) return false; // Ensure it's an array
-    
-            return values.every(value => {
-                // Allow null or undefined
-                if (value === null || value === undefined) return true;
-    
-                // Check for valid ObjectId
-                const isObjectId = mongoose.Types.ObjectId.isValid(value);
-    
-                // Allow string 'other'
-                const isOther = value === 'other';
-    
-                return isObjectId || isOther;
-            });
+          if (!Array.isArray(values)) return false; // Ensure it's an array
+
+          return values.every(value => {
+            // Allow null or undefined
+            if (value === null || value === undefined) return true;
+
+            // Check for valid ObjectId
+            const isObjectId = mongoose.Types.ObjectId.isValid(value);
+
+            // Allow string 'Other'
+            const isOther = value === 'Other';
+
+            return isObjectId || isOther;
+          });
         },
-        message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
-    }
+        message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'Other')`
+      }
     },
-    admittedThrough : {
-      type : String,
-      enum : Object.values(AdmittedThrough)
+    admittedThrough: {
+      type: String,
+      enum: Object.values(AdmittedThrough)
     },
-    semester : {
-      type : String
-    }
+    semester: {
+      type: Number,
+      default: 1
+    },
+    academicYear: {
+      type: String,
+      match: /^\d{4}-\d{4}$/,
+      default: () => {
+        const currentDate = new Date();
+        const currentYear = currentDate.getFullYear();
+        return `${currentYear}-${(currentYear + 1).toString()}`;
+      }
+    },
   },
   { timestamps: true }
 );

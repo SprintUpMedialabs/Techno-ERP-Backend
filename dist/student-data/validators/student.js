@@ -2,11 +2,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateStudentSchema = exports.studentSchema = void 0;
 const zod_1 = require("zod");
+const academicDetailSchema_1 = require("../../admission/validators/academicDetailSchema");
+const previousCollegeDataSchema_1 = require("../../admission/validators/previousCollegeDataSchema");
 const constants_1 = require("../../config/constants");
 const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
 const commonSchema_1 = require("../../validators/commonSchema");
-const academicDetailSchema_1 = require("../../admission/validators/academicDetailSchema");
-const previousCollegeDataSchema_1 = require("../../admission/validators/previousCollegeDataSchema");
 const singleStudentDocumentSchema_1 = require("./singleStudentDocumentSchema");
 exports.studentSchema = zod_1.z.object({
     universityId: zod_1.z.string(),
@@ -14,7 +14,7 @@ exports.studentSchema = zod_1.z.object({
     photoNo: zod_1.z.number().min(100, 'Invalid Photo Number'),
     admissionMode: zod_1.z.nativeEnum(constants_1.AdmissionMode).default(constants_1.AdmissionMode.OFFLINE),
     studentName: zod_1.z.string({ required_error: "Student Name is required", }).nonempty('Student Name is required'),
-    semester: zod_1.z.string().optional(),
+    semester: zod_1.z.number().min(1, 'Invalid Semester').max(12, 'Invalid Semester').optional(),
     dateOfBirth: zod_1.z.date().optional(),
     dateOfEnquiry: zod_1.z.date().optional(),
     studentPhoneNumber: commonSchema_1.contactNumberSchema,
@@ -43,7 +43,8 @@ exports.studentSchema = zod_1.z.object({
     aadharNumber: zod_1.z.string().regex(/^\d{12}$/, 'Aadhar Number must be exactly 12 digits').optional(),
     religion: zod_1.z.nativeEnum(constants_1.Religion).optional(),
     bloodGroup: zod_1.z.nativeEnum(constants_1.BloodGroup).optional(),
-    preRegNumber: zod_1.z.string().optional() //This will be added here
+    preRegNumber: zod_1.z.string().optional(), //This will be added here
+    academicYear: zod_1.z.number().optional()
 });
 exports.updateStudentSchema = exports.studentSchema
     .omit({

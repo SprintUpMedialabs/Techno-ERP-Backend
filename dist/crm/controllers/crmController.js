@@ -22,6 +22,9 @@ const updateAndSaveToDb_1 = require("../helpers/updateAndSaveToDb");
 const leads_1 = require("../validators/leads");
 const formatResponse_1 = require("../../utils/formatResponse");
 const lead_1 = require("../models/lead");
+const axiosInstance_1 = __importDefault(require("../../api/axiosInstance"));
+const endPoints_1 = require("../../api/endPoints");
+const safeAxios_1 = require("../../api/safeAxios");
 exports.uploadData = (0, express_async_handler_1.default)((_, res) => __awaiter(void 0, void 0, void 0, function* () {
     const latestData = yield (0, googleSheetOperations_1.readFromGoogleSheet)();
     if (!latestData) {
@@ -87,6 +90,7 @@ exports.getAllLeadAnalytics = (0, express_async_handler_1.default)((req, res) =>
     });
 }));
 exports.updateData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     const leadRequestData = req.body;
     const validation = leads_1.updateLeadRequestSchema.safeParse(leadRequestData);
     if (!validation.success) {
@@ -107,6 +111,13 @@ exports.updateData = (0, express_async_handler_1.default)((req, res) => __awaite
         const updatedData = yield lead_1.LeadMaster.findByIdAndUpdate(existingLead._id, Object.assign(Object.assign({}, leadRequestData), { leadTypeModifiedDate }), {
             new: true,
             runValidators: true
+        });
+        (0, safeAxios_1.safeAxiosPost)(axiosInstance_1.default, `${endPoints_1.Endpoints.AuditLogService.MARKETING.SAVE_LEAD}`, {
+            documentId: updatedData === null || updatedData === void 0 ? void 0 : updatedData._id,
+            action: constants_1.RequestAction.POST,
+            payload: updatedData,
+            performedBy: (_a = req.data) === null || _a === void 0 ? void 0 : _a.id,
+            restEndpoint: '/api/edit/crm',
         });
         return (0, formatResponse_1.formatResponse)(res, 200, 'Data Updated Successfully!', true, updatedData);
     }

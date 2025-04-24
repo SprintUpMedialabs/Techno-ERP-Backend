@@ -32,11 +32,16 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Course = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 const semester_1 = require("./semester");
 const constants_1 = require("../../config/constants");
+const http_errors_1 = __importDefault(require("http-errors"));
+const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
 ;
 const courseModelSchema = new mongoose_1.Schema({
     courseName: { type: String, required: true },
@@ -60,4 +65,35 @@ const courseModelSchema = new mongoose_1.Schema({
         default: []
     }
 }, { timestamps: true });
+const handleMongooseError = (error, next) => {
+    if (error.name === 'ValidationError') {
+        const firstError = error.errors[Object.keys(error.errors)[0]];
+        throw (0, http_errors_1.default)(400, firstError.message);
+    }
+    else if (error.name == 'MongooseError') {
+        throw (0, http_errors_1.default)(400, `${error.message}`);
+    }
+    else {
+        next(error);
+    }
+};
+courseModelSchema.post('save', function (error, doc, next) {
+    handleMongooseError(error, next);
+});
+courseModelSchema.post('findOneAndUpdate', function (error, doc, next) {
+    handleMongooseError(error, next);
+});
+const transformDates = (_, ret) => {
+    ['actualDate', 'plannedDate'].forEach((key) => {
+        if (ret[key]) {
+            ret[key] = (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(ret[key]);
+        }
+    });
+    delete ret.createdAt;
+    delete ret.updatedAt;
+    delete ret.__v;
+    return ret;
+};
+courseModelSchema.set('toJSON', { transform: transformDates });
+courseModelSchema.set('toObject', { transform: transformDates });
 exports.Course = mongoose_1.default.model(constants_1.COLLECTION_NAMES.COURSE, courseModelSchema);

@@ -1,6 +1,8 @@
 import { Schema } from "mongoose";
 import { ISemesterSchema } from "../validators/semesterSchema";
 import { subjectModelSchema } from "./subject";
+import createHttpError from "http-errors";
+import { convertToDDMMYYYY } from "../../utils/convertDateToFormatedDate";
 
 export interface ISemesterDocument extends ISemesterSchema, Document {};
 
@@ -17,3 +19,37 @@ export const semesterModelSchema = new Schema<ISemesterDocument>({
     }
 })
   
+const handleMongooseError = (error: any, next: Function) => {
+  if (error.name === 'ValidationError') {
+      const firstError = error.errors[Object.keys(error.errors)[0]];
+      throw createHttpError(400, firstError.message);
+  }
+  else if (error.name == 'MongooseError') {
+      throw createHttpError(400, `${error.message}`);
+  } else {
+      next(error);
+  }
+};
+
+semesterModelSchema.post('save', function (error: any, doc: any, next: Function) {
+  handleMongooseError(error, next);
+});
+
+semesterModelSchema.post('findOneAndUpdate', function (error: any, doc: any, next: Function) {
+  handleMongooseError(error, next);
+});
+
+const transformDates = (_: any, ret: any) => {
+  ['actualDate', 'plannedDate'].forEach((key) => {
+    if (ret[key]) {
+      ret[key] = convertToDDMMYYYY(ret[key]);
+    }
+  });
+  delete ret.createdAt;
+  delete ret.updatedAt;
+  delete ret.__v;
+  return ret;
+};
+
+semesterModelSchema.set('toJSON', { transform: transformDates });
+semesterModelSchema.set('toObject', { transform: transformDates });
