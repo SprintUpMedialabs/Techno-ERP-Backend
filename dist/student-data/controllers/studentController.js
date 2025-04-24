@@ -176,7 +176,7 @@ exports.updateStudentFee = (0, express_async_handler_1.default)((req, res) => __
             var _a;
             return ({
                 finalFee: semFee.finalFee,
-                feeAmount: (_a = (semWiseFee === null || semWiseFee === void 0 ? void 0 : semWiseFee.fee[index])) !== null && _a !== void 0 ? _a : 0
+                feeAmount: (_a = (semWiseFee === null || semWiseFee === void 0 ? void 0 : semWiseFee.fee[index])) !== null && _a !== void 0 ? _a : 0,
             });
         }) });
     const feesDraft = yield studentFees_2.StudentFeesModel.findByIdAndUpdate(feesDraftUpdateData.id, { $set: feeData }, { new: true, runValidators: true });

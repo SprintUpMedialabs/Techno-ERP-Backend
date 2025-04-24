@@ -117,9 +117,12 @@ exports.enquirySchema = new mongoose_1.Schema({
     },
     motherPhoneNumber: {
         type: String,
-        required: [true, 'Mother Phone Number is required.'],
         validate: {
-            validator: (stuPhNum) => commonSchema_1.contactNumberSchema.safeParse(stuPhNum).success,
+            validator: (stuPhNum) => {
+                if (!stuPhNum)
+                    return true; // Skip validation if not provided
+                return commonSchema_1.contactNumberSchema.safeParse(stuPhNum).success;
+            },
             message: 'Invalid Mother Phone Number'
         }
     },
@@ -186,12 +189,12 @@ exports.enquirySchema = new mongoose_1.Schema({
                         return true;
                     // Check for valid ObjectId
                     const isObjectId = mongoose_1.default.Types.ObjectId.isValid(value);
-                    // Allow string 'other'
-                    const isOther = value === 'other';
+                    // Allow string 'Other'
+                    const isOther = value === 'Other';
                     return isObjectId || isOther;
                 });
             },
-            message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
+            message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'Other')`
         },
         required: true,
     },
@@ -207,11 +210,11 @@ exports.enquirySchema = new mongoose_1.Schema({
                     return true;
                 // Check for valid ObjectId
                 const isObjectId = mongoose_1.Types.ObjectId.isValid(value);
-                // Allow string 'other'
-                const isOther = value === 'other';
+                // Allow string 'Other'
+                const isOther = value === 'Other';
                 return isObjectId || isOther;
             },
-            message: props => `'${props.value}' is not a valid counsellor (must be ObjectId or 'other')`
+            message: props => `'${props.value}' is not a valid counsellor (must be ObjectId or 'Other')`
         },
     },
     dateOfAdmission: {
@@ -282,12 +285,12 @@ exports.enquirySchema = new mongoose_1.Schema({
                         return true;
                     // Check for valid ObjectId
                     const isObjectId = mongoose_1.default.Types.ObjectId.isValid(value);
-                    // Allow string 'other'
-                    const isOther = value === 'other';
+                    // Allow string 'Other' 
+                    const isOther = value === 'Other';
                     return isObjectId || isOther;
                 });
             },
-            message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
+            message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'Other')`
         },
     },
     religion: {

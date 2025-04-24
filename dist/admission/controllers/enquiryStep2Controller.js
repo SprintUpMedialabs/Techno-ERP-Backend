@@ -80,6 +80,7 @@ exports.createEnquiryStep2 = (0, express_async_handler_1.default)((0, functionLe
                 return ({
                     finalFee: semFee.finalFee,
                     feeAmount: (_a = semWiseFee === null || semWiseFee === void 0 ? void 0 : semWiseFee.fee[index]) !== null && _a !== void 0 ? _a : 0,
+                    feesPaid: 0,
                 });
             }) });
         feesDraft = yield studentFees_1.StudentFeesModel.create([feeData], { session });

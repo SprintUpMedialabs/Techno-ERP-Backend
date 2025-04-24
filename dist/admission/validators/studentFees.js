@@ -13,10 +13,12 @@ exports.otherFeesSchema = zod_1.z.object({
 });
 exports.singleSemSchema = zod_1.z.object({
     feeAmount: zod_1.z.number().min(0, 'Fee amount must be greater than 0'),
-    finalFee: zod_1.z.number().min(0, 'Final fees to be paid must be Positive')
+    finalFee: zod_1.z.number().min(0, 'Final fees to be paid must be Positive'),
+    dueDate: zod_1.z.date().optional(),
+    feesPaid: zod_1.z.number().min(0, 'Fees paid must be greater than 0').optional().default(0),
 });
 const otherFeesSchemaWithoutFeeAmount = exports.otherFeesSchema.omit({ feeAmount: true });
-const singleSemSchemaWithoutFeeAmount = exports.singleSemSchema.omit({ feeAmount: true });
+const singleSemSchemaWithoutFeeAmount = exports.singleSemSchema.omit({ feeAmount: true, dueDate: true, feesPaid: true });
 const studentFeesSchema = zod_1.z.object({
     otherFees: zod_1.z.array(exports.otherFeesSchema).optional(),
     semWiseFees: zod_1.z.array(exports.singleSemSchema),
@@ -29,8 +31,8 @@ exports.feesRequestSchema = studentFeesSchema.omit({ feeStatus: true }).extend({
     semWiseFees: zod_1.z.array(singleSemSchemaWithoutFeeAmount),
     enquiryId: commonSchema_1.objectIdSchema,
     feesClearanceDate: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)),
-    counsellor: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])])).optional(),
-    telecaller: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['other'])])).optional(),
+    counsellor: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['Other'])])).optional(),
+    telecaller: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['Other'])])).optional(),
 });
 exports.feesUpdateSchema = exports.feesRequestSchema.extend({
     id: commonSchema_1.objectIdSchema, //This is referring to the fees table _id

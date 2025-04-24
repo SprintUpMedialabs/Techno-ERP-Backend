@@ -15,7 +15,7 @@ const dropDownMetaDataSchema = new mongoose_1.Schema({
     },
     value: {
         type: [String],
-        default: ['other'],
+        default: ['Other'],
         validate: {
             validator: (arr) => arr.every(v => typeof v === 'string'),
             message: 'All values must be strings'

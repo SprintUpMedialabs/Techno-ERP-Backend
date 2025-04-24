@@ -7,7 +7,7 @@ const commonSchema_1 = require("../../validators/commonSchema");
 const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
 exports.leadMasterSchema = zod_1.z.object({
     date: zod_1.z.date(),
-    source: zod_1.z.string().default('other'),
+    source: zod_1.z.string().default('Other'),
     schoolName: zod_1.z.string().optional(),
     name: zod_1.z.string().nonempty('Name field is required').regex(/^[A-Za-z\s]+$/, 'Name can only contain alphabets and spaces'),
     phoneNumber: commonSchema_1.contactNumberSchema,
@@ -15,7 +15,7 @@ exports.leadMasterSchema = zod_1.z.object({
     email: zod_1.z.string().email('Invalid Email Format').optional(),
     gender: zod_1.z.nativeEnum(constants_1.Gender).default(constants_1.Gender.NOT_TO_MENTION),
     area: zod_1.z.string().optional(),
-    city: zod_1.z.string().optional().default('other'),
+    city: zod_1.z.string().optional().default('Other'),
     course: zod_1.z.nativeEnum(constants_1.Course).optional(),
     assignedTo: commonSchema_1.objectIdSchema,
     leadType: zod_1.z.nativeEnum(constants_1.LeadType).default(constants_1.LeadType.OPEN),

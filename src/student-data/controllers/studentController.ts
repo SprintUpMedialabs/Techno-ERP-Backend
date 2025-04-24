@@ -233,7 +233,7 @@ export const updateStudentFee = expressAsyncHandler(async (req: AuthenticatedReq
   const otherFees = await fetchOtherFees();
   const semWiseFee = await fetchCourseFeeByCourse(studentFeeInfo?.course.toString() ?? '');
 
-  const feeData: IStudentFeesSchema = {
+  const feeData = {
     ...validation.data,
     otherFees: validation.data.otherFees.map(fee => ({
       ...fee,
@@ -241,7 +241,7 @@ export const updateStudentFee = expressAsyncHandler(async (req: AuthenticatedReq
     })),
     semWiseFees: validation.data.semWiseFees.map((semFee, index: number) => ({
       finalFee: semFee.finalFee,
-      feeAmount: (semWiseFee?.fee[index]) ?? 0
+      feeAmount: (semWiseFee?.fee[index]) ?? 0,
     }))
   }
 

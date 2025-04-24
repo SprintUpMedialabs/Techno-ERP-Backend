@@ -36,7 +36,7 @@ export const updateFeeDetails = async (applicationStatusList: ApplicationStatus[
     const otherFees = await fetchOtherFees();
     const semWiseFee = await fetchCourseFeeByCourse(enquiry?.course.toString() ?? '');
   
-    const feeData: IStudentFeesSchema = {
+    const feeData = {
       ...validation.data,
       otherFees: validation.data.otherFees.map(fee => ({
         ...fee,

@@ -158,16 +158,11 @@ const studentSchema = new mongoose_1.Schema({
             values: Object.values(constants_1.AdmissionReference),
             message: 'Invalid Admission Reference value'
         },
-        required: true
+        required: [true, 'Admission Reference is required']
     },
     course: {
         type: String,
-        // TODO: gradully we need to remove this enum from every where as its going to come from dropdown meta data
-        // enum: {
-        //   values: Object.values(Course),
-        //   message: 'Invalid Course value'
-        // },
-        required: true
+        required: [true, 'Course is required']
     },
     remarks: {
         type: String
@@ -218,12 +213,12 @@ const studentSchema = new mongoose_1.Schema({
                         return true;
                     // Check for valid ObjectId
                     const isObjectId = mongoose_1.default.Types.ObjectId.isValid(value);
-                    // Allow string 'other'
-                    const isOther = value === 'other';
+                    // Allow string 'Other'
+                    const isOther = value === 'Other';
                     return isObjectId || isOther;
                 });
             },
-            message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
+            message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'Other')`
         }
     },
     admittedThrough: {
