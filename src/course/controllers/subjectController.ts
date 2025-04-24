@@ -242,10 +242,7 @@ export const fetchSubjectInformationUsingFilters = expressAsyncHandler(async (re
         } : "$semester"
       }
     },
-
-
     { $unwind: "$semesterDetails" },
-
     {
       $addFields: {
         courseYear: {
@@ -268,45 +265,19 @@ export const fetchSubjectInformationUsingFilters = expressAsyncHandler(async (re
         path: "$semesterDetails.subjects",
         preserveNullAndEmptyArrays: true
       }
-    },
-    // {
-    //   $match: {
-    //     $or: [
-    //       { "semesterDetails.subjects": { $eq: null } },
-    //       {
-    //         $and: [
-    //           { "semesterDetails.subjects.isDeleted": { $ne: true } },
-    //           ...(search ? [{
-    //             $or: [
-    //               { "semesterDetails.subjects.subjectName": { $regex: search, $options: "i" } },
-    //               { "semesterDetails.subjects.subjectCode": { $regex: search, $options: "i" } }
-    //             ]
-    //           }] : [])
-    //         ]
-    //       }
-    //     ]
-    //   }
-    // },
+    },  
     {
       $match: {
-        $or: [
-          { "semesterDetails.subjects": { $eq: null } },
-          {
-            "semesterDetails.subjects": {
-              $elemMatch: {
-                isDeleted: { $ne: true },
-                ...(search && {
-                  $or: [
-                    { subjectName: { $regex: search, $options: "i" } },
-                    { subjectCode: { $regex: search, $options: "i" } },
-                  ]
-                })
-              }
-            }
-          }
-        ]
+        "semesterDetails.subjects": { $ne: null },
+        "semesterDetails.subjects.isDeleted": { $ne: true },
+        ...(search ? {
+          $or: [
+            { "semesterDetails.subjects.subjectName": { $regex: search, $options: "i" } },
+            { "semesterDetails.subjects.subjectCode": { $regex: search, $options: "i" } }
+          ]
+        } : {})
       }
-    },    
+    },      
     {
       $lookup: {
         from: "users",
@@ -325,7 +296,6 @@ export const fetchSubjectInformationUsingFilters = expressAsyncHandler(async (re
         subjectId: "$semesterDetails.subjects._id",
         instructorId: "$instructorDetails._id",
         departmentMetaDataId: "$departmentMetaDataId",
-    
         subjectName: "$semesterDetails.subjects.subjectName",
         subjectCode: "$semesterDetails.subjects.subjectCode",
         instructor: "$instructorDetails.firstName",
