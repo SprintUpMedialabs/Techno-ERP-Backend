@@ -61,10 +61,6 @@ const leadSchema = new Schema<ILeadMasterDocument>(
     },
     course: {
       type: String,
-      enum: {
-        values: Object.values(Course),
-        message: 'Invalid Course Value'
-      }
     },
 
     // Required field with a custom validation error message

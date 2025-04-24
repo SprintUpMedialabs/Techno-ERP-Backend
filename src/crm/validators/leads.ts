@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { Course, FinalConversionType, Gender, LeadType } from '../../config/constants';
 import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import { contactNumberSchema, objectIdSchema, requestDateSchema } from '../../validators/commonSchema';
+import { extractLast10Digits, formatDate, splitEmails, toTitleCase } from './formators';
 
 export const leadMasterSchema = z.object({
   date: z.date(),
@@ -40,15 +41,22 @@ export const leadRequestSchema = leadSchema.extend({
 }).omit({ leadTypeModifiedDate: true })
 
 export const leadSheetSchema = z.object({
-  date: z.string().transform(formatDate),
-  source: z.string().transform(toTitleCase),
-  name: z.string().transform(toTitleCase),
-  phoneNumber: z.string().transform(extractLast10Digits),
-  altPhoneNumber: z.string().transform(extractLast10Digits).optional(),
+  date: z.string().optional().transform(formatDate),
+  source: z.string().optional().transform(toTitleCase),
+  name: z.string().optional().transform(toTitleCase),
+  phoneNumber: z.string().optional().transform(extractLast10Digits),
+  altPhoneNumber: z.string().optional().transform(extractLast10Digits),
   email: z.string().email().optional(),
-  city: z.string().transform(toTitleCase),
+  city: z.string().optional().transform(toTitleCase),
   assignedTo: z.string().transform(splitEmails),
   gender: z.string().optional().transform(val => val?.toUpperCase()),
+
+  // temporary fields
+  course: z.string().optional().transform(val => val?.toUpperCase()),
+  area: z.string().optional().transform(toTitleCase),
+  leadType: z.nativeEnum(LeadType).optional(),
+  remarks: z.string().optional(),
+  schoolName: z.string().optional().transform(toTitleCase),
 });
 
 export const updateLeadRequestSchema = leadRequestSchema.extend({

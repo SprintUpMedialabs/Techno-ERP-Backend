@@ -15,6 +15,7 @@ import { IUpdateLeadRequestSchema, updateLeadRequestSchema } from '../validators
 
 export const uploadData = expressAsyncHandler(async (_: AuthenticatedRequest, res: Response) => {
   const latestData = await readFromGoogleSheet();
+  console.log(latestData);
   if (!latestData) {
     return formatResponse(res, 200, 'There is no data to update.', true);
   } else {

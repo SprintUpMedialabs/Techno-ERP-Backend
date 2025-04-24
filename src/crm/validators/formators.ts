@@ -1,5 +1,5 @@
 // Utility functions
-const formatDate = (date: string): string => {
+export const formatDate = (date: string | undefined): string => {
     if (!date) {
         const today = new Date();
         const dd = String(today.getDate()).padStart(2, "0");
@@ -19,7 +19,7 @@ const formatDate = (date: string): string => {
     return normalized;
 };
 
-const toTitleCase = (text: string): string => {
+export const toTitleCase = (text: string | undefined): string => {
     if (!text) {
         return "";
     }
@@ -31,7 +31,7 @@ const toTitleCase = (text: string): string => {
         .join(" ");
 };
 
-const extractLast10Digits = (number: string): string => {
+export const extractLast10Digits = (number: string | undefined): string => {
     if (!number) {
         return "";
     }
@@ -39,7 +39,7 @@ const extractLast10Digits = (number: string): string => {
     return digits.slice(-10); // Take last 10 digits
 };
 
-const splitEmails = (input: string): string[] => {
+export const splitEmails = (input: string): string[] => {
     if (!input) {
         return [];
     }

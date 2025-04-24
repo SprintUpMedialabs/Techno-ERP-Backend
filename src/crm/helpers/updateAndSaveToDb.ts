@@ -18,7 +18,8 @@ const leadsToBeInserted = async (
   report: IMarketingSpreadsheetProcessReport,
   lastSavedIndex: number,
   citySet: Set<string>,
-  sourceSet: Set<string>
+  sourceSet: Set<string>,
+  courseSet: Set<string>
 ) => {
   let MarketingEmployees: Map<string, Types.ObjectId> = new Map();
 
@@ -55,6 +56,11 @@ const leadsToBeInserted = async (
         ...(row[MarketingsheetHeaders.Email] && { email: row[MarketingsheetHeaders.Email] }),
         gender: Gender.NOT_TO_MENTION,
         ...(row[MarketingsheetHeaders.City] && { city: row[MarketingsheetHeaders.City] }),
+        ...(row[MarketingsheetHeaders.LeadType] && { leadType: row[MarketingsheetHeaders.LeadType] }),
+        ...(row[MarketingsheetHeaders.Remarks] && { remarks: row[MarketingsheetHeaders.Remarks] }),
+        ...(row[MarketingsheetHeaders.SchoolName] && { schoolName: row[MarketingsheetHeaders.SchoolName] }),
+        ...(row[MarketingsheetHeaders.Area] && { area: row[MarketingsheetHeaders.Area] }),
+        ...(row[MarketingsheetHeaders.Course] && { course: row[MarketingsheetHeaders.Course] }),
         assignedTo: row[MarketingsheetHeaders.AssignedTo],
       };
 
@@ -80,6 +86,9 @@ const leadsToBeInserted = async (
         }
         if (leadDataValidation.data.source) {
           sourceSet.add(formatDropdownValue(leadDataValidation.data.source));
+        }
+        if (leadDataValidation.data.course) {
+          courseSet.add(formatDropdownValue(leadDataValidation.data.course));
         }
         let assignedToIDs: Types.ObjectId[] = [];
         for (const assignedTo of leadDataValidation.data.assignedTo) {
@@ -143,10 +152,12 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) =>
 
   const cityDropDown = await DropDownMetaData.findOne({ type: DropDownType.CITY });
   const sourceDropDown = await DropDownMetaData.findOne({ type: DropDownType.MAKRETING_SOURCE });
+  const courseDropDown = await DropDownMetaData.findOne({ type: DropDownType.COURSE });
   const citySet = new Set(cityDropDown?.value || []);
   const sourceSet = new Set(sourceDropDown?.value || []);
+  const courseSet = new Set(courseDropDown?.value || []);
 
-  const dataToInsert = await leadsToBeInserted(latestData, report, lastSavedIndex, citySet, sourceSet);
+  const dataToInsert = await leadsToBeInserted(latestData, report, lastSavedIndex, citySet, sourceSet, courseSet);
   if (!dataToInsert || dataToInsert.length === 0) {
     if (report.rowsFailed != 0) {
       sendEmail(LEAD_MARKETING_EMAIL, 'Lead Processing Report', formatReport(report));

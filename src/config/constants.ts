@@ -75,7 +75,8 @@ export enum AdmissionReference {
 
 export enum DropDownType{
   CITY = "CITY",
-  MAKRETING_SOURCE = "MAKRETING_SOURCE"
+  MAKRETING_SOURCE = "MAKRETING_SOURCE",
+  COURSE = "COURSE"
 }
 
 
