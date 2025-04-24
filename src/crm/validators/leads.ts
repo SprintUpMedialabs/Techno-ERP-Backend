@@ -5,7 +5,7 @@ import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 
 export const leadMasterSchema = z.object({
   date: z.date(),
-  source: z.string().default('other'),
+  source: z.string().default('Other'),
   schoolName: z.string().optional(),
   name: z.string().nonempty('Name field is required').regex(/^[A-Za-z\s]+$/, 'Name can only contain alphabets and spaces'),
   phoneNumber: contactNumberSchema,
@@ -13,7 +13,7 @@ export const leadMasterSchema = z.object({
   email: z.string().email('Invalid Email Format').optional(),
   gender: z.nativeEnum(Gender).default(Gender.NOT_TO_MENTION),
   area: z.string().optional(),
-  city: z.string().optional().default('other'),
+  city: z.string().optional().default('Other'),
   course: z.nativeEnum(Course).optional(),
   assignedTo: objectIdSchema,
   leadType: z.nativeEnum(LeadType).default(LeadType.OPEN),

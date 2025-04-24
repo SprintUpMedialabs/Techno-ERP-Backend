@@ -137,13 +137,13 @@ export const enquiryDraftSchema = new Schema<IEnquiryDraftDocument>(
                         // Check for valid ObjectId
                         const isObjectId = mongoose.Types.ObjectId.isValid(value);
             
-                        // Allow string 'other'
-                        const isOther = value === 'other';
+                        // Allow string 'Other'
+                        const isOther = value === 'Other';
             
                         return isObjectId || isOther;
                     });
                 },
-                message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
+                message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'Other')`
             },
             required: false,
         },
@@ -162,13 +162,13 @@ export const enquiryDraftSchema = new Schema<IEnquiryDraftDocument>(
                         // Check for valid ObjectId
                         const isObjectId = mongoose.Types.ObjectId.isValid(value);
             
-                        // Allow string 'other'
-                        const isOther = value === 'other';
+                        // Allow string 'Other'
+                        const isOther = value === 'Other';
             
                         return isObjectId || isOther;
                     });
                 },
-                message: props => `'${props.value}' contains an invalid telecaller (must be ObjectId or 'other')`
+                message: props => `'${props.value}' contains an invalid telecaller (must be ObjectId or 'Other')`
             },
             required: false,
         },

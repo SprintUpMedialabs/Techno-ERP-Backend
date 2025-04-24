@@ -1,16 +1,15 @@
-import mongoose, { model, Schema, Types } from 'mongoose';
-import { COLLECTION_NAMES, FeeStatus, FeeType } from '../../config/constants';
-import { IOtherFeesSchema, ISingleSemSchema, IStudentFeesSchema } from '../validators/studentFees';
 import createHttpError from 'http-errors';
+import { model, Schema } from 'mongoose';
+import { COLLECTION_NAMES, FeeStatus, FeeType } from '../../config/constants';
 import { convertToDDMMYYYY } from '../../utils/convertDateToFormatedDate';
-import { emailSchema } from '../../validators/commonSchema';
+import { IOtherFeesSchema, ISingleSemSchema, IStudentFeesSchema } from '../validators/studentFees';
 
 export interface IOtherFeesDocument extends IOtherFeesSchema, Document {
-    feeAmount: number
+    
 }
 
 export interface ISingleSemWiseDocument extends ISingleSemSchema, Document {
-    feeAmount: number
+    
 }
 export interface IStudentFeesDocument extends IStudentFeesSchema, Document { }
 
@@ -39,6 +38,14 @@ export const SingleSemWiseFeesSchema = new Schema<ISingleSemWiseDocument>({
     },
     finalFee: {
         type: Number,
+    },
+    dueDate:{
+        type: Date,
+        default: null
+    },
+    feesPaid:{
+        type: Number,
+        default: 0
     }
 }, { _id: false });
 
@@ -64,52 +71,6 @@ const StudentFeesSchema = new Schema<IStudentFeesDocument>(
         feesClearanceDate: {
             type: Date
         },
-        // counsellor: {
-        //     type: [Schema.Types.Mixed], // Allows ObjectId or String
-        //     validate: {
-        //         validator: function (values) {
-        //             if (!Array.isArray(values)) return false; // Ensure it's an array
-            
-        //             return values.every(value => {
-        //                 // Allow null or undefined
-        //                 if (value === null || value === undefined) return true;
-            
-        //                 // Check for valid ObjectId
-        //                 const isObjectId = mongoose.Types.ObjectId.isValid(value);
-            
-        //                 // Allow string 'other'
-        //                 const isOther = value === 'other';
-            
-        //                 return isObjectId || isOther;
-        //             });
-        //         },
-        //         message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
-        //     },
-        //     required: true,
-        // },
-        // telecaller: {
-        //     type: [Schema.Types.Mixed], // Allows ObjectId or String
-        //     validate: {
-        //         validator: function (values) {
-        //             if (!Array.isArray(values)) return false; // Ensure it's an array
-            
-        //             return values.every(value => {
-        //                 // Allow null or undefined
-        //                 if (value === null || value === undefined) return true;
-            
-        //                 // Check for valid ObjectId
-        //                 const isObjectId = mongoose.Types.ObjectId.isValid(value);
-            
-        //                 // Allow string 'other'
-        //                 const isOther = value === 'other';
-            
-        //                 return isObjectId || isOther;
-        //             });
-        //         },
-        //         message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
-        //     },
-        //     required: true,
-        // }
     },
     { timestamps: true }
 );

@@ -80,9 +80,11 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
     },
     motherPhoneNumber: {
       type: String,
-      required: [true, 'Mother Phone Number is required.'],
       validate: {
-        validator: (stuPhNum: string) => contactNumberSchema.safeParse(stuPhNum).success,
+        validator: (stuPhNum: string) => {
+          if (!stuPhNum) return true; // Skip validation if not provided
+          return contactNumberSchema.safeParse(stuPhNum).success;
+        },
         message: 'Invalid Mother Phone Number'
       }
     },
@@ -150,13 +152,13 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
             // Check for valid ObjectId
             const isObjectId = mongoose.Types.ObjectId.isValid(value);
 
-            // Allow string 'other'
-            const isOther = value === 'other';
+            // Allow string 'Other'
+            const isOther = value === 'Other';
 
             return isObjectId || isOther;
           });
         },
-        message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
+        message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'Other')`
       },
       required: true,
     },
@@ -173,12 +175,12 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
           // Check for valid ObjectId
           const isObjectId = Types.ObjectId.isValid(value);
 
-          // Allow string 'other'
-          const isOther = value === 'other';
+          // Allow string 'Other'
+          const isOther = value === 'Other';
 
           return isObjectId || isOther;
         },
-        message: props => `'${props.value}' is not a valid counsellor (must be ObjectId or 'other')`
+        message: props => `'${props.value}' is not a valid counsellor (must be ObjectId or 'Other')`
       },
     },
     dateOfAdmission: {
@@ -251,13 +253,13 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
             // Check for valid ObjectId
             const isObjectId = mongoose.Types.ObjectId.isValid(value);
 
-            // Allow string 'other'
-            const isOther = value === 'other';
+            // Allow string 'Other' 
+            const isOther = value === 'Other';
 
             return isObjectId || isOther;
           });
         },
-        message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'other')`
+        message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'Other')`
       },
     },
     religion: {

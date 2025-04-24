@@ -12,12 +12,14 @@ export const otherFeesSchema = z.object({
 
 export const singleSemSchema = z.object({
     feeAmount: z.number().min(0, 'Fee amount must be greater than 0'),
-    finalFee: z.number().min(0, 'Final fees to be paid must be Positive')
+    finalFee: z.number().min(0, 'Final fees to be paid must be Positive'),
+    dueDate: z.date().optional(),
+    feesPaid: z.number().min(0, 'Fees paid must be greater than 0').optional().default(0),
 });
 
 const otherFeesSchemaWithoutFeeAmount = otherFeesSchema.omit({ feeAmount: true });
 
-const singleSemSchemaWithoutFeeAmount = singleSemSchema.omit({ feeAmount: true });
+const singleSemSchemaWithoutFeeAmount = singleSemSchema.omit({ feeAmount: true, dueDate: true,feesPaid: true });
 
 
 const studentFeesSchema = z.object({
@@ -37,8 +39,8 @@ export const feesRequestSchema = studentFeesSchema.omit({ feeStatus: true }).ext
     feesClearanceDate : requestDateSchema.transform((date) =>
         convertToMongoDate(date) as Date
     ),
-    counsellor: z.array(z.union([objectIdSchema, z.enum(['other'])])).optional(),
-    telecaller: z.array(z.union([objectIdSchema, z.enum(['other'])])).optional(),
+    counsellor: z.array(z.union([objectIdSchema, z.enum(['Other'])])).optional(),
+    telecaller: z.array(z.union([objectIdSchema, z.enum(['Other'])])).optional(),
 });
 
 export const feesUpdateSchema = feesRequestSchema.extend({
