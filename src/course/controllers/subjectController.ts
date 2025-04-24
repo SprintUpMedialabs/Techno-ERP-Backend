@@ -305,7 +305,6 @@ export const fetchSubjectInformationUsingFilters = expressAsyncHandler(async (re
         subjectId: "$semesterDetails.subjects._id",
         instructorId: "$instructorDetails._id",
         departmentMetaDataId: "$departmentMetaDataId",
-    
         subjectName: "$semesterDetails.subjects.subjectName",
         subjectCode: "$semesterDetails.subjects.subjectCode",
         instructor: "$instructorDetails.firstName",
