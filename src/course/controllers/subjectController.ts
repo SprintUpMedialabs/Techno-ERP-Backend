@@ -242,10 +242,7 @@ export const fetchSubjectInformationUsingFilters = expressAsyncHandler(async (re
         } : "$semester"
       }
     },
-
-
     { $unwind: "$semesterDetails" },
-
     {
       $addFields: {
         courseYear: {
@@ -271,22 +268,16 @@ export const fetchSubjectInformationUsingFilters = expressAsyncHandler(async (re
     },  
     {
       $match: {
-        $or: [
-          { "semesterDetails.subjects": null },
-          {
-            $and: [
-              { "semesterDetails.subjects.isDeleted": { $ne: true } },
-              ...(search ? [{
-                $or: [
-                  { "semesterDetails.subjects.subjectName": { $regex: search, $options: "i" } },
-                  { "semesterDetails.subjects.subjectCode": { $regex: search, $options: "i" } }
-                ]
-              }] : [])
-            ]
-          }
-        ]
+        "semesterDetails.subjects": { $ne: null },
+        "semesterDetails.subjects.isDeleted": { $ne: true },
+        ...(search ? {
+          $or: [
+            { "semesterDetails.subjects.subjectName": { $regex: search, $options: "i" } },
+            { "semesterDetails.subjects.subjectCode": { $regex: search, $options: "i" } }
+          ]
+        } : {})
       }
-    },     
+    },      
     {
       $lookup: {
         from: "users",
@@ -318,7 +309,6 @@ export const fetchSubjectInformationUsingFilters = expressAsyncHandler(async (re
   ];
 
   const subjectInformation = await Course.aggregate(pipeline);
-  console.log("Subject Information is : ", subjectInformation);
   return formatResponse(res, 200, 'Subject information fetched successfully with filters', true, subjectInformation);
 });
 
