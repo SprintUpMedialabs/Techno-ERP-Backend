@@ -26,6 +26,10 @@ export const departmentModelSchema = new Schema<IDepartmentMetaDataDocument>({
     endingYear : {
         type: Number,
     },
+    instructors : {
+      type : [Schema.Types.ObjectId],
+      ref : COLLECTION_NAMES.USER
+    }
 }, { timestamps : true });
 
 const handleMongooseError = (error: any, next: Function) => {

@@ -65,3 +65,38 @@ export const getDepartmentMetaData = expressAsyncHandler(async (req : Authentica
 
     return formatResponse(res, 200, 'Department metadata fetched successfully', true, formattedDepartments);
 })
+
+export const fetchInstructors = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const instructors = await DepartmentMetaData.aggregate([
+      {
+        $unwind: "$instructors"
+      },
+      {
+        $group: {
+          _id: "$instructors"
+        }
+      },
+      {
+        $lookup: {
+          from: "users", 
+          localField: "_id",
+          foreignField: "_id",
+          as: "instructorInfo"
+        }
+      },
+      {
+        $unwind: "$instructorInfo"
+      },
+      {
+        $project: {
+          instructorId: "$instructorInfo._id",
+          name: {
+            $concat: ["$instructorInfo.firstName", " ", "$instructorInfo.lastName"]
+          },
+          email: "$instructorInfo.email"
+        }
+      }
+    ]);
+  
+    return formatResponse(res, 200, 'Instructors Fetched Successfully', true, instructors);
+});

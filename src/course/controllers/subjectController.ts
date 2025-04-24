@@ -225,7 +225,6 @@ export const fetchSubjectInformationUsingFilters = expressAsyncHandler(async (re
 
   const pipeline: any[] = [
     ...(courseCode ? [{ $match: { courseCode } }] : []),
-
     {
       $addFields: {
         semesterDetails: academicYear || semester ? {

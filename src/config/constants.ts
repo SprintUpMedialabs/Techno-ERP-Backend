@@ -292,7 +292,7 @@ export const MARKETING_SHEET = 'Marketing Sheet'
 
 
 export enum COLLECTION_NAMES {
-  USER = 'User',
+  USER = 'users',
   VERIFY_OTP = 'VerifyOtp',
   ENQUIRY = 'Enquiry',
   ENQUIRY_DRAFT = 'EnquiryDraft',
