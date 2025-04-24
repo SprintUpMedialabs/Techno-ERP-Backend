@@ -268,45 +268,25 @@ export const fetchSubjectInformationUsingFilters = expressAsyncHandler(async (re
         path: "$semesterDetails.subjects",
         preserveNullAndEmptyArrays: true
       }
-    },
-    // {
-    //   $match: {
-    //     $or: [
-    //       { "semesterDetails.subjects": { $eq: null } },
-    //       {
-    //         $and: [
-    //           { "semesterDetails.subjects.isDeleted": { $ne: true } },
-    //           ...(search ? [{
-    //             $or: [
-    //               { "semesterDetails.subjects.subjectName": { $regex: search, $options: "i" } },
-    //               { "semesterDetails.subjects.subjectCode": { $regex: search, $options: "i" } }
-    //             ]
-    //           }] : [])
-    //         ]
-    //       }
-    //     ]
-    //   }
-    // },
+    },  
     {
       $match: {
         $or: [
-          { "semesterDetails.subjects": { $eq: null } },
+          { "semesterDetails.subjects": null },
           {
-            "semesterDetails.subjects": {
-              $elemMatch: {
-                isDeleted: { $ne: true },
-                ...(search && {
-                  $or: [
-                    { subjectName: { $regex: search, $options: "i" } },
-                    { subjectCode: { $regex: search, $options: "i" } },
-                  ]
-                })
-              }
-            }
+            $and: [
+              { "semesterDetails.subjects.isDeleted": { $ne: true } },
+              ...(search ? [{
+                $or: [
+                  { "semesterDetails.subjects.subjectName": { $regex: search, $options: "i" } },
+                  { "semesterDetails.subjects.subjectCode": { $regex: search, $options: "i" } }
+                ]
+              }] : [])
+            ]
           }
         ]
       }
-    },    
+    },     
     {
       $lookup: {
         from: "users",
@@ -339,6 +319,7 @@ export const fetchSubjectInformationUsingFilters = expressAsyncHandler(async (re
   ];
 
   const subjectInformation = await Course.aggregate(pipeline);
+  console.log("Subject Information is : ", subjectInformation);
   return formatResponse(res, 200, 'Subject information fetched successfully with filters', true, subjectInformation);
 });
 
