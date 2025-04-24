@@ -18,7 +18,7 @@ const dropDownMetaDataSchema = new Schema<IDropDownMetaData>({
     },
     value: {
         type: [String],
-        default: ['other'],
+        default: ['Other'],
         validate: {
             validator: (arr: string[]) => arr.every(v => typeof v === 'string'),
             message: 'All values must be strings'
