@@ -166,7 +166,7 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) =>
     }
     logger.info('No valid data to insert.');
 
-    updateStatusForMarketingSheet(lastSavedIndex + latestData.length, lastSavedIndex);
+    updateStatusForMarketingSheet(lastSavedIndex + latestData.length, lastSavedIndex, report);
     return;
   }
 
@@ -200,5 +200,5 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) =>
   updateDropDownByType(DropDownType.MAKRETING_SOURCE, Array.from(sourceSet));
   updateDropDownByType(DropDownType.COURSE, Array.from(courseSet));
 
-  updateStatusForMarketingSheet(lastSavedIndex + latestData.length, lastSavedIndex);
+  updateStatusForMarketingSheet(lastSavedIndex + latestData.length, lastSavedIndex, report);
 };
