@@ -56,6 +56,11 @@ export const updateOnlyOneValueInDropDown = async (type: DropDownType, value?: s
     }
 }
 
+export const formatCapital = (input: string): string => {
+    return input
+        .toUpperCase();
+}
+
 export const formatDropdownValue = (input: string): string => {
     if (!input.trim()) return '';
     return input

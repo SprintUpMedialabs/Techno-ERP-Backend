@@ -11,7 +11,7 @@ import { ILeadRequest, ISheetLeadRequest, leadRequestSchema, leadSheetSchema } f
 import { formatReport } from './formatReport';
 import { updateStatusForMarketingSheet } from './googleSheetOperations';
 import { DropDownMetaData } from '../../utilityModules/dropdown/dropDownMetaDeta';
-import { formatDropdownValue, updateDropDownByType } from '../../utilityModules/dropdown/dropDownMetadataController';
+import { formatCapital, formatDropdownValue, updateDropDownByType } from '../../utilityModules/dropdown/dropDownMetadataController';
 
 const leadsToBeInserted = async (
   latestData: any[],
@@ -89,7 +89,7 @@ const leadsToBeInserted = async (
           sourceSet.add(formatDropdownValue(leadDataValidation.data.source));
         }
         if (leadDataValidation.data.course) {
-          courseSet.add(formatDropdownValue(leadDataValidation.data.course));
+          courseSet.add(formatCapital(leadDataValidation.data.course));
         }
         let assignedToIDs: Types.ObjectId[] = [];
         for (const assignedTo of leadDataValidation.data.assignedTo) {
