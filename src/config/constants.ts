@@ -77,7 +77,8 @@ export enum DropDownType{
   CITY = "CITY",
   FIX_CITY = "FIX_CITY",
   MAKRETING_SOURCE = "MAKRETING_SOURCE",
-  COURSE = "COURSE"
+  COURSE = "COURSE",
+  FIX_COURSE = "FIX_COURSE"
 }
 
 

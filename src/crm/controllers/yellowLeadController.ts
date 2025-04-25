@@ -55,6 +55,8 @@ export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedReq
 
   updateOnlyOneValueInDropDown(DropDownType.FIX_CITY, updatedYellowLead?.city);
   updateOnlyOneValueInDropDown(DropDownType.CITY, updatedYellowLead?.city);
+  updateOnlyOneValueInDropDown(DropDownType.FIX_COURSE, updatedYellowLead?.course);
+  updateOnlyOneValueInDropDown(DropDownType.COURSE, updatedYellowLead?.course);
 
   if (!updatedYellowLead) {
     throw createHttpError(404, 'Yellow lead not found.');
