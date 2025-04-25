@@ -71,6 +71,18 @@ const initializeDB = () => __awaiter(void 0, void 0, void 0, function* () {
                 type: constants_1.DropDownType.MAKRETING_SOURCE,
             });
         }
+        const existingCourseDropDown = yield dropDownMetaDeta_1.DropDownMetaData.findOne({ type: constants_1.DropDownType.COURSE });
+        if (!existingCourseDropDown) {
+            yield dropDownMetaDeta_1.DropDownMetaData.create({
+                type: constants_1.DropDownType.COURSE,
+            });
+        }
+        const existingFixCityDropDown = yield dropDownMetaDeta_1.DropDownMetaData.findOne({ type: constants_1.DropDownType.FIX_CITY });
+        if (!existingFixCityDropDown) {
+            yield dropDownMetaDeta_1.DropDownMetaData.create({
+                type: constants_1.DropDownType.FIX_CITY,
+            });
+        }
     }
     catch (error) {
         console.error('Error initializing database:', error);

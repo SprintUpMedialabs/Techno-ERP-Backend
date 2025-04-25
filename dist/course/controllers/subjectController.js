@@ -220,40 +220,13 @@ exports.fetchSubjectInformationUsingFilters = (0, express_async_handler_1.defaul
                 preserveNullAndEmptyArrays: true
             }
         },
-        // {
-        //   $match: {
-        //     $or: [
-        //       { "semesterDetails.subjects": { $eq: null } },
-        //       {
-        //         $and: [
-        //           { "semesterDetails.subjects.isDeleted": { $ne: true } },
-        //           ...(search ? [{
-        //             $or: [
-        //               { "semesterDetails.subjects.subjectName": { $regex: search, $options: "i" } },
-        //               { "semesterDetails.subjects.subjectCode": { $regex: search, $options: "i" } }
-        //             ]
-        //           }] : [])
-        //         ]
-        //       }
-        //     ]
-        //   }
-        // },
         {
-            $match: {
+            $match: Object.assign({ "semesterDetails.subjects": { $ne: null }, "semesterDetails.subjects.isDeleted": { $ne: true } }, (search ? {
                 $or: [
-                    { "semesterDetails.subjects": { $eq: null } },
-                    {
-                        "semesterDetails.subjects": {
-                            $elemMatch: Object.assign({ isDeleted: { $ne: true } }, (search && {
-                                $or: [
-                                    { subjectName: { $regex: search, $options: "i" } },
-                                    { subjectCode: { $regex: search, $options: "i" } },
-                                ]
-                            }))
-                        }
-                    }
+                    { "semesterDetails.subjects.subjectName": { $regex: search, $options: "i" } },
+                    { "semesterDetails.subjects.subjectCode": { $regex: search, $options: "i" } }
                 ]
-            }
+            } : {}))
         },
         {
             $lookup: {

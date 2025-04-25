@@ -15,16 +15,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateData = exports.getAllLeadAnalytics = exports.getFilteredLeadData = exports.uploadData = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const http_errors_1 = __importDefault(require("http-errors"));
-const constants_1 = require("../../config/constants");
-const googleSheetOperations_1 = require("../helpers/googleSheetOperations");
-const parseFilter_1 = require("../helpers/parseFilter");
-const updateAndSaveToDb_1 = require("../helpers/updateAndSaveToDb");
-const leads_1 = require("../validators/leads");
-const formatResponse_1 = require("../../utils/formatResponse");
-const lead_1 = require("../models/lead");
 const axiosInstance_1 = __importDefault(require("../../api/axiosInstance"));
 const endPoints_1 = require("../../api/endPoints");
 const safeAxios_1 = require("../../api/safeAxios");
+const constants_1 = require("../../config/constants");
+const formatResponse_1 = require("../../utils/formatResponse");
+const googleSheetOperations_1 = require("../helpers/googleSheetOperations");
+const parseFilter_1 = require("../helpers/parseFilter");
+const updateAndSaveToDb_1 = require("../helpers/updateAndSaveToDb");
+const lead_1 = require("../models/lead");
+const leads_1 = require("../validators/leads");
+const dropDownMetadataController_1 = require("../../utilityModules/dropdown/dropDownMetadataController");
 exports.uploadData = (0, express_async_handler_1.default)((_, res) => __awaiter(void 0, void 0, void 0, function* () {
     const latestData = yield (0, googleSheetOperations_1.readFromGoogleSheet)();
     if (!latestData) {
@@ -57,6 +58,7 @@ exports.getFilteredLeadData = (0, express_async_handler_1.default)((req, res) =>
         leadsQuery.skip(skip).limit(limit),
         lead_1.LeadMaster.countDocuments(query),
     ]);
+    console.log(leads);
     return (0, formatResponse_1.formatResponse)(res, 200, 'Filtered leads fetched successfully', true, {
         leads,
         total: totalLeads,
@@ -112,6 +114,8 @@ exports.updateData = (0, express_async_handler_1.default)((req, res) => __awaite
             new: true,
             runValidators: true
         });
+        (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.FIX_CITY, updatedData === null || updatedData === void 0 ? void 0 : updatedData.city);
+        (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.CITY, updatedData === null || updatedData === void 0 ? void 0 : updatedData.city);
         (0, safeAxios_1.safeAxiosPost)(axiosInstance_1.default, `${endPoints_1.Endpoints.AuditLogService.MARKETING.SAVE_LEAD}`, {
             documentId: updatedData === null || updatedData === void 0 ? void 0 : updatedData._id,
             action: constants_1.RequestAction.POST,

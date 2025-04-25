@@ -76,7 +76,9 @@ var AdmissionReference;
 var DropDownType;
 (function (DropDownType) {
     DropDownType["CITY"] = "CITY";
+    DropDownType["FIX_CITY"] = "FIX_CITY";
     DropDownType["MAKRETING_SOURCE"] = "MAKRETING_SOURCE";
+    DropDownType["COURSE"] = "COURSE";
 })(DropDownType || (exports.DropDownType = DropDownType = {}));
 var Course;
 (function (Course) {

@@ -23,6 +23,7 @@ const leads_1 = require("../validators/leads");
 const axiosInstance_1 = __importDefault(require("../../api/axiosInstance"));
 const endPoints_1 = require("../../api/endPoints");
 const safeAxios_1 = require("../../api/safeAxios");
+const dropDownMetadataController_1 = require("../../utilityModules/dropdown/dropDownMetadataController");
 exports.updateYellowLead = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     const updateData = req.body;
@@ -58,6 +59,8 @@ exports.updateYellowLead = (0, express_async_handler_1.default)((req, res) => __
         new: true,
         runValidators: true
     });
+    (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.FIX_CITY, updatedYellowLead === null || updatedYellowLead === void 0 ? void 0 : updatedYellowLead.city);
+    (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.CITY, updatedYellowLead === null || updatedYellowLead === void 0 ? void 0 : updatedYellowLead.city);
     if (!updatedYellowLead) {
         throw (0, http_errors_1.default)(404, 'Yellow lead not found.');
     }
