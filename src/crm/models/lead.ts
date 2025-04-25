@@ -25,15 +25,15 @@ const leadSchema = new Schema<ILeadMasterDocument>(
     // Accepts only alphabets (both uppercase and lowercase) and spaces
     name: {
       type: String,
-      required: [true, 'Name is required'],
-      match: [/^[A-Za-z\s]+$/, 'Name can only contain alphabets and spaces'],
+      // required: [true, 'Name is required'],
+      // match: [/^[A-Za-z\s]+$/, 'Name can only contain alphabets and spaces'],
     },
     // Must be a unique Indian phone number (+91 followed by 10 digits)
     phoneNumber: {
       type: String,
-      required: [true, 'Phone Number is required'],
+      // required: [true, 'Phone Number is required'],
       // unique: [true, 'Phone Number already exists'],
-      match: [/^[1-9]\d{9}$/, 'Invalid contact number format. Expected: 1234567890'],
+      // match: [/^[1-9]\d{9}$/, 'Invalid contact number format. Expected: 1234567890'],
     },
     // Optional alternate phone number; must follow the same format as phoneNumber
     altPhoneNumber: {
@@ -43,7 +43,7 @@ const leadSchema = new Schema<ILeadMasterDocument>(
     // Email validation using regex
     email: {
       type: String,
-      match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Invalid email format']
+      // match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Invalid email format']
     },
     // Optional gender field that must be one of the predefined enum values
     gender: {
@@ -61,16 +61,12 @@ const leadSchema = new Schema<ILeadMasterDocument>(
     },
     course: {
       type: String,
-      enum: {
-        values: Object.values(Course),
-        message: 'Invalid Course Value'
-      }
     },
 
     // Required field with a custom validation error message
     assignedTo: {
-      type: Schema.Types.ObjectId,
-      required: [true, 'Assigned To is required']
+      type: [Schema.Types.ObjectId],
+      default: [],
     },
 
     // Must be one of the predefined lead types; defaults to "ORANGE"

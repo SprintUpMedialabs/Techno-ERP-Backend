@@ -7,7 +7,7 @@ import { LEAD_MARKETING_EMAIL } from '../../secrets';
 import { MarketingsheetHeaders } from '../enums/marketingSheetHeader';
 import { LeadMaster } from '../models/lead';
 import { IMarketingSpreadsheetProcessReport } from '../types/marketingSpreadsheet';
-import { ILeadRequest, leadRequestSchema } from '../validators/leads';
+import { ILeadRequest, ISheetLeadRequest, leadRequestSchema, leadSheetSchema } from '../validators/leads';
 import { formatReport } from './formatReport';
 import { updateStatusForMarketingSheet } from './googleSheetOperations';
 import { DropDownMetaData } from '../../utilityModules/dropdown/dropDownMetaDeta';
@@ -18,11 +18,12 @@ const leadsToBeInserted = async (
   report: IMarketingSpreadsheetProcessReport,
   lastSavedIndex: number,
   citySet: Set<string>,
-  sourceSet: Set<string>
+  sourceSet: Set<string>,
+  courseSet: Set<string>
 ) => {
   let MarketingEmployees: Map<string, Types.ObjectId> = new Map();
 
-  const dataToInsert: ILeadRequest[] = [];
+  const dataToInsert = [];
 
   for (const index in latestData) {
     const row = latestData[index];
@@ -37,37 +38,14 @@ const leadsToBeInserted = async (
         report.rowsFailed++;
         continue;
       }
+      console.log(row);
 
       // if assignTo is not mentationed in sheet
       if (!row[MarketingsheetHeaders.AssignedTo]) {
-        logger.info('Assigned to not found at index : ', correspondingSheetIndex);
+        // logger.info('Assigned to not found at index : ', correspondingSheetIndex);
         report.assignedToNotFound.push(correspondingSheetIndex);
         report.rowsFailed++;
         continue;
-      }
-
-      let assignedToEmail = row[MarketingsheetHeaders.AssignedTo];
-      let assignedToID = MarketingEmployees.get(assignedToEmail);
-
-      if (!assignedToID) {
-        const existingUser = await User.findOne({ email: assignedToEmail });
-        if (existingUser && existingUser.roles.includes(UserRoles.EMPLOYEE_MARKETING)) {
-          assignedToID = existingUser._id as Types.ObjectId;
-          MarketingEmployees.set(assignedToEmail, assignedToID);
-        } else {
-          if (!existingUser) {
-            report.otherIssue.push({
-              rowId: correspondingSheetIndex,
-              issue: 'Assigned to is not a valid User'
-            });
-          } else {
-            report.otherIssue.push({
-              rowId: correspondingSheetIndex,
-              issue: 'Assigned to is not a Marketing Employee'
-            });
-          }
-          continue;
-        }
       }
 
       let leadData = {
@@ -79,7 +57,12 @@ const leadsToBeInserted = async (
         ...(row[MarketingsheetHeaders.Email] && { email: row[MarketingsheetHeaders.Email] }),
         gender: Gender.NOT_TO_MENTION,
         ...(row[MarketingsheetHeaders.City] && { city: row[MarketingsheetHeaders.City] }),
-        ...(assignedToID && { assignedTo: assignedToID }),
+        ...(row[MarketingsheetHeaders.LeadType] && { leadType: row[MarketingsheetHeaders.LeadType] }),
+        ...(row[MarketingsheetHeaders.Remarks] && { remarks: row[MarketingsheetHeaders.Remarks] }),
+        ...(row[MarketingsheetHeaders.SchoolName] && { schoolName: row[MarketingsheetHeaders.SchoolName] }),
+        ...(row[MarketingsheetHeaders.Area] && { area: row[MarketingsheetHeaders.Area] }),
+        ...(row[MarketingsheetHeaders.Course] && { course: row[MarketingsheetHeaders.Course] }),
+        assignedTo: row[MarketingsheetHeaders.AssignedTo],
       };
 
       if (
@@ -88,17 +71,48 @@ const leadsToBeInserted = async (
       ) {
         leadData.gender = Gender[row[MarketingsheetHeaders.Gender] as keyof typeof Gender];
       }
-
-      const leadDataValidation = leadRequestSchema.safeParse(leadData);
+      console.log(leadData);
+      const leadDataValidation = leadSheetSchema.safeParse(leadData);
 
       if (leadDataValidation.success) {
+
+        if (leadDataValidation.data.phoneNumber.length == 0 && leadDataValidation.data.name.length == 0) {
+          report.phoneNumberAndNameEmpty.push(correspondingSheetIndex);
+          report.rowsFailed++;
+          continue;
+        }
+
         if (leadDataValidation.data.city) {
           citySet.add(formatDropdownValue(leadDataValidation.data.city));
         }
         if (leadDataValidation.data.source) {
           sourceSet.add(formatDropdownValue(leadDataValidation.data.source));
         }
-        dataToInsert.push(leadDataValidation.data);
+        if (leadDataValidation.data.course) {
+          courseSet.add(formatDropdownValue(leadDataValidation.data.course));
+        }
+        let assignedToIDs: Types.ObjectId[] = [];
+        for (const assignedTo of leadDataValidation.data.assignedTo) {
+          let assignedToID = MarketingEmployees.get(assignedTo);
+
+          if (!assignedToID) {
+            const existingUser = await User.findOne({ email: assignedTo });
+            if (existingUser && existingUser.roles.includes(UserRoles.EMPLOYEE_MARKETING)) {
+              assignedToID = existingUser._id as Types.ObjectId;
+              MarketingEmployees.set(assignedTo, assignedToID);
+            } else {
+              if (!existingUser) {
+                report.assignedToNotFound.push(correspondingSheetIndex);
+              } else {
+                report.unauthorizedAssignedTo.push(correspondingSheetIndex);
+              }
+              report.rowsFailed++;
+              continue;
+            }
+          }
+          assignedToIDs.push(assignedToID);
+        }
+        dataToInsert.push({ ...leadDataValidation.data, assignedTo: assignedToIDs });
       }
       else {
         report.rowsFailed++;
@@ -126,20 +140,25 @@ const leadsToBeInserted = async (
 export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) => {
   const report: IMarketingSpreadsheetProcessReport = {
     rowsToBeProcessed: latestData.length,
-    otherIssue: [],
     actullyProcessedRows: 0,
     rowsFailed: 0,
     duplicateRowIds: [],
     assignedToNotFound: [],
-    emptyRows: []
+    otherIssue: [],
+    emptyRows: [],
+    phoneNumberAndNameEmpty: [],
+    unauthorizedAssignedTo: [],
+    invalidPhoneNumber: [],
   };
 
   const cityDropDown = await DropDownMetaData.findOne({ type: DropDownType.CITY });
   const sourceDropDown = await DropDownMetaData.findOne({ type: DropDownType.MAKRETING_SOURCE });
+  const courseDropDown = await DropDownMetaData.findOne({ type: DropDownType.COURSE });
   const citySet = new Set(cityDropDown?.value || []);
   const sourceSet = new Set(sourceDropDown?.value || []);
+  const courseSet = new Set(courseDropDown?.value || []);
 
-  const dataToInsert = await leadsToBeInserted(latestData, report, lastSavedIndex, citySet, sourceSet);
+  const dataToInsert = await leadsToBeInserted(latestData, report, lastSavedIndex, citySet, sourceSet, courseSet);
   if (!dataToInsert || dataToInsert.length === 0) {
     if (report.rowsFailed != 0) {
       sendEmail(LEAD_MARKETING_EMAIL, 'Lead Processing Report', formatReport(report));
@@ -155,23 +174,31 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) =>
     const insertedData = await LeadMaster.insertMany(dataToInsert, { ordered: false, throwOnValidationError: true });
     report.actullyProcessedRows = insertedData.length;
   } catch (error: any) {
-    report.actullyProcessedRows = error.result.insertedCount;
+    try {
+      console.log(error);
+      report.actullyProcessedRows = error.result.insertedCount;
 
-    error.writeErrors.map((e: any) => {
-      report.rowsFailed++;
-      if (e.err.code === 11000) {
-        report.duplicateRowIds.push(e.err.index + lastSavedIndex + 1);
-      }
-      else {
-        report.otherIssue.push({ rowId: e.err.index + lastSavedIndex + 1, issue: e.err.errmsg });
-      }
-    });
+      error.writeErrors.map((e: any) => {
+        report.rowsFailed++;
+        if (e.err.code === 11000) {
+          report.duplicateRowIds.push(e.err.index + lastSavedIndex + 1);
+        }
+        else {
+          report.otherIssue.push({ rowId: e.err.index + lastSavedIndex + 1, issue: e.err.errmsg });
+        }
+      });
+    } catch (error) {
+      logger.error(`Error processing rows: ${JSON.stringify(error)}`);
+    }
   }
   if (report.rowsFailed != 0) {
     sendEmail(LEAD_MARKETING_EMAIL, 'Lead Processing Report', formatReport(report));
     logger.info('Error report sent to Lead!');
   }
-  await updateDropDownByType(DropDownType.CITY, Array.from(citySet));
-  await updateDropDownByType(DropDownType.MAKRETING_SOURCE, Array.from(sourceSet));
+  console.log(report);
+  updateDropDownByType(DropDownType.CITY, Array.from(citySet));
+  updateDropDownByType(DropDownType.MAKRETING_SOURCE, Array.from(sourceSet));
+  updateDropDownByType(DropDownType.COURSE, Array.from(courseSet));
+
   updateStatusForMarketingSheet(lastSavedIndex + latestData.length, lastSavedIndex);
 };

@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import expressAsyncHandler from 'express-async-handler';
 import createHttpError from 'http-errors';
 import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
-import { FinalConversionType, LeadType, RequestAction } from '../../config/constants';
+import { DropDownType, FinalConversionType, LeadType, RequestAction } from '../../config/constants';
 import { parseFilter } from '../helpers/parseFilter';
 import { formatResponse } from '../../utils/formatResponse';
 import { LeadMaster } from '../models/lead';
@@ -10,6 +10,7 @@ import { IYellowLeadUpdate, yellowLeadUpdateSchema } from '../validators/leads';
 import axiosInstance from '../../api/axiosInstance';
 import { Endpoints } from '../../api/endPoints';
 import { safeAxiosPost } from '../../api/safeAxios';
+import { updateOnlyOneValueInDropDown } from '../../utilityModules/dropdown/dropDownMetadataController';
 
 export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const updateData: IYellowLeadUpdate = req.body;
@@ -47,11 +48,13 @@ export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedReq
     throw createHttpError(400, 'Final conversion can not be no footfall if campus visit is yes.');
   }
 
-
   const updatedYellowLead = await LeadMaster.findByIdAndUpdate(updateData._id, updateData, {
     new: true,
     runValidators: true
   });
+
+  updateOnlyOneValueInDropDown(DropDownType.FIX_CITY, updatedYellowLead?.city);
+  updateOnlyOneValueInDropDown(DropDownType.CITY, updatedYellowLead?.city);
 
   if (!updatedYellowLead) {
     throw createHttpError(404, 'Yellow lead not found.');
