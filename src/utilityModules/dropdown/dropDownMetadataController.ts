@@ -40,7 +40,12 @@ export const updateDropDownByType = async (type: DropDownType, value: string[]) 
 
 export const updateOnlyOneValueInDropDown = async (type: DropDownType, value?: string) => {
     if (!value) return;
-    const formattedValue = formatDropdownValue(value);
+    let formattedValue;
+    if (type == DropDownType.FIX_COURSE || type == DropDownType.COURSE) {
+        formattedValue = formatCapital(value);
+    } else {
+        formattedValue = formatDropdownValue(value);
+    }
     const dropdown = await DropDownMetaData.findOne({ type });
     const dropdownSet = new Set(dropdown?.value || []);
     dropdownSet.add(formattedValue);

@@ -71,6 +71,12 @@ export const initializeDB = async () => {
         type: DropDownType.FIX_CITY,
       });
     }
+    const existingFixCourseDropDown = await DropDownMetaData.findOne({ type: DropDownType.FIX_COURSE });
+    if (!existingFixCourseDropDown) {
+      await DropDownMetaData.create({
+        type: DropDownType.FIX_COURSE,
+      });
+    }
 
   } catch (error) {
     console.error('Error initializing database:', error);
