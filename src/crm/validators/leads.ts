@@ -46,7 +46,7 @@ export const leadSheetSchema = z.object({
   name: z.string().optional().transform(toTitleCase),
   phoneNumber: z.string().optional().transform(extractLast10Digits),
   altPhoneNumber: z.string().optional().transform(extractLast10Digits),
-  email: z.string().email().optional(),
+  email: z.string().optional(),
   city: z.string().optional().transform(toTitleCase),
   assignedTo: z.string().transform(splitEmails),
   gender: z.string().optional().transform(val => val?.toUpperCase()),

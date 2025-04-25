@@ -4,6 +4,7 @@ import { DropDownType } from "../../config/constants";
 import createHttpError from "http-errors";
 import { DropDownMetaData } from "./dropDownMetaDeta";
 import { formatResponse } from "../../utils/formatResponse";
+import logger from "../../config/logger";
 
 export const getDropDownDataByType = expressAsyncHandler(async (req: Request, res: Response) => {
     const { type } = req.params;
@@ -26,11 +27,33 @@ export const updateDropDownByType = async (type: DropDownType, value: string[]) 
     // Test: we need to test whether updated values are sorted or not
     const sortedValues = value.sort((a, b) => a.localeCompare(b));
 
-    await DropDownMetaData.findOneAndUpdate(
-        { type },
-        { value: sortedValues },
-        { new: true, runValidators: true }
-    );
+    try {
+        await DropDownMetaData.findOneAndUpdate(
+            { type },
+            { value: sortedValues },
+            { new: true, runValidators: true }
+        );
+    } catch (error) {
+        logger.error(`Error updating dropdown by type: ${type}`, error);
+    }
+}
+
+export const updateOnlyOneValueInDropDown = async (type: DropDownType, value?: string) => {
+    if (!value) return;
+    const formattedValue = formatDropdownValue(value);
+    const dropdown = await DropDownMetaData.findOne({ type });
+    const dropdownSet = new Set(dropdown?.value || []);
+    dropdownSet.add(formattedValue);
+    const sortedValues = Array.from(dropdownSet).sort((a, b) => a.localeCompare(b));
+    try {
+        await DropDownMetaData.findOneAndUpdate(
+            { type },
+            { value: sortedValues },
+            { new: true, runValidators: true }
+        );
+    } catch (error) {
+        logger.error(`Error updating only one value in dropdown by type: ${type}`, error);
+    }
 }
 
 export const formatDropdownValue = (input: string): string => {

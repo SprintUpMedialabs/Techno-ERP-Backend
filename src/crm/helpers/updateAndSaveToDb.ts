@@ -38,10 +38,11 @@ const leadsToBeInserted = async (
         report.rowsFailed++;
         continue;
       }
+      console.log(row);
 
       // if assignTo is not mentationed in sheet
       if (!row[MarketingsheetHeaders.AssignedTo]) {
-        logger.info('Assigned to not found at index : ', correspondingSheetIndex);
+        // logger.info('Assigned to not found at index : ', correspondingSheetIndex);
         report.assignedToNotFound.push(correspondingSheetIndex);
         report.rowsFailed++;
         continue;
@@ -70,11 +71,11 @@ const leadsToBeInserted = async (
       ) {
         leadData.gender = Gender[row[MarketingsheetHeaders.Gender] as keyof typeof Gender];
       }
-
+      console.log(leadData);
       const leadDataValidation = leadSheetSchema.safeParse(leadData);
 
       if (leadDataValidation.success) {
-        
+
         if (leadDataValidation.data.phoneNumber.length == 0 && leadDataValidation.data.name.length == 0) {
           report.phoneNumberAndNameEmpty.push(correspondingSheetIndex);
           report.rowsFailed++;
@@ -173,23 +174,31 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) =>
     const insertedData = await LeadMaster.insertMany(dataToInsert, { ordered: false, throwOnValidationError: true });
     report.actullyProcessedRows = insertedData.length;
   } catch (error: any) {
-    report.actullyProcessedRows = error.result.insertedCount;
+    try {
+      console.log(error);
+      report.actullyProcessedRows = error.result.insertedCount;
 
-    error.writeErrors.map((e: any) => {
-      report.rowsFailed++;
-      if (e.err.code === 11000) {
-        report.duplicateRowIds.push(e.err.index + lastSavedIndex + 1);
-      }
-      else {
-        report.otherIssue.push({ rowId: e.err.index + lastSavedIndex + 1, issue: e.err.errmsg });
-      }
-    });
+      error.writeErrors.map((e: any) => {
+        report.rowsFailed++;
+        if (e.err.code === 11000) {
+          report.duplicateRowIds.push(e.err.index + lastSavedIndex + 1);
+        }
+        else {
+          report.otherIssue.push({ rowId: e.err.index + lastSavedIndex + 1, issue: e.err.errmsg });
+        }
+      });
+    } catch (error) {
+      logger.error(`Error processing rows: ${JSON.stringify(error)}`);
+    }
   }
   if (report.rowsFailed != 0) {
     sendEmail(LEAD_MARKETING_EMAIL, 'Lead Processing Report', formatReport(report));
     logger.info('Error report sent to Lead!');
   }
-  await updateDropDownByType(DropDownType.CITY, Array.from(citySet));
-  await updateDropDownByType(DropDownType.MAKRETING_SOURCE, Array.from(sourceSet));
+  console.log(report);
+  updateDropDownByType(DropDownType.CITY, Array.from(citySet));
+  updateDropDownByType(DropDownType.MAKRETING_SOURCE, Array.from(sourceSet));
+  updateDropDownByType(DropDownType.COURSE, Array.from(courseSet));
+
   updateStatusForMarketingSheet(lastSavedIndex + latestData.length, lastSavedIndex);
 };

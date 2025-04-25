@@ -5,17 +5,17 @@ import axiosInstance from '../../api/axiosInstance';
 import { Endpoints } from '../../api/endPoints';
 import { safeAxiosPost } from '../../api/safeAxios';
 import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
-import { LeadType, RequestAction } from '../../config/constants';
+import { DropDownType, LeadType, RequestAction } from '../../config/constants';
 import { formatResponse } from '../../utils/formatResponse';
 import { readFromGoogleSheet } from '../helpers/googleSheetOperations';
 import { parseFilter } from '../helpers/parseFilter';
 import { saveDataToDb } from '../helpers/updateAndSaveToDb';
 import { LeadMaster } from '../models/lead';
 import { IUpdateLeadRequestSchema, updateLeadRequestSchema } from '../validators/leads';
+import { updateOnlyOneValueInDropDown } from '../../utilityModules/dropdown/dropDownMetadataController';
 
 export const uploadData = expressAsyncHandler(async (_: AuthenticatedRequest, res: Response) => {
   const latestData = await readFromGoogleSheet();
-  console.log(latestData);
   if (!latestData) {
     return formatResponse(res, 200, 'There is no data to update.', true);
   } else {
@@ -52,6 +52,8 @@ export const getFilteredLeadData = expressAsyncHandler(
       leadsQuery.skip(skip).limit(limit),
       LeadMaster.countDocuments(query),
     ]);
+
+    console.log(leads);
 
     return formatResponse(res, 200, 'Filtered leads fetched successfully', true, {
       leads,
@@ -124,6 +126,9 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
         runValidators: true
       }
     );
+
+    updateOnlyOneValueInDropDown(DropDownType.FIX_CITY, updatedData?.city);
+    updateOnlyOneValueInDropDown(DropDownType.CITY, updatedData?.city);
 
     safeAxiosPost(axiosInstance, `${Endpoints.AuditLogService.MARKETING.SAVE_LEAD}`, {
       documentId: updatedData?._id,

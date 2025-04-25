@@ -43,7 +43,7 @@ const leadSchema = new Schema<ILeadMasterDocument>(
     // Email validation using regex
     email: {
       type: String,
-      match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Invalid email format']
+      // match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Invalid email format']
     },
     // Optional gender field that must be one of the predefined enum values
     gender: {
