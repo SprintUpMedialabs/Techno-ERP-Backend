@@ -1,7 +1,7 @@
 import { UserRoles } from "../../config/constants";
 import { authenticate, authorize } from "../../middleware/jwtAuthenticationMiddleware";
 import express from 'express';
-import { createDepartmentMetaData, getDepartmentMetaData, updateDepartmentMetaData } from "../controllers/departmentMetaDataController";
+import { createDepartmentMetaData, fetchInstructors, getDepartmentMetaData, updateDepartmentMetaData } from "../controllers/departmentMetaDataController";
 
 export const departmentMetaDataRoute = express.Router()
 
@@ -24,3 +24,10 @@ departmentMetaDataRoute.get('/',
     authorize([UserRoles.BASIC_USER]),
     getDepartmentMetaData
 );
+
+
+departmentMetaDataRoute.post('/instructors',
+    authenticate,
+    authorize([UserRoles.BASIC_USER]),
+    fetchInstructors
+)
