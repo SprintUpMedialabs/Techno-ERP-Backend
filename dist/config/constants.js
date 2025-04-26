@@ -79,6 +79,7 @@ var DropDownType;
     DropDownType["FIX_CITY"] = "FIX_CITY";
     DropDownType["MAKRETING_SOURCE"] = "MAKRETING_SOURCE";
     DropDownType["COURSE"] = "COURSE";
+    DropDownType["FIX_COURSE"] = "FIX_COURSE";
 })(DropDownType || (exports.DropDownType = DropDownType = {}));
 var Course;
 (function (Course) {

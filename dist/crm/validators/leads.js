@@ -17,7 +17,7 @@ exports.leadMasterSchema = zod_1.z.object({
     gender: zod_1.z.nativeEnum(constants_1.Gender).default(constants_1.Gender.NOT_TO_MENTION),
     area: zod_1.z.string().optional(),
     city: zod_1.z.string().optional().default('Other'),
-    course: zod_1.z.nativeEnum(constants_1.Course).optional(),
+    course: zod_1.z.string().optional(),
     assignedTo: commonSchema_1.objectIdSchema.array(),
     leadType: zod_1.z.nativeEnum(constants_1.LeadType).default(constants_1.LeadType.OPEN),
     leadTypeModifiedDate: zod_1.z.date().optional(),

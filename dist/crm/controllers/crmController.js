@@ -116,6 +116,8 @@ exports.updateData = (0, express_async_handler_1.default)((req, res) => __awaite
         });
         (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.FIX_CITY, updatedData === null || updatedData === void 0 ? void 0 : updatedData.city);
         (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.CITY, updatedData === null || updatedData === void 0 ? void 0 : updatedData.city);
+        (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.FIX_COURSE, updatedData === null || updatedData === void 0 ? void 0 : updatedData.course);
+        (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.COURSE, updatedData === null || updatedData === void 0 ? void 0 : updatedData.course);
         (0, safeAxios_1.safeAxiosPost)(axiosInstance_1.default, `${endPoints_1.Endpoints.AuditLogService.MARKETING.SAVE_LEAD}`, {
             documentId: updatedData === null || updatedData === void 0 ? void 0 : updatedData._id,
             action: constants_1.RequestAction.POST,

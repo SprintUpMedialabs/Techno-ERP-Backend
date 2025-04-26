@@ -67,7 +67,7 @@ const leadsToBeInserted = (latestData, report, lastSavedIndex, citySet, sourceSe
                     sourceSet.add((0, dropDownMetadataController_1.formatDropdownValue)(leadDataValidation.data.source));
                 }
                 if (leadDataValidation.data.course) {
-                    courseSet.add((0, dropDownMetadataController_1.formatDropdownValue)(leadDataValidation.data.course));
+                    courseSet.add((0, dropDownMetadataController_1.formatCapital)(leadDataValidation.data.course));
                 }
                 let assignedToIDs = [];
                 for (const assignedTo of leadDataValidation.data.assignedTo) {
@@ -136,7 +136,7 @@ const saveDataToDb = (latestData, lastSavedIndex) => __awaiter(void 0, void 0, v
             logger_1.default.info('Error report sent to Lead!');
         }
         logger_1.default.info('No valid data to insert.');
-        (0, googleSheetOperations_1.updateStatusForMarketingSheet)(lastSavedIndex + latestData.length, lastSavedIndex);
+        (0, googleSheetOperations_1.updateStatusForMarketingSheet)(lastSavedIndex + latestData.length, lastSavedIndex, report);
         return;
     }
     try {
@@ -169,6 +169,6 @@ const saveDataToDb = (latestData, lastSavedIndex) => __awaiter(void 0, void 0, v
     (0, dropDownMetadataController_1.updateDropDownByType)(constants_1.DropDownType.CITY, Array.from(citySet));
     (0, dropDownMetadataController_1.updateDropDownByType)(constants_1.DropDownType.MAKRETING_SOURCE, Array.from(sourceSet));
     (0, dropDownMetadataController_1.updateDropDownByType)(constants_1.DropDownType.COURSE, Array.from(courseSet));
-    (0, googleSheetOperations_1.updateStatusForMarketingSheet)(lastSavedIndex + latestData.length, lastSavedIndex);
+    (0, googleSheetOperations_1.updateStatusForMarketingSheet)(lastSavedIndex + latestData.length, lastSavedIndex, report);
 });
 exports.saveDataToDb = saveDataToDb;

@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.formatDropdownValue = exports.updateOnlyOneValueInDropDown = exports.updateDropDownByType = exports.getDropDownDataByType = void 0;
+exports.formatDropdownValue = exports.formatCapital = exports.updateOnlyOneValueInDropDown = exports.updateDropDownByType = exports.getDropDownDataByType = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const constants_1 = require("../../config/constants");
 const http_errors_1 = __importDefault(require("http-errors"));
@@ -45,7 +45,13 @@ exports.updateDropDownByType = updateDropDownByType;
 const updateOnlyOneValueInDropDown = (type, value) => __awaiter(void 0, void 0, void 0, function* () {
     if (!value)
         return;
-    const formattedValue = (0, exports.formatDropdownValue)(value);
+    let formattedValue;
+    if (type == constants_1.DropDownType.FIX_COURSE || type == constants_1.DropDownType.COURSE) {
+        formattedValue = (0, exports.formatCapital)(value);
+    }
+    else {
+        formattedValue = (0, exports.formatDropdownValue)(value);
+    }
     const dropdown = yield dropDownMetaDeta_1.DropDownMetaData.findOne({ type });
     const dropdownSet = new Set((dropdown === null || dropdown === void 0 ? void 0 : dropdown.value) || []);
     dropdownSet.add(formattedValue);
@@ -58,6 +64,11 @@ const updateOnlyOneValueInDropDown = (type, value) => __awaiter(void 0, void 0, 
     }
 });
 exports.updateOnlyOneValueInDropDown = updateOnlyOneValueInDropDown;
+const formatCapital = (input) => {
+    return input
+        .toUpperCase();
+};
+exports.formatCapital = formatCapital;
 const formatDropdownValue = (input) => {
     if (!input.trim())
         return '';
