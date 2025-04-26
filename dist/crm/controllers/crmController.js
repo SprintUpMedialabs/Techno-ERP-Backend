@@ -58,7 +58,6 @@ exports.getFilteredLeadData = (0, express_async_handler_1.default)((req, res) =>
         leadsQuery.skip(skip).limit(limit),
         lead_1.LeadMaster.countDocuments(query),
     ]);
-    console.log(leads);
     return (0, formatResponse_1.formatResponse)(res, 200, 'Filtered leads fetched successfully', true, {
         leads,
         total: totalLeads,

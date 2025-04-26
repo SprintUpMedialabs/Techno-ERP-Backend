@@ -9,7 +9,8 @@ exports.baseDepartmentMetaDataSchema = zod_1.z.object({
     startingYear: zod_1.z.number().refine(val => /^\d{4}$/.test(val.toString()), {
         message: "Year must be a valid 4 digit number!"
     }),
-    endingYear: zod_1.z.number().optional()
+    endingYear: zod_1.z.number().optional(),
+    instructors: zod_1.z.array(commonSchema_1.objectIdSchema)
 });
 exports.departmentMetaDataSchema = exports.baseDepartmentMetaDataSchema.superRefine(({ startingYear, endingYear }, ctx) => {
     if (!endingYear)

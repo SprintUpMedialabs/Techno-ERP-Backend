@@ -14,7 +14,8 @@ else if (process.env.NODE_ENV === 'uat') {
     envFile = '.env.uat';
 }
 else {
-    envFile = '.env';
+    // envFile = '.env';
+    envFile = '.env.uat';
 }
 dotenv_1.default.config({ path: path_1.default.resolve(__dirname, '../', envFile) });
 exports.MONGODB_DATABASE_URL = process.env.MONGODB_DATABASE_URL;

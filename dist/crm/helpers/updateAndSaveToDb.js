@@ -39,7 +39,6 @@ const leadsToBeInserted = (latestData, report, lastSavedIndex, citySet, sourceSe
                 report.rowsFailed++;
                 continue;
             }
-            console.log(row);
             // if assignTo is not mentationed in sheet
             if (!row[marketingSheetHeader_1.MarketingsheetHeaders.AssignedTo]) {
                 // logger.info('Assigned to not found at index : ', correspondingSheetIndex);
@@ -52,7 +51,6 @@ const leadsToBeInserted = (latestData, report, lastSavedIndex, citySet, sourceSe
                 constants_1.Gender[row[marketingSheetHeader_1.MarketingsheetHeaders.Gender]]) {
                 leadData.gender = constants_1.Gender[row[marketingSheetHeader_1.MarketingsheetHeaders.Gender]];
             }
-            console.log(leadData);
             const leadDataValidation = leads_1.leadSheetSchema.safeParse(leadData);
             if (leadDataValidation.success) {
                 if (leadDataValidation.data.phoneNumber.length == 0 && leadDataValidation.data.name.length == 0) {
@@ -145,7 +143,6 @@ const saveDataToDb = (latestData, lastSavedIndex) => __awaiter(void 0, void 0, v
     }
     catch (error) {
         try {
-            console.log(error);
             report.actullyProcessedRows = error.result.insertedCount;
             error.writeErrors.map((e) => {
                 report.rowsFailed++;

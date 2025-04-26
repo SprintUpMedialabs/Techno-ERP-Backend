@@ -23,12 +23,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getDepartmentMetaData = exports.updateDepartmentMetaData = exports.createDepartmentMetaData = void 0;
+exports.fetchInstructors = exports.getDepartmentMetaData = exports.updateDepartmentMetaData = exports.createDepartmentMetaData = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const departmentSchema_1 = require("../validators/departmentSchema");
 const http_errors_1 = __importDefault(require("http-errors"));
 const department_1 = require("../models/department");
 const formatResponse_1 = require("../../utils/formatResponse");
+const user_1 = require("../../auth/models/user");
 exports.createDepartmentMetaData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const departmentMetaData = req.body;
     const validation = departmentSchema_1.departmentMetaDataSchema.safeParse(departmentMetaData);
@@ -65,4 +66,26 @@ exports.getDepartmentMetaData = (0, express_async_handler_1.default)((req, res) 
         return Object.assign({ departmentMetaDataId: _id }, deptInfo);
     });
     return (0, formatResponse_1.formatResponse)(res, 200, 'Department metadata fetched successfully', true, formattedDepartments);
+}));
+exports.fetchInstructors = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { departmentName } = req.body;
+    const department = yield department_1.DepartmentMetaData.findOne({ departmentName });
+    if (!department) {
+        return res.status(404).json({ message: 'Department not found' });
+    }
+    const instructorIds = department.instructors;
+    const instructors = yield Promise.all(instructorIds.map((instructorId) => __awaiter(void 0, void 0, void 0, function* () {
+        const instructor = yield user_1.User.findById(instructorId).select('_id firstName lastName email');
+        if (!instructor)
+            return null;
+        return {
+            _id: instructor._id,
+            instructorId: instructor._id,
+            name: `${instructor.firstName} ${instructor.lastName}`,
+            email: instructor.email
+        };
+    })));
+    const filteredInstructors = instructors.filter((instructor) => instructor !== null);
+    console.log("Filtered Instructors are : ", filteredInstructors);
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Instructors fetched successfully', true, filteredInstructors);
 }));
