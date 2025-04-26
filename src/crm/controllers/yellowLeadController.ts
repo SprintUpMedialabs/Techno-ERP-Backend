@@ -40,7 +40,7 @@ export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedReq
 
   // If the campus visit is no, then the final conversion can not be changed.
   if ((updateData.footFall ?? existingLead.footFall) === false) {
-    if (updateData.finalConversion !== FinalConversionType.NO_FOOTFALL) {
+    if (updateData.finalConversion && updateData.finalConversion !== FinalConversionType.NO_FOOTFALL) {
       throw createHttpError(400, 'Final conversion can not be changed if campus visit is no.');
     }
   } else if (updateData.finalConversion === FinalConversionType.NO_FOOTFALL) {
