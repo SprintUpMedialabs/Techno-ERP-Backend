@@ -13,7 +13,16 @@ import path from 'path';
 
 const app = express();
 
-const envFile = process.env.NODE_ENV === 'production' ? '.env.uat' : '.env.uat';
+let envFile;
+
+if (!process.env.NODE_ENV) {
+  envFile = '.env';
+} else if (process.env.NODE_ENV === 'production') {
+  envFile = '.env.prod';
+} else {
+  envFile = '.env.uat';
+}
+
 dotenv.config({ path: path.resolve(__dirname, envFile) });
 
 
