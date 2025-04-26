@@ -38,7 +38,6 @@ const leadsToBeInserted = async (
         report.rowsFailed++;
         continue;
       }
-      console.log(row);
 
       // if assignTo is not mentationed in sheet
       if (!row[MarketingsheetHeaders.AssignedTo]) {
@@ -71,7 +70,7 @@ const leadsToBeInserted = async (
       ) {
         leadData.gender = Gender[row[MarketingsheetHeaders.Gender] as keyof typeof Gender];
       }
-      console.log(leadData);
+
       const leadDataValidation = leadSheetSchema.safeParse(leadData);
 
       if (leadDataValidation.success) {
@@ -175,7 +174,6 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) =>
     report.actullyProcessedRows = insertedData.length;
   } catch (error: any) {
     try {
-      console.log(error);
       report.actullyProcessedRows = error.result.insertedCount;
 
       error.writeErrors.map((e: any) => {

@@ -5,6 +5,7 @@ import { Response } from "express";
 import createHttpError from "http-errors";
 import { DepartmentMetaData } from "../models/department";
 import { formatResponse } from "../../utils/formatResponse";
+import { User } from "../../auth/models/user";
 
 export const createDepartmentMetaData = expressAsyncHandler(async (req : AuthenticatedRequest, res : Response)=>{
     const departmentMetaData : IDepartmentMetaDataSchema = req.body;
@@ -64,4 +65,36 @@ export const getDepartmentMetaData = expressAsyncHandler(async (req : Authentica
     });
 
     return formatResponse(res, 200, 'Department metadata fetched successfully', true, formattedDepartments);
+})
+
+
+export const fetchInstructors = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const { departmentName } = req.body; 
+    const department = await DepartmentMetaData.findOne({ departmentName });
+
+    if (!department) {
+        return res.status(404).json({ message: 'Department not found' });
+    }
+
+    const instructorIds = department.instructors as any[];
+
+    const instructors = await Promise.all(
+        instructorIds.map(async (instructorId) => {
+            const instructor = await User.findById(instructorId).select('_id firstName lastName email');
+
+            if (!instructor) 
+                return null; 
+
+            return {
+                _id: instructor._id,
+                instructorId: instructor._id,
+                name: `${instructor.firstName} ${instructor.lastName}`,
+                email: instructor.email
+            };
+        })
+    );
+
+    const filteredInstructors = instructors.filter((instructor) => instructor !== null);
+    console.log("Filtered Instructors are : ", filteredInstructors);
+    return formatResponse(res, 200, 'Instructors fetched successfully', true, filteredInstructors);
 })

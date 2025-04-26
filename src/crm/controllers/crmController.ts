@@ -53,8 +53,6 @@ export const getFilteredLeadData = expressAsyncHandler(
       LeadMaster.countDocuments(query),
     ]);
 
-    console.log(leads);
-
     return formatResponse(res, 200, 'Filtered leads fetched successfully', true, {
       leads,
       total: totalLeads,
