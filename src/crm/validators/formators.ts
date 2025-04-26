@@ -5,12 +5,12 @@ export const formatDate = (date: string | undefined): string => {
         const dd = String(today.getDate()).padStart(2, "0");
         const mm = String(today.getMonth() + 1).padStart(2, "0"); // Months are zero-based
         const yyyy = today.getFullYear();
-        date = `${dd}/${mm}/${yyyy}`;
+        date = `${mm}/${dd}/${yyyy}`;
     }
     const normalized = date.replace(/-/g, "/");
     const parts = normalized.split("/");
     if (parts.length === 3) {
-        let [day, month, year] = parts;
+        let [month, day, year] = parts;
         if (year.length === 2) {
             year = "20" + year;
         }

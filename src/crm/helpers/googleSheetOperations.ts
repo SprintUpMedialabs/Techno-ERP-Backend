@@ -27,26 +27,19 @@ export const readFromGoogleSheet = async () => {
 
   if (!sheetInfo) throw new Error('Sheet not found');
 
-  const sheetId = sheetInfo.properties?.sheetId!;
-  const currentMaxRows = sheetInfo.properties?.gridProperties?.rowCount!;
-  console.log("Sheet ID is : ", sheetId);
-  console.log("Current Max Rows : ", currentMaxRows);
-
-  // const lastSavedIndex = 804;
-
   const range = `${MARKETING_SHEET_PAGE_NAME}!A${lastSavedIndex + 1}:Z`;
   const sheetResponse = await sheetInstance.spreadsheets.values.get({
     spreadsheetId: MARKETING_SHEET_ID,
     range
   });
 
-  console.log("Temp here!");
-
   const rowData = sheetResponse.data.values;
   if (!rowData || rowData.length === 0) {
     logger.info('No new data found in the sheet.');
     return;
   }
+
+  console.log(rowData);
 
   const newLastReadIndex = lastSavedIndex + rowData.length;
   logger.info(`New Last Read Index: ${newLastReadIndex}`);
@@ -57,7 +50,7 @@ export const readFromGoogleSheet = async () => {
   };
 };
 
-export const updateStatusForMarketingSheet = async (newLastReadIndex: number, lastSavedIndex: number, report : IMarketingSpreadsheetProcessReport) => {
+export const updateStatusForMarketingSheet = async (newLastReadIndex: number, lastSavedIndex: number, report: IMarketingSpreadsheetProcessReport) => {
   const sheetInstance = google.sheets({ version: 'v4', auth: googleAuth });
 
   await SpreadSheetMetaData.findOneAndUpdate(
@@ -77,9 +70,6 @@ export const updateStatusForMarketingSheet = async (newLastReadIndex: number, la
   if (!sheetInfo) throw new Error('Sheet not found');
 
   const sheetId = sheetInfo.properties?.sheetId!;
-  const currentMaxRows = sheetInfo.properties?.gridProperties?.rowCount!;
-  console.log("Sheet ID is : ", sheetId);
-  console.log("Current Max Rows : ", currentMaxRows);
 
   const pinkRows = report.duplicateRowIds;
   const redRows1 = report.assignedToNotFound;
@@ -87,22 +77,6 @@ export const updateStatusForMarketingSheet = async (newLastReadIndex: number, la
   const redRows = [...redRows1, ...redRows2];
 
   const requests: any[] = [
-    //White
-    {
-      repeatCell: {
-        range: {
-          sheetId,
-          startRowIndex: lastSavedIndex - 1,
-          endRowIndex: lastSavedIndex,
-        },
-        cell: {
-          userEnteredFormat: {
-            backgroundColor: { red: 1.0, green: 1.0, blue: 1.0 },
-          },
-        },
-        fields: 'userEnteredFormat.backgroundColor',
-      },
-    },
     //Green
     {
       repeatCell: {
@@ -139,6 +113,25 @@ export const updateStatusForMarketingSheet = async (newLastReadIndex: number, la
       },
     });
   });
+
+  if (lastSavedIndex > 1) {
+    requests.push({
+      //White
+      repeatCell: {
+        range: {
+          sheetId,
+          startRowIndex: lastSavedIndex - 1,
+          endRowIndex: lastSavedIndex,
+        },
+        cell: {
+          userEnteredFormat: {
+            backgroundColor: { red: 1.0, green: 1.0, blue: 1.0 },
+          },
+        },
+        fields: 'userEnteredFormat.backgroundColor',
+      },
+    });
+  }
 
   //Pink
   pinkRows.forEach((rowIndex) => {
