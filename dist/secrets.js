@@ -7,14 +7,14 @@ exports.SERVICE_AUTH_TOKEN = exports.AUDIT_LOG_SERVICE_URL = exports.NODE_ENV = 
 const dotenv_1 = __importDefault(require("dotenv"));
 const path_1 = __importDefault(require("path"));
 let envFile;
-if (!process.env.NODE_ENV) {
-    envFile = '.env';
-}
-else if (process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV === 'production') {
     envFile = '.env.prod';
 }
-else {
+else if (process.env.NODE_ENV === 'uat') {
     envFile = '.env.uat';
+}
+else {
+    envFile = '.env';
 }
 dotenv_1.default.config({ path: path_1.default.resolve(__dirname, '../', envFile) });
 exports.MONGODB_DATABASE_URL = process.env.MONGODB_DATABASE_URL;
