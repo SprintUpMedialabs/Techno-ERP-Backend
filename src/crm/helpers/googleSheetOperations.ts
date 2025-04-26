@@ -4,6 +4,7 @@ import { SpreadSheetMetaData } from '../models/spreadSheet';
 import { googleAuth } from './googleAuth';
 import { MARKETING_SHEET_PAGE_NAME, MARKETING_SHEET_ID } from '../../secrets';
 import { MARKETING_SHEET } from '../../config/constants';
+import { IMarketingSpreadsheetProcessReport } from '../types/marketingSpreadsheet';
 
 // TODO: what if google api is down? we will focus on this on phase - 2
 
@@ -16,11 +17,30 @@ export const readFromGoogleSheet = async () => {
   const lastSavedIndex = spreadSheetMetaData?.lastIdxMarketingSheet!;
   logger.info(`Last saved index from DB: ${lastSavedIndex}`);
 
+  const sheetMeta = await sheetInstance.spreadsheets.get({
+    spreadsheetId: MARKETING_SHEET_ID
+  });
+
+  const sheetInfo = sheetMeta.data.sheets?.find(
+    sheet => sheet.properties?.title === MARKETING_SHEET_PAGE_NAME
+  );
+
+  if (!sheetInfo) throw new Error('Sheet not found');
+
+  const sheetId = sheetInfo.properties?.sheetId!;
+  const currentMaxRows = sheetInfo.properties?.gridProperties?.rowCount!;
+  console.log("Sheet ID is : ", sheetId);
+  console.log("Current Max Rows : ", currentMaxRows);
+
+  // const lastSavedIndex = 804;
+
   const range = `${MARKETING_SHEET_PAGE_NAME}!A${lastSavedIndex + 1}:Z`;
   const sheetResponse = await sheetInstance.spreadsheets.values.get({
     spreadsheetId: MARKETING_SHEET_ID,
     range
   });
+
+  console.log("Temp here!");
 
   const rowData = sheetResponse.data.values;
   if (!rowData || rowData.length === 0) {
@@ -37,7 +57,7 @@ export const readFromGoogleSheet = async () => {
   };
 };
 
-export const updateStatusForMarketingSheet = async (newLastReadIndex: number, lastSavedIndex: number) => {
+export const updateStatusForMarketingSheet = async (newLastReadIndex: number, lastSavedIndex: number, report : IMarketingSpreadsheetProcessReport) => {
   const sheetInstance = google.sheets({ version: 'v4', auth: googleAuth });
 
   await SpreadSheetMetaData.findOneAndUpdate(
@@ -46,50 +66,102 @@ export const updateStatusForMarketingSheet = async (newLastReadIndex: number, la
     { new: true, upsert: true }
   );
 
+  const sheetMeta = await sheetInstance.spreadsheets.get({
+    spreadsheetId: MARKETING_SHEET_ID
+  });
+
+  const sheetInfo = sheetMeta.data.sheets?.find(
+    sheet => sheet.properties?.title === MARKETING_SHEET_PAGE_NAME
+  );
+
+  if (!sheetInfo) throw new Error('Sheet not found');
+
+  const sheetId = sheetInfo.properties?.sheetId!;
+  const currentMaxRows = sheetInfo.properties?.gridProperties?.rowCount!;
+  console.log("Sheet ID is : ", sheetId);
+  console.log("Current Max Rows : ", currentMaxRows);
+
+  const pinkRows = report.duplicateRowIds;
+  const redRows1 = report.assignedToNotFound;
+  const redRows2 = report.phoneNumberAndNameEmpty;
+  const redRows = [...redRows1, ...redRows2];
+
+  const requests: any[] = [
+    //White
+    {
+      repeatCell: {
+        range: {
+          sheetId,
+          startRowIndex: lastSavedIndex - 1,
+          endRowIndex: lastSavedIndex,
+        },
+        cell: {
+          userEnteredFormat: {
+            backgroundColor: { red: 1.0, green: 1.0, blue: 1.0 },
+          },
+        },
+        fields: 'userEnteredFormat.backgroundColor',
+      },
+    },
+    //Green
+    {
+      repeatCell: {
+        range: {
+          sheetId,
+          startRowIndex: newLastReadIndex - 1,
+          endRowIndex: newLastReadIndex,
+        },
+        cell: {
+          userEnteredFormat: {
+            backgroundColor: { red: 0.0, green: 0.5019608, blue: 0.0 },
+          },
+        },
+        fields: 'userEnteredFormat.backgroundColor',
+      },
+    },
+  ];
+
+  //Red
+  redRows.forEach((rowIndex) => {
+    requests.push({
+      repeatCell: {
+        range: {
+          sheetId,
+          startRowIndex: rowIndex - 1,
+          endRowIndex: rowIndex,
+        },
+        cell: {
+          userEnteredFormat: {
+            backgroundColor: { red: 1.0, green: 0.0, blue: 0.0 },
+          },
+        },
+        fields: 'userEnteredFormat.backgroundColor',
+      },
+    });
+  });
+
+  //Pink
+  pinkRows.forEach((rowIndex) => {
+    requests.push({
+      repeatCell: {
+        range: {
+          sheetId,
+          startRowIndex: rowIndex - 1,
+          endRowIndex: rowIndex,
+        },
+        cell: {
+          userEnteredFormat: {
+            backgroundColor: { red: 1.0, green: 0.8, blue: 0.9 },
+          },
+        },
+        fields: 'userEnteredFormat.backgroundColor',
+      },
+    });
+  });
+
   await sheetInstance.spreadsheets.batchUpdate({
     spreadsheetId: MARKETING_SHEET_ID,
-    requestBody: {
-      requests: [
-        {
-          repeatCell: {
-            range: {
-              //Sheet ID can be found using the gid in sheet url, in case if we transfer entire data from one sheet to any other sheet, and we want same functionality to exist on that other sheet, we need to update this sheet id.
-              sheetId: Number(MARKETING_SHEET_ID),
-              startRowIndex: lastSavedIndex - 1,
-              endRowIndex: lastSavedIndex
-            },
-            cell: {
-              userEnteredFormat: {
-                backgroundColor: {
-                  red: 1.0,
-                  green: 1.0,
-                  blue: 1.0
-                }
-              }
-            },
-            fields: 'userEnteredFormat.backgroundColor'
-          }
-        },
-        {
-          repeatCell: {
-            range: {
-              sheetId: Number(MARKETING_SHEET_ID),
-              startRowIndex: newLastReadIndex - 1,
-              endRowIndex: newLastReadIndex
-            },
-            cell: {
-              userEnteredFormat: {
-                backgroundColor: {
-                  red: 0.0,
-                  green: 0.5019608,
-                  blue: 0.0
-                }
-              }
-            },
-            fields: 'userEnteredFormat.backgroundColor'
-          }
-        }
-      ]
-    }
+    requestBody: { requests },
   });
+
 };

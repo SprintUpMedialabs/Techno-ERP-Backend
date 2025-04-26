@@ -15,7 +15,7 @@ export const leadMasterSchema = z.object({
   gender: z.nativeEnum(Gender).default(Gender.NOT_TO_MENTION),
   area: z.string().optional(),
   city: z.string().optional().default('Other'),
-  course: z.nativeEnum(Course).optional(),
+  course: z.string().optional(),
   assignedTo: objectIdSchema.array(),
   leadType: z.nativeEnum(LeadType).default(LeadType.OPEN),
   leadTypeModifiedDate: z.date().optional(),
