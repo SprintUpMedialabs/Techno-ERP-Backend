@@ -8,8 +8,7 @@ if (process.env.NODE_ENV === 'production') {
 } else if (process.env.NODE_ENV === 'uat') {
     envFile = '.env.uat';
 } else {
-    // envFile = '.env';
-    envFile = '.env.uat';
+    envFile = '.env';
 }
 
 dotenv.config({ path: path.resolve(__dirname, '../', envFile) });
