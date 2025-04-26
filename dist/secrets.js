@@ -6,7 +6,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SERVICE_AUTH_TOKEN = exports.AUDIT_LOG_SERVICE_URL = exports.NODE_ENV = exports.AWS_BUCKET_NAME = exports.AWS_REGION = exports.AWS_SECRET_ACCESS_KEY = exports.AWS_ACCESS_KEY_ID = exports.AUTH_API_PATH = exports.LEAD_MARKETING_EMAIL = exports.MARKETING_SHEET_PAGE_NAME = exports.GOOGLE_SA_PRIVATE_KEY = exports.GOOGLE_SA_CLIENT_EMAIL = exports.MARKETING_SHEET_ID = exports.MONGODB_DATABASE_NAME = exports.CRYPTO_HASH_SECRET = exports.JWT_SECRET = exports.NODEMAILER_GMAIL_APP_PASSWORD = exports.NODEMAILER_PORT = exports.NODEMAILER_SENDER_ADDRESS = exports.NODEMAILER_HOST = exports.PORT = exports.MONGODB_DATABASE_URL = void 0;
 const dotenv_1 = __importDefault(require("dotenv"));
 const path_1 = __importDefault(require("path"));
-const envFile = process.env.NODE_ENV === 'production' ? '.env.prod' : '.env.uat';
+let envFile;
+if (process.env.NODE_ENV === 'production') {
+    envFile = '.env.prod';
+}
+else if (process.env.NODE_ENV === 'uat') {
+    envFile = '.env.uat';
+}
+else {
+    envFile = '.env';
+}
 dotenv_1.default.config({ path: path_1.default.resolve(__dirname, '../', envFile) });
 exports.MONGODB_DATABASE_URL = process.env.MONGODB_DATABASE_URL;
 exports.PORT = process.env.PORT;
