@@ -297,3 +297,29 @@ export enum CourseMaterialType{
   PPLAN = 'PPlan',
   GENERAL = 'General'
 }
+
+
+export enum CourseYears{
+  First = 'First',
+  Second = 'Second',
+  Third = 'Third',
+  Fourth = 'Fourth',
+  Fifth = 'Fifth',
+  Sixth = 'Sixth'
+}
+
+
+export enum FeeTypes{
+
+}
+
+export enum FeeStatus{
+  DUE = "DUE",
+  PAID = "PAID"
+}
+
+
+export enum FeeActions{
+  REFUND = "REFUND",
+  DEPOSIT = "DEPOSIT"
+}
