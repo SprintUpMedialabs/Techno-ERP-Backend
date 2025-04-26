@@ -6,10 +6,14 @@ export interface IMarketingSpreadsheetProcessReport {
   rowsToBeProcessed: number;
   actullyProcessedRows: number;
   rowsFailed: number;
+  
   duplicateRowIds: number[];
+  phoneNumberAndNameEmpty: number[];
   assignedToNotFound: number[];
-  otherIssue: { rowId: number; issue: string }[];
   emptyRows: number[];
+  unauthorizedAssignedTo: number[];
+  invalidPhoneNumber: number[];
+  otherIssue: { rowId: number; issue: string }[];
 }
 
 // Interface for Filtering Leads

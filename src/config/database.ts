@@ -59,6 +59,24 @@ export const initializeDB = async () => {
         type: DropDownType.MAKRETING_SOURCE,
       });
     }
+    const existingCourseDropDown = await DropDownMetaData.findOne({ type: DropDownType.COURSE });
+    if (!existingCourseDropDown) {
+      await DropDownMetaData.create({
+        type: DropDownType.COURSE,
+      });
+    }
+    const existingFixCityDropDown = await DropDownMetaData.findOne({ type: DropDownType.FIX_CITY });
+    if (!existingFixCityDropDown) {
+      await DropDownMetaData.create({
+        type: DropDownType.FIX_CITY,
+      });
+    }
+    const existingFixCourseDropDown = await DropDownMetaData.findOne({ type: DropDownType.FIX_COURSE });
+    if (!existingFixCourseDropDown) {
+      await DropDownMetaData.create({
+        type: DropDownType.FIX_COURSE,
+      });
+    }
 
   } catch (error) {
     console.error('Error initializing database:', error);
