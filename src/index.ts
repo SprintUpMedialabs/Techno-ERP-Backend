@@ -15,12 +15,12 @@ const app = express();
 
 let envFile;
 
-if (!process.env.NODE_ENV) {
-  envFile = '.env';
-} else if (process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV === 'production') {
   envFile = '.env.prod';
-} else {
+} else if (process.env.NODE_ENV === 'uat') {
   envFile = '.env.uat';
+} else {
+  envFile = '.env';
 }
 
 dotenv.config({ path: path.resolve(__dirname, envFile) });
