@@ -168,7 +168,8 @@ export enum DocumentType {
   AADHAR = 'Aadhar',
   DECLARATION_FILLED = 'Declaration_Filled',
   PHYSICALLY_HANDICAPPED_CERTIFICATE = 'Physically_Handicapped_Certificate',
-  EWS_CERTIFICATE = 'EWS_Certificate'
+  EWS_CERTIFICATE = 'EWS_Certificate',
+  SIGNATURE = 'Signature'
 }
 
 
@@ -235,14 +236,14 @@ export enum Countries {
   NON_INDIA = "Non-India"
 }
 
-export enum Districts {
-  Lucknow = "Lucknow",
-  Sitapur = "Sitapur",
-  Hardoi = "Hardoi",
-  Barabanki = "Barabanki",
-  Raebareli = "Raebareli",
-  Unnao = "Unnao",
-}
+// export enum Districts {
+//   Lucknow = "Lucknow",
+//   Sitapur = "Sitapur",
+//   Hardoi = "Hardoi",
+//   Barabanki = "Barabanki",
+//   Raebareli = "Raebareli",
+//   Unnao = "Unnao",
+// }
 
 export enum AreaType{
   URBAN = "URBAN",
