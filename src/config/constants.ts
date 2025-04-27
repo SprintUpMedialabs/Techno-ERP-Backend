@@ -15,8 +15,7 @@ export enum UserRoles {
 export enum Gender {
   MALE = 'MALE',
   FEMALE = 'FEMALE',
-  OTHER = 'OTHERS',
-  NOT_TO_MENTION = 'NOT_TO_MENTION'
+  OTHER = 'OTHERS'
 }
 
 
@@ -73,14 +72,20 @@ export enum AdmissionReference {
   Other = "Other"
 };
 
-export enum DropDownType{
+export enum DropDownType {
   CITY = "CITY",
   FIX_CITY = "FIX_CITY",
+  DISTRICT = "DISTRICT",
   MAKRETING_SOURCE = "MAKRETING_SOURCE",
   COURSE = "COURSE",
   FIX_COURSE = "FIX_COURSE"
 }
 
+export enum PhysicalDocumentNoteStatus {
+  PENDING = "PENDING",
+  VERIFIED = "VERIFIED",
+  NOT_APPLICABLE = "NOT_APPLICABLE"
+}
 
 export enum Course {
   BCOM = "BCOM",
@@ -168,7 +173,8 @@ export enum DocumentType {
   AADHAR = 'Aadhar',
   DECLARATION_FILLED = 'Declaration_Filled',
   PHYSICALLY_HANDICAPPED_CERTIFICATE = 'Physically_Handicapped_Certificate',
-  EWS_CERTIFICATE = 'EWS_Certificate'
+  EWS_CERTIFICATE = 'EWS_Certificate',
+  SIGNATURE = 'Signature'
 }
 
 
@@ -223,28 +229,61 @@ export enum AdmissionMode {
   OFFLINE = "OFFLINE"
 }
 
-
-
 export enum StatesOfIndia {
-  OTHER = "Other",
-  UttarPradesh = "Uttar Pradesh",
+  ANDHRA_PRADESH = "Andhra Pradesh",
+  ARUNACHAL_PRADESH = "Arunachal Pradesh",
+  ASSAM = "Assam",
+  BIHAR = "Bihar",
+  CHHATTISGARH = "Chhattisgarh",
+  GOA = "Goa",
+  GUJARAT = "Gujarat",
+  HARYANA = "Haryana",
+  HIMACHAL_PRADESH = "Himachal Pradesh",
+  JHARKHAND = "Jharkhand",
+  KARNATAKA = "Karnataka",
+  KERALA = "Kerala",
+  MADHYA_PRADESH = "Madhya Pradesh",
+  MAHARASHTRA = "Maharashtra",
+  MANIPUR = "Manipur",
+  MEGHALAYA = "Meghalaya",
+  MIZORAM = "Mizoram",
+  NAGALAND = "Nagaland",
+  ODISHA = "Odisha",
+  PUNJAB = "Punjab",
+  RAJASTHAN = "Rajasthan",
+  SIKKIM = "Sikkim",
+  TAMIL_NADU = "Tamil Nadu",
+  TELANGANA = "Telangana",
+  TRIPURA = "Tripura",
+  UTTAR_PRADESH = "Uttar Pradesh",
+  UTTARAKHAND = "Uttarakhand",
+  WEST_BENGAL = "West Bengal",
+  ANDAMAN_AND_NICOBAR_ISLANDS = "Andaman and Nicobar Islands",
+  CHANDIGARH = "Chandigarh",
+  DADRA_AND_NAGAR_HAVELI_AND_DAMAN_AND_DIU = "Dadra and Nagar Haveli and Daman and Diu",
+  DELHI = "Delhi",
+  JAMMU_AND_KASHMIR = "Jammu and Kashmir",
+  LADAKH = "Ladakh",
+  LAKSHADWEEP = "Lakshadweep",
+  PUDUCHERRY = "Puducherry"
 }
+
 
 export enum Countries {
   India = "India",
   NON_INDIA = "Non-India"
 }
 
-export enum Districts {
-  Lucknow = "Lucknow",
-  Sitapur = "Sitapur",
-  Hardoi = "Hardoi",
-  Barabanki = "Barabanki",
-  Raebareli = "Raebareli",
-  Unnao = "Unnao",
-}
+// export enum Districts {
+//   Lucknow = "Lucknow",
+//   Sitapur = "Sitapur",
+//   Hardoi = "Hardoi",
+//   Barabanki = "Barabanki",
+//   Raebareli = "Raebareli",
+//   Unnao = "Unnao",
+// }
 
-export enum AreaType{
+export enum AreaType {
   URBAN = "URBAN",
   RURAL = "RURAL",
   OTHERS = "OTHERS"
@@ -256,7 +295,7 @@ export const ADMISSION = 'admissions'
 export const TGI = "TGI";
 export const PHOTO = "PHOTO";
 
-export const MARKETING_SHEET = 'Marketing Sheet'
+// export const MARKETING_SHEET = 'Marketing Sheet'
 
 
 export enum COLLECTION_NAMES {
@@ -279,7 +318,7 @@ export enum COLLECTION_NAMES {
 }
 
 
-export enum LectureConfirmation{
+export enum LectureConfirmation {
   CONFIRMED = 'CONFIRMED',
   DELAYED = 'DELAYED',
   TO_BE_DONE = 'TO_BE_DONE'
@@ -292,7 +331,7 @@ export enum RequestAction {
   PATCH = "PATCH",
 }
 
-export enum CourseMaterialType{
+export enum CourseMaterialType {
   LPLAN = 'LPlan',
   PPLAN = 'PPlan',
   GENERAL = 'General'

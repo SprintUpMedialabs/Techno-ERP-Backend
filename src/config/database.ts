@@ -1,10 +1,9 @@
 import mongoose from 'mongoose';
-import { SpreadSheetMetaData } from '../crm/models/spreadSheet';
-import logger from './logger';
-import { DropDownType, FormNoPrefixes, MARKETING_SHEET, PHOTO } from './constants';
-import { MONGODB_DATABASE_NAME, MONGODB_DATABASE_URL } from '../secrets';
 import { EnquiryApplicationId } from '../admission/models/enquiryIdMetaDataSchema';
+import { MONGODB_DATABASE_NAME, MONGODB_DATABASE_URL } from '../secrets';
 import { DropDownMetaData } from '../utilityModules/dropdown/dropDownMetaDeta';
+import { DropDownType, FormNoPrefixes, PHOTO } from './constants';
+import logger from './logger';
 
 const connectToDatabase = async (): Promise<void> => {
   try {
@@ -20,16 +19,16 @@ const connectToDatabase = async (): Promise<void> => {
 
 export const initializeDB = async () => {
   try {
-    const existingDoc = await SpreadSheetMetaData.find({ name: MARKETING_SHEET });
-    if (existingDoc.length == 0) {
-      await SpreadSheetMetaData.create({
-        name: MARKETING_SHEET,
-        lastIdxMarketingSheet: 1
-      });
-      logger.debug('Initialized database with default Marketing Sheet entry.');
-    } else {
-      logger.debug('Marketing Sheet entry already exists.');
-    }
+    // const existingDoc = await SpreadSheetMetaData.find({ name: MARKETING_SHEET });
+    // if (existingDoc.length == 0) {
+    //   await SpreadSheetMetaData.create({
+    //     name: MARKETING_SHEET,
+    //     lastIdxMarketingSheet: 1
+    //   });
+    //   logger.debug('Initialized database with default Marketing Sheet entry.');
+    // } else {
+    //   logger.debug('Marketing Sheet entry already exists.');
+    // }
 
     const prefixes = [FormNoPrefixes.TIHS, FormNoPrefixes.TCL, FormNoPrefixes.TIMS, PHOTO];
 
@@ -75,6 +74,12 @@ export const initializeDB = async () => {
     if (!existingFixCourseDropDown) {
       await DropDownMetaData.create({
         type: DropDownType.FIX_COURSE,
+      });
+    }
+    const existingDistrictDropDown = await DropDownMetaData.findOne({ type: DropDownType.DISTRICT });
+    if (!existingDistrictDropDown) {
+      await DropDownMetaData.create({
+        type: DropDownType.DISTRICT,
       });
     }
 

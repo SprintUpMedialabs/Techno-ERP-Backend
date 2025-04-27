@@ -1,7 +1,7 @@
 import expressAsyncHandler from "express-async-handler";
 import createHttpError from "http-errors";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
-import { ADMISSION, ApplicationStatus } from "../../config/constants";
+import { ADMISSION, ApplicationStatus, DropDownType } from "../../config/constants";
 import { formatResponse } from "../../utils/formatResponse";
 import { checkIfStudentAdmitted } from "../helpers/checkIfStudentAdmitted";
 import { Enquiry } from "../models/enquiry";
@@ -12,6 +12,7 @@ import mongoose from "mongoose";
 import { uploadToS3 } from "../../config/s3Upload";
 import { singleDocumentSchema } from "../validators/singleDocumentSchema";
 import { DocumentType } from "../../config/constants";
+import { updateOnlyOneValueInDropDown } from "../../utilityModules/dropdown/dropDownMetadataController";
 
 export const saveStep3Draft = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
 
@@ -31,8 +32,8 @@ export const saveStep3Draft = expressAsyncHandler(functionLevelLogger(async (req
     { new: true, runValidators: true }
   );
 
+  updateOnlyOneValueInDropDown(DropDownType.DISTRICT, enquiry?.address?.district);
   return formatResponse(res, 200, 'Created Step 3 draft successfully', true, enquiry);
-
 }));
 
 
@@ -62,6 +63,7 @@ export const updateEnquiryStep3ById = expressAsyncHandler(functionLevelLogger(as
 
   const updatedData = await Enquiry.findByIdAndUpdate(id, { ...data, }, { new: true, runValidators: true });
 
+  updateOnlyOneValueInDropDown(DropDownType.DISTRICT, updatedData?.address?.district);
   return formatResponse(res, 200, 'Enquiry data updated successfully', true, updatedData);
 
 }));

@@ -1,4 +1,4 @@
-import {  z } from 'zod';
+import { z } from 'zod';
 import { AdmissionMode, AdmissionReference, ApplicationStatus, AreaType, BloodGroup, Category, Course, Gender, Religion, StatesOfIndia } from '../../config/constants';
 import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import {
@@ -11,6 +11,7 @@ import { academicDetailsArraySchema, academicDetailSchema } from './academicDeta
 import { previousCollegeDataSchema } from './previousCollegeDataSchema';
 import { singleDocumentSchema } from './singleDocumentSchema';
 import { entranceExamDetailSchema } from './entranceExamDetailSchema';
+import { physicalDocumentNoteSchema } from './physicalDocumentNoteSchema';
 
 
 export const enquirySchema = z.object({
@@ -47,7 +48,7 @@ export const enquirySchema = z.object({
     convertToMongoDate(date) as Date
   ).optional(),
 
-  gender: z.nativeEnum(Gender).default(Gender.NOT_TO_MENTION),
+  gender: z.nativeEnum(Gender).default(Gender.OTHER),
 
   previousCollegeData: previousCollegeDataSchema.optional(),
 
@@ -72,6 +73,8 @@ export const enquirySchema = z.object({
 
   documents: z.array(singleDocumentSchema).optional(),
 
+  physicalDocumentNote: z.array(physicalDocumentNoteSchema).optional(),
+
   aadharNumber: z.string().regex(/^\d{12}$/, 'Aadhar Number must be exactly 12 digits').optional(),
   religion: z.nativeEnum(Religion).optional(),
   bloodGroup: z.nativeEnum(BloodGroup).optional(),
@@ -81,7 +84,7 @@ export const enquirySchema = z.object({
 
 // Final schema for request (omitting feesDraftId and making it strict)
 export const enquiryStep1RequestSchema = enquirySchema
-  .omit({ studentFee: true, studentFeeDraft: true, dateOfAdmission: true, bloodGroup: true, aadharNumber: true, religion: true, previousCollegeData: true, documents: true, applicationStatus: true, entranceExamDetails: true, nationality: true, stateOfDomicile: true, areaType: true, admittedBy : true })
+  .omit({ studentFee: true, studentFeeDraft: true, dateOfAdmission: true, bloodGroup: true, aadharNumber: true, religion: true, previousCollegeData: true, documents: true, applicationStatus: true, entranceExamDetails: true, nationality: true, stateOfDomicile: true, areaType: true, admittedBy: true })
   .extend({ id: objectIdSchema.optional() })
   .strict();
 

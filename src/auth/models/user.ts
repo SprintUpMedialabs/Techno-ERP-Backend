@@ -41,6 +41,16 @@ const userSchema = new Schema<IUserDocument>(
         message: 'Password must be at least 6 characters long'
       }
     },
+    marketingSheet: {
+      type: [{
+        id: {
+          type: String,
+        },
+        name: {
+          type: String,
+        }
+      }]
+    },
     roles: {
       type: [String],
       enum: {
@@ -101,7 +111,7 @@ userSchema.post('findOneAndUpdate', function (error: any, doc: any, next: Functi
 });
 
 const transformDates = (_: any, ret: any) => {
-  delete ret.password; 
+  delete ret.password;
   delete ret.createdAt;
   delete ret.updatedAt;
   delete ret.__v;
