@@ -20,7 +20,7 @@ export const createEnquiryDraftStep1 = expressAsyncHandler(functionLevelLogger(a
 
     const enquiryDraft = await EnquiryDraft.create(validation.data);
 
-    updateOnlyOneValueInDropDown(DropDownType.FIX_CITY, enquiryDraft?.address?.district);
+    updateOnlyOneValueInDropDown(DropDownType.DISTRICT, enquiryDraft?.address?.district);
 
     return formatResponse(res, 200, 'Draft created successfully', true, enquiryDraft);
 
@@ -49,7 +49,7 @@ export const updateEnquiryDraftStep1 = expressAsyncHandler(functionLevelLogger(a
         throw createHttpError(404, 'Failed to update draft');
     }
     
-    updateOnlyOneValueInDropDown(DropDownType.FIX_CITY, updatedDraft?.address?.district);
+    updateOnlyOneValueInDropDown(DropDownType.DISTRICT, updatedDraft?.address?.district);
     return formatResponse(res, 200, 'Draft updated successfully', true, updatedDraft);
 
 }));
