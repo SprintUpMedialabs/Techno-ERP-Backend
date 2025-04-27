@@ -54,7 +54,7 @@ const leadsToBeInserted = async (
         ...(row[MarketingsheetHeaders.PhoneNumber] && { phoneNumber: row[MarketingsheetHeaders.PhoneNumber] }),
         ...(row[MarketingsheetHeaders.AltPhoneNumber] && { altPhoneNumber: row[MarketingsheetHeaders.AltPhoneNumber] }),
         ...(row[MarketingsheetHeaders.Email] && { email: row[MarketingsheetHeaders.Email] }),
-        gender: Gender.NOT_TO_MENTION,
+        gender: Gender.OTHER,
         ...(row[MarketingsheetHeaders.City] && { city: row[MarketingsheetHeaders.City] }),
         ...(row[MarketingsheetHeaders.LeadType] && { leadType: row[MarketingsheetHeaders.LeadType] }),
         ...(row[MarketingsheetHeaders.Remarks] && { remarks: row[MarketingsheetHeaders.Remarks] }),

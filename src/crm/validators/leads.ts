@@ -12,7 +12,7 @@ export const leadMasterSchema = z.object({
   phoneNumber: contactNumberSchema,
   altPhoneNumber: contactNumberSchema.optional(),
   email: z.string().email('Invalid Email Format').optional(),
-  gender: z.nativeEnum(Gender).default(Gender.NOT_TO_MENTION),
+  gender: z.nativeEnum(Gender).default(Gender.OTHER),
   area: z.string().optional(),
   city: z.string().optional().default('Other'),
   course: z.string().optional(),

@@ -47,7 +47,7 @@ export const enquirySchema = z.object({
     convertToMongoDate(date) as Date
   ).optional(),
 
-  gender: z.nativeEnum(Gender).default(Gender.NOT_TO_MENTION),
+  gender: z.nativeEnum(Gender).default(Gender.OTHER),
 
   previousCollegeData: previousCollegeDataSchema.optional(),
 

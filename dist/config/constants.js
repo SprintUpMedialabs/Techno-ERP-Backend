@@ -20,7 +20,6 @@ var Gender;
     Gender["MALE"] = "MALE";
     Gender["FEMALE"] = "FEMALE";
     Gender["OTHER"] = "OTHERS";
-    Gender["NOT_TO_MENTION"] = "NOT_TO_MENTION";
 })(Gender || (exports.Gender = Gender = {}));
 var Source;
 (function (Source) {
@@ -77,6 +76,7 @@ var DropDownType;
 (function (DropDownType) {
     DropDownType["CITY"] = "CITY";
     DropDownType["FIX_CITY"] = "FIX_CITY";
+    DropDownType["DISTRICT"] = "DISTRICT";
     DropDownType["MAKRETING_SOURCE"] = "MAKRETING_SOURCE";
     DropDownType["COURSE"] = "COURSE";
     DropDownType["FIX_COURSE"] = "FIX_COURSE";

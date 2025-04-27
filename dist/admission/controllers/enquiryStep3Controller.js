@@ -45,7 +45,7 @@ exports.saveStep3Draft = (0, express_async_handler_1.default)((0, functionLevelL
     }
     const _b = validation.data, { id } = _b, validatedData = __rest(_b, ["id"]);
     const enquiry = yield enquiry_1.Enquiry.findByIdAndUpdate(id, Object.assign({}, validatedData), { new: true, runValidators: true });
-    (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.FIX_CITY, (_a = enquiry === null || enquiry === void 0 ? void 0 : enquiry.address) === null || _a === void 0 ? void 0 : _a.district);
+    (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.DISTRICT, (_a = enquiry === null || enquiry === void 0 ? void 0 : enquiry.address) === null || _a === void 0 ? void 0 : _a.district);
     return (0, formatResponse_1.formatResponse)(res, 200, 'Created Step 3 draft successfully', true, enquiry);
 })));
 exports.updateEnquiryStep3ById = (0, express_async_handler_1.default)((0, functionLevelLogging_1.functionLevelLogger)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -65,7 +65,7 @@ exports.updateEnquiryStep3ById = (0, express_async_handler_1.default)((0, functi
         throw (0, http_errors_1.default)(400, "Please complete step 1 first");
     }
     const updatedData = yield enquiry_1.Enquiry.findByIdAndUpdate(id, Object.assign({}, data), { new: true, runValidators: true });
-    (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.FIX_CITY, (_a = updatedData === null || updatedData === void 0 ? void 0 : updatedData.address) === null || _a === void 0 ? void 0 : _a.district);
+    (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.DISTRICT, (_a = updatedData === null || updatedData === void 0 ? void 0 : updatedData.address) === null || _a === void 0 ? void 0 : _a.district);
     return (0, formatResponse_1.formatResponse)(res, 200, 'Enquiry data updated successfully', true, updatedData);
 })));
 exports.updateEnquiryDocuments = (0, express_async_handler_1.default)((0, functionLevelLogging_1.functionLevelLogger)((req, res) => __awaiter(void 0, void 0, void 0, function* () {

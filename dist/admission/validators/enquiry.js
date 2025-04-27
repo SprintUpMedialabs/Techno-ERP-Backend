@@ -27,7 +27,7 @@ exports.enquirySchema = zod_1.z.object({
     address: commonSchema_1.addressSchema,
     academicDetails: academicDetailSchema_1.academicDetailsArraySchema.optional(),
     dateOfEnquiry: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)).optional(),
-    gender: zod_1.z.nativeEnum(constants_1.Gender).default(constants_1.Gender.NOT_TO_MENTION),
+    gender: zod_1.z.nativeEnum(constants_1.Gender).default(constants_1.Gender.OTHER),
     previousCollegeData: previousCollegeDataSchema_1.previousCollegeDataSchema.optional(),
     stateOfDomicile: zod_1.z.nativeEnum(constants_1.StatesOfIndia).optional(),
     areaType: zod_1.z.nativeEnum(constants_1.AreaType).optional(),

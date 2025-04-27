@@ -89,6 +89,12 @@ const initializeDB = () => __awaiter(void 0, void 0, void 0, function* () {
                 type: constants_1.DropDownType.FIX_COURSE,
             });
         }
+        const existingDistrictDropDown = yield dropDownMetaDeta_1.DropDownMetaData.findOne({ type: constants_1.DropDownType.DISTRICT });
+        if (!existingDistrictDropDown) {
+            yield dropDownMetaDeta_1.DropDownMetaData.create({
+                type: constants_1.DropDownType.DISTRICT,
+            });
+        }
     }
     catch (error) {
         console.error('Error initializing database:', error);

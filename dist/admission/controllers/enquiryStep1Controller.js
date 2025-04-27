@@ -52,7 +52,7 @@ exports.createEnquiry = (0, express_async_handler_1.default)((0, functionLevelLo
                 throw (0, formatResponse_1.formatResponse)(res, 494, 'Error occurred while deleting the enquiry draft', true);
             }
         }
-        (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.FIX_CITY, (_a = savedResult === null || savedResult === void 0 ? void 0 : savedResult.address) === null || _a === void 0 ? void 0 : _a.district);
+        (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.DISTRICT, (_a = savedResult === null || savedResult === void 0 ? void 0 : savedResult.address) === null || _a === void 0 ? void 0 : _a.district);
         return (0, formatResponse_1.formatResponse)(res, 201, 'Enquiry created successfully', true, savedResult);
     }
     else {
