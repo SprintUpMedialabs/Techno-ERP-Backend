@@ -23,7 +23,7 @@ exports.emailSchema = zod_1.z
 exports.addressSchema = zod_1.z.object({
     addressLine1: zod_1.z.string().min(5, 'Permanent address must be at least 5 characters'),
     addressLine2: zod_1.z.string().min(5, 'Permanent address must be at least 5 characters'),
-    district: zod_1.z.nativeEnum(constants_1.Districts),
+    district: zod_1.z.string(),
     pincode: zod_1.z
         .string()
         .regex(/^[1-9][0-9]{5}$/, 'Pincode must be a 6-digit number starting with a non-zero digit'),

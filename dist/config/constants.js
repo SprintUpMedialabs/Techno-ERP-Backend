@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CourseMaterialType = exports.RequestAction = exports.LectureConfirmation = exports.COLLECTION_NAMES = exports.MARKETING_SHEET = exports.PHOTO = exports.TGI = exports.ADMISSION = exports.AreaType = exports.Districts = exports.Countries = exports.StatesOfIndia = exports.AdmissionMode = exports.FeeStatus = exports.FeeType = exports.Locations = exports.ModuleNames = exports.ApplicationStatus = exports.DocumentType = exports.AdmittedThrough = exports.BloodGroup = exports.Religion = exports.FormNoPrefixes = exports.EducationLevel = exports.Course = exports.DropDownType = exports.AdmissionReference = exports.Category = exports.Marketing_Source = exports.FinalConversionType = exports.LeadType = exports.Source = exports.Gender = exports.UserRoles = void 0;
+exports.CourseMaterialType = exports.RequestAction = exports.LectureConfirmation = exports.COLLECTION_NAMES = exports.MARKETING_SHEET = exports.PHOTO = exports.TGI = exports.ADMISSION = exports.AreaType = exports.Countries = exports.StatesOfIndia = exports.AdmissionMode = exports.FeeStatus = exports.FeeType = exports.Locations = exports.ModuleNames = exports.ApplicationStatus = exports.DocumentType = exports.AdmittedThrough = exports.BloodGroup = exports.Religion = exports.FormNoPrefixes = exports.EducationLevel = exports.Course = exports.DropDownType = exports.AdmissionReference = exports.Category = exports.Marketing_Source = exports.FinalConversionType = exports.LeadType = exports.Source = exports.Gender = exports.UserRoles = void 0;
 /**
  * Marketing Module Enums
 */
@@ -163,6 +163,7 @@ var DocumentType;
     DocumentType["DECLARATION_FILLED"] = "Declaration_Filled";
     DocumentType["PHYSICALLY_HANDICAPPED_CERTIFICATE"] = "Physically_Handicapped_Certificate";
     DocumentType["EWS_CERTIFICATE"] = "EWS_Certificate";
+    DocumentType["SIGNATURE"] = "Signature";
 })(DocumentType || (exports.DocumentType = DocumentType = {}));
 var ApplicationStatus;
 (function (ApplicationStatus) {
@@ -220,15 +221,14 @@ var Countries;
     Countries["India"] = "India";
     Countries["NON_INDIA"] = "Non-India";
 })(Countries || (exports.Countries = Countries = {}));
-var Districts;
-(function (Districts) {
-    Districts["Lucknow"] = "Lucknow";
-    Districts["Sitapur"] = "Sitapur";
-    Districts["Hardoi"] = "Hardoi";
-    Districts["Barabanki"] = "Barabanki";
-    Districts["Raebareli"] = "Raebareli";
-    Districts["Unnao"] = "Unnao";
-})(Districts || (exports.Districts = Districts = {}));
+// export enum Districts {
+//   Lucknow = "Lucknow",
+//   Sitapur = "Sitapur",
+//   Hardoi = "Hardoi",
+//   Barabanki = "Barabanki",
+//   Raebareli = "Raebareli",
+//   Unnao = "Unnao",
+// }
 var AreaType;
 (function (AreaType) {
     AreaType["URBAN"] = "URBAN";

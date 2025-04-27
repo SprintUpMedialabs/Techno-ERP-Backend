@@ -33,7 +33,9 @@ const enquiry_1 = require("../models/enquiry");
 const enquiryDraft_1 = require("../models/enquiryDraft");
 const enquiry_2 = require("../validators/enquiry");
 const checkIfStudentAdmitted_1 = require("../helpers/checkIfStudentAdmitted");
+const dropDownMetadataController_1 = require("../../utilityModules/dropdown/dropDownMetadataController");
 exports.createEnquiry = (0, express_async_handler_1.default)((0, functionLevelLogging_1.functionLevelLogger)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     const data = req.body;
     const validation = enquiry_2.enquiryStep1RequestSchema.safeParse(data);
     if (!validation.success) {
@@ -50,6 +52,7 @@ exports.createEnquiry = (0, express_async_handler_1.default)((0, functionLevelLo
                 throw (0, formatResponse_1.formatResponse)(res, 494, 'Error occurred while deleting the enquiry draft', true);
             }
         }
+        (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.FIX_CITY, (_a = savedResult === null || savedResult === void 0 ? void 0 : savedResult.address) === null || _a === void 0 ? void 0 : _a.district);
         return (0, formatResponse_1.formatResponse)(res, 201, 'Enquiry created successfully', true, savedResult);
     }
     else {
