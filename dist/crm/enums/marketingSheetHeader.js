@@ -1,0 +1,20 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.MarketingsheetHeaders = void 0;
+var MarketingsheetHeaders;
+(function (MarketingsheetHeaders) {
+    MarketingsheetHeaders[MarketingsheetHeaders["Date"] = 1] = "Date";
+    MarketingsheetHeaders[MarketingsheetHeaders["Name"] = 2] = "Name";
+    MarketingsheetHeaders[MarketingsheetHeaders["PhoneNumber"] = 3] = "PhoneNumber";
+    MarketingsheetHeaders[MarketingsheetHeaders["Email"] = 4] = "Email";
+    MarketingsheetHeaders[MarketingsheetHeaders["Source"] = 5] = "Source";
+    MarketingsheetHeaders[MarketingsheetHeaders["Course"] = 8] = "Course";
+    MarketingsheetHeaders[MarketingsheetHeaders["Area"] = 9] = "Area";
+    MarketingsheetHeaders[MarketingsheetHeaders["City"] = 10] = "City";
+    MarketingsheetHeaders[MarketingsheetHeaders["AssignedTo"] = 11] = "AssignedTo";
+    MarketingsheetHeaders[MarketingsheetHeaders["LeadType"] = 13] = "LeadType";
+    MarketingsheetHeaders[MarketingsheetHeaders["Remarks"] = 14] = "Remarks";
+    MarketingsheetHeaders[MarketingsheetHeaders["AltPhoneNumber"] = 15] = "AltPhoneNumber";
+    MarketingsheetHeaders[MarketingsheetHeaders["Gender"] = 16] = "Gender";
+    MarketingsheetHeaders[MarketingsheetHeaders["SchoolName"] = 17] = "SchoolName";
+})(MarketingsheetHeaders || (exports.MarketingsheetHeaders = MarketingsheetHeaders = {}));
