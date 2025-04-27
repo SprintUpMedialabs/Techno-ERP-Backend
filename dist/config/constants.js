@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CourseMaterialType = exports.RequestAction = exports.LectureConfirmation = exports.COLLECTION_NAMES = exports.MARKETING_SHEET = exports.PHOTO = exports.TGI = exports.ADMISSION = exports.AreaType = exports.Districts = exports.Countries = exports.StatesOfIndia = exports.AdmissionMode = exports.FeeStatus = exports.FeeType = exports.Locations = exports.ModuleNames = exports.ApplicationStatus = exports.DocumentType = exports.AdmittedThrough = exports.BloodGroup = exports.Religion = exports.FormNoPrefixes = exports.EducationLevel = exports.Course = exports.DropDownType = exports.AdmissionReference = exports.Category = exports.Marketing_Source = exports.FinalConversionType = exports.LeadType = exports.Source = exports.Gender = exports.UserRoles = void 0;
+exports.CourseMaterialType = exports.RequestAction = exports.LectureConfirmation = exports.COLLECTION_NAMES = exports.PHOTO = exports.TGI = exports.ADMISSION = exports.AreaType = exports.Countries = exports.StatesOfIndia = exports.AdmissionMode = exports.FeeStatus = exports.FeeType = exports.Locations = exports.ModuleNames = exports.ApplicationStatus = exports.DocumentType = exports.AdmittedThrough = exports.BloodGroup = exports.Religion = exports.FormNoPrefixes = exports.EducationLevel = exports.Course = exports.PhysicalDocumentNoteStatus = exports.DropDownType = exports.AdmissionReference = exports.Category = exports.Marketing_Source = exports.FinalConversionType = exports.LeadType = exports.Source = exports.Gender = exports.UserRoles = void 0;
 /**
  * Marketing Module Enums
 */
@@ -20,7 +20,6 @@ var Gender;
     Gender["MALE"] = "MALE";
     Gender["FEMALE"] = "FEMALE";
     Gender["OTHER"] = "OTHERS";
-    Gender["NOT_TO_MENTION"] = "NOT_TO_MENTION";
 })(Gender || (exports.Gender = Gender = {}));
 var Source;
 (function (Source) {
@@ -77,10 +76,17 @@ var DropDownType;
 (function (DropDownType) {
     DropDownType["CITY"] = "CITY";
     DropDownType["FIX_CITY"] = "FIX_CITY";
+    DropDownType["DISTRICT"] = "DISTRICT";
     DropDownType["MAKRETING_SOURCE"] = "MAKRETING_SOURCE";
     DropDownType["COURSE"] = "COURSE";
     DropDownType["FIX_COURSE"] = "FIX_COURSE";
 })(DropDownType || (exports.DropDownType = DropDownType = {}));
+var PhysicalDocumentNoteStatus;
+(function (PhysicalDocumentNoteStatus) {
+    PhysicalDocumentNoteStatus["PENDING"] = "PENDING";
+    PhysicalDocumentNoteStatus["VERIFIED"] = "VERIFIED";
+    PhysicalDocumentNoteStatus["NOT_APPLICABLE"] = "NOT_APPLICABLE";
+})(PhysicalDocumentNoteStatus || (exports.PhysicalDocumentNoteStatus = PhysicalDocumentNoteStatus = {}));
 var Course;
 (function (Course) {
     Course["BCOM"] = "BCOM";
@@ -163,6 +169,7 @@ var DocumentType;
     DocumentType["DECLARATION_FILLED"] = "Declaration_Filled";
     DocumentType["PHYSICALLY_HANDICAPPED_CERTIFICATE"] = "Physically_Handicapped_Certificate";
     DocumentType["EWS_CERTIFICATE"] = "EWS_Certificate";
+    DocumentType["SIGNATURE"] = "Signature";
 })(DocumentType || (exports.DocumentType = DocumentType = {}));
 var ApplicationStatus;
 (function (ApplicationStatus) {
@@ -212,23 +219,56 @@ var AdmissionMode;
 })(AdmissionMode || (exports.AdmissionMode = AdmissionMode = {}));
 var StatesOfIndia;
 (function (StatesOfIndia) {
-    StatesOfIndia["OTHER"] = "Other";
-    StatesOfIndia["UttarPradesh"] = "Uttar Pradesh";
+    StatesOfIndia["ANDHRA_PRADESH"] = "Andhra Pradesh";
+    StatesOfIndia["ARUNACHAL_PRADESH"] = "Arunachal Pradesh";
+    StatesOfIndia["ASSAM"] = "Assam";
+    StatesOfIndia["BIHAR"] = "Bihar";
+    StatesOfIndia["CHHATTISGARH"] = "Chhattisgarh";
+    StatesOfIndia["GOA"] = "Goa";
+    StatesOfIndia["GUJARAT"] = "Gujarat";
+    StatesOfIndia["HARYANA"] = "Haryana";
+    StatesOfIndia["HIMACHAL_PRADESH"] = "Himachal Pradesh";
+    StatesOfIndia["JHARKHAND"] = "Jharkhand";
+    StatesOfIndia["KARNATAKA"] = "Karnataka";
+    StatesOfIndia["KERALA"] = "Kerala";
+    StatesOfIndia["MADHYA_PRADESH"] = "Madhya Pradesh";
+    StatesOfIndia["MAHARASHTRA"] = "Maharashtra";
+    StatesOfIndia["MANIPUR"] = "Manipur";
+    StatesOfIndia["MEGHALAYA"] = "Meghalaya";
+    StatesOfIndia["MIZORAM"] = "Mizoram";
+    StatesOfIndia["NAGALAND"] = "Nagaland";
+    StatesOfIndia["ODISHA"] = "Odisha";
+    StatesOfIndia["PUNJAB"] = "Punjab";
+    StatesOfIndia["RAJASTHAN"] = "Rajasthan";
+    StatesOfIndia["SIKKIM"] = "Sikkim";
+    StatesOfIndia["TAMIL_NADU"] = "Tamil Nadu";
+    StatesOfIndia["TELANGANA"] = "Telangana";
+    StatesOfIndia["TRIPURA"] = "Tripura";
+    StatesOfIndia["UTTAR_PRADESH"] = "Uttar Pradesh";
+    StatesOfIndia["UTTARAKHAND"] = "Uttarakhand";
+    StatesOfIndia["WEST_BENGAL"] = "West Bengal";
+    StatesOfIndia["ANDAMAN_AND_NICOBAR_ISLANDS"] = "Andaman and Nicobar Islands";
+    StatesOfIndia["CHANDIGARH"] = "Chandigarh";
+    StatesOfIndia["DADRA_AND_NAGAR_HAVELI_AND_DAMAN_AND_DIU"] = "Dadra and Nagar Haveli and Daman and Diu";
+    StatesOfIndia["DELHI"] = "Delhi";
+    StatesOfIndia["JAMMU_AND_KASHMIR"] = "Jammu and Kashmir";
+    StatesOfIndia["LADAKH"] = "Ladakh";
+    StatesOfIndia["LAKSHADWEEP"] = "Lakshadweep";
+    StatesOfIndia["PUDUCHERRY"] = "Puducherry";
 })(StatesOfIndia || (exports.StatesOfIndia = StatesOfIndia = {}));
 var Countries;
 (function (Countries) {
     Countries["India"] = "India";
     Countries["NON_INDIA"] = "Non-India";
 })(Countries || (exports.Countries = Countries = {}));
-var Districts;
-(function (Districts) {
-    Districts["Lucknow"] = "Lucknow";
-    Districts["Sitapur"] = "Sitapur";
-    Districts["Hardoi"] = "Hardoi";
-    Districts["Barabanki"] = "Barabanki";
-    Districts["Raebareli"] = "Raebareli";
-    Districts["Unnao"] = "Unnao";
-})(Districts || (exports.Districts = Districts = {}));
+// export enum Districts {
+//   Lucknow = "Lucknow",
+//   Sitapur = "Sitapur",
+//   Hardoi = "Hardoi",
+//   Barabanki = "Barabanki",
+//   Raebareli = "Raebareli",
+//   Unnao = "Unnao",
+// }
 var AreaType;
 (function (AreaType) {
     AreaType["URBAN"] = "URBAN";
@@ -238,7 +278,7 @@ var AreaType;
 exports.ADMISSION = 'admissions';
 exports.TGI = "TGI";
 exports.PHOTO = "PHOTO";
-exports.MARKETING_SHEET = 'Marketing Sheet';
+// export const MARKETING_SHEET = 'Marketing Sheet'
 var COLLECTION_NAMES;
 (function (COLLECTION_NAMES) {
     COLLECTION_NAMES["USER"] = "User";

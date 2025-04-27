@@ -9,6 +9,7 @@ const academicDetailSchema_1 = require("./academicDetailSchema");
 const previousCollegeDataSchema_1 = require("./previousCollegeDataSchema");
 const singleDocumentSchema_1 = require("./singleDocumentSchema");
 const entranceExamDetailSchema_1 = require("./entranceExamDetailSchema");
+const physicalDocumentNoteSchema_1 = require("./physicalDocumentNoteSchema");
 exports.enquirySchema = zod_1.z.object({
     admissionMode: zod_1.z.nativeEnum(constants_1.AdmissionMode).default(constants_1.AdmissionMode.OFFLINE),
     studentName: zod_1.z.string({ required_error: "Student Name is required", }).nonempty('Student Name is required'),
@@ -27,7 +28,7 @@ exports.enquirySchema = zod_1.z.object({
     address: commonSchema_1.addressSchema,
     academicDetails: academicDetailSchema_1.academicDetailsArraySchema.optional(),
     dateOfEnquiry: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)).optional(),
-    gender: zod_1.z.nativeEnum(constants_1.Gender).default(constants_1.Gender.NOT_TO_MENTION),
+    gender: zod_1.z.nativeEnum(constants_1.Gender).default(constants_1.Gender.OTHER),
     previousCollegeData: previousCollegeDataSchema_1.previousCollegeDataSchema.optional(),
     stateOfDomicile: zod_1.z.nativeEnum(constants_1.StatesOfIndia).optional(),
     areaType: zod_1.z.nativeEnum(constants_1.AreaType).optional(),
@@ -43,6 +44,7 @@ exports.enquirySchema = zod_1.z.object({
     studentFeeDraft: commonSchema_1.objectIdSchema.optional(),
     dateOfAdmission: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)).optional(),
     documents: zod_1.z.array(singleDocumentSchema_1.singleDocumentSchema).optional(),
+    physicalDocumentNote: zod_1.z.array(physicalDocumentNoteSchema_1.physicalDocumentNoteSchema).optional(),
     aadharNumber: zod_1.z.string().regex(/^\d{12}$/, 'Aadhar Number must be exactly 12 digits').optional(),
     religion: zod_1.z.nativeEnum(constants_1.Religion).optional(),
     bloodGroup: zod_1.z.nativeEnum(constants_1.BloodGroup).optional(),

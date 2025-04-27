@@ -30,25 +30,31 @@ const enquiry_1 = require("../validators/enquiry");
 const http_errors_1 = __importDefault(require("http-errors"));
 const enquiryDraft_1 = require("../models/enquiryDraft");
 const functionLevelLogging_1 = require("../../config/functionLevelLogging");
+const dropDownMetadataController_1 = require("../../utilityModules/dropdown/dropDownMetadataController");
+const constants_1 = require("../../config/constants");
 exports.createEnquiryDraftStep1 = (0, express_async_handler_1.default)((0, functionLevelLogging_1.functionLevelLogger)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     const data = req.body;
     const validation = enquiry_1.enquiryDraftStep1RequestSchema.safeParse(data);
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }
     const enquiryDraft = yield enquiryDraft_1.EnquiryDraft.create(validation.data);
+    (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.DISTRICT, (_a = enquiryDraft === null || enquiryDraft === void 0 ? void 0 : enquiryDraft.address) === null || _a === void 0 ? void 0 : _a.district);
     return (0, formatResponse_1.formatResponse)(res, 200, 'Draft created successfully', true, enquiryDraft);
 })));
 exports.updateEnquiryDraftStep1 = (0, express_async_handler_1.default)((0, functionLevelLogging_1.functionLevelLogger)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     const data = req.body;
     const validation = enquiry_1.enquiryDraftStep1UpdateSchema.safeParse(data);
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }
-    const _a = validation.data, { id } = _a, newData = __rest(_a, ["id"]);
+    const _b = validation.data, { id } = _b, newData = __rest(_b, ["id"]);
     const updatedDraft = yield enquiryDraft_1.EnquiryDraft.findByIdAndUpdate(id, { $set: newData }, { new: true, runValidators: true });
     if (!updatedDraft) {
         throw (0, http_errors_1.default)(404, 'Failed to update draft');
     }
+    (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.DISTRICT, (_a = updatedDraft === null || updatedDraft === void 0 ? void 0 : updatedDraft.address) === null || _a === void 0 ? void 0 : _a.district);
     return (0, formatResponse_1.formatResponse)(res, 200, 'Draft updated successfully', true, updatedDraft);
 })));

@@ -6,11 +6,8 @@ const constants_1 = require("../../config/constants");
 exports.addressSchema = new mongoose_1.Schema({
     addressLine1: { type: String },
     addressLine2: { type: String },
-    district: { type: String,
-        enum: {
-            values: Object.values(constants_1.Districts),
-            message: 'Invalid District value'
-        }
+    district: {
+        type: String,
     },
     pincode: {
         type: String,
@@ -26,7 +23,8 @@ exports.addressSchema = new mongoose_1.Schema({
             message: 'Invalid State value'
         },
     },
-    country: { type: String,
+    country: {
+        type: String,
         enum: {
             values: Object.values(constants_1.Countries),
             message: 'Invalid Country value'

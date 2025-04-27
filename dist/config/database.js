@@ -14,12 +14,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.initializeDB = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
-const spreadSheet_1 = require("../crm/models/spreadSheet");
-const logger_1 = __importDefault(require("./logger"));
-const constants_1 = require("./constants");
-const secrets_1 = require("../secrets");
 const enquiryIdMetaDataSchema_1 = require("../admission/models/enquiryIdMetaDataSchema");
+const secrets_1 = require("../secrets");
 const dropDownMetaDeta_1 = require("../utilityModules/dropdown/dropDownMetaDeta");
+const constants_1 = require("./constants");
+const logger_1 = __importDefault(require("./logger"));
 const connectToDatabase = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield mongoose_1.default.connect(secrets_1.MONGODB_DATABASE_URL, {
@@ -34,17 +33,16 @@ const connectToDatabase = () => __awaiter(void 0, void 0, void 0, function* () {
 });
 const initializeDB = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const existingDoc = yield spreadSheet_1.SpreadSheetMetaData.find({ name: constants_1.MARKETING_SHEET });
-        if (existingDoc.length == 0) {
-            yield spreadSheet_1.SpreadSheetMetaData.create({
-                name: constants_1.MARKETING_SHEET,
-                lastIdxMarketingSheet: 1
-            });
-            logger_1.default.debug('Initialized database with default Marketing Sheet entry.');
-        }
-        else {
-            logger_1.default.debug('Marketing Sheet entry already exists.');
-        }
+        // const existingDoc = await SpreadSheetMetaData.find({ name: MARKETING_SHEET });
+        // if (existingDoc.length == 0) {
+        //   await SpreadSheetMetaData.create({
+        //     name: MARKETING_SHEET,
+        //     lastIdxMarketingSheet: 1
+        //   });
+        //   logger.debug('Initialized database with default Marketing Sheet entry.');
+        // } else {
+        //   logger.debug('Marketing Sheet entry already exists.');
+        // }
         const prefixes = [constants_1.FormNoPrefixes.TIHS, constants_1.FormNoPrefixes.TCL, constants_1.FormNoPrefixes.TIMS, constants_1.PHOTO];
         for (const prefix of prefixes) {
             const existingEntry = yield enquiryIdMetaDataSchema_1.EnquiryApplicationId.findOne({ prefix });
@@ -87,6 +85,12 @@ const initializeDB = () => __awaiter(void 0, void 0, void 0, function* () {
         if (!existingFixCourseDropDown) {
             yield dropDownMetaDeta_1.DropDownMetaData.create({
                 type: constants_1.DropDownType.FIX_COURSE,
+            });
+        }
+        const existingDistrictDropDown = yield dropDownMetaDeta_1.DropDownMetaData.findOne({ type: constants_1.DropDownType.DISTRICT });
+        if (!existingDistrictDropDown) {
+            yield dropDownMetaDeta_1.DropDownMetaData.create({
+                type: constants_1.DropDownType.DISTRICT,
             });
         }
     }

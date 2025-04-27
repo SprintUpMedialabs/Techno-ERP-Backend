@@ -14,7 +14,7 @@ exports.leadMasterSchema = zod_1.z.object({
     phoneNumber: commonSchema_1.contactNumberSchema,
     altPhoneNumber: commonSchema_1.contactNumberSchema.optional(),
     email: zod_1.z.string().email('Invalid Email Format').optional(),
-    gender: zod_1.z.nativeEnum(constants_1.Gender).default(constants_1.Gender.NOT_TO_MENTION),
+    gender: zod_1.z.nativeEnum(constants_1.Gender).default(constants_1.Gender.OTHER),
     area: zod_1.z.string().optional(),
     city: zod_1.z.string().optional().default('Other'),
     course: zod_1.z.string().optional(),

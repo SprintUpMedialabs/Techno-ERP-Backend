@@ -18,7 +18,7 @@ exports.studentSchema = zod_1.z.object({
     dateOfBirth: zod_1.z.date().optional(),
     dateOfEnquiry: zod_1.z.date().optional(),
     studentPhoneNumber: commonSchema_1.contactNumberSchema,
-    gender: zod_1.z.nativeEnum(constants_1.Gender).default(constants_1.Gender.NOT_TO_MENTION),
+    gender: zod_1.z.nativeEnum(constants_1.Gender).default(constants_1.Gender.OTHER),
     fatherName: zod_1.z.string({ required_error: "Father Name is required", }).nonempty("Father's Name is required"),
     fatherPhoneNumber: commonSchema_1.contactNumberSchema,
     fatherOccupation: zod_1.z.string({ required_error: "Father occupation is required", }).nonempty('Father occupation is required'),
