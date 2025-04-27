@@ -1,7 +1,7 @@
 import expressAsyncHandler from "express-async-handler";
 import createHttpError from "http-errors";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
-import { Course, AdmittedThrough, ApplicationStatus } from "../../config/constants";
+import { Course, AdmittedThrough, ApplicationStatus, DropDownType } from "../../config/constants";
 import { functionLevelLogger } from "../../config/functionLevelLogging";
 import { formatResponse } from "../../utils/formatResponse";
 import { Enquiry } from "../models/enquiry";
@@ -9,6 +9,7 @@ import { EnquiryDraft } from "../models/enquiryDraft";
 import { IEnquiryStep1RequestSchema, enquiryStep1RequestSchema, enquiryStep1UpdateRequestSchema } from "../validators/enquiry";
 import { Response } from "express";
 import { checkIfStudentAdmitted } from "../helpers/checkIfStudentAdmitted";
+import { updateOnlyOneValueInDropDown } from "../../utilityModules/dropdown/dropDownMetadataController";
 
 export const createEnquiry = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
 
@@ -33,6 +34,7 @@ export const createEnquiry = expressAsyncHandler(functionLevelLogger(async (req:
         throw formatResponse(res, 494, 'Error occurred while deleting the enquiry draft', true);
       }
     }
+    updateOnlyOneValueInDropDown(DropDownType.FIX_CITY, savedResult?.address?.district);
     return formatResponse(res, 201, 'Enquiry created successfully', true, savedResult);
   }
   else {

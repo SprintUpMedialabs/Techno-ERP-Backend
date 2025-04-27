@@ -20,9 +20,7 @@ export const getEnquiryData = expressAsyncHandler(functionLevelLogger(async (req
 
   let { search, applicationStatus } = req.body;
 
-  if (!search) {
-    search = "";
-  }
+  search ??='';
 
   const filter: any = {
     $or: [

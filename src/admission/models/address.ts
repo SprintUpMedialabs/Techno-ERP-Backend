@@ -1,17 +1,14 @@
 import { Schema } from "mongoose";
 import { IAddressSchema } from "../../validators/commonSchema";
-import { Countries, Districts, StatesOfIndia } from "../../config/constants";
+import { Countries, StatesOfIndia } from "../../config/constants";
 
-export interface IAddressDocument extends IAddressSchema, Document {}
+export interface IAddressDocument extends IAddressSchema, Document { }
 
 export const addressSchema = new Schema<IAddressDocument>({
-  addressLine1 : { type: String },
-  addressLine2 : { type: String },
-  district: { type: String,
-    enum : {
-      values : Object.values(Districts),
-      message: 'Invalid District value'
-    }
+  addressLine1: { type: String },
+  addressLine2: { type: String },
+  district: {
+    type: String,
   },
   pincode: {
     type: String,
@@ -20,17 +17,18 @@ export const addressSchema = new Schema<IAddressDocument>({
       message: 'Pincode must be a 6-digit number starting with a non-zero digit'
     }
   },
-   state: {
+  state: {
     type: String,
     enum: {
       values: Object.values(StatesOfIndia),
       message: 'Invalid State value'
     },
   },
-  country: { type: String,
-    enum : {
-      values : Object.values(Countries),
+  country: {
+    type: String,
+    enum: {
+      values: Object.values(Countries),
       message: 'Invalid Country value'
     }
-   }
+  }
 });
