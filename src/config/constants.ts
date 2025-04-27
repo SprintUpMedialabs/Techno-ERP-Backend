@@ -81,6 +81,11 @@ export enum DropDownType {
   FIX_COURSE = "FIX_COURSE"
 }
 
+export enum PhysicalDocumentNoteStatus {
+  PENDING = "PENDING",
+  VERIFIED = "VERIFIED",
+  NOT_APPLICABLE = "NOT_APPLICABLE"
+}
 
 export enum Course {
   BCOM = "BCOM",
@@ -290,7 +295,7 @@ export const ADMISSION = 'admissions'
 export const TGI = "TGI";
 export const PHOTO = "PHOTO";
 
-export const MARKETING_SHEET = 'Marketing Sheet'
+// export const MARKETING_SHEET = 'Marketing Sheet'
 
 
 export enum COLLECTION_NAMES {

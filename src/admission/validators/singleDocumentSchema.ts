@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { DocumentType } from '../../config/constants';
-import { objectIdSchema, requestDateSchema } from '../../validators/commonSchema';
 import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
+import { requestDateSchema } from '../../validators/commonSchema';
 
 export const singleDocumentSchema = z.object({
   type: z.nativeEnum(DocumentType),

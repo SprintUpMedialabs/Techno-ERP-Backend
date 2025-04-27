@@ -1,13 +1,16 @@
 import { z } from 'zod';
 import { UserRoles } from '../../config/constants';
-import { objectIdSchema } from '../../validators/commonSchema';
 
 export const userSchema = z.object({
   email: z.string().email(),
   firstName: z.string(),
   lastName: z.string(),
   password: z.string().optional(),
-  roles: z.array(z.nativeEnum(UserRoles)).default([UserRoles.BASIC_USER])
+  roles: z.array(z.nativeEnum(UserRoles)).default([UserRoles.BASIC_USER]),
+  marketingSheet: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+  })).optional()
 });
 
 export type IUser = z.infer<typeof userSchema>;

@@ -2,19 +2,25 @@ import { google } from 'googleapis';
 import logger from '../../config/logger';
 import { SpreadSheetMetaData } from '../models/spreadSheet';
 import { googleAuth } from './googleAuth';
-import { MARKETING_SHEET_PAGE_NAME, MARKETING_SHEET_ID } from '../../secrets';
-import { MARKETING_SHEET } from '../../config/constants';
+// import { MARKETING_SHEET_PAGE_NAME, MARKETING_SHEET_ID } from '../../secrets';
+// import { MARKETING_SHEET } from '../../config/constants';
 import { IMarketingSpreadsheetProcessReport } from '../types/marketingSpreadsheet';
 
 // TODO: what if google api is down? we will focus on this on phase - 2
 
-export const readFromGoogleSheet = async () => {
+export const readFromGoogleSheet = async (MARKETING_SHEET_ID: string, MARKETING_SHEET_PAGE_NAME: string) => {
   const sheetInstance = google.sheets({ version: 'v4', auth: googleAuth });
 
-  const spreadSheetMetaData = await SpreadSheetMetaData.findOne({
-    name: MARKETING_SHEET
+  let spreadSheetMetaData = await SpreadSheetMetaData.findOne({
+    name: MARKETING_SHEET_PAGE_NAME
   });
-  const lastSavedIndex = spreadSheetMetaData?.lastIdxMarketingSheet!;
+
+  spreadSheetMetaData ??= await SpreadSheetMetaData.create({
+    name: MARKETING_SHEET_PAGE_NAME,
+    lastIdxMarketingSheet: 1
+  });
+
+  const lastSavedIndex = spreadSheetMetaData.lastIdxMarketingSheet;
   logger.info(`Last saved index from DB: ${lastSavedIndex}`);
 
   const sheetMeta = await sheetInstance.spreadsheets.get({
@@ -50,11 +56,13 @@ export const readFromGoogleSheet = async () => {
   };
 };
 
-export const updateStatusForMarketingSheet = async (newLastReadIndex: number, lastSavedIndex: number, report: IMarketingSpreadsheetProcessReport) => {
+export const updateStatusForMarketingSheet = async (newLastReadIndex: number, lastSavedIndex: number, report: IMarketingSpreadsheetProcessReport, MARKETING_SHEET_ID: string, MARKETING_SHEET_PAGE_NAME: string) => {
   const sheetInstance = google.sheets({ version: 'v4', auth: googleAuth });
 
+  newLastReadIndex = newLastReadIndex + 1;
+
   await SpreadSheetMetaData.findOneAndUpdate(
-    { name: MARKETING_SHEET },
+    { name: MARKETING_SHEET_PAGE_NAME },
     { $set: { lastIdxMarketingSheet: newLastReadIndex } },
     { new: true, upsert: true }
   );
