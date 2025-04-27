@@ -34,7 +34,7 @@ export const createEnquiry = expressAsyncHandler(functionLevelLogger(async (req:
         throw formatResponse(res, 494, 'Error occurred while deleting the enquiry draft', true);
       }
     }
-    updateOnlyOneValueInDropDown(DropDownType.FIX_CITY, savedResult?.address?.district);
+    updateOnlyOneValueInDropDown(DropDownType.DISTRICT, savedResult?.address?.district);
     return formatResponse(res, 201, 'Enquiry created successfully', true, savedResult);
   }
   else {

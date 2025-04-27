@@ -15,8 +15,7 @@ export enum UserRoles {
 export enum Gender {
   MALE = 'MALE',
   FEMALE = 'FEMALE',
-  OTHER = 'OTHERS',
-  NOT_TO_MENTION = 'NOT_TO_MENTION'
+  OTHER = 'OTHERS'
 }
 
 
@@ -76,6 +75,7 @@ export enum AdmissionReference {
 export enum DropDownType {
   CITY = "CITY",
   FIX_CITY = "FIX_CITY",
+  DISTRICT = "DISTRICT",
   MAKRETING_SOURCE = "MAKRETING_SOURCE",
   COURSE = "COURSE",
   FIX_COURSE = "FIX_COURSE"
@@ -223,8 +223,6 @@ export enum AdmissionMode {
   ONLINE = "ONLINE",
   OFFLINE = "OFFLINE"
 }
-
-
 
 export enum StatesOfIndia {
   ANDHRA_PRADESH = "Andhra Pradesh",

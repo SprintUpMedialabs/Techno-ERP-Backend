@@ -32,7 +32,7 @@ export const saveStep3Draft = expressAsyncHandler(functionLevelLogger(async (req
     { new: true, runValidators: true }
   );
 
-  updateOnlyOneValueInDropDown(DropDownType.FIX_CITY, enquiry?.address?.district);
+  updateOnlyOneValueInDropDown(DropDownType.DISTRICT, enquiry?.address?.district);
   return formatResponse(res, 200, 'Created Step 3 draft successfully', true, enquiry);
 }));
 
@@ -63,7 +63,7 @@ export const updateEnquiryStep3ById = expressAsyncHandler(functionLevelLogger(as
 
   const updatedData = await Enquiry.findByIdAndUpdate(id, { ...data, }, { new: true, runValidators: true });
 
-  updateOnlyOneValueInDropDown(DropDownType.FIX_CITY, updatedData?.address?.district);
+  updateOnlyOneValueInDropDown(DropDownType.DISTRICT, updatedData?.address?.district);
   return formatResponse(res, 200, 'Enquiry data updated successfully', true, updatedData);
 
 }));
