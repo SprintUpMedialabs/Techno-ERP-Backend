@@ -13,15 +13,21 @@ import { saveDataToDb } from '../helpers/updateAndSaveToDb';
 import { LeadMaster } from '../models/lead';
 import { IUpdateLeadRequestSchema, updateLeadRequestSchema } from '../validators/leads';
 import { updateOnlyOneValueInDropDown } from '../../utilityModules/dropdown/dropDownMetadataController';
+import { User } from '../../auth/models/user';
 
-export const uploadData = expressAsyncHandler(async (_: AuthenticatedRequest, res: Response) => {
-  const latestData = await readFromGoogleSheet();
-  if (!latestData) {
-    return formatResponse(res, 200, 'There is no data to update.', true);
-  } else {
-    await saveDataToDb(latestData.RowData, latestData.LastSavedIndex);
-    return formatResponse(res, 200, 'Data updated in Database!', true);
+export const uploadData = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const user = await User.findById(req.data?.id);
+  const marketingSheet = user?.marketingSheet;
+  console.log(marketingSheet);
+  if (marketingSheet && marketingSheet.length > 0) {
+    for (const sheet of marketingSheet) {
+      const latestData = await readFromGoogleSheet(sheet.id, sheet.name);
+      if (latestData) {
+        await saveDataToDb(latestData.RowData, latestData.LastSavedIndex, sheet.id, sheet.name);
+      }
+    }
   }
+  return formatResponse(res, 200, 'Data updated in Database!', true);
 });
 
 export const getFilteredLeadData = expressAsyncHandler(

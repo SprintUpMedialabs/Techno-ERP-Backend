@@ -6,6 +6,7 @@ import { IEnquirySchema } from "../validators/enquiry";
 import { contactNumberSchema, emailSchema } from "../../validators/commonSchema";
 import { academicDetailFormSchema } from "./academicDetail";
 import { addressSchema } from "./address";
+import { physicalDocumentNoteSchema } from "./physicalDocumentNoteSchema";
 
 export interface IEnquiryDraftDocument extends IEnquirySchema, Document { }
 
@@ -129,17 +130,17 @@ export const enquiryDraftSchema = new Schema<IEnquiryDraftDocument>(
             validate: {
                 validator: function (values) {
                     if (!Array.isArray(values)) return false; // Ensure it's an array
-            
+
                     return values.every(value => {
                         // Allow null or undefined
                         if (value === null || value === undefined) return true;
-            
+
                         // Check for valid ObjectId
                         const isObjectId = mongoose.Types.ObjectId.isValid(value);
-            
+
                         // Allow string 'Other'
                         const isOther = value === 'Other';
-            
+
                         return isObjectId || isOther;
                     });
                 },
@@ -147,24 +148,27 @@ export const enquiryDraftSchema = new Schema<IEnquiryDraftDocument>(
             },
             required: false,
         },
+        physicalDocumentNote: {
+            type: [physicalDocumentNoteSchema]
+        },
         // DTODO: here we have id and other 2 value [so type should be according to that]
         // this change need to be done in other models [studentFeesDraft, studentFees, enquiry]
         telecaller: {
-            type: [ Schema.Types.Mixed ], // Allows ObjectId or String
+            type: [Schema.Types.Mixed], // Allows ObjectId or String
             validate: {
                 validator: function (values) {
                     if (!Array.isArray(values)) return false; // Ensure it's an array
-            
+
                     return values.every(value => {
                         // Allow null or undefined
                         if (value === null || value === undefined) return true;
-            
+
                         // Check for valid ObjectId
                         const isObjectId = mongoose.Types.ObjectId.isValid(value);
-            
+
                         // Allow string 'Other'
                         const isOther = value === 'Other';
-            
+
                         return isObjectId || isOther;
                     });
                 },
@@ -186,8 +190,8 @@ export const enquiryDraftSchema = new Schema<IEnquiryDraftDocument>(
         applicationStatus: {
             type: String,
             enum: {
-              values: Object.values(ApplicationStatus),
-              message: 'Invalid Application Status value'
+                values: Object.values(ApplicationStatus),
+                message: 'Invalid Application Status value'
             },
             default: ApplicationStatus.STEP_1,
             required: true

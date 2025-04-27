@@ -136,7 +136,7 @@ const leadsToBeInserted = async (
   return dataToInsert;
 };
 
-export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) => {
+export const saveDataToDb = async (latestData: any[], lastSavedIndex: number, sheetId: string, sheetName: string) => {
   const report: IMarketingSpreadsheetProcessReport = {
     rowsToBeProcessed: latestData.length,
     actullyProcessedRows: 0,
@@ -165,7 +165,7 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) =>
     }
     logger.info('No valid data to insert.');
 
-    updateStatusForMarketingSheet(lastSavedIndex + latestData.length, lastSavedIndex, report);
+    updateStatusForMarketingSheet(lastSavedIndex + latestData.length, lastSavedIndex, report, sheetId, sheetName);
     return;
   }
 
@@ -193,10 +193,9 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) =>
     sendEmail(LEAD_MARKETING_EMAIL, 'Lead Processing Report', formatReport(report));
     logger.info('Error report sent to Lead!');
   }
-  console.log(report);
   updateDropDownByType(DropDownType.CITY, Array.from(citySet));
   updateDropDownByType(DropDownType.MAKRETING_SOURCE, Array.from(sourceSet));
   updateDropDownByType(DropDownType.COURSE, Array.from(courseSet));
 
-  updateStatusForMarketingSheet(lastSavedIndex + latestData.length, lastSavedIndex, report);
+  updateStatusForMarketingSheet(lastSavedIndex + latestData.length, lastSavedIndex, report, sheetId, sheetName);
 };
