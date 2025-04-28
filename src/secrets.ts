@@ -42,3 +42,4 @@ export const NODE_ENV = process.env.NODE_ENV!;
 export const AUDIT_LOG_SERVICE_URL = process.env.AUDIT_LOG_SERVICE_URL!;
 
 export const SERVICE_AUTH_TOKEN = process.env.SERVICE_AUTH_TOKEN!;
+export const DEVELOPER_EMAIL = process.env.DEVELOPER_EMAIL!;

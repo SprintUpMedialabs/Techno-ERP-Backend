@@ -7,7 +7,8 @@ export const baseDepartmentMetaDataSchema = z.object({
     startingYear: z.number().refine(val => /^\d{4}$/.test(val.toString()), {
         message: "Year must be a valid 4 digit number!"
     }),
-    endingYear: z.number().optional()
+    endingYear: z.number().optional(),
+    instructors : z.array(objectIdSchema)
 })
 
 export const departmentMetaDataSchema = baseDepartmentMetaDataSchema.superRefine(({ startingYear, endingYear }, ctx) => {

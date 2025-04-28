@@ -38,7 +38,6 @@ const leadsToBeInserted = async (
         report.rowsFailed++;
         continue;
       }
-      console.log(row);
 
       // if assignTo is not mentationed in sheet
       if (!row[MarketingsheetHeaders.AssignedTo]) {
@@ -55,7 +54,7 @@ const leadsToBeInserted = async (
         ...(row[MarketingsheetHeaders.PhoneNumber] && { phoneNumber: row[MarketingsheetHeaders.PhoneNumber] }),
         ...(row[MarketingsheetHeaders.AltPhoneNumber] && { altPhoneNumber: row[MarketingsheetHeaders.AltPhoneNumber] }),
         ...(row[MarketingsheetHeaders.Email] && { email: row[MarketingsheetHeaders.Email] }),
-        gender: Gender.NOT_TO_MENTION,
+        gender: Gender.OTHER,
         ...(row[MarketingsheetHeaders.City] && { city: row[MarketingsheetHeaders.City] }),
         ...(row[MarketingsheetHeaders.LeadType] && { leadType: row[MarketingsheetHeaders.LeadType] }),
         ...(row[MarketingsheetHeaders.Remarks] && { remarks: row[MarketingsheetHeaders.Remarks] }),
@@ -71,7 +70,7 @@ const leadsToBeInserted = async (
       ) {
         leadData.gender = Gender[row[MarketingsheetHeaders.Gender] as keyof typeof Gender];
       }
-      console.log(leadData);
+
       const leadDataValidation = leadSheetSchema.safeParse(leadData);
 
       if (leadDataValidation.success) {
@@ -137,7 +136,7 @@ const leadsToBeInserted = async (
   return dataToInsert;
 };
 
-export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) => {
+export const saveDataToDb = async (latestData: any[], lastSavedIndex: number, sheetId: string, sheetName: string) => {
   const report: IMarketingSpreadsheetProcessReport = {
     rowsToBeProcessed: latestData.length,
     actullyProcessedRows: 0,
@@ -151,9 +150,9 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) =>
     invalidPhoneNumber: [],
   };
 
-  const cityDropDown = await DropDownMetaData.findOne({ type: DropDownType.CITY });
-  const sourceDropDown = await DropDownMetaData.findOne({ type: DropDownType.MAKRETING_SOURCE });
-  const courseDropDown = await DropDownMetaData.findOne({ type: DropDownType.COURSE });
+  const cityDropDown = await DropDownMetaData.findOne({ type: DropDownType.MARKETING_CITY });
+  const sourceDropDown = await DropDownMetaData.findOne({ type: DropDownType.MARKETING_SOURCE });
+  const courseDropDown = await DropDownMetaData.findOne({ type: DropDownType.MARKETING_COURSE_CODE });
   const citySet = new Set(cityDropDown?.value || []);
   const sourceSet = new Set(sourceDropDown?.value || []);
   const courseSet = new Set(courseDropDown?.value || []);
@@ -166,7 +165,7 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) =>
     }
     logger.info('No valid data to insert.');
 
-    updateStatusForMarketingSheet(lastSavedIndex + latestData.length, lastSavedIndex, report);
+    updateStatusForMarketingSheet(lastSavedIndex + latestData.length, lastSavedIndex, report, sheetId, sheetName);
     return;
   }
 
@@ -175,7 +174,6 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) =>
     report.actullyProcessedRows = insertedData.length;
   } catch (error: any) {
     try {
-      console.log(error);
       report.actullyProcessedRows = error.result.insertedCount;
 
       error.writeErrors.map((e: any) => {
@@ -195,10 +193,9 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number) =>
     sendEmail(LEAD_MARKETING_EMAIL, 'Lead Processing Report', formatReport(report));
     logger.info('Error report sent to Lead!');
   }
-  console.log(report);
-  updateDropDownByType(DropDownType.CITY, Array.from(citySet));
-  updateDropDownByType(DropDownType.MAKRETING_SOURCE, Array.from(sourceSet));
-  updateDropDownByType(DropDownType.COURSE, Array.from(courseSet));
+  updateDropDownByType(DropDownType.MARKETING_CITY, Array.from(citySet));
+  updateDropDownByType(DropDownType.MARKETING_SOURCE, Array.from(sourceSet));
+  updateDropDownByType(DropDownType.MARKETING_COURSE_CODE, Array.from(courseSet));
 
-  updateStatusForMarketingSheet(lastSavedIndex + latestData.length, lastSavedIndex, report);
+  updateStatusForMarketingSheet(lastSavedIndex + latestData.length, lastSavedIndex, report, sheetId, sheetName);
 };

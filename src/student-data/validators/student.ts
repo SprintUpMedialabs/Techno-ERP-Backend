@@ -23,7 +23,7 @@ export const studentSchema = z.object({
   dateOfEnquiry: z.date().optional(),
   
   studentPhoneNumber: contactNumberSchema,
-  gender: z.nativeEnum(Gender).default(Gender.NOT_TO_MENTION),
+  gender: z.nativeEnum(Gender).default(Gender.OTHER),
 
   fatherName: z.string({ required_error: "Father Name is required", }).nonempty("Father's Name is required"),
   fatherPhoneNumber: contactNumberSchema,

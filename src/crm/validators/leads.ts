@@ -8,11 +8,13 @@ export const leadMasterSchema = z.object({
   date: z.date(),
   source: z.string().default('Other'),
   schoolName: z.string().optional(),
-  name: z.string().nonempty('Name field is required').regex(/^[A-Za-z\s]+$/, 'Name can only contain alphabets and spaces'),
-  phoneNumber: contactNumberSchema,
+  name: z.string()
+    .regex(/^[A-Za-z\s]+$/, 'Name can only contain alphabets and spaces')
+    .optional(),
+  phoneNumber: contactNumberSchema.optional(),
   altPhoneNumber: contactNumberSchema.optional(),
   email: z.string().email('Invalid Email Format').optional(),
-  gender: z.nativeEnum(Gender).default(Gender.NOT_TO_MENTION),
+  gender: z.nativeEnum(Gender).default(Gender.OTHER),
   area: z.string().optional(),
   city: z.string().optional().default('Other'),
   course: z.string().optional(),
