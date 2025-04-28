@@ -54,7 +54,7 @@ export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedReq
   });
 
   updateOnlyOneValueInDropDown(DropDownType.FIX_CITY, updatedYellowLead?.city);
-  updateOnlyOneValueInDropDown(DropDownType.MARKTING_CITY, updatedYellowLead?.city);
+  updateOnlyOneValueInDropDown(DropDownType.MARKETING_CITY, updatedYellowLead?.city);
   updateOnlyOneValueInDropDown(DropDownType.FIX_COURSE_CODE, updatedYellowLead?.course);
   updateOnlyOneValueInDropDown(DropDownType.MARKETING_COURSE_CODE, updatedYellowLead?.course);
 

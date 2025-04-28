@@ -132,7 +132,7 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
     );
 
     updateOnlyOneValueInDropDown(DropDownType.FIX_CITY, updatedData?.city);
-    updateOnlyOneValueInDropDown(DropDownType.MARKTING_CITY, updatedData?.city);
+    updateOnlyOneValueInDropDown(DropDownType.MARKETING_CITY, updatedData?.city);
     updateOnlyOneValueInDropDown(DropDownType.FIX_COURSE_CODE, updatedData?.course);
     updateOnlyOneValueInDropDown(DropDownType.MARKETING_COURSE_CODE, updatedData?.course);
 

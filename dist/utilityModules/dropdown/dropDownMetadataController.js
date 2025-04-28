@@ -52,7 +52,7 @@ const updateOnlyOneValueInDropDown = (type, value) => __awaiter(void 0, void 0, 
     if (!value)
         return;
     let formattedValue;
-    if (type == constants_1.DropDownType.FIX_COURSE || type == constants_1.DropDownType.COURSE) {
+    if (type == constants_1.DropDownType.FIX_COURSE_CODE || type == constants_1.DropDownType.MARKETING_COURSE_CODE) {
         formattedValue = (0, exports.formatCapital)(value);
     }
     else {
