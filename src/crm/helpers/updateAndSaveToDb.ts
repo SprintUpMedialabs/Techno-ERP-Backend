@@ -150,8 +150,8 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number, sh
     invalidPhoneNumber: [],
   };
 
-  const cityDropDown = await DropDownMetaData.findOne({ type: DropDownType.MARKTING_CITY });
-  const sourceDropDown = await DropDownMetaData.findOne({ type: DropDownType.MAKRETING_SOURCE });
+  const cityDropDown = await DropDownMetaData.findOne({ type: DropDownType.MARKETING_CITY });
+  const sourceDropDown = await DropDownMetaData.findOne({ type: DropDownType.MARKETING_SOURCE });
   const courseDropDown = await DropDownMetaData.findOne({ type: DropDownType.MARKETING_COURSE_CODE });
   const citySet = new Set(cityDropDown?.value || []);
   const sourceSet = new Set(sourceDropDown?.value || []);
@@ -193,8 +193,8 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number, sh
     sendEmail(LEAD_MARKETING_EMAIL, 'Lead Processing Report', formatReport(report));
     logger.info('Error report sent to Lead!');
   }
-  updateDropDownByType(DropDownType.MARKTING_CITY, Array.from(citySet));
-  updateDropDownByType(DropDownType.MAKRETING_SOURCE, Array.from(sourceSet));
+  updateDropDownByType(DropDownType.MARKETING_CITY, Array.from(citySet));
+  updateDropDownByType(DropDownType.MARKETING_SOURCE, Array.from(sourceSet));
   updateDropDownByType(DropDownType.MARKETING_COURSE_CODE, Array.from(courseSet));
 
   updateStatusForMarketingSheet(lastSavedIndex + latestData.length, lastSavedIndex, report, sheetId, sheetName);

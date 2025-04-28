@@ -74,12 +74,12 @@ var AdmissionReference;
 ;
 var DropDownType;
 (function (DropDownType) {
-    DropDownType["CITY"] = "CITY";
+    DropDownType["MARKETING_CITY"] = "MARKETING_CITY";
     DropDownType["FIX_CITY"] = "FIX_CITY";
     DropDownType["DISTRICT"] = "DISTRICT";
-    DropDownType["MAKRETING_SOURCE"] = "MAKRETING_SOURCE";
-    DropDownType["COURSE"] = "COURSE";
-    DropDownType["FIX_COURSE"] = "FIX_COURSE";
+    DropDownType["MARKETING_SOURCE"] = "MARKETING_SOURCE";
+    DropDownType["MARKETING_COURSE_CODE"] = "MARKETING_COURSE_CODE";
+    DropDownType["FIX_COURSE_CODE"] = "FIX_COURSE_CODE";
 })(DropDownType || (exports.DropDownType = DropDownType = {}));
 var PhysicalDocumentNoteStatus;
 (function (PhysicalDocumentNoteStatus) {
