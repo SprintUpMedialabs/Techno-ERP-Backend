@@ -142,7 +142,6 @@ export const login = expressAsyncHandler(async (req: Request, res: Response) => 
 
   const payload = {
     id: user._id,
-    marketingSheet: user.marketingSheet,
     roles: user.roles
   };
 
