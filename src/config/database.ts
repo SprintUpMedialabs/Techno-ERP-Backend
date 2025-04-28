@@ -4,6 +4,8 @@ import { MONGODB_DATABASE_NAME, MONGODB_DATABASE_URL } from '../secrets';
 import { DropDownMetaData } from '../utilityModules/dropdown/dropDownMetaDeta';
 import { DropDownType, FormNoPrefixes, PHOTO } from './constants';
 import logger from './logger';
+import { fixCourseCodeList } from './metadata';
+import { fixCityList } from './metadata';
 
 const connectToDatabase = async (): Promise<void> => {
   try {
@@ -46,42 +48,72 @@ export const initializeDB = async () => {
       }
     }
 
-    const existingCityDropDown = await DropDownMetaData.findOne({ type: DropDownType.CITY });
+    // City Dropdown => no need to add values from our side as its going to be used for marketing module only as of now
+    const existingCityDropDown = await DropDownMetaData.findOne({ type: DropDownType.MARKETING_CITY });
     if (!existingCityDropDown) {
       await DropDownMetaData.create({
-        type: DropDownType.CITY,
+        type: DropDownType.MARKETING_CITY,
       });
     }
-    const existingSourceDropDown = await DropDownMetaData.findOne({ type: DropDownType.MAKRETING_SOURCE });
+
+    // Marketing Source Dropdown => no need to add values from our side as its going to be used for marketing module only as of now
+    const existingSourceDropDown = await DropDownMetaData.findOne({ type: DropDownType.MARKETING_SOURCE });
     if (!existingSourceDropDown) {
       await DropDownMetaData.create({
-        type: DropDownType.MAKRETING_SOURCE,
+        type: DropDownType.MARKETING_SOURCE,
       });
     }
-    const existingCourseDropDown = await DropDownMetaData.findOne({ type: DropDownType.COURSE });
+
+    
+    // Course Dropdown => no need to add values from our side as its going to be used for marketing module only as of now
+    const existingCourseDropDown = await DropDownMetaData.findOne({ type: DropDownType.MARKETING_COURSE_CODE });
     if (!existingCourseDropDown) {
       await DropDownMetaData.create({
-        type: DropDownType.COURSE,
+        type: DropDownType.MARKETING_COURSE_CODE,
       });
     }
+
+    // Fix City Dropdown
     const existingFixCityDropDown = await DropDownMetaData.findOne({ type: DropDownType.FIX_CITY });
-    if (!existingFixCityDropDown) {
-      await DropDownMetaData.create({
-        type: DropDownType.FIX_CITY,
-      });
-    }
-    const existingFixCourseDropDown = await DropDownMetaData.findOne({ type: DropDownType.FIX_COURSE });
-    if (!existingFixCourseDropDown) {
-      await DropDownMetaData.create({
-        type: DropDownType.FIX_COURSE,
-      });
-    }
+    const fixCityDropdownSet = new Set(existingFixCityDropDown?.value || []);
+    fixCityList.forEach(city => fixCityDropdownSet.add(city));
+    const sortedCityValues = Array.from(fixCityDropdownSet).sort((a, b) => {
+      if (a === "Other") return 1;
+      if (b === "Other") return -1;
+      return a.localeCompare(b);
+    });
+    await DropDownMetaData.findOneAndUpdate(
+      { type: DropDownType.FIX_CITY },
+      { value: sortedCityValues }
+    );
+
+    // Fix Course Dropdown
+    const existingFixCourseDropDown = await DropDownMetaData.findOne({ type: DropDownType.FIX_COURSE_CODE });
+    const fixCourseDropdownSet = new Set(existingFixCourseDropDown?.value || []);
+    fixCourseCodeList.forEach(code => fixCourseDropdownSet.add(code));
+    const sortedValues = Array.from(fixCourseDropdownSet).sort((a, b) => {
+      if (a === "Other") return 1;
+      if (b === "Other") return -1;
+      return a.localeCompare(b);
+    });
+    await DropDownMetaData.findOneAndUpdate(
+      { type: DropDownType.FIX_COURSE_CODE },
+      { value: sortedValues }
+    );
+
+    // District Dropdown
     const existingDistrictDropDown = await DropDownMetaData.findOne({ type: DropDownType.DISTRICT });
-    if (!existingDistrictDropDown) {
-      await DropDownMetaData.create({
-        type: DropDownType.DISTRICT,
-      });
-    }
+    const districtDropdownSet = new Set(existingDistrictDropDown?.value || []);
+    fixCityList.forEach(district => districtDropdownSet.add(district));
+    const sortedDistrictValues = Array.from(districtDropdownSet).sort((a, b) => {
+      if (a === "Other") return 1;
+      if (b === "Other") return -1;
+      return a.localeCompare(b);
+    });
+    await DropDownMetaData.findOneAndUpdate(
+      { type: DropDownType.DISTRICT },
+      { value: sortedDistrictValues }
+    );
 
   } catch (error) {
     console.error('Error initializing database:', error);

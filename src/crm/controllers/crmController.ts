@@ -132,9 +132,9 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
     );
 
     updateOnlyOneValueInDropDown(DropDownType.FIX_CITY, updatedData?.city);
-    updateOnlyOneValueInDropDown(DropDownType.CITY, updatedData?.city);
-    updateOnlyOneValueInDropDown(DropDownType.FIX_COURSE, updatedData?.course);
-    updateOnlyOneValueInDropDown(DropDownType.COURSE, updatedData?.course);
+    updateOnlyOneValueInDropDown(DropDownType.MARKETING_CITY, updatedData?.city);
+    updateOnlyOneValueInDropDown(DropDownType.FIX_COURSE_CODE, updatedData?.course);
+    updateOnlyOneValueInDropDown(DropDownType.MARKETING_COURSE_CODE, updatedData?.course);
 
 
     safeAxiosPost(axiosInstance, `${Endpoints.AuditLogService.MARKETING.SAVE_LEAD}`, {
