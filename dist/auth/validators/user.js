@@ -8,5 +8,9 @@ exports.userSchema = zod_1.z.object({
     firstName: zod_1.z.string(),
     lastName: zod_1.z.string(),
     password: zod_1.z.string().optional(),
-    roles: zod_1.z.array(zod_1.z.nativeEnum(constants_1.UserRoles)).default([constants_1.UserRoles.BASIC_USER])
+    roles: zod_1.z.array(zod_1.z.nativeEnum(constants_1.UserRoles)).default([constants_1.UserRoles.BASIC_USER]),
+    marketingSheet: zod_1.z.array(zod_1.z.object({
+        id: zod_1.z.string(),
+        name: zod_1.z.string(),
+    })).optional()
 });

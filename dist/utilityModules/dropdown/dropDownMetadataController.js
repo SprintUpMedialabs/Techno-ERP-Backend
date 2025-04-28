@@ -33,7 +33,13 @@ exports.getDropDownDataByType = (0, express_async_handler_1.default)((req, res) 
 }));
 const updateDropDownByType = (type, value) => __awaiter(void 0, void 0, void 0, function* () {
     // Test: we need to test whether updated values are sorted or not
-    const sortedValues = value.sort((a, b) => a.localeCompare(b));
+    const sortedValues = value.sort((a, b) => {
+        if (a === "Other")
+            return 1;
+        if (b === "Other")
+            return -1;
+        return a.localeCompare(b);
+    });
     try {
         yield dropDownMetaDeta_1.DropDownMetaData.findOneAndUpdate({ type }, { value: sortedValues }, { new: true, runValidators: true });
     }
@@ -46,7 +52,7 @@ const updateOnlyOneValueInDropDown = (type, value) => __awaiter(void 0, void 0, 
     if (!value)
         return;
     let formattedValue;
-    if (type == constants_1.DropDownType.FIX_COURSE || type == constants_1.DropDownType.COURSE) {
+    if (type == constants_1.DropDownType.FIX_COURSE_CODE || type == constants_1.DropDownType.MARKETING_COURSE_CODE) {
         formattedValue = (0, exports.formatCapital)(value);
     }
     else {
@@ -55,7 +61,13 @@ const updateOnlyOneValueInDropDown = (type, value) => __awaiter(void 0, void 0, 
     const dropdown = yield dropDownMetaDeta_1.DropDownMetaData.findOne({ type });
     const dropdownSet = new Set((dropdown === null || dropdown === void 0 ? void 0 : dropdown.value) || []);
     dropdownSet.add(formattedValue);
-    const sortedValues = Array.from(dropdownSet).sort((a, b) => a.localeCompare(b));
+    const sortedValues = Array.from(dropdownSet).sort((a, b) => {
+        if (a === "Other")
+            return 1;
+        if (b === "Other")
+            return -1;
+        return a.localeCompare(b);
+    });
     try {
         yield dropDownMetaDeta_1.DropDownMetaData.findOneAndUpdate({ type }, { value: sortedValues }, { new: true, runValidators: true });
     }

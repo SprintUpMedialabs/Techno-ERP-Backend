@@ -26,15 +26,21 @@ const updateAndSaveToDb_1 = require("../helpers/updateAndSaveToDb");
 const lead_1 = require("../models/lead");
 const leads_1 = require("../validators/leads");
 const dropDownMetadataController_1 = require("../../utilityModules/dropdown/dropDownMetadataController");
-exports.uploadData = (0, express_async_handler_1.default)((_, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const latestData = yield (0, googleSheetOperations_1.readFromGoogleSheet)();
-    if (!latestData) {
-        return (0, formatResponse_1.formatResponse)(res, 200, 'There is no data to update.', true);
+const user_1 = require("../../auth/models/user");
+exports.uploadData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    const user = yield user_1.User.findById((_a = req.data) === null || _a === void 0 ? void 0 : _a.id);
+    const marketingSheet = user === null || user === void 0 ? void 0 : user.marketingSheet;
+    console.log(marketingSheet);
+    if (marketingSheet && marketingSheet.length > 0) {
+        for (const sheet of marketingSheet) {
+            const latestData = yield (0, googleSheetOperations_1.readFromGoogleSheet)(sheet.id, sheet.name);
+            if (latestData) {
+                yield (0, updateAndSaveToDb_1.saveDataToDb)(latestData.RowData, latestData.LastSavedIndex, sheet.id, sheet.name);
+            }
+        }
     }
-    else {
-        yield (0, updateAndSaveToDb_1.saveDataToDb)(latestData.RowData, latestData.LastSavedIndex);
-        return (0, formatResponse_1.formatResponse)(res, 200, 'Data updated in Database!', true);
-    }
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Data updated in Database!', true);
 }));
 exports.getFilteredLeadData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { query, search, page, limit, sort } = (0, parseFilter_1.parseFilter)(req);
@@ -58,7 +64,6 @@ exports.getFilteredLeadData = (0, express_async_handler_1.default)((req, res) =>
         leadsQuery.skip(skip).limit(limit),
         lead_1.LeadMaster.countDocuments(query),
     ]);
-    console.log(leads);
     return (0, formatResponse_1.formatResponse)(res, 200, 'Filtered leads fetched successfully', true, {
         leads,
         total: totalLeads,
@@ -115,9 +120,9 @@ exports.updateData = (0, express_async_handler_1.default)((req, res) => __awaite
             runValidators: true
         });
         (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.FIX_CITY, updatedData === null || updatedData === void 0 ? void 0 : updatedData.city);
-        (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.CITY, updatedData === null || updatedData === void 0 ? void 0 : updatedData.city);
-        (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.FIX_COURSE, updatedData === null || updatedData === void 0 ? void 0 : updatedData.course);
-        (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.COURSE, updatedData === null || updatedData === void 0 ? void 0 : updatedData.course);
+        (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.MARKETING_CITY, updatedData === null || updatedData === void 0 ? void 0 : updatedData.city);
+        (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.FIX_COURSE_CODE, updatedData === null || updatedData === void 0 ? void 0 : updatedData.course);
+        (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.MARKETING_COURSE_CODE, updatedData === null || updatedData === void 0 ? void 0 : updatedData.course);
         (0, safeAxios_1.safeAxiosPost)(axiosInstance_1.default, `${endPoints_1.Endpoints.AuditLogService.MARKETING.SAVE_LEAD}`, {
             documentId: updatedData === null || updatedData === void 0 ? void 0 : updatedData._id,
             action: constants_1.RequestAction.POST,

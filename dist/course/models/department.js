@@ -62,6 +62,9 @@ exports.departmentModelSchema = new mongoose_1.Schema({
     endingYear: {
         type: Number,
     },
+    instructors: {
+        type: [mongoose_1.Schema.Types.ObjectId],
+    }
 }, { timestamps: true });
 const handleMongooseError = (error, next) => {
     if (error.name === 'ValidationError') {

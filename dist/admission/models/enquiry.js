@@ -56,6 +56,7 @@ const address_1 = require("./address");
 const previousCollegeData_1 = require("./previousCollegeData");
 const singleDocument_1 = require("./singleDocument");
 const entranceExamDetail_1 = require("./entranceExamDetail");
+const physicalDocumentNoteSchema_1 = require("./physicalDocumentNoteSchema");
 exports.enquirySchema = new mongoose_1.Schema({
     admissionMode: {
         type: String,
@@ -226,6 +227,9 @@ exports.enquirySchema = new mongoose_1.Schema({
     },
     documents: {
         type: [singleDocument_1.singleDocumentSchema]
+    },
+    physicalDocumentNote: {
+        type: [physicalDocumentNoteSchema_1.physicalDocumentNoteSchema]
     },
     stateOfDomicile: {
         type: String,

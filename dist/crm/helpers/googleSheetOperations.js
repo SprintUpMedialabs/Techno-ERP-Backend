@@ -17,39 +17,36 @@ const googleapis_1 = require("googleapis");
 const logger_1 = __importDefault(require("../../config/logger"));
 const spreadSheet_1 = require("../models/spreadSheet");
 const googleAuth_1 = require("./googleAuth");
-const secrets_1 = require("../../secrets");
-const constants_1 = require("../../config/constants");
 // TODO: what if google api is down? we will focus on this on phase - 2
-const readFromGoogleSheet = () => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d;
+const readFromGoogleSheet = (MARKETING_SHEET_ID, MARKETING_SHEET_PAGE_NAME) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     const sheetInstance = googleapis_1.google.sheets({ version: 'v4', auth: googleAuth_1.googleAuth });
-    const spreadSheetMetaData = yield spreadSheet_1.SpreadSheetMetaData.findOne({
-        name: constants_1.MARKETING_SHEET
+    let spreadSheetMetaData = yield spreadSheet_1.SpreadSheetMetaData.findOne({
+        name: MARKETING_SHEET_PAGE_NAME
     });
-    const lastSavedIndex = spreadSheetMetaData === null || spreadSheetMetaData === void 0 ? void 0 : spreadSheetMetaData.lastIdxMarketingSheet;
+    spreadSheetMetaData !== null && spreadSheetMetaData !== void 0 ? spreadSheetMetaData : (spreadSheetMetaData = yield spreadSheet_1.SpreadSheetMetaData.create({
+        name: MARKETING_SHEET_PAGE_NAME,
+        lastIdxMarketingSheet: 1
+    }));
+    const lastSavedIndex = spreadSheetMetaData.lastIdxMarketingSheet;
     logger_1.default.info(`Last saved index from DB: ${lastSavedIndex}`);
     const sheetMeta = yield sheetInstance.spreadsheets.get({
-        spreadsheetId: secrets_1.MARKETING_SHEET_ID
+        spreadsheetId: MARKETING_SHEET_ID
     });
-    const sheetInfo = (_a = sheetMeta.data.sheets) === null || _a === void 0 ? void 0 : _a.find(sheet => { var _a; return ((_a = sheet.properties) === null || _a === void 0 ? void 0 : _a.title) === secrets_1.MARKETING_SHEET_PAGE_NAME; });
+    const sheetInfo = (_a = sheetMeta.data.sheets) === null || _a === void 0 ? void 0 : _a.find(sheet => { var _a; return ((_a = sheet.properties) === null || _a === void 0 ? void 0 : _a.title) === MARKETING_SHEET_PAGE_NAME; });
     if (!sheetInfo)
         throw new Error('Sheet not found');
-    const sheetId = (_b = sheetInfo.properties) === null || _b === void 0 ? void 0 : _b.sheetId;
-    const currentMaxRows = (_d = (_c = sheetInfo.properties) === null || _c === void 0 ? void 0 : _c.gridProperties) === null || _d === void 0 ? void 0 : _d.rowCount;
-    console.log("Sheet ID is : ", sheetId);
-    console.log("Current Max Rows : ", currentMaxRows);
-    // const lastSavedIndex = 804;
-    const range = `${secrets_1.MARKETING_SHEET_PAGE_NAME}!A${lastSavedIndex + 1}:Z`;
+    const range = `${MARKETING_SHEET_PAGE_NAME}!A${lastSavedIndex + 1}:Z`;
     const sheetResponse = yield sheetInstance.spreadsheets.values.get({
-        spreadsheetId: secrets_1.MARKETING_SHEET_ID,
+        spreadsheetId: MARKETING_SHEET_ID,
         range
     });
-    console.log("Temp here!");
     const rowData = sheetResponse.data.values;
     if (!rowData || rowData.length === 0) {
         logger_1.default.info('No new data found in the sheet.');
         return;
     }
+    console.log(rowData);
     const newLastReadIndex = lastSavedIndex + rowData.length;
     logger_1.default.info(`New Last Read Index: ${newLastReadIndex}`);
     return {
@@ -58,41 +55,23 @@ const readFromGoogleSheet = () => __awaiter(void 0, void 0, void 0, function* ()
     };
 });
 exports.readFromGoogleSheet = readFromGoogleSheet;
-const updateStatusForMarketingSheet = (newLastReadIndex, lastSavedIndex, report) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d;
+const updateStatusForMarketingSheet = (newLastReadIndex, lastSavedIndex, report, MARKETING_SHEET_ID, MARKETING_SHEET_PAGE_NAME) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
     const sheetInstance = googleapis_1.google.sheets({ version: 'v4', auth: googleAuth_1.googleAuth });
-    yield spreadSheet_1.SpreadSheetMetaData.findOneAndUpdate({ name: constants_1.MARKETING_SHEET }, { $set: { lastIdxMarketingSheet: newLastReadIndex } }, { new: true, upsert: true });
+    newLastReadIndex = newLastReadIndex + 1;
+    yield spreadSheet_1.SpreadSheetMetaData.findOneAndUpdate({ name: MARKETING_SHEET_PAGE_NAME }, { $set: { lastIdxMarketingSheet: newLastReadIndex } }, { new: true, upsert: true });
     const sheetMeta = yield sheetInstance.spreadsheets.get({
-        spreadsheetId: secrets_1.MARKETING_SHEET_ID
+        spreadsheetId: MARKETING_SHEET_ID
     });
-    const sheetInfo = (_a = sheetMeta.data.sheets) === null || _a === void 0 ? void 0 : _a.find(sheet => { var _a; return ((_a = sheet.properties) === null || _a === void 0 ? void 0 : _a.title) === secrets_1.MARKETING_SHEET_PAGE_NAME; });
+    const sheetInfo = (_a = sheetMeta.data.sheets) === null || _a === void 0 ? void 0 : _a.find(sheet => { var _a; return ((_a = sheet.properties) === null || _a === void 0 ? void 0 : _a.title) === MARKETING_SHEET_PAGE_NAME; });
     if (!sheetInfo)
         throw new Error('Sheet not found');
     const sheetId = (_b = sheetInfo.properties) === null || _b === void 0 ? void 0 : _b.sheetId;
-    const currentMaxRows = (_d = (_c = sheetInfo.properties) === null || _c === void 0 ? void 0 : _c.gridProperties) === null || _d === void 0 ? void 0 : _d.rowCount;
-    console.log("Sheet ID is : ", sheetId);
-    console.log("Current Max Rows : ", currentMaxRows);
     const pinkRows = report.duplicateRowIds;
     const redRows1 = report.assignedToNotFound;
     const redRows2 = report.phoneNumberAndNameEmpty;
     const redRows = [...redRows1, ...redRows2];
     const requests = [
-        //White
-        {
-            repeatCell: {
-                range: {
-                    sheetId,
-                    startRowIndex: lastSavedIndex - 1,
-                    endRowIndex: lastSavedIndex,
-                },
-                cell: {
-                    userEnteredFormat: {
-                        backgroundColor: { red: 1.0, green: 1.0, blue: 1.0 },
-                    },
-                },
-                fields: 'userEnteredFormat.backgroundColor',
-            },
-        },
         //Green
         {
             repeatCell: {
@@ -128,6 +107,24 @@ const updateStatusForMarketingSheet = (newLastReadIndex, lastSavedIndex, report)
             },
         });
     });
+    if (lastSavedIndex > 1) {
+        requests.push({
+            //White
+            repeatCell: {
+                range: {
+                    sheetId,
+                    startRowIndex: lastSavedIndex - 1,
+                    endRowIndex: lastSavedIndex,
+                },
+                cell: {
+                    userEnteredFormat: {
+                        backgroundColor: { red: 1.0, green: 1.0, blue: 1.0 },
+                    },
+                },
+                fields: 'userEnteredFormat.backgroundColor',
+            },
+        });
+    }
     //Pink
     pinkRows.forEach((rowIndex) => {
         requests.push({
@@ -147,7 +144,7 @@ const updateStatusForMarketingSheet = (newLastReadIndex, lastSavedIndex, report)
         });
     });
     yield sheetInstance.spreadsheets.batchUpdate({
-        spreadsheetId: secrets_1.MARKETING_SHEET_ID,
+        spreadsheetId: MARKETING_SHEET_ID,
         requestBody: { requests },
     });
 });

@@ -84,6 +84,16 @@ const userSchema = new mongoose_1.Schema({
             message: 'Password must be at least 6 characters long'
         }
     },
+    marketingSheet: {
+        type: [{
+                id: {
+                    type: String,
+                },
+                name: {
+                    type: String,
+                }
+            }]
+    },
     roles: {
         type: [String],
         enum: {

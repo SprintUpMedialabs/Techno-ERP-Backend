@@ -44,6 +44,7 @@ const constants_1 = require("../../config/constants");
 const commonSchema_1 = require("../../validators/commonSchema");
 const academicDetail_1 = require("./academicDetail");
 const address_1 = require("./address");
+const physicalDocumentNoteSchema_1 = require("./physicalDocumentNoteSchema");
 exports.enquiryDraftSchema = new mongoose_1.Schema({
     admissionMode: {
         type: String,
@@ -176,6 +177,9 @@ exports.enquiryDraftSchema = new mongoose_1.Schema({
             message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'Other')`
         },
         required: false,
+    },
+    physicalDocumentNote: {
+        type: [physicalDocumentNoteSchema_1.physicalDocumentNoteSchema]
     },
     // DTODO: here we have id and other 2 value [so type should be according to that]
     // this change need to be done in other models [studentFeesDraft, studentFees, enquiry]

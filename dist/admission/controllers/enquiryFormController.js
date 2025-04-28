@@ -29,9 +29,7 @@ const checkIfStudentAdmitted_1 = require("../helpers/checkIfStudentAdmitted");
 const functionLevelLogging_1 = require("../../config/functionLevelLogging");
 exports.getEnquiryData = (0, express_async_handler_1.default)((0, functionLevelLogging_1.functionLevelLogger)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let { search, applicationStatus } = req.body;
-    if (!search) {
-        search = "";
-    }
+    search !== null && search !== void 0 ? search : (search = '');
     const filter = {
         $or: [
             { studentName: { $regex: search, $options: 'i' } },

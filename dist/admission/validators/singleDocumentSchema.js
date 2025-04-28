@@ -3,8 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.singleDocumentSchema = void 0;
 const zod_1 = require("zod");
 const constants_1 = require("../../config/constants");
-const commonSchema_1 = require("../../validators/commonSchema");
 const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
+const commonSchema_1 = require("../../validators/commonSchema");
 exports.singleDocumentSchema = zod_1.z.object({
     type: zod_1.z.nativeEnum(constants_1.DocumentType),
     documentBuffer: zod_1.z.object({
