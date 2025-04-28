@@ -91,7 +91,8 @@ const initializeDB = () => __awaiter(void 0, void 0, void 0, function* () {
                 return -1;
             return a.localeCompare(b);
         });
-        yield dropDownMetaDeta_1.DropDownMetaData.findOneAndUpdate({ type: constants_1.DropDownType.FIX_CITY }, { value: sortedCityValues });
+        console.log(sortedCityValues);
+        yield dropDownMetaDeta_1.DropDownMetaData.findOneAndUpdate({ type: constants_1.DropDownType.FIX_CITY }, { value: sortedCityValues }, { upsert: true });
         // Fix Course Dropdown
         const existingFixCourseDropDown = yield dropDownMetaDeta_1.DropDownMetaData.findOne({ type: constants_1.DropDownType.FIX_COURSE_CODE });
         const fixCourseDropdownSet = new Set((existingFixCourseDropDown === null || existingFixCourseDropDown === void 0 ? void 0 : existingFixCourseDropDown.value) || []);
@@ -103,7 +104,7 @@ const initializeDB = () => __awaiter(void 0, void 0, void 0, function* () {
                 return -1;
             return a.localeCompare(b);
         });
-        yield dropDownMetaDeta_1.DropDownMetaData.findOneAndUpdate({ type: constants_1.DropDownType.FIX_COURSE_CODE }, { value: sortedValues });
+        yield dropDownMetaDeta_1.DropDownMetaData.findOneAndUpdate({ type: constants_1.DropDownType.FIX_COURSE_CODE }, { value: sortedValues }, { upsert: true });
         // District Dropdown
         const existingDistrictDropDown = yield dropDownMetaDeta_1.DropDownMetaData.findOne({ type: constants_1.DropDownType.DISTRICT });
         const districtDropdownSet = new Set((existingDistrictDropDown === null || existingDistrictDropDown === void 0 ? void 0 : existingDistrictDropDown.value) || []);
@@ -115,7 +116,7 @@ const initializeDB = () => __awaiter(void 0, void 0, void 0, function* () {
                 return -1;
             return a.localeCompare(b);
         });
-        yield dropDownMetaDeta_1.DropDownMetaData.findOneAndUpdate({ type: constants_1.DropDownType.DISTRICT }, { value: sortedDistrictValues });
+        yield dropDownMetaDeta_1.DropDownMetaData.findOneAndUpdate({ type: constants_1.DropDownType.DISTRICT }, { value: sortedDistrictValues }, { upsert: true });
     }
     catch (error) {
         console.error('Error initializing database:', error);
