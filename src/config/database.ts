@@ -82,9 +82,11 @@ export const initializeDB = async () => {
       if (b === "Other") return -1;
       return a.localeCompare(b);
     });
+    console.log(sortedCityValues);
     await DropDownMetaData.findOneAndUpdate(
       { type: DropDownType.FIX_CITY },
-      { value: sortedCityValues }
+      { value: sortedCityValues },
+      { upsert: true }
     );
 
     // Fix Course Dropdown
@@ -98,7 +100,8 @@ export const initializeDB = async () => {
     });
     await DropDownMetaData.findOneAndUpdate(
       { type: DropDownType.FIX_COURSE_CODE },
-      { value: sortedValues }
+      { value: sortedValues },
+      { upsert: true }
     );
 
     // District Dropdown
@@ -112,7 +115,8 @@ export const initializeDB = async () => {
     });
     await DropDownMetaData.findOneAndUpdate(
       { type: DropDownType.DISTRICT },
-      { value: sortedDistrictValues }
+      { value: sortedDistrictValues },
+      { upsert: true }
     );
 
   } catch (error) {
