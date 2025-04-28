@@ -121,9 +121,9 @@ const saveDataToDb = (latestData, lastSavedIndex, sheetId, sheetName) => __await
         unauthorizedAssignedTo: [],
         invalidPhoneNumber: [],
     };
-    const cityDropDown = yield dropDownMetaDeta_1.DropDownMetaData.findOne({ type: constants_1.DropDownType.CITY });
-    const sourceDropDown = yield dropDownMetaDeta_1.DropDownMetaData.findOne({ type: constants_1.DropDownType.MAKRETING_SOURCE });
-    const courseDropDown = yield dropDownMetaDeta_1.DropDownMetaData.findOne({ type: constants_1.DropDownType.COURSE });
+    const cityDropDown = yield dropDownMetaDeta_1.DropDownMetaData.findOne({ type: constants_1.DropDownType.MARKETING_CITY });
+    const sourceDropDown = yield dropDownMetaDeta_1.DropDownMetaData.findOne({ type: constants_1.DropDownType.MARKETING_SOURCE });
+    const courseDropDown = yield dropDownMetaDeta_1.DropDownMetaData.findOne({ type: constants_1.DropDownType.MARKETING_COURSE_CODE });
     const citySet = new Set((cityDropDown === null || cityDropDown === void 0 ? void 0 : cityDropDown.value) || []);
     const sourceSet = new Set((sourceDropDown === null || sourceDropDown === void 0 ? void 0 : sourceDropDown.value) || []);
     const courseSet = new Set((courseDropDown === null || courseDropDown === void 0 ? void 0 : courseDropDown.value) || []);
@@ -162,9 +162,9 @@ const saveDataToDb = (latestData, lastSavedIndex, sheetId, sheetName) => __await
         (0, mailer_1.sendEmail)(secrets_1.LEAD_MARKETING_EMAIL, 'Lead Processing Report', (0, formatReport_1.formatReport)(report));
         logger_1.default.info('Error report sent to Lead!');
     }
-    (0, dropDownMetadataController_1.updateDropDownByType)(constants_1.DropDownType.CITY, Array.from(citySet));
-    (0, dropDownMetadataController_1.updateDropDownByType)(constants_1.DropDownType.MAKRETING_SOURCE, Array.from(sourceSet));
-    (0, dropDownMetadataController_1.updateDropDownByType)(constants_1.DropDownType.COURSE, Array.from(courseSet));
+    (0, dropDownMetadataController_1.updateDropDownByType)(constants_1.DropDownType.MARKETING_CITY, Array.from(citySet));
+    (0, dropDownMetadataController_1.updateDropDownByType)(constants_1.DropDownType.MARKETING_SOURCE, Array.from(sourceSet));
+    (0, dropDownMetadataController_1.updateDropDownByType)(constants_1.DropDownType.MARKETING_COURSE_CODE, Array.from(courseSet));
     (0, googleSheetOperations_1.updateStatusForMarketingSheet)(lastSavedIndex + latestData.length, lastSavedIndex, report, sheetId, sheetName);
 });
 exports.saveDataToDb = saveDataToDb;

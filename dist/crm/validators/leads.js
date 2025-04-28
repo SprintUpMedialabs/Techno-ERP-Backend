@@ -10,8 +10,10 @@ exports.leadMasterSchema = zod_1.z.object({
     date: zod_1.z.date(),
     source: zod_1.z.string().default('Other'),
     schoolName: zod_1.z.string().optional(),
-    name: zod_1.z.string().nonempty('Name field is required').regex(/^[A-Za-z\s]+$/, 'Name can only contain alphabets and spaces'),
-    phoneNumber: commonSchema_1.contactNumberSchema,
+    name: zod_1.z.string()
+        .regex(/^[A-Za-z\s]+$/, 'Name can only contain alphabets and spaces')
+        .optional(),
+    phoneNumber: commonSchema_1.contactNumberSchema.optional(),
     altPhoneNumber: commonSchema_1.contactNumberSchema.optional(),
     email: zod_1.z.string().email('Invalid Email Format').optional(),
     gender: zod_1.z.nativeEnum(constants_1.Gender).default(constants_1.Gender.OTHER),

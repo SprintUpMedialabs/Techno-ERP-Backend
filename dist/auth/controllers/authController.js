@@ -145,7 +145,8 @@ exports.login = (0, express_async_handler_1.default)((req, res) => __awaiter(voi
     }
     const payload = {
         id: user._id,
-        marketingSheet: user.marketingSheet,
+        name: `${user.firstName} ${user.lastName}`,
+        email: user.email,
         roles: user.roles
     };
     const token = jwt.sign(payload, secrets_1.JWT_SECRET, { expiresIn: '15d' });
