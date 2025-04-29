@@ -313,6 +313,7 @@ export enum COLLECTION_NAMES {
   COURSE_OTHER_FEES = 'CourseAndOtherFees',
   STUDENT = 'Student',
   DEPARTMENT_META_DATA = 'DepartmentMetaData',
+  COURSE_METADATA = 'CourseMetadata',
   COURSE = 'Course',
   DROP_DOWN_META_DATA = 'DropDownMetaData'
 }
