@@ -59,68 +59,74 @@ const initializeDB = () => __awaiter(void 0, void 0, void 0, function* () {
                 logger_1.default.debug(`${prefix} serial number already exists`);
             }
         }
-        // City Dropdown => no need to add values from our side as its going to be used for marketing module only as of now
-        const existingCityDropDown = yield dropDownMetaDeta_1.DropDownMetaData.findOne({ type: constants_1.DropDownType.MARKETING_CITY });
-        if (!existingCityDropDown) {
-            yield dropDownMetaDeta_1.DropDownMetaData.create({
-                type: constants_1.DropDownType.MARKETING_CITY,
-            });
-        }
-        // Marketing Source Dropdown => no need to add values from our side as its going to be used for marketing module only as of now
-        const existingSourceDropDown = yield dropDownMetaDeta_1.DropDownMetaData.findOne({ type: constants_1.DropDownType.MARKETING_SOURCE });
-        if (!existingSourceDropDown) {
-            yield dropDownMetaDeta_1.DropDownMetaData.create({
-                type: constants_1.DropDownType.MARKETING_SOURCE,
-            });
-        }
-        // Course Dropdown => no need to add values from our side as its going to be used for marketing module only as of now
-        const existingCourseDropDown = yield dropDownMetaDeta_1.DropDownMetaData.findOne({ type: constants_1.DropDownType.MARKETING_COURSE_CODE });
-        if (!existingCourseDropDown) {
-            yield dropDownMetaDeta_1.DropDownMetaData.create({
-                type: constants_1.DropDownType.MARKETING_COURSE_CODE,
-            });
-        }
-        // Fix City Dropdown
-        const existingFixCityDropDown = yield dropDownMetaDeta_1.DropDownMetaData.findOne({ type: constants_1.DropDownType.FIX_MARKETING_CITY });
-        const fixCityDropdownSet = new Set((existingFixCityDropDown === null || existingFixCityDropDown === void 0 ? void 0 : existingFixCityDropDown.value) || []);
-        metadata_2.fixCityList.forEach(city => fixCityDropdownSet.add(city));
-        const sortedCityValues = Array.from(fixCityDropdownSet).sort((a, b) => {
-            if (a === "Other")
-                return 1;
-            if (b === "Other")
-                return -1;
-            return a.localeCompare(b);
-        });
-        yield dropDownMetaDeta_1.DropDownMetaData.findOneAndUpdate({ type: constants_1.DropDownType.FIX_MARKETING_CITY }, { value: sortedCityValues }, { upsert: true });
-        // Fix Course Dropdown
-        const existingFixCourseDropDown = yield dropDownMetaDeta_1.DropDownMetaData.findOne({ type: constants_1.DropDownType.FIX_MARKETING_COURSE_CODE });
-        const fixCourseDropdownSet = new Set((existingFixCourseDropDown === null || existingFixCourseDropDown === void 0 ? void 0 : existingFixCourseDropDown.value) || []);
-        metadata_1.fixCourseCodeList.forEach(code => fixCourseDropdownSet.add(code));
-        const sortedValues = Array.from(fixCourseDropdownSet).sort((a, b) => {
-            if (a === "Other")
-                return 1;
-            if (b === "Other")
-                return -1;
-            return a.localeCompare(b);
-        });
-        yield dropDownMetaDeta_1.DropDownMetaData.findOneAndUpdate({ type: constants_1.DropDownType.FIX_MARKETING_COURSE_CODE }, { value: sortedValues }, { upsert: true });
-        // District Dropdown
-        const existingDistrictDropDown = yield dropDownMetaDeta_1.DropDownMetaData.findOne({ type: constants_1.DropDownType.DISTRICT });
-        const districtDropdownSet = new Set((existingDistrictDropDown === null || existingDistrictDropDown === void 0 ? void 0 : existingDistrictDropDown.value) || []);
-        metadata_2.fixCityList.forEach(district => districtDropdownSet.add(district));
-        const sortedDistrictValues = Array.from(districtDropdownSet).sort((a, b) => {
-            if (a === "Other")
-                return 1;
-            if (b === "Other")
-                return -1;
-            return a.localeCompare(b);
-        });
-        yield dropDownMetaDeta_1.DropDownMetaData.findOneAndUpdate({ type: constants_1.DropDownType.DISTRICT }, { value: sortedDistrictValues }, { upsert: true });
+        yield initializeDropDowns();
+        yield initializeCourseMetadata();
     }
     catch (error) {
-        console.error('Error initializing database:', error);
+        logger_1.default.error('Error initializing database:', error);
         process.exit(1);
     }
 });
 exports.initializeDB = initializeDB;
+const initializeDropDowns = () => __awaiter(void 0, void 0, void 0, function* () {
+    // City Dropdown => no need to add values from our side as its going to be used for marketing module only as of now
+    const existingCityDropDown = yield dropDownMetaDeta_1.DropDownMetaData.findOne({ type: constants_1.DropDownType.MARKETING_CITY });
+    if (!existingCityDropDown) {
+        yield dropDownMetaDeta_1.DropDownMetaData.create({
+            type: constants_1.DropDownType.MARKETING_CITY,
+        });
+    }
+    // Marketing Source Dropdown => no need to add values from our side as its going to be used for marketing module only as of now
+    const existingSourceDropDown = yield dropDownMetaDeta_1.DropDownMetaData.findOne({ type: constants_1.DropDownType.MARKETING_SOURCE });
+    if (!existingSourceDropDown) {
+        yield dropDownMetaDeta_1.DropDownMetaData.create({
+            type: constants_1.DropDownType.MARKETING_SOURCE,
+        });
+    }
+    // Course Dropdown => no need to add values from our side as its going to be used for marketing module only as of now
+    const existingCourseDropDown = yield dropDownMetaDeta_1.DropDownMetaData.findOne({ type: constants_1.DropDownType.MARKETING_COURSE_CODE });
+    if (!existingCourseDropDown) {
+        yield dropDownMetaDeta_1.DropDownMetaData.create({
+            type: constants_1.DropDownType.MARKETING_COURSE_CODE,
+        });
+    }
+    // Fix City Dropdown
+    const existingFixCityDropDown = yield dropDownMetaDeta_1.DropDownMetaData.findOne({ type: constants_1.DropDownType.FIX_MARKETING_CITY });
+    const fixCityDropdownSet = new Set((existingFixCityDropDown === null || existingFixCityDropDown === void 0 ? void 0 : existingFixCityDropDown.value) || []);
+    metadata_2.fixCityList.forEach(city => fixCityDropdownSet.add(city));
+    const sortedCityValues = Array.from(fixCityDropdownSet).sort((a, b) => {
+        if (a === "Other")
+            return 1;
+        if (b === "Other")
+            return -1;
+        return a.localeCompare(b);
+    });
+    yield dropDownMetaDeta_1.DropDownMetaData.findOneAndUpdate({ type: constants_1.DropDownType.FIX_MARKETING_CITY }, { value: sortedCityValues }, { upsert: true });
+    // Fix Course Dropdown
+    const existingFixCourseDropDown = yield dropDownMetaDeta_1.DropDownMetaData.findOne({ type: constants_1.DropDownType.FIX_MARKETING_COURSE_CODE });
+    const fixCourseDropdownSet = new Set((existingFixCourseDropDown === null || existingFixCourseDropDown === void 0 ? void 0 : existingFixCourseDropDown.value) || []);
+    metadata_1.fixCourseCodeList.forEach(code => fixCourseDropdownSet.add(code));
+    const sortedValues = Array.from(fixCourseDropdownSet).sort((a, b) => {
+        if (a === "Other")
+            return 1;
+        if (b === "Other")
+            return -1;
+        return a.localeCompare(b);
+    });
+    yield dropDownMetaDeta_1.DropDownMetaData.findOneAndUpdate({ type: constants_1.DropDownType.FIX_MARKETING_COURSE_CODE }, { value: sortedValues }, { upsert: true });
+    // District Dropdown
+    const existingDistrictDropDown = yield dropDownMetaDeta_1.DropDownMetaData.findOne({ type: constants_1.DropDownType.DISTRICT });
+    const districtDropdownSet = new Set((existingDistrictDropDown === null || existingDistrictDropDown === void 0 ? void 0 : existingDistrictDropDown.value) || []);
+    metadata_2.fixCityList.forEach(district => districtDropdownSet.add(district));
+    const sortedDistrictValues = Array.from(districtDropdownSet).sort((a, b) => {
+        if (a === "Other")
+            return 1;
+        if (b === "Other")
+            return -1;
+        return a.localeCompare(b);
+    });
+    yield dropDownMetaDeta_1.DropDownMetaData.findOneAndUpdate({ type: constants_1.DropDownType.DISTRICT }, { value: sortedDistrictValues }, { upsert: true });
+});
+const initializeCourseMetadata = () => __awaiter(void 0, void 0, void 0, function* () {
+});
 exports.default = connectToDatabase;
