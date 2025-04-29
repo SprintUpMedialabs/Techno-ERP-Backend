@@ -74,7 +74,7 @@ export const initializeDB = async () => {
     }
 
     // Fix City Dropdown
-    const existingFixCityDropDown = await DropDownMetaData.findOne({ type: DropDownType.FIX_CITY });
+    const existingFixCityDropDown = await DropDownMetaData.findOne({ type: DropDownType.FIX_MARKETING_CITY });
     const fixCityDropdownSet = new Set(existingFixCityDropDown?.value || []);
     fixCityList.forEach(city => fixCityDropdownSet.add(city));
     const sortedCityValues = Array.from(fixCityDropdownSet).sort((a, b) => {
@@ -83,12 +83,13 @@ export const initializeDB = async () => {
       return a.localeCompare(b);
     });
     await DropDownMetaData.findOneAndUpdate(
-      { type: DropDownType.FIX_CITY },
-      { value: sortedCityValues }
+      { type: DropDownType.FIX_MARKETING_CITY },
+      { value: sortedCityValues },
+      { upsert: true }
     );
 
     // Fix Course Dropdown
-    const existingFixCourseDropDown = await DropDownMetaData.findOne({ type: DropDownType.FIX_COURSE_CODE });
+    const existingFixCourseDropDown = await DropDownMetaData.findOne({ type: DropDownType.FIX_MARKETING_COURSE_CODE });
     const fixCourseDropdownSet = new Set(existingFixCourseDropDown?.value || []);
     fixCourseCodeList.forEach(code => fixCourseDropdownSet.add(code));
     const sortedValues = Array.from(fixCourseDropdownSet).sort((a, b) => {
@@ -97,8 +98,9 @@ export const initializeDB = async () => {
       return a.localeCompare(b);
     });
     await DropDownMetaData.findOneAndUpdate(
-      { type: DropDownType.FIX_COURSE_CODE },
-      { value: sortedValues }
+      { type: DropDownType.FIX_MARKETING_COURSE_CODE },
+      { value: sortedValues },
+      { upsert: true }
     );
 
     // District Dropdown
@@ -112,7 +114,8 @@ export const initializeDB = async () => {
     });
     await DropDownMetaData.findOneAndUpdate(
       { type: DropDownType.DISTRICT },
-      { value: sortedDistrictValues }
+      { value: sortedDistrictValues },
+      { upsert: true }
     );
 
   } catch (error) {

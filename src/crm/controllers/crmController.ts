@@ -26,8 +26,10 @@ export const uploadData = expressAsyncHandler(async (req: AuthenticatedRequest, 
         await saveDataToDb(latestData.RowData, latestData.LastSavedIndex, sheet.id, sheet.name);
       }
     }
+    return formatResponse(res, 200, 'Data updated in Database!', true);
+  }else{
+    return formatResponse(res, 400, 'No data found in the sheet!', false);
   }
-  return formatResponse(res, 200, 'Data updated in Database!', true);
 });
 
 export const getFilteredLeadData = expressAsyncHandler(
@@ -80,6 +82,7 @@ export const getAllLeadAnalytics = expressAsyncHandler(
           _id: null,
           totalLeads: { $sum: 1 }, // Count total leads
           openLeads: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.OPEN] }, 1, 0] } }, // Count OPEN leads
+          didNotPickLeads: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.DID_NOT_PICK] }, 1, 0] } }, // Count OPEN leads
           interestedLeads: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.INTERESTED] }, 1, 0] } }, // Count INTERESTED leads
           notInterestedLeads: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.DEAD] }, 1, 0] } }, // Count NOT_INTERESTED leads,
           neutralLeads: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.NO_CLARITY] }, 1, 0] } }
@@ -90,6 +93,7 @@ export const getAllLeadAnalytics = expressAsyncHandler(
     return formatResponse(res, 200, 'Lead analytics fetched successfully', true, {
       totalLeads: analytics[0]?.totalLeads ?? 0,
       openLeads: analytics[0]?.openLeads ?? 0,
+      didNotPickLeads: analytics[0]?.didNotPickLeads ?? 0,
       interestedLeads: analytics[0]?.interestedLeads ?? 0,
       notInterestedLeads: analytics[0]?.notInterestedLeads ?? 0,
       neutralLeads: analytics[0]?.neutralLeads ?? 0
@@ -131,9 +135,9 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
       }
     );
 
-    updateOnlyOneValueInDropDown(DropDownType.FIX_CITY, updatedData?.city);
+    updateOnlyOneValueInDropDown(DropDownType.FIX_MARKETING_CITY, updatedData?.city);
     updateOnlyOneValueInDropDown(DropDownType.MARKETING_CITY, updatedData?.city);
-    updateOnlyOneValueInDropDown(DropDownType.FIX_COURSE_CODE, updatedData?.course);
+    updateOnlyOneValueInDropDown(DropDownType.FIX_MARKETING_COURSE_CODE, updatedData?.course);
     updateOnlyOneValueInDropDown(DropDownType.MARKETING_COURSE_CODE, updatedData?.course);
 
 
