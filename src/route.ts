@@ -9,6 +9,7 @@ import { studentDataRoute } from './student-data/routes/studentRoute';
 import { departmentMetaDataRoute } from './course/routes/departmentMetaDataRoute';
 import { dropDownRoute } from './utilityModules/dropdown/dropDownRoute';
 import { testRoute } from './course/routes/testRoute';
+import courseMetaDataRoute from './course/routes/courseMetadataRoute';
 
 export const apiRouter = express.Router();
 
@@ -52,6 +53,12 @@ apiRouter.use('/course', courseRoute);
  * Contains the router for Department Module
  */
 apiRouter.use('/department-metadata', departmentMetaDataRoute);
+
+
+/**
+ * Contains the router for Course Metadata Module
+ */
+apiRouter.use('/course-metadata', courseMetaDataRoute);
 
 
 /**

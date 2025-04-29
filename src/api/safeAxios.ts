@@ -1,5 +1,6 @@
 
 import { AxiosInstance, AxiosRequestConfig } from "axios";
+import logger from "../config/logger";
 
 
 export const safeAxiosPost = async (
@@ -11,6 +12,6 @@ export const safeAxiosPost = async (
     try {
         await axiosClient.post(url, data, config);
     } catch (error: any) {
-        console.error(`Audit log service failed for POST ${url}:`, error?.response?.data ?? error.message);
+        logger.error(`Audit log service failed for POST ${url}:`, error?.response?.data ?? error.message);
     }
 };

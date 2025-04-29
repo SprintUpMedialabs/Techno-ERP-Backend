@@ -10,6 +10,7 @@ import {
     AWS_SECRET_ACCESS_KEY
   } from '../../secrets';
 import createHttpError from 'http-errors';
+import logger from '../../config/logger';
   
   const s3Client = new S3Client({
     region: AWS_REGION,
@@ -37,14 +38,13 @@ import createHttpError from 'http-errors';
       });
   
       await s3Client.send(deleteCommand);
-      console.log(`Deleted from S3: ${ObjectKey}`);
     } 
     catch (error: any) {
       if (error.name === 'NotFound') {
-        console.log(`Object not found in S3: Skipping deletion for ${documentLink}`);
+        logger.debug(`Object not found in S3: Skipping deletion for ${documentLink}`);
         return;
       }
-      console.error('Error deleting from S3:', error);
+      logger.error('Error deleting from S3:', error);
       throw createHttpError(404, error);
     }
   };
