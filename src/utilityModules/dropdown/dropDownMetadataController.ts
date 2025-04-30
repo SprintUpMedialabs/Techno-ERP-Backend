@@ -46,7 +46,7 @@ export const updateDropDownByType = async (type: DropDownType, value: string[]) 
 export const updateOnlyOneValueInDropDown = async (type: DropDownType, value?: string) => {
     if (!value) return;
     let formattedValue;
-    if (type == DropDownType.FIX_COURSE_CODE || type == DropDownType.MARKETING_COURSE_CODE) {
+    if (type == DropDownType.FIX_MARKETING_COURSE_CODE || type == DropDownType.MARKETING_COURSE_CODE) {
         formattedValue = formatCapital(value);
     } else {
         formattedValue = formatDropdownValue(value);

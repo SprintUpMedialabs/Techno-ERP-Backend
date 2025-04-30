@@ -74,11 +74,11 @@ export enum AdmissionReference {
 
 export enum DropDownType {
   MARKETING_CITY = "MARKETING_CITY",
-  FIX_CITY = "FIX_CITY",
+  FIX_MARKETING_CITY = "FIX_MARKETING_CITY",
   DISTRICT = "DISTRICT",
   MARKETING_SOURCE = "MARKETING_SOURCE",
   MARKETING_COURSE_CODE = "MARKETING_COURSE_CODE",
-  FIX_COURSE_CODE = "FIX_COURSE_CODE"
+  FIX_MARKETING_COURSE_CODE = "FIX_MARKETING_COURSE_CODE"
 }
 
 export enum PhysicalDocumentNoteStatus {
@@ -313,6 +313,7 @@ export enum COLLECTION_NAMES {
   COURSE_OTHER_FEES = 'CourseAndOtherFees',
   STUDENT = 'Student',
   DEPARTMENT_META_DATA = 'DepartmentMetaData',
+  COURSE_METADATA = 'CourseMetadata',
   COURSE = 'Course',
   DROP_DOWN_META_DATA = 'DropDownMetaData'
 }
