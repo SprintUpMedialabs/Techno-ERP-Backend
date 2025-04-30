@@ -16,6 +16,7 @@ exports.deleteFromS3 = void 0;
 const client_s3_1 = require("@aws-sdk/client-s3");
 const secrets_1 = require("../../secrets");
 const http_errors_1 = __importDefault(require("http-errors"));
+const logger_1 = __importDefault(require("../../config/logger"));
 const s3Client = new client_s3_1.S3Client({
     region: secrets_1.AWS_REGION,
     credentials: {
@@ -38,14 +39,13 @@ const deleteFromS3 = (documentLink) => __awaiter(void 0, void 0, void 0, functio
             Key: ObjectKey,
         });
         yield s3Client.send(deleteCommand);
-        console.log(`Deleted from S3: ${ObjectKey}`);
     }
     catch (error) {
         if (error.name === 'NotFound') {
-            console.log(`Object not found in S3: Skipping deletion for ${documentLink}`);
+            logger_1.default.debug(`Object not found in S3: Skipping deletion for ${documentLink}`);
             return;
         }
-        console.error('Error deleting from S3:', error);
+        logger_1.default.error('Error deleting from S3:', error);
         throw (0, http_errors_1.default)(404, error);
     }
 });

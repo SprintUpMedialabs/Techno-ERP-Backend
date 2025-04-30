@@ -75,11 +75,11 @@ var AdmissionReference;
 var DropDownType;
 (function (DropDownType) {
     DropDownType["MARKETING_CITY"] = "MARKETING_CITY";
-    DropDownType["FIX_CITY"] = "FIX_CITY";
+    DropDownType["FIX_MARKETING_CITY"] = "FIX_MARKETING_CITY";
     DropDownType["DISTRICT"] = "DISTRICT";
     DropDownType["MARKETING_SOURCE"] = "MARKETING_SOURCE";
     DropDownType["MARKETING_COURSE_CODE"] = "MARKETING_COURSE_CODE";
-    DropDownType["FIX_COURSE_CODE"] = "FIX_COURSE_CODE";
+    DropDownType["FIX_MARKETING_COURSE_CODE"] = "FIX_MARKETING_COURSE_CODE";
 })(DropDownType || (exports.DropDownType = DropDownType = {}));
 var PhysicalDocumentNoteStatus;
 (function (PhysicalDocumentNoteStatus) {
@@ -295,6 +295,7 @@ var COLLECTION_NAMES;
     COLLECTION_NAMES["COURSE_OTHER_FEES"] = "CourseAndOtherFees";
     COLLECTION_NAMES["STUDENT"] = "Student";
     COLLECTION_NAMES["DEPARTMENT_META_DATA"] = "DepartmentMetaData";
+    COLLECTION_NAMES["COURSE_METADATA"] = "CourseMetadata";
     COLLECTION_NAMES["COURSE"] = "Course";
     COLLECTION_NAMES["DROP_DOWN_META_DATA"] = "DropDownMetaData";
 })(COLLECTION_NAMES || (exports.COLLECTION_NAMES = COLLECTION_NAMES = {}));
