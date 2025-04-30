@@ -96,5 +96,5 @@ export const fixCourseCodeList = [
     "MCOMC",
     "MVAP",
     "Other",
-  ];
-  
+];
+

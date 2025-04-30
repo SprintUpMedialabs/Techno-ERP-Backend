@@ -48,81 +48,89 @@ export const initializeDB = async () => {
       }
     }
 
-    // City Dropdown => no need to add values from our side as its going to be used for marketing module only as of now
-    const existingCityDropDown = await DropDownMetaData.findOne({ type: DropDownType.MARKETING_CITY });
-    if (!existingCityDropDown) {
-      await DropDownMetaData.create({
-        type: DropDownType.MARKETING_CITY,
-      });
-    }
+    await initializeDropDowns();
 
-    // Marketing Source Dropdown => no need to add values from our side as its going to be used for marketing module only as of now
-    const existingSourceDropDown = await DropDownMetaData.findOne({ type: DropDownType.MARKETING_SOURCE });
-    if (!existingSourceDropDown) {
-      await DropDownMetaData.create({
-        type: DropDownType.MARKETING_SOURCE,
-      });
-    }
-
-    
-    // Course Dropdown => no need to add values from our side as its going to be used for marketing module only as of now
-    const existingCourseDropDown = await DropDownMetaData.findOne({ type: DropDownType.MARKETING_COURSE_CODE });
-    if (!existingCourseDropDown) {
-      await DropDownMetaData.create({
-        type: DropDownType.MARKETING_COURSE_CODE,
-      });
-    }
-
-    // Fix City Dropdown
-    const existingFixCityDropDown = await DropDownMetaData.findOne({ type: DropDownType.FIX_CITY });
-    const fixCityDropdownSet = new Set(existingFixCityDropDown?.value || []);
-    fixCityList.forEach(city => fixCityDropdownSet.add(city));
-    const sortedCityValues = Array.from(fixCityDropdownSet).sort((a, b) => {
-      if (a === "Other") return 1;
-      if (b === "Other") return -1;
-      return a.localeCompare(b);
-    });
-    console.log(sortedCityValues);
-    await DropDownMetaData.findOneAndUpdate(
-      { type: DropDownType.FIX_CITY },
-      { value: sortedCityValues },
-      { upsert: true }
-    );
-
-    // Fix Course Dropdown
-    const existingFixCourseDropDown = await DropDownMetaData.findOne({ type: DropDownType.FIX_COURSE_CODE });
-    const fixCourseDropdownSet = new Set(existingFixCourseDropDown?.value || []);
-    fixCourseCodeList.forEach(code => fixCourseDropdownSet.add(code));
-    const sortedValues = Array.from(fixCourseDropdownSet).sort((a, b) => {
-      if (a === "Other") return 1;
-      if (b === "Other") return -1;
-      return a.localeCompare(b);
-    });
-    await DropDownMetaData.findOneAndUpdate(
-      { type: DropDownType.FIX_COURSE_CODE },
-      { value: sortedValues },
-      { upsert: true }
-    );
-
-    // District Dropdown
-    const existingDistrictDropDown = await DropDownMetaData.findOne({ type: DropDownType.DISTRICT });
-    const districtDropdownSet = new Set(existingDistrictDropDown?.value || []);
-    fixCityList.forEach(district => districtDropdownSet.add(district));
-    const sortedDistrictValues = Array.from(districtDropdownSet).sort((a, b) => {
-      if (a === "Other") return 1;
-      if (b === "Other") return -1;
-      return a.localeCompare(b);
-    });
-    await DropDownMetaData.findOneAndUpdate(
-      { type: DropDownType.DISTRICT },
-      { value: sortedDistrictValues },
-      { upsert: true }
-    );
+    await initializeCourseMetadata();
 
   } catch (error) {
-    console.error('Error initializing database:', error);
+    logger.error('Error initializing database:', error);
     process.exit(1);
   }
 };
 
+const initializeDropDowns = async () => {
+  // City Dropdown => no need to add values from our side as its going to be used for marketing module only as of now
+  const existingCityDropDown = await DropDownMetaData.findOne({ type: DropDownType.MARKETING_CITY });
+  if (!existingCityDropDown) {
+    await DropDownMetaData.create({
+      type: DropDownType.MARKETING_CITY,
+    });
+  }
+
+  // Marketing Source Dropdown => no need to add values from our side as its going to be used for marketing module only as of now
+  const existingSourceDropDown = await DropDownMetaData.findOne({ type: DropDownType.MARKETING_SOURCE });
+  if (!existingSourceDropDown) {
+    await DropDownMetaData.create({
+      type: DropDownType.MARKETING_SOURCE,
+    });
+  }
+
+
+  // Course Dropdown => no need to add values from our side as its going to be used for marketing module only as of now
+  const existingCourseDropDown = await DropDownMetaData.findOne({ type: DropDownType.MARKETING_COURSE_CODE });
+  if (!existingCourseDropDown) {
+    await DropDownMetaData.create({
+      type: DropDownType.MARKETING_COURSE_CODE,
+    });
+  }
+
+  // Fix City Dropdown
+  const existingFixCityDropDown = await DropDownMetaData.findOne({ type: DropDownType.FIX_MARKETING_CITY });
+  const fixCityDropdownSet = new Set(existingFixCityDropDown?.value || []);
+  fixCityList.forEach(city => fixCityDropdownSet.add(city));
+  const sortedCityValues = Array.from(fixCityDropdownSet).sort((a, b) => {
+    if (a === "Other") return 1;
+    if (b === "Other") return -1;
+    return a.localeCompare(b);
+  });
+  await DropDownMetaData.findOneAndUpdate(
+    { type: DropDownType.FIX_MARKETING_CITY },
+    { value: sortedCityValues },
+    { upsert: true }
+  );
+
+  // Fix Course Dropdown
+  const existingFixCourseDropDown = await DropDownMetaData.findOne({ type: DropDownType.FIX_MARKETING_COURSE_CODE });
+  const fixCourseDropdownSet = new Set(existingFixCourseDropDown?.value || []);
+  fixCourseCodeList.forEach(code => fixCourseDropdownSet.add(code));
+  const sortedValues = Array.from(fixCourseDropdownSet).sort((a, b) => {
+    if (a === "Other") return 1;
+    if (b === "Other") return -1;
+    return a.localeCompare(b);
+  });
+  await DropDownMetaData.findOneAndUpdate(
+    { type: DropDownType.FIX_MARKETING_COURSE_CODE },
+    { value: sortedValues },
+    { upsert: true }
+  );
+
+  // District Dropdown
+  const existingDistrictDropDown = await DropDownMetaData.findOne({ type: DropDownType.DISTRICT });
+  const districtDropdownSet = new Set(existingDistrictDropDown?.value || []);
+  fixCityList.forEach(district => districtDropdownSet.add(district));
+  const sortedDistrictValues = Array.from(districtDropdownSet).sort((a, b) => {
+    if (a === "Other") return 1;
+    if (b === "Other") return -1;
+    return a.localeCompare(b);
+  });
+  await DropDownMetaData.findOneAndUpdate(
+    { type: DropDownType.DISTRICT },
+    { value: sortedDistrictValues },
+    { upsert: true }
+  );
+}
+
+const initializeCourseMetadata = async () => {
+  
+}
 export default connectToDatabase;

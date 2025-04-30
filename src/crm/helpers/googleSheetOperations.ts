@@ -103,7 +103,7 @@ export const updateStatusForMarketingSheet = async (newLastReadIndex: number, la
     },
   ];
 
-  //Red
+  //Blue
   redRows.forEach((rowIndex) => {
     requests.push({
       repeatCell: {
@@ -114,7 +114,7 @@ export const updateStatusForMarketingSheet = async (newLastReadIndex: number, la
         },
         cell: {
           userEnteredFormat: {
-            backgroundColor: { red: 1.0, green: 0.0, blue: 0.0 },
+            backgroundColor: { red: 0.7, green: 0.85, blue: 1.0 }
           },
         },
         fields: 'userEnteredFormat.backgroundColor',
@@ -124,7 +124,7 @@ export const updateStatusForMarketingSheet = async (newLastReadIndex: number, la
 
   if (lastSavedIndex > 1) {
     requests.push({
-      //White
+      //Orange
       repeatCell: {
         range: {
           sheetId,
@@ -133,7 +133,7 @@ export const updateStatusForMarketingSheet = async (newLastReadIndex: number, la
         },
         cell: {
           userEnteredFormat: {
-            backgroundColor: { red: 1.0, green: 1.0, blue: 1.0 },
+            backgroundColor: { red: 1.0, green: 0.5, blue: 0.0 }
           },
         },
         fields: 'userEnteredFormat.backgroundColor',
