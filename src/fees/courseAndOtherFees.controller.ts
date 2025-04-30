@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import createHttpError from 'http-errors';
 import { CourseAndOtherFeesModel } from './courseAndOtherFees.model';
+import { Course } from '../config/constants';
 
 export const createFeesStructure = async (req: Request, res: Response) => {
     const newDoc = await CourseAndOtherFeesModel.create(req.body);
@@ -51,7 +52,7 @@ export const getOtherFees = async (req: Request, res: Response) => {
 };
 
 // ✅ Reusable function
-export const fetchCourseFeeByCourse = async (courseName: string) => {
+export const fetchCourseFeeByCourse = async (courseName: Course) => {
     const record = await CourseAndOtherFeesModel.findOne({
         'courseFees.course': courseName
     });

@@ -2,7 +2,7 @@ import { Response } from "express";
 import expressAsyncHandler from "express-async-handler";
 import createHttpError from "http-errors";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
-import { AdmittedThrough, Course, DropDownType } from "../../config/constants";
+import { AdmittedThrough, ApplicationStatus, Course, DropDownType } from "../../config/constants";
 import { functionLevelLogger } from "../../config/functionLevelLogging";
 import { updateOnlyOneValueInDropDown } from "../../utilityModules/dropdown/dropDownMetadataController";
 import { formatResponse } from "../../utils/formatResponse";
@@ -10,6 +10,7 @@ import { checkIfStudentAdmitted } from "../helpers/checkIfStudentAdmitted";
 import { Enquiry } from "../models/enquiry";
 import { EnquiryDraft } from "../models/enquiryDraft";
 import { IEnquiryStep1RequestSchema, enquiryStep1RequestSchema, enquiryStep1UpdateRequestSchema } from "../validators/enquiry";
+import mongoose from "mongoose";
 
 export const createEnquiry = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
 
@@ -23,22 +24,30 @@ export const createEnquiry = expressAsyncHandler(functionLevelLogger(async (req:
   const { id, ...enquiryData } = data;
 
   const admittedThrough = enquiryData.course === Course.BED ? AdmittedThrough.COUNSELLING : AdmittedThrough.DIRECT;
+  let session;
+  try {
+    session = await mongoose.startSession();
+    session.startTransaction();
 
-  let savedResult = await Enquiry.create({ ...enquiryData, admittedThrough });
-
-  if (savedResult) {
     //Delete enquiry draft only if saving enquiry is successful.
     if (id) {
-      const deletedDraft = await EnquiryDraft.findByIdAndDelete(id);
+      const deletedDraft = await EnquiryDraft.findByIdAndDelete(id, { session });
+      console.log(deletedDraft);
       if (!deletedDraft) {
-        throw formatResponse(res, 494, 'Error occurred while deleting the enquiry draft', true);
+        throw formatResponse(res, 404, 'Error occurred while deleting the enquiry draft', true);
       }
     }
-    updateOnlyOneValueInDropDown(DropDownType.DISTRICT, savedResult?.address?.district);
-    return formatResponse(res, 201, 'Enquiry created successfully', true, savedResult);
-  }
-  else {
-    throw createHttpError(404, 'Error occurred creating enquiry');
+    const savedResult = await Enquiry.create([{ ...enquiryData, admittedThrough, applicationStatus: ApplicationStatus.STEP_2 }], { session });
+    const enquiry = savedResult[0];
+
+    updateOnlyOneValueInDropDown(DropDownType.DISTRICT, enquiry.address?.district);
+
+    await session.commitTransaction();
+    return formatResponse(res, 201, 'Enquiry created successfully', true, enquiry);
+  } catch (error: any) {
+    await session?.abortTransaction();
+    session?.endSession();
+    throw createHttpError(error);
   }
 
 }));

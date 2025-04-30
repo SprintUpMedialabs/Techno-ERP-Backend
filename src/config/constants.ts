@@ -182,7 +182,9 @@ export enum ApplicationStatus {
   STEP_1 = 'Step_1',
   STEP_2 = 'Step_2',
   STEP_3 = 'Step_3',
-  STEP_4 = 'Step_4'
+  STEP_3_DRAFT = 'Step_3_Draft',
+  STEP_4 = 'Step_4',
+  CONFIRMED = 'Confirmed'
 }
 
 
@@ -213,8 +215,7 @@ export enum FeeType {
   UNIFORM = "UNIFORM",
   STUDENTWELFARE = "STUDENTWELFARE",
   BOOKBANK = "BOOKBANK",
-  EXAMFEES = "EXAMFEES",
-  SEM1FEE = "SEM1FEE"
+  EXAMFEES = "EXAMFEES"
 }
 
 

@@ -1,9 +1,9 @@
 import { ApplicationStatus } from "aws-sdk/clients/kinesisanalytics";
 import createHttpError from "http-errors";
-import { fetchOtherFees, fetchCourseFeeByCourse } from "../../fees/courseAndOtherFees.controller";
+import { fetchCourseFeeByCourse, fetchOtherFees } from "../../fees/courseAndOtherFees.controller";
 import { Enquiry } from "../models/enquiry";
 import { StudentFeesModel } from "../models/studentFees";
-import { IFeesUpdateSchema, feesUpdateSchema, IStudentFeesSchema } from "../validators/studentFees";
+import { feesUpdateSchema, IFeesUpdateSchema } from "../validators/studentFees";
 import { checkIfStudentAdmitted } from "./checkIfStudentAdmitted";
 
 export const updateFeeDetails = async (applicationStatusList: ApplicationStatus[], studentFeesData: IFeesUpdateSchema) => {
@@ -34,7 +34,7 @@ export const updateFeeDetails = async (applicationStatusList: ApplicationStatus[
  
 
     const otherFees = await fetchOtherFees();
-    const semWiseFee = await fetchCourseFeeByCourse(enquiry?.course.toString() ?? '');
+    const semWiseFee = await fetchCourseFeeByCourse(enquiry?.course);
   
     const feeData = {
       ...validation.data,
@@ -79,8 +79,8 @@ export const updateFeeDetails = async (applicationStatusList: ApplicationStatus[
     }
     return {
       ...feesDraft,
-      telecaller : enquiryUpdatePayload.telecaller ? enquiryUpdatePayload.telecaller : enquiry.telecaller ,
-      counsellor : enquiryUpdatePayload.counsellor ? enquiryUpdatePayload.counsellor : enquiry.counsellor
+      telecaller : enquiryUpdatePayload.telecaller ?? enquiry.telecaller ,
+      counsellor : enquiryUpdatePayload.counsellor ?? enquiry.counsellor
     };
 
 }

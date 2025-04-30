@@ -162,7 +162,7 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
           formNo: formNo,
           photoNo: photoSerial!.lastSerialNumber,
           universityId: universityId,
-          applicationStatus: ApplicationStatus.STEP_4,
+          applicationStatus: ApplicationStatus.CONFIRMED,
         },
       },
       { runValidators: true, new: true, projection: { createdAt: 0, updatedAt: 0, __v: 0 }, session }
@@ -192,25 +192,26 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
 }));
 
 
-export const updateStatus = (async (req: AuthenticatedRequest, res: Response) => {
-  const updateStatusData: IEnquiryStatusUpdateSchema = req.body;
+export const updateStatus = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  return formatResponse(res, 200, 'Enquiry Status Updated Successfully', true);
+  // const updateStatusData: IEnquiryStatusUpdateSchema = req.body;
 
-  const validation = enquiryStatusUpdateSchema.safeParse(updateStatusData);
+  // const validation = enquiryStatusUpdateSchema.safeParse(updateStatusData);
 
-  if (!validation.success) {
-    throw createHttpError(404, validation.error.errors[0]);
-  }
+  // if (!validation.success) {
+  //   throw createHttpError(404, validation.error.errors[0]);
+  // }
 
-  let updateEnquiryStatus = await Enquiry.findByIdAndUpdate(updateStatusData.id, { $set: { applicationStatus: updateStatusData.newStatus } }, { runValidators: true });
+  // let updateEnquiryStatus = await Enquiry.findByIdAndUpdate(updateStatusData.id, { $set: { applicationStatus: updateStatusData.newStatus } }, { runValidators: true });
 
-  if (!updateEnquiryStatus) {
-    throw createHttpError(404, 'Could not update the enquiry status');
-  }
-  else {
-    return formatResponse(res, 200, 'Enquiry Status Updated Successfully', true);
-  }
+  // if (!updateEnquiryStatus) {
+  //   throw createHttpError(404, 'Could not update the enquiry status');
+  // }
+  // else {
+  //   return formatResponse(res, 200, 'Enquiry Status Updated Successfully', true);
+  // }
 
-})
+});
 
 
 const generateUniversityId = (course: Course, photoSerialNumber: number) => {

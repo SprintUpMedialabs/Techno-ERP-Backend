@@ -16,125 +16,96 @@ import { functionLevelLogger } from "../../config/functionLevelLogging";
 
 export const createEnquiryStep2 = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
 
-    const data: IFeesRequestSchema = req.body;
-  
-    const validation = feesRequestSchema.safeParse(data);
+  const data: IFeesRequestSchema = req.body;
 
-    if (!validation.success) {
-      throw createHttpError(400, validation.error.errors[0]);
+  const validation = feesRequestSchema.safeParse(data);
+
+  if (!validation.success) {
+    throw createHttpError(400, validation.error.errors[0]);
+  }
+  const enquiry = await Enquiry.findOne(
+    {
+      _id: validation.data.enquiryId,
+      applicationStatus: ApplicationStatus.STEP_2
+    },
+    {
+      course: 1,
+      studentFeeDraft: 1,
+      // telecaller : 1,
+      // counsellor : 1
     }
-  
-    const session = await mongoose.startSession();
-    session.startTransaction();
-  
-  
-    await checkIfStudentAdmitted(validation.data.enquiryId);
-    let feesDraft;
-    let feesDraftCreated;
-    try {
-      const enquiry = await Enquiry.findOne(
-        {
-          _id: data.enquiryId,
-          applicationStatus: ApplicationStatus.STEP_2
-        },
-        {
-          course: 1,
-          studentFeeDraft: 1,
-          // telecaller : 1,
-          // counsellor : 1
-        }
-      ).session(session).lean();
-  
-      if (!enquiry) {
-        throw createHttpError(404, 'Enquiry with particular ID not found!')
-      }
-  
-  
-      const otherFees = await fetchOtherFees();
-      const semWiseFee = await fetchCourseFeeByCourse(enquiry?.course.toString() ?? '');
-  
-      const { counsellor, telecaller, ...feeRelatedData } = validation.data;
+  ).lean();
 
-      const feeData: IStudentFeesSchema = {
-        ...feeRelatedData,
-        otherFees: feeRelatedData.otherFees?.map(fee => {
-          let feeAmount;
-          if (fee.type === FeeType.SEM1FEE) 
-          {
-            feeAmount = semWiseFee?.fee[0] ?? 0;
-          } 
-          else 
-          {
-            feeAmount = otherFees?.find(otherFee => otherFee.type === fee.type)?.fee ?? 0;
-          }
-  
-          return {
-            ...fee,
-            feeAmount,
-            finalFee: fee.finalFee ?? 0,
-            feesDepositedTOA: fee.feesDepositedTOA ?? 0
-          };
-        }) || [],
-        semWiseFees: feeRelatedData.semWiseFees.map((semFee, index: number) => ({
-          finalFee: semFee.finalFee,
-          feeAmount: semWiseFee?.fee[index] ?? 0,
-          feesPaid:  0,
-        })),
-      };
-      
-      feesDraft = await StudentFeesModel.create([feeData], { session });
-  
-      // feesDraftCreated = {
-      //   ...feesDraft,
-      //   telecaller : data.telecaller ? data.telecaller : enquiry.telecaller,
-      //   counsellor : data.counsellor ? data.counsellor : enquiry.counsellor
-      // };
+  if (!enquiry) {
+    throw createHttpError(404, 'Enquiry with particular ID not found!')
+  }
 
-      if (!feesDraft) {
-        throw createHttpError(404, 'Failed to update Fees');
-      }
-  
-      const enquiryUpdatePayload: Record<string, any> = {
-        studentFee: feesDraft[0]._id,
-        studentFeeDraft: null,
-      };
-      
-      if (data.counsellor){
-        enquiryUpdatePayload.counsellor = data.counsellor;
-      }
-      if (data.telecaller) {
-        enquiryUpdatePayload.telecaller = data.telecaller;
-      }
-      
-      await Enquiry.findByIdAndUpdate(
-        data.enquiryId,
-        { $set: enquiryUpdatePayload },
-        { new: true, session }
-      );
-      
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const otherFees = await fetchOtherFees();
+    const semWiseFee = await fetchCourseFeeByCourse(enquiry?.course);
 
-      if (enquiry?.studentFeeDraft) 
-      {
-         await StudentFeesDraftModel.findByIdAndDelete(enquiry.studentFeeDraft, { session });
-      }
+    const { counsellor, telecaller, ...feeRelatedData } = validation.data;
 
-      await session.commitTransaction();
-      session.endSession();
+    const feeData: IStudentFeesSchema = {
+      ...feeRelatedData,
+      otherFees: feeRelatedData.otherFees?.map(fee => {
+        let feeAmount;
+        feeAmount = otherFees?.find(otherFee => otherFee.type === fee.type)?.fee ?? 0;
+        return {
+          ...fee,
+          feeAmount,
+          finalFee: fee.finalFee ?? 0,
+          feesDepositedTOA: fee.feesDepositedTOA ?? 0
+        };
+      }) || [],
+      semWiseFees: feeRelatedData.semWiseFees.map((semFee, index: number) => ({
+        finalFee: semFee.finalFee,
+        feeAmount: semWiseFee?.fee[index] ?? 0,
+        feesPaid: 0,
+      })),
+    };
+
+    const feesDraftList = await StudentFeesModel.create([feeData], { session });
+    const feesDraft = feesDraftList[0];
+
+    const enquiryUpdatePayload: Record<string, any> = {
+      studentFee: feesDraft._id,
+      studentFeeDraft: null,
+      applicationStatus: ApplicationStatus.STEP_3
+    };
+
+    if (data.counsellor) {
+      enquiryUpdatePayload.counsellor = data.counsellor;
+    }
+    if (data.telecaller) {
+      enquiryUpdatePayload.telecaller = data.telecaller;
     }
 
-    catch (error) {
-      await session.abortTransaction();
-      session.endSession();
-      throw createHttpError('Could not update successfully');
+    await Enquiry.findByIdAndUpdate(
+      data.enquiryId,
+      { $set: enquiryUpdatePayload },
+      { new: true, session }
+    );
+
+    if (enquiry?.studentFeeDraft) {
+      await StudentFeesDraftModel.findByIdAndDelete(enquiry.studentFeeDraft, { session });
     }
-    return formatResponse(res, 201, 'Fees created successfully', true, feesDraftCreated);
+
+    await session.commitTransaction();
+    session.endSession();
+    return formatResponse(res, 201, 'Fees created successfully', true, feesDraft);
+  } catch (error: any) {
+    await session.abortTransaction();
+    session.endSession();
+    throw createHttpError(error);
+  }
 }));
-  
-  
-  
+
 export const updateEnquiryStep2ById = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
-    const feesDraftUpdateData: IFeesUpdateSchema = req.body;
-  
-    const feesDraft = await updateFeeDetails([ApplicationStatus.STEP_1, ApplicationStatus.STEP_3, ApplicationStatus.STEP_4], feesDraftUpdateData);
-    return formatResponse(res, 200, 'Fees Draft updated successfully', true, feesDraft);
+  // const feesDraftUpdateData: IFeesUpdateSchema = req.body;
+
+  // const feesDraft = await updateFeeDetails([ApplicationStatus.STEP_1, ApplicationStatus.STEP_3, ApplicationStatus.STEP_4], feesDraftUpdateData);
+  // return formatResponse(res, 200, 'Fees Draft updated successfully', true, feesDraft);
 }));
