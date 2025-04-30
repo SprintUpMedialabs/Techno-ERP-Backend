@@ -39,8 +39,11 @@ exports.uploadData = (0, express_async_handler_1.default)((req, res) => __awaite
                 yield (0, updateAndSaveToDb_1.saveDataToDb)(latestData.RowData, latestData.LastSavedIndex, sheet.id, sheet.name);
             }
         }
+        return (0, formatResponse_1.formatResponse)(res, 200, 'Data updated in Database!', true);
     }
-    return (0, formatResponse_1.formatResponse)(res, 200, 'Data updated in Database!', true);
+    else {
+        return (0, formatResponse_1.formatResponse)(res, 400, 'No data found in the sheet!', false);
+    }
 }));
 exports.getFilteredLeadData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { query, search, page, limit, sort } = (0, parseFilter_1.parseFilter)(req);
@@ -72,7 +75,7 @@ exports.getFilteredLeadData = (0, express_async_handler_1.default)((req, res) =>
     });
 }));
 exports.getAllLeadAnalytics = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
     const { query } = (0, parseFilter_1.parseFilter)(req);
     // 🔹 Running Aggregate Pipeline
     const analytics = yield lead_1.LeadMaster.aggregate([
@@ -82,6 +85,7 @@ exports.getAllLeadAnalytics = (0, express_async_handler_1.default)((req, res) =>
                 _id: null,
                 totalLeads: { $sum: 1 }, // Count total leads
                 openLeads: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.OPEN] }, 1, 0] } }, // Count OPEN leads
+                didNotPickLeads: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.DID_NOT_PICK] }, 1, 0] } }, // Count OPEN leads
                 interestedLeads: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.INTERESTED] }, 1, 0] } }, // Count INTERESTED leads
                 notInterestedLeads: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.DEAD] }, 1, 0] } }, // Count NOT_INTERESTED leads,
                 neutralLeads: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.NO_CLARITY] }, 1, 0] } }
@@ -91,9 +95,10 @@ exports.getAllLeadAnalytics = (0, express_async_handler_1.default)((req, res) =>
     return (0, formatResponse_1.formatResponse)(res, 200, 'Lead analytics fetched successfully', true, {
         totalLeads: (_b = (_a = analytics[0]) === null || _a === void 0 ? void 0 : _a.totalLeads) !== null && _b !== void 0 ? _b : 0,
         openLeads: (_d = (_c = analytics[0]) === null || _c === void 0 ? void 0 : _c.openLeads) !== null && _d !== void 0 ? _d : 0,
-        interestedLeads: (_f = (_e = analytics[0]) === null || _e === void 0 ? void 0 : _e.interestedLeads) !== null && _f !== void 0 ? _f : 0,
-        notInterestedLeads: (_h = (_g = analytics[0]) === null || _g === void 0 ? void 0 : _g.notInterestedLeads) !== null && _h !== void 0 ? _h : 0,
-        neutralLeads: (_k = (_j = analytics[0]) === null || _j === void 0 ? void 0 : _j.neutralLeads) !== null && _k !== void 0 ? _k : 0
+        didNotPickLeads: (_f = (_e = analytics[0]) === null || _e === void 0 ? void 0 : _e.didNotPickLeads) !== null && _f !== void 0 ? _f : 0,
+        interestedLeads: (_h = (_g = analytics[0]) === null || _g === void 0 ? void 0 : _g.interestedLeads) !== null && _h !== void 0 ? _h : 0,
+        notInterestedLeads: (_k = (_j = analytics[0]) === null || _j === void 0 ? void 0 : _j.notInterestedLeads) !== null && _k !== void 0 ? _k : 0,
+        neutralLeads: (_m = (_l = analytics[0]) === null || _l === void 0 ? void 0 : _l.neutralLeads) !== null && _m !== void 0 ? _m : 0
     });
 }));
 exports.updateData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -119,9 +124,9 @@ exports.updateData = (0, express_async_handler_1.default)((req, res) => __awaite
             new: true,
             runValidators: true
         });
-        (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.FIX_CITY, updatedData === null || updatedData === void 0 ? void 0 : updatedData.city);
+        (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.FIX_MARKETING_CITY, updatedData === null || updatedData === void 0 ? void 0 : updatedData.city);
         (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.MARKETING_CITY, updatedData === null || updatedData === void 0 ? void 0 : updatedData.city);
-        (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.FIX_COURSE_CODE, updatedData === null || updatedData === void 0 ? void 0 : updatedData.course);
+        (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.FIX_MARKETING_COURSE_CODE, updatedData === null || updatedData === void 0 ? void 0 : updatedData.course);
         (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.MARKETING_COURSE_CODE, updatedData === null || updatedData === void 0 ? void 0 : updatedData.course);
         (0, safeAxios_1.safeAxiosPost)(axiosInstance_1.default, `${endPoints_1.Endpoints.AuditLogService.MARKETING.SAVE_LEAD}`, {
             documentId: updatedData === null || updatedData === void 0 ? void 0 : updatedData._id,
