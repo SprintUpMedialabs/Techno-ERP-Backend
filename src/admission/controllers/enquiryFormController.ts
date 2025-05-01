@@ -4,16 +4,15 @@ import createHttpError from 'http-errors';
 import mongoose from 'mongoose';
 import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
 import { ApplicationStatus, Course, FormNoPrefixes, TGI } from '../../config/constants';
+import { functionLevelLogger } from '../../config/functionLevelLogging';
+import { createStudent } from '../../student/controllers/studentController';
+import { Student } from '../../student/models/student';
+import { CreateStudentSchema, StudentSchema } from '../../student/validators/studentSchema';
 import { formatResponse } from '../../utils/formatResponse';
 import { objectIdSchema } from '../../validators/commonSchema';
 import { Enquiry } from '../models/enquiry';
 import { EnquiryDraft } from '../models/enquiryDraft';
 import { EnquiryApplicationId } from '../models/enquiryIdMetaDataSchema';
-import { enquiryStatusUpdateSchema, IEnquiryStatusUpdateSchema } from '../validators/enquiryStatusUpdateSchema';
-import { functionLevelLogger } from '../../config/functionLevelLogging';
-import { CreateStudentSchema, StudentSchema } from '../../student/validators/studentSchema';
-import { createStudent } from '../../student/controllers/studentController';
-import { Student } from '../../student/models/student';
 
 
 export const getEnquiryData = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {

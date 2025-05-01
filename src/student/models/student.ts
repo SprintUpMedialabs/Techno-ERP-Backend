@@ -1,8 +1,8 @@
-import mongoose, { Schema } from "mongoose";
-import { IAttendanceSchema, IBaseAttendanceSchema, IBaseExamSchema, IExamSchema, ISemesterSchema, IStudentBaseInfoSchema, IStudentSchema, ISubjectSchema } from "../validators/studentSchema";
-import { COLLECTION_NAMES, CourseYears, FeeStatus as FeeStatus } from "../../config/constants";
-import { FeeModel } from "./fees";
 import createHttpError from "http-errors";
+import mongoose, { Schema } from "mongoose";
+import { COLLECTION_NAMES, CourseYears, FeeStatus } from "../../config/constants";
+import { IAttendanceSchema, IBaseAttendanceSchema, IBaseExamSchema, IExamSchema, ISemesterSchema, IStudentBaseInfoSchema, IStudentSchema, ISubjectSchema } from "../validators/studentSchema";
+import { FeeModel } from "./fees";
 
 export interface IStudentDocument extends IStudentSchema, Document { }
 export interface IStudentBasicInfoDocument extends IStudentBaseInfoSchema, Document { }

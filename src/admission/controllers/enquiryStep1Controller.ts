@@ -7,10 +7,9 @@ import { AdmittedThrough, ApplicationStatus, Course, DropDownType } from "../../
 import { functionLevelLogger } from "../../config/functionLevelLogging";
 import { updateOnlyOneValueInDropDown } from "../../utilityModules/dropdown/dropDownMetadataController";
 import { formatResponse } from "../../utils/formatResponse";
-import { checkIfStudentAdmitted } from "../helpers/checkIfStudentAdmitted";
 import { Enquiry } from "../models/enquiry";
 import { EnquiryDraft } from "../models/enquiryDraft";
-import { enquiryStep1RequestSchema, enquiryStep1UpdateRequestSchema } from "../validators/enquiry";
+import { enquiryStep1RequestSchema } from "../validators/enquiry";
 
 export const createEnquiry = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
 
@@ -23,6 +22,12 @@ export const createEnquiry = expressAsyncHandler(functionLevelLogger(async (req:
   }
 
   const admittedThrough = enquiryData.course === Course.BED ? AdmittedThrough.COUNSELLING : AdmittedThrough.DIRECT;
+
+  const enquiry = await Enquiry.findById(id);
+  if (enquiry) {
+    throw createHttpError(400, 'Enquiry already exists');
+  }
+
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
@@ -51,22 +56,23 @@ export const createEnquiry = expressAsyncHandler(functionLevelLogger(async (req:
 
 
 export const updateEnquiryStep1ById = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
-  const validation = enquiryStep1UpdateRequestSchema.safeParse(req.body);
+  // currently not in use
+  // const validation = enquiryStep1UpdateRequestSchema.safeParse(req.body);
 
-  if (!validation.success) {
-    throw createHttpError(400, validation.error.errors[0]);
-  }
+  // if (!validation.success) {
+  //   throw createHttpError(400, validation.error.errors[0]);
+  // }
 
-  const { id, ...data } = validation.data;
+  // const { id, ...data } = validation.data;
 
-  await checkIfStudentAdmitted(id);
+  // await checkIfStudentAdmitted(id);
 
-  const updatedData = await Enquiry.findByIdAndUpdate(
-    { _id: id },
-    { $set: data },
-    { new: true, runValidators: true }
-  );
+  // const updatedData = await Enquiry.findByIdAndUpdate(
+  //   { _id: id },
+  //   { $set: data },
+  //   { new: true, runValidators: true }
+  // );
 
-  return formatResponse(res, 200, 'Enquiry data updated successfully', true, updatedData);
+  // return formatResponse(res, 200, 'Enquiry data updated successfully', true, updatedData);
 
 }));

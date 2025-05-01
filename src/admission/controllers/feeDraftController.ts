@@ -130,7 +130,7 @@ export const updateFeeDraft = expressAsyncHandler(functionLevelLogger(async (req
     const updatedDraft = await StudentFeesDraftModel.findByIdAndUpdate(
       data.id,
       { $set: updateData },
-      { new: true, runValidators: true ,session}
+      { new: true, runValidators: true, session }
     );
     await Enquiry.findByIdAndUpdate(
       data.enquiryId,

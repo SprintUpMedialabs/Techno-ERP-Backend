@@ -1,8 +1,7 @@
 import createHttpError from 'http-errors';
-import mongoose, { model, Schema, Types } from 'mongoose';
-import { COLLECTION_NAMES, FeeStatus } from '../../config/constants';
+import { model, Schema } from 'mongoose';
+import { COLLECTION_NAMES } from '../../config/constants';
 import { convertToDDMMYYYY } from '../../utils/convertDateToFormatedDate';
-import { emailSchema } from '../../validators/commonSchema';
 import { IStudentFeesSchema } from '../validators/studentFees';
 import { OtherFeesSchema, SingleSemWiseFeesSchema } from './studentFees';
 
@@ -21,12 +20,6 @@ const StudentFeesDraftSchema = new Schema<IStudentFeesDocument>(
     },
     semWiseFees: {
       type: [SingleSemWiseFeesSchema],
-      required: false
-    },
-    feeStatus: {
-      type: String,
-      enum: Object.values(FeeStatus),
-      default: FeeStatus.DRAFT,
       required: false
     },
     feesClearanceDate: {
