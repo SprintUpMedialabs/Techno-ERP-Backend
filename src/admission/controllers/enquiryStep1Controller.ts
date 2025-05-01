@@ -23,11 +23,9 @@ export const createEnquiry = expressAsyncHandler(functionLevelLogger(async (req:
   }
 
   const admittedThrough = enquiryData.course === Course.BED ? AdmittedThrough.COUNSELLING : AdmittedThrough.DIRECT;
-  let session;
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
-    session = await mongoose.startSession();
-    session.startTransaction();
-
     //Delete enquiry draft only if saving enquiry is successful.
     if (id) {
       const deletedDraft = await EnquiryDraft.findByIdAndDelete(id, { session });
@@ -35,7 +33,7 @@ export const createEnquiry = expressAsyncHandler(functionLevelLogger(async (req:
         throw formatResponse(res, 404, 'Error occurred while deleting the enquiry draft', true);
       }
     }
-    const savedResult = await Enquiry.create([{ ...enquiryData,_id: id, admittedThrough, applicationStatus: ApplicationStatus.STEP_2 }], { session });
+    const savedResult = await Enquiry.create([{ ...enquiryData, _id: id, admittedThrough, applicationStatus: ApplicationStatus.STEP_2 }], { session });
     const enquiry = savedResult[0];
 
     updateOnlyOneValueInDropDown(DropDownType.DISTRICT, enquiry.address?.district);

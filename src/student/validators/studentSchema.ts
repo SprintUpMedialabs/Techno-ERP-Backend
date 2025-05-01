@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { objectIdSchema } from "../../validators/commonSchema";
-import { CourseYears, FeeStatuses } from "../../config/constants";
+import { CourseYears, FeeStatus } from "../../config/constants";
 import { FeeSchema } from "./feeSchema";
 
 export const BaseExamSchema = z.object({
@@ -44,7 +44,7 @@ export const SemesterSchema = z.object({
 
 export const StudentBaseInfoSchema = z.object({
     studentName: z.string({ required_error: "Student Name is required." }).nonempty("Student Name cannot be empty"),
-    studentId: z.string({ required_error: "Student ID cannot be empty." }).nonempty("Student ID is required"),
+    universityId: z.string({ required_error: "University ID cannot be empty." }).nonempty("University ID is required"),
     studentPhoneNumber: z.string().optional(),
     fatherName: z.string({ required_error: "Fathers name is required." }).nonempty("Fathers name cannot be empty."),
     fatherPhoneNumber: z.string().optional()
@@ -61,7 +61,7 @@ export const StudentSchema = z.object({
     currentAcademicYear: z.string(),
     totalSemester: z.number({ required_error: "Total Number of Semesters is Required." }).nonnegative("Total number of semesters must be non-negative"),
     semester: z.array(SemesterSchema),
-    feeStatus: z.nativeEnum(FeeStatuses).default(FeeStatuses.DUE),
+    feeStatus: z.nativeEnum(FeeStatus).default(FeeStatus.DUE),
     extraBalance: z.number().default(0),
     transactionHistory: objectIdSchema.optional()
 })

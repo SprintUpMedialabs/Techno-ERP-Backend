@@ -1,6 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import { IAttendanceSchema, IBaseAttendanceSchema, IBaseExamSchema, IExamSchema, ISemesterSchema, IStudentBaseInfoSchema, IStudentSchema, ISubjectSchema } from "../validators/studentSchema";
-import { COLLECTION_NAMES, CourseYears, FeeStatuses } from "../../config/constants";
+import { COLLECTION_NAMES, CourseYears, FeeStatus as FeeStatus } from "../../config/constants";
 import { FeeModel } from "./fees";
 import createHttpError from "http-errors";
 
@@ -14,7 +14,7 @@ export interface IExamDocument extends IExamSchema, Document { }
 export interface IBaseExamDocument extends IBaseExamSchema, Document { }
 
 const StudentBaseInfoSchema = new Schema<IStudentBasicInfoDocument>({
-    studentId: {
+    universityId: { // changed from studentId to universityId
         type: String
     },
     studentName: {
@@ -173,22 +173,20 @@ const StudentModel = new Schema<IStudentDocument>({
     },
     feeStatus: {
         type: String,
-        enum: Object.values(FeeStatuses),
-        default: FeeStatuses.DUE
+        enum: Object.values(FeeStatus),
+        default: FeeStatus.NOT_PROVIDED
     },
     extraBalance: {
         type: Number,
         default: 0
     },
     transactionHistory: {
-        type: [Schema.Types.ObjectId],
-        default : []
+        type: [{
+            type: Schema.Types.ObjectId,
+            ref: COLLECTION_NAMES.TRANSACTION_HISTORY
+        }],
+        default: []
     }
-});
-
-
-StudentModel.pre<IStudentDocument>('save', async function (next) {
-    next();
 });
 
 const handleMongooseError = (error: any, next: Function) => {

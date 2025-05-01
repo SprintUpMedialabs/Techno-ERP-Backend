@@ -25,6 +25,8 @@ export const saveStep3Draft = expressAsyncHandler(functionLevelLogger(async (req
 
   const { id, ...validatedData } = validation.data;
 
+  await checkIfStudentAdmitted(id, ApplicationStatus.STEP_2);
+
   const enquiry = await Enquiry.findByIdAndUpdate(
     id,
     { ...validatedData, applicationStatus: ApplicationStatus.STEP_3_DRAFT },

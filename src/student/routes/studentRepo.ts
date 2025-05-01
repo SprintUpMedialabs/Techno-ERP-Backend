@@ -1,12 +1,14 @@
 import express from "express";
 import { authenticate, authorize } from "../../middleware/jwtAuthenticationMiddleware";
 import { UserRoles } from "../../config/constants";
-import { getStudentDues } from "../controllers/studentDuesController";
+import { getStudentDataById } from "../../student-data/controllers/studentController";
 
-export const studentRoute = express.Router();
+export const studentRepoRoute = express.Router();
 
-studentRoute.post("/active-dues", 
+studentRepoRoute.get("/:id", 
     authenticate, 
     authorize([UserRoles.BASIC_USER]), 
-    getStudentDues
+    getStudentDataById
 );
+
+

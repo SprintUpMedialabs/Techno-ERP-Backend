@@ -1,15 +1,16 @@
 import express from 'express';
+import { admissionRoute } from './admission/routes';
 import { authRouter } from './auth/routes/authRoute';
 import { userRouter } from './auth/routes/userRoute';
-import { crmRoute } from './crm/routes/crmRoute';
-import { admissionRoute } from './admission/routes';
-import feesRouter from './fees/courseAndOtherFees.routes';
+import courseMetaDataRoute from './course/routes/courseMetadataRoute';
 import { courseRoute } from './course/routes/courseRoute';
-import { studentDataRoute } from './student-data/routes/studentRoute';
 import { departmentMetaDataRoute } from './course/routes/departmentMetaDataRoute';
-import { dropDownRoute } from './utilityModules/dropdown/dropDownRoute';
 import { testRoute } from './course/routes/testRoute';
-import { studentRoute } from './student/routes/studentRoute';
+import { crmRoute } from './crm/routes/crmRoute';
+import feesRouter from './fees/courseAndOtherFees.routes';
+import { studentDataRoute } from './student-data/routes/studentRoute';
+import { studentRoute } from './student/routes';
+import { dropDownRoute } from './utilityModules/dropdown/dropDownRoute';
 
 export const apiRouter = express.Router();
 

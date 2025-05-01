@@ -318,8 +318,7 @@ export enum COLLECTION_NAMES {
   COURSE = 'Course',
   DROP_DOWN_META_DATA = 'DropDownMetaData',
   STUDENTREPO = "StudentRepo",
-  STUDENT_TRANSACTION_HISTORY = "StudentTransactionHistory",
-  COLLEGE_TRANSACTION_HISTORY = "CollegeTransactionHistory"
+  TRANSACTION_HISTORY = "TransactionHistory"
 }
 
 
@@ -352,9 +351,10 @@ export enum CourseYears{
   Sixth = 'Sixth'
 }
 
-export enum FeeStatuses{
+export enum FeeStatus{
   DUE = "DUE",
-  PAID = "PAID"
+  PAID = "PAID",
+  NOT_PROVIDED = "NOT_PROVIDED"
 }
 
 export enum Schedule{
