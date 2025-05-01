@@ -316,7 +316,10 @@ export enum COLLECTION_NAMES {
   DEPARTMENT_META_DATA = 'DepartmentMetaData',
   COURSE_METADATA = 'CourseMetadata',
   COURSE = 'Course',
-  DROP_DOWN_META_DATA = 'DropDownMetaData'
+  DROP_DOWN_META_DATA = 'DropDownMetaData',
+  STUDENTREPO = "StudentRepo",
+  STUDENT_TRANSACTION_HISTORY = "StudentTransactionHistory",
+  COLLEGE_TRANSACTION_HISTORY = "CollegeTransactionHistory"
 }
 
 
@@ -337,4 +340,68 @@ export enum CourseMaterialType {
   LPLAN = 'LPlan',
   PPLAN = 'PPlan',
   GENERAL = 'General'
+}
+
+
+export enum CourseYears{
+  First = 'First',
+  Second = 'Second',
+  Third = 'Third',
+  Fourth = 'Fourth',
+  Fifth = 'Fifth',
+  Sixth = 'Sixth'
+}
+
+export enum FeeStatuses{
+  DUE = "DUE",
+  PAID = "PAID"
+}
+
+export enum Schedule{
+  ONE_TIME = "ONE_TIME",
+  SEMESTER = "SEMESTER",
+  YEARLY = "YEARLY",
+  OPTIONAL = "OPTIONAL",
+  AS_APPLICABLE = "AS_APPLICABLE"
+}
+
+export enum FeeActions{
+  REFUND = "REFUND",
+  DEPOSIT = "DEPOSIT"
+}
+
+export enum TransactionTypes{
+  NEFT_IMPS_RTGS = "NEFT/RTGS/IMPS",
+  UPI = "UPI",
+  CASH = "CASH",
+  CHEQUE = "CHEQUE",
+  OTHERS = "OTHERS"
+}
+
+
+export enum FinanceFeeType {
+  HOSTEL = "HOSTEL",    //OPTIONAL
+  TRANSPORT = "TRANSPORT",  //OPTIONAL
+  PROSPECTUS = "PROSPECTUS",  //ONE-TIME
+  STUDENTID = "STUDENTID",  //ONE-TIME
+  UNIFORM = "UNIFORM",    //ONE-TIME
+  STUDENTWELFARE = "STUDENTWELFARE",  //YEARLY
+  BOOKBANK = "BOOKBANK",  //SEMESTERWISE
+  EXAMFEES = "EXAMFEES",  
+  MISCELLANEOUS = "MISCELLANEOUS", //OTHERS
+  SEMESTERFEE = "SEMESTERFEE"
+}
+
+
+export enum FinanceFeeSchedule {
+  HOSTEL = "YEARLY",
+  TRANSPORT = "YEARLY",
+  PROSPECTUS = "ONETIME",
+  STUDENTID = "ONETIME",
+  UNIFORM = "ONETIME",
+  STUDENTWELFARE = "YEARLY",
+  BOOKBANK = "HALF_YEARLY",
+  EXAMFEES = "HALF_YEARLY",
+  MISCELLANEOUS = "HALF_YEARLY",
+  SEMESTERFEE = "HALF_YEARLY",
 }

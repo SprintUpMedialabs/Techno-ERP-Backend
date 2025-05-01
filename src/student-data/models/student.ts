@@ -248,4 +248,4 @@ const transformDates = (_: any, ret: any) => {
 studentSchema.set('toJSON', { transform: transformDates });
 studentSchema.set('toObject', { transform: transformDates });
 
-export const Student = mongoose.model<IStudentDocument>(COLLECTION_NAMES.STUDENT, studentSchema);
+export const DummyStudent = mongoose.model<IStudentDocument>(COLLECTION_NAMES.STUDENTREPO, studentSchema);
