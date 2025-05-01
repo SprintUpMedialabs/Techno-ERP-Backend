@@ -154,7 +154,7 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
     );
 
     const universityId = generateUniversityId(enquiry.course, photoSerial!.lastSerialNumber);
-
+    
     const approvedEnquiry = await Enquiry.findByIdAndUpdate(
       id,
       {
@@ -170,18 +170,24 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
 
     // const studentValidation = studentSchema.safeParse(approvedEnquiry);
 
+    const enquiryData = approvedEnquiry?.toObject();
+
+    // console.log("Approved ENquiry is : ", enquiryData);
+
     const studentData = {
-      "studentName" : approvedEnquiry?.studentName,
-      "studentPhoneNumber" : approvedEnquiry?.studentPhoneNumber,
-      "fatherName" : approvedEnquiry?.fatherName,
-      "fatherPhoneNumber" : approvedEnquiry?.fatherPhoneNumber,
-      "studentId" : approvedEnquiry?.universityId,
+      // "studentName" : approvedEnquiry?.studentName,
+      // "studentPhoneNumber" : approvedEnquiry?.studentPhoneNumber,
+      // "fatherName" : approvedEnquiry?.fatherName,
+      // "fatherPhoneNumber" : approvedEnquiry?.fatherPhoneNumber,
+      // "studentId" : approvedEnquiry?.universityId,
+      ...enquiryData,
       "courseCode" : approvedEnquiry?.course,
       "feeId" : approvedEnquiry?.studentFee,
       "dateOfAdmission" : approvedEnquiry?.dateOfAdmission
     }
 
-    // console.log("Student Data : ", studentData);
+
+    console.log("Student Data : ", studentData);
 
     const studentValidation = CreateStudentSchema.safeParse(studentData);
 

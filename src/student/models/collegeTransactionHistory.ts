@@ -39,8 +39,6 @@ export const CollegeTransactionModel = new Schema<ICollegeTransactionDocument>({
     },
 }, { timestamps: true });
 
-
-
 CollegeTransactionModel.pre<ICollegeTransactionDocument>("save", async function (next) {
     next();
 });

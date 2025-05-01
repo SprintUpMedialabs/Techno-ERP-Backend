@@ -9,15 +9,13 @@ import { IFeeSchema } from "../validators/feeSchema";
 
 export const createStudent = async (studentData : ICreateStudentSchema) => {
 
-    const { studentName, studentPhoneNumber, fatherName, fatherPhoneNumber, studentId, courseCode, feeId, dateOfAdmission} = studentData;
+    const { courseCode, feeId, dateOfAdmission} = studentData;
 
-    const studentBaseInformation : IStudentBaseInformation = {
-        studentName : studentName,
-        studentPhoneNumber : studentPhoneNumber,
-        fatherName : fatherName,
-        fatherPhoneNumber : fatherPhoneNumber,
-        studentId : studentId
+    const studentBaseInformation = {
+        ...studentData
     };
+
+    console.log("Student INformation is : ", studentBaseInformation);
 
     const course = await Course.findOne({ courseCode : courseCode, startingYear : dateOfAdmission.getFullYear()});
 

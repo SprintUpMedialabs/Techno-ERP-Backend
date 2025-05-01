@@ -1,8 +1,16 @@
 import mongoose, { Schema } from "mongoose";
 import { IAttendanceSchema, IBaseAttendanceSchema, IBaseExamSchema, IExamSchema, ISemesterSchema, IStudentBaseInfoSchema, IStudentSchema, ISubjectSchema } from "../validators/studentSchema";
-import { COLLECTION_NAMES, CourseYears, FeeStatus as FeeStatus } from "../../config/constants";
+import { AdmissionReference, AdmittedThrough, AreaType, BloodGroup, Category, COLLECTION_NAMES, Course, CourseYears, FeeStatus as FeeStatus, Gender, Religion, StatesOfIndia } from "../../config/constants";
 import { FeeModel } from "./fees";
 import createHttpError from "http-errors";
+import { contactNumberSchema, emailSchema } from "../../validators/commonSchema";
+import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
+import { academicDetailFormSchema } from "../../admission/models/academicDetail";
+import { addressSchema } from "../../admission/models/address";
+import { previousCollegeDataSchema } from "../../admission/models/previousCollegeData";
+import { singleDocumentSchema } from "../../admission/models/singleDocument";
+import { physicalDocumentNoteSchema } from "../../admission/models/physicalDocumentNoteSchema";
+import { entranceExamDetailSchema } from "../../admission/models/entranceExamDetail";
 
 export interface IStudentDocument extends IStudentSchema, Document { }
 export interface IStudentBasicInfoDocument extends IStudentBaseInfoSchema, Document { }
@@ -17,18 +25,160 @@ const StudentBaseInfoSchema = new Schema<IStudentBasicInfoDocument>({
     universityId: { // changed from studentId to universityId
         type: String
     },
+    photoNo: {
+        type: Number,
+    },
+    formNo: {
+        type: String,
+    },
+    
     studentName: {
         type: String
     },
     studentPhoneNumber: {
         type: String
     },
+    
     fatherName: {
-        type: String
+        type: String,
+        required: [true, "Father's Name is required"]
     },
     fatherPhoneNumber: {
+        type: String,
+        required: [true, 'Father Phone Number is required.'],
+        validate: {
+            validator: (stuPhNum: string) => contactNumberSchema.safeParse(stuPhNum).success,
+            message: 'Invalid Father Phone Number'
+        }
+    },
+    fatherOccupation: {
+        type: String,
+        required: [true, 'Father occupation is required']
+    },
+
+    motherName: {
+        type: String,
+        required: [true, "Mother's Name is required"]
+    },
+    motherPhoneNumber: {
+        type: String,
+        validate: {
+            validator: (stuPhNum: string) => {
+                if (!stuPhNum) return true;
+                return contactNumberSchema.safeParse(stuPhNum).success;
+            },
+            message: 'Invalid Mother Phone Number'
+        }
+    },
+    motherOccupation: {
+        type: String,
+        required: [true, 'Mother occupation is required']
+    },
+
+    emailId: {
+        type: String,
+        validate: {
+            validator: (email: string) => emailSchema.safeParse(email).success,
+            message: 'Invalid email format'
+        }
+    },
+    bloodGroup: {
+        type: String,
+        enum: Object.values(BloodGroup)
+    },
+
+    dateOfBirth: {
+        type: Date,
+        required: [true, 'Date is required'],
+        set: (value: string | Date) => {
+          if (value instanceof Date) return value;
+          return convertToMongoDate(value);
+        }
+    },
+      category: {
+        type: String,
+        enum: {
+          values: Object.values(Category),
+          message: 'Invalid Category value'
+        },
+        required: true
+      },
+      course: {
+        type: String,
+        enum: {
+          values: Object.values(Course),
+          message: 'Invalid Course value'
+        },
+        required: true
+      },
+      reference: {
+        type: String,
+        enum: {
+          values: Object.values(AdmissionReference),
+          message: 'Invalid Admission Reference value'
+        },
+        required: true
+      },
+      aadharNumber: {
+        type: String,
+        validate: {
+          validator: (aadhar: string) => aadhar.length === 12,
+          message: 'Invalid Aadhar Number'
+        }
+      },
+      address: {
+        type: addressSchema,
+        minlength: [5, 'Address must be at least 5 characters long']
+      },
+      academicDetails: {
+        type: [academicDetailFormSchema],
+        default: [],
+        required: false
+      },
+      previousCollegeData: {
+        type: previousCollegeDataSchema
+      },
+      documents: {
+        type: [singleDocumentSchema]
+      },
+      physicalDocumentNote:{
+        type: [physicalDocumentNoteSchema]
+      },
+      stateOfDomicile: {
+        type: String,
+        enum: {
+          values: Object.values(StatesOfIndia),
+          message: 'Invalid state of domicile value'
+        }
+      },
+      areaType: {
+        type: String,
+        enum: {
+          values: Object.values(AreaType),
+          message: 'Invalid area type'
+        }
+      },
+      nationality: {
         type: String
-    }
+      },
+      entranceExamDetails: {
+        type: entranceExamDetailSchema
+      },
+      gender: {
+        type: String,
+        enum: {
+          values: Object.values(Gender),
+          message: 'Invalid gender value'
+        }
+      },
+      religion: {
+        type: String,
+        enum: Object.values(Religion)
+      },
+      admittedThrough: {
+        type: String,
+        enum: Object.values(AdmittedThrough)
+      }
 });
 
 const BaseExamModel = new Schema<IBaseExamDocument>({
