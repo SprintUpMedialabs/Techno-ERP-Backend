@@ -18,16 +18,16 @@ import { User } from '../../auth/models/user';
 export const uploadData = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const user = await User.findById(req.data?.id);
   const marketingSheet = user?.marketingSheet;
-  console.log(marketingSheet);
+
   if (marketingSheet && marketingSheet.length > 0) {
     for (const sheet of marketingSheet) {
       const latestData = await readFromGoogleSheet(sheet.id, sheet.name);
       if (latestData) {
-        await saveDataToDb(latestData.RowData, latestData.LastSavedIndex, sheet.id, sheet.name);
+        await saveDataToDb(latestData.rowData, latestData.lastSavedIndex, sheet.id, sheet.name, latestData.requiredColumnHeaders);
       }
     }
     return formatResponse(res, 200, 'Data updated in Database!', true);
-  }else{
+  } else {
     return formatResponse(res, 400, 'No data found in the sheet!', false);
   }
 });
