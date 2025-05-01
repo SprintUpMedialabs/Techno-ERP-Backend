@@ -1,8 +1,8 @@
+import createHttpError from "http-errors";
 import mongoose, { Schema } from "mongoose";
 import { IAttendanceSchema, IBaseAttendanceSchema, IBaseExamSchema, IExamSchema, ISemesterSchema, IStudentBaseInfoSchema, IStudentSchema, ISubjectSchema } from "../validators/studentSchema";
 import { AdmissionReference, AdmittedThrough, AreaType, BloodGroup, Category, COLLECTION_NAMES, Course, CourseYears, FeeStatus as FeeStatus, Gender, Religion, StatesOfIndia } from "../../config/constants";
 import { FeeModel } from "./fees";
-import createHttpError from "http-errors";
 import { contactNumberSchema, emailSchema } from "../../validators/commonSchema";
 import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
 import { academicDetailFormSchema } from "../../admission/models/academicDetail";

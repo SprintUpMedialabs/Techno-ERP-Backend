@@ -1,6 +1,6 @@
 import createHttpError from 'http-errors';
 import { model, Schema } from 'mongoose';
-import { COLLECTION_NAMES, FeeStatus } from '../../config/constants';
+import { COLLECTION_NAMES } from '../../config/constants';
 import { convertToDDMMYYYY } from '../../utils/convertDateToFormatedDate';
 import { IOtherFeesSchema, ISingleSemSchema, IStudentFeesSchema } from '../validators/studentFees';
 
@@ -61,11 +61,6 @@ const StudentFeesSchema = new Schema<IStudentFeesDocument>(
         },
         semWiseFees: {
             type: [SingleSemWiseFeesSchema],
-        },
-        feeStatus: {
-            type: String,
-            enum: Object.values(FeeStatus),
-            default: FeeStatus.DRAFT,
         },
         feesClearanceDate: {
             type: Date

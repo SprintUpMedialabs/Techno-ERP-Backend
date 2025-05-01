@@ -182,7 +182,6 @@ export enum ApplicationStatus {
   STEP_1 = 'Step_1',
   STEP_2 = 'Step_2',
   STEP_3 = 'Step_3',
-  STEP_3_DRAFT = 'Step_3_Draft',
   STEP_4 = 'Step_4',
   CONFIRMED = 'Confirmed'
 }
@@ -217,13 +216,6 @@ export enum FeeType {
   BOOKBANK = "BOOKBANK",
   EXAMFEES = "EXAMFEES"
 }
-
-
-export enum FeeStatus {
-  FINAL = "FINAL",
-  DRAFT = "DRAFT"
-}
-
 
 export enum AdmissionMode {
   ONLINE = "ONLINE",
@@ -274,15 +266,6 @@ export enum Countries {
   India = "India",
   NON_INDIA = "Non-India"
 }
-
-// export enum Districts {
-//   Lucknow = "Lucknow",
-//   Sitapur = "Sitapur",
-//   Hardoi = "Hardoi",
-//   Barabanki = "Barabanki",
-//   Raebareli = "Raebareli",
-//   Unnao = "Unnao",
-// }
 
 export enum AreaType {
   URBAN = "URBAN",
@@ -342,7 +325,7 @@ export enum CourseMaterialType {
 }
 
 
-export enum CourseYears{
+export enum CourseYears {
   First = 'First',
   Second = 'Second',
   Third = 'Third',
@@ -351,13 +334,13 @@ export enum CourseYears{
   Sixth = 'Sixth'
 }
 
-export enum FeeStatus{
+export enum FeeStatus {
   DUE = "DUE",
   PAID = "PAID",
   NOT_PROVIDED = "NOT_PROVIDED"
 }
 
-export enum Schedule{
+export enum Schedule {
   ONE_TIME = "ONE_TIME",
   SEMESTER = "SEMESTER",
   YEARLY = "YEARLY",
@@ -365,12 +348,12 @@ export enum Schedule{
   AS_APPLICABLE = "AS_APPLICABLE"
 }
 
-export enum FeeActions{
+export enum FeeActions {
   REFUND = "REFUND",
   DEPOSIT = "DEPOSIT"
 }
 
-export enum TransactionTypes{
+export enum TransactionTypes {
   NEFT_IMPS_RTGS = "NEFT/RTGS/IMPS",
   UPI = "UPI",
   CASH = "CASH",
@@ -387,7 +370,7 @@ export enum FinanceFeeType {
   UNIFORM = "UNIFORM",    //ONE-TIME
   STUDENTWELFARE = "STUDENTWELFARE",  //YEARLY
   BOOKBANK = "BOOKBANK",  //SEMESTERWISE
-  EXAMFEES = "EXAMFEES",  
+  EXAMFEES = "EXAMFEES",
   MISCELLANEOUS = "MISCELLANEOUS", //OTHERS
   SEMESTERFEE = "SEMESTERFEE"
 }

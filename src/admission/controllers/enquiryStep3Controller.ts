@@ -8,7 +8,6 @@ import { functionLevelLogger } from "../../config/functionLevelLogging";
 import { uploadToS3 } from "../../config/s3Upload";
 import { updateOnlyOneValueInDropDown } from "../../utilityModules/dropdown/dropDownMetadataController";
 import { formatResponse } from "../../utils/formatResponse";
-import { checkIfStudentAdmitted } from "../helpers/checkIfStudentAdmitted";
 import { Enquiry } from "../models/enquiry";
 import { IEnquiryDraftStep3Schema, enquiryDraftStep3Schema, enquiryStep3UpdateRequestSchema } from "../validators/enquiry";
 import { singleDocumentSchema } from "../validators/singleDocumentSchema";
@@ -25,11 +24,17 @@ export const saveStep3Draft = expressAsyncHandler(functionLevelLogger(async (req
 
   const { id, ...validatedData } = validation.data;
 
-  await checkIfStudentAdmitted(id, ApplicationStatus.STEP_2);
+  const isEnquiryExists = await Enquiry.exists({
+    _id: id,
+    applicationStatus: ApplicationStatus.STEP_3
+  });
+  if (!isEnquiryExists) {
+    throw createHttpError(400, 'Enquiry not found');
+  }
 
   const enquiry = await Enquiry.findByIdAndUpdate(
     id,
-    { ...validatedData, applicationStatus: ApplicationStatus.STEP_3_DRAFT },
+    { ...validatedData, applicationStatus: ApplicationStatus.STEP_3 },
     { new: true, runValidators: true }
   );
 
@@ -49,7 +54,13 @@ export const updateEnquiryStep3ById = expressAsyncHandler(functionLevelLogger(as
 
   const { id, ...data } = validation.data;
 
-  await checkIfStudentAdmitted(id, ApplicationStatus.STEP_3_DRAFT);
+  const isEnquiryExists = await Enquiry.exists({
+    _id: id,
+    applicationStatus: ApplicationStatus.STEP_3
+  });
+  if (!isEnquiryExists) {
+    throw createHttpError(400, 'Enquiry not found');
+  }
 
   const updatedData = await Enquiry.findByIdAndUpdate(id, { ...data, applicationStatus: ApplicationStatus.STEP_4 }, { new: true, runValidators: true });
 
@@ -76,7 +87,13 @@ export const updateEnquiryDocuments = expressAsyncHandler(functionLevelLogger(as
     file: file
   });
 
-  await checkIfStudentAdmitted(id);
+  const isEnquiryExists = await Enquiry.exists({
+    _id: id,
+    applicationStatus: ApplicationStatus.STEP_3
+  });
+  if (!isEnquiryExists) {
+    throw createHttpError(400, 'Enquiry not found');
+  }
 
 
   if (!validation.success) {
