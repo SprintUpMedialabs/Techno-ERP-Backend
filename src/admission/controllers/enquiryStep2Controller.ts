@@ -1,18 +1,16 @@
+import { Response } from "express";
 import expressAsyncHandler from "express-async-handler";
 import createHttpError from "http-errors";
 import mongoose from "mongoose";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
-import { ApplicationStatus, FeeType } from "../../config/constants";
-import { fetchOtherFees, fetchCourseFeeByCourse } from "../../fees/courseAndOtherFees.controller";
+import { ApplicationStatus } from "../../config/constants";
+import { functionLevelLogger } from "../../config/functionLevelLogging";
+import { fetchCourseFeeByCourse, fetchOtherFees } from "../../fees/courseAndOtherFees.controller";
 import { formatResponse } from "../../utils/formatResponse";
-import { checkIfStudentAdmitted } from "../helpers/checkIfStudentAdmitted";
 import { Enquiry } from "../models/enquiry";
 import { StudentFeesModel } from "../models/studentFees";
-import { IFeesRequestSchema, feesRequestSchema, IStudentFeesSchema, IFeesUpdateSchema } from "../validators/studentFees";
-import { Response } from "express";
-import { updateFeeDetails } from "../helpers/updateFeeDetails";
 import { StudentFeesDraftModel } from "../models/studentFeesDraft";
-import { functionLevelLogger } from "../../config/functionLevelLogging";
+import { feesRequestSchema, IFeesRequestSchema, IStudentFeesSchema } from "../validators/studentFees";
 
 export const createEnquiryStep2 = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
 
@@ -31,8 +29,6 @@ export const createEnquiryStep2 = expressAsyncHandler(functionLevelLogger(async 
     {
       course: 1,
       studentFeeDraft: 1,
-      // telecaller : 1,
-      // counsellor : 1
     }
   ).lean();
 

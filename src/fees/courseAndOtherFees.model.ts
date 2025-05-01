@@ -1,5 +1,5 @@
-import { Schema, model, Document } from 'mongoose';
-import { COLLECTION_NAMES, Course, FeeType } from '../config/constants';
+import { Document, Schema, model } from 'mongoose';
+import { COLLECTION_NAMES, Course } from '../config/constants';
 
 
 export interface ICourseFee {
@@ -8,7 +8,7 @@ export interface ICourseFee {
 }
 
 export interface IOtherFee {
-    type: FeeType;
+    type: string;
     fee: number; // or object if more details needed
 }
 
@@ -41,7 +41,6 @@ const OtherFeeSchema = new Schema<IOtherFee>(
     {
         type: {
             type: String,
-            enum: Object.values(FeeType),
             required: true
         },
         fee: {

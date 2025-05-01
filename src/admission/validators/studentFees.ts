@@ -1,10 +1,10 @@
 import { z } from "zod";
-import { FeeStatus, FeeType } from "../../config/constants";
+import { FeeStatus } from "../../config/constants";
 import { objectIdSchema, requestDateSchema } from "../../validators/commonSchema";
 import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
 
 export const otherFeesSchema = z.object({
-    type: z.nativeEnum(FeeType),
+    type: z.string(),
     feeAmount: z.number().min(0, 'Fee amount must be greater than 0'),
     finalFee: z.number().min(0, 'Final fees to be paid must be greater than 0'),
     feesDepositedTOA: z.number().min(0, 'Fees to be deposited must be greater then 0').default(0),

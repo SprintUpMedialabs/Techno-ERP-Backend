@@ -1,15 +1,15 @@
+import { Response } from "express";
 import expressAsyncHandler from "express-async-handler";
 import createHttpError from "http-errors";
+import mongoose from "mongoose";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
-import { ApplicationStatus, FeeType } from "../../config/constants";
-import { fetchOtherFees, fetchCourseFeeByCourse } from "../../fees/courseAndOtherFees.controller";
+import { ApplicationStatus } from "../../config/constants";
+import { functionLevelLogger } from "../../config/functionLevelLogging";
+import { fetchCourseFeeByCourse, fetchOtherFees } from "../../fees/courseAndOtherFees.controller";
 import { formatResponse } from "../../utils/formatResponse";
 import { Enquiry } from "../models/enquiry";
 import { StudentFeesDraftModel } from "../models/studentFeesDraft";
-import { IFeesDraftRequestSchema, feesDraftRequestSchema, IFeesDraftUpdateSchema, feesDraftUpdateSchema } from "../validators/studentFees";
-import { Response } from "express";
-import { functionLevelLogger } from "../../config/functionLevelLogging";
-import mongoose from "mongoose";
+import { IFeesDraftRequestSchema, IFeesDraftUpdateSchema, feesDraftRequestSchema, feesDraftUpdateSchema } from "../validators/studentFees";
 
 export const createFeeDraft = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
 

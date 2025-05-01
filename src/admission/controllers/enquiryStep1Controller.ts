@@ -1,6 +1,7 @@
 import { Response } from "express";
 import expressAsyncHandler from "express-async-handler";
 import createHttpError from "http-errors";
+import mongoose from "mongoose";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
 import { AdmittedThrough, ApplicationStatus, Course, DropDownType } from "../../config/constants";
 import { functionLevelLogger } from "../../config/functionLevelLogging";
@@ -9,19 +10,17 @@ import { formatResponse } from "../../utils/formatResponse";
 import { checkIfStudentAdmitted } from "../helpers/checkIfStudentAdmitted";
 import { Enquiry } from "../models/enquiry";
 import { EnquiryDraft } from "../models/enquiryDraft";
-import { IEnquiryStep1RequestSchema, enquiryStep1RequestSchema, enquiryStep1UpdateRequestSchema } from "../validators/enquiry";
-import mongoose from "mongoose";
+import { enquiryStep1RequestSchema, enquiryStep1UpdateRequestSchema } from "../validators/enquiry";
 
 export const createEnquiry = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
 
-  const data: IEnquiryStep1RequestSchema = req.body;
-  const validation = enquiryStep1RequestSchema.safeParse(data);
+  const data = req.body;
+  const { _id: id, ...enquiryData } = data;
+  const validation = enquiryStep1RequestSchema.safeParse(enquiryData);
 
   if (!validation.success) {
     throw createHttpError(400, validation.error.errors[0]);
   }
-
-  const { id, ...enquiryData } = data;
 
   const admittedThrough = enquiryData.course === Course.BED ? AdmittedThrough.COUNSELLING : AdmittedThrough.DIRECT;
   let session;
@@ -32,12 +31,11 @@ export const createEnquiry = expressAsyncHandler(functionLevelLogger(async (req:
     //Delete enquiry draft only if saving enquiry is successful.
     if (id) {
       const deletedDraft = await EnquiryDraft.findByIdAndDelete(id, { session });
-      console.log(deletedDraft);
       if (!deletedDraft) {
         throw formatResponse(res, 404, 'Error occurred while deleting the enquiry draft', true);
       }
     }
-    const savedResult = await Enquiry.create([{ ...enquiryData, admittedThrough, applicationStatus: ApplicationStatus.STEP_2 }], { session });
+    const savedResult = await Enquiry.create([{ ...enquiryData,_id: id, admittedThrough, applicationStatus: ApplicationStatus.STEP_2 }], { session });
     const enquiry = savedResult[0];
 
     updateOnlyOneValueInDropDown(DropDownType.DISTRICT, enquiry.address?.district);

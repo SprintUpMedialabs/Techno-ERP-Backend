@@ -36,7 +36,7 @@ export const getFeesStructureById = async (req: Request, res: Response) => {
 export const getCourseFeeByCourseName = async (req: Request, res: Response) => {
 
     const courseName = req.params.courseName;
-    const courseFee = await fetchCourseFeeByCourse(courseName);
+    const courseFee = await fetchCourseFeeByCourse(courseName as Course);
 
     if (!courseFee) {
         throw createHttpError(404, 'Course fee not found');
