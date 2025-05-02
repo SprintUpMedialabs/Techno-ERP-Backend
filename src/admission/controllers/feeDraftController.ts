@@ -3,7 +3,7 @@ import expressAsyncHandler from "express-async-handler";
 import createHttpError from "http-errors";
 import mongoose from "mongoose";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
-import { ApplicationStatus } from "../../config/constants";
+import { ApplicationStatus, Course } from "../../config/constants";
 import { functionLevelLogger } from "../../config/functionLevelLogging";
 import { fetchCourseFeeByCourse, fetchOtherFees } from "../../fees/courseAndOtherFees.controller";
 import { formatResponse } from "../../utils/formatResponse";
@@ -33,7 +33,7 @@ export const createFeeDraft = expressAsyncHandler(functionLevelLogger(async (req
   }
 
   const otherFees = await fetchOtherFees();
-  const semWiseFee = await fetchCourseFeeByCourse(enquiry.course);
+  const semWiseFee = await fetchCourseFeeByCourse(enquiry.course as Course);
 
   const { counsellor, telecaller, ...feeRelatedData } = validation.data;
   const feeData = {
@@ -99,7 +99,7 @@ export const updateFeeDraft = expressAsyncHandler(functionLevelLogger(async (req
   }
 
   const otherFees = await fetchOtherFees();
-  const semWiseFee = await fetchCourseFeeByCourse(enquiry.course);
+  const semWiseFee = await fetchCourseFeeByCourse(enquiry.course as Course);
 
   // DTODO: remove telecaller and counsellor from updatedData
   const { counsellor, telecaller, ...feeRelatedData } = validation.data;

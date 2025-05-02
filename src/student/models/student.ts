@@ -31,14 +31,18 @@ const StudentBaseInfoSchema = new Schema<IStudentBasicInfoDocument>({
     formNo: {
         type: String,
     },
-    
+    lurnRegistrationNo:{
+        type: String,
+        default:'Not Provided'
+    },
+
     studentName: {
         type: String
     },
     studentPhoneNumber: {
         type: String
     },
-    
+
     fatherName: {
         type: String,
         required: [true, "Father's Name is required"]
@@ -91,94 +95,94 @@ const StudentBaseInfoSchema = new Schema<IStudentBasicInfoDocument>({
         type: Date,
         required: [true, 'Date is required'],
         set: (value: string | Date) => {
-          if (value instanceof Date) return value;
-          return convertToMongoDate(value);
+            if (value instanceof Date) return value;
+            return convertToMongoDate(value);
         }
     },
-      category: {
+    category: {
         type: String,
         enum: {
-          values: Object.values(Category),
-          message: 'Invalid Category value'
+            values: Object.values(Category),
+            message: 'Invalid Category value'
         },
         required: true
-      },
-      course: {
+    },
+    course: {
+        type: String,
+        // enum: {
+        //     values: Object.values(Course),
+        //     message: 'Invalid Course value'
+        // },
+        required: true
+    },
+    reference: {
         type: String,
         enum: {
-          values: Object.values(Course),
-          message: 'Invalid Course value'
+            values: Object.values(AdmissionReference),
+            message: 'Invalid Admission Reference value'
         },
         required: true
-      },
-      reference: {
-        type: String,
-        enum: {
-          values: Object.values(AdmissionReference),
-          message: 'Invalid Admission Reference value'
-        },
-        required: true
-      },
-      aadharNumber: {
+    },
+    aadharNumber: {
         type: String,
         validate: {
-          validator: (aadhar: string) => aadhar.length === 12,
-          message: 'Invalid Aadhar Number'
+            validator: (aadhar: string) => aadhar.length === 12,
+            message: 'Invalid Aadhar Number'
         }
-      },
-      address: {
+    },
+    address: {
         type: addressSchema,
         minlength: [5, 'Address must be at least 5 characters long']
-      },
-      academicDetails: {
+    },
+    academicDetails: {
         type: [academicDetailFormSchema],
         default: [],
         required: false
-      },
-      previousCollegeData: {
+    },
+    previousCollegeData: {
         type: previousCollegeDataSchema
-      },
-      documents: {
+    },
+    documents: {
         type: [singleDocumentSchema]
-      },
-      physicalDocumentNote:{
+    },
+    physicalDocumentNote: {
         type: [physicalDocumentNoteSchema]
-      },
-      stateOfDomicile: {
+    },
+    stateOfDomicile: {
         type: String,
         enum: {
-          values: Object.values(StatesOfIndia),
-          message: 'Invalid state of domicile value'
+            values: Object.values(StatesOfIndia),
+            message: 'Invalid state of domicile value'
         }
-      },
-      areaType: {
+    },
+    areaType: {
         type: String,
         enum: {
-          values: Object.values(AreaType),
-          message: 'Invalid area type'
+            values: Object.values(AreaType),
+            message: 'Invalid area type'
         }
-      },
-      nationality: {
+    },
+    nationality: {
         type: String
-      },
-      entranceExamDetails: {
+    },
+    entranceExamDetails: {
         type: entranceExamDetailSchema
-      },
-      gender: {
+    },
+    gender: {
         type: String,
         enum: {
-          values: Object.values(Gender),
-          message: 'Invalid gender value'
+            values: Object.values(Gender),
+            message: 'Invalid gender value'
         }
-      },
-      religion: {
+    },
+    religion: {
         type: String,
         enum: Object.values(Religion)
-      },
-      admittedThrough: {
+    },
+    admittedThrough: {
         type: String,
         enum: Object.values(AdmittedThrough)
-      }
+    }
 });
 
 const BaseExamModel = new Schema<IBaseExamDocument>({
@@ -337,7 +341,7 @@ const StudentModel = new Schema<IStudentDocument>({
         }],
         default: []
     }
-});
+}, { timestamps: true });
 
 const handleMongooseError = (error: any, next: Function) => {
     if (error.name === 'ValidationError') {

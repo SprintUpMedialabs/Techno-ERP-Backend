@@ -36,7 +36,7 @@ export const enquirySchema = z.object({
   ),
 
   category: z.nativeEnum(Category),
-  course: z.nativeEnum(Course),
+  course: z.string().nonempty('Course can not be empty'),
   reference: z.nativeEnum(AdmissionReference),
 
 
@@ -61,7 +61,7 @@ export const enquirySchema = z.object({
   counsellor: z.array(z.union([objectIdSchema, z.enum(['Other'])])).optional(),
   telecaller: z.array(z.union([objectIdSchema, z.enum(['Other'])])).optional(),
   remarks: z.string().optional(),
-  
+
   applicationStatus: z
     .nativeEnum(ApplicationStatus)
     .default(ApplicationStatus.STEP_1),

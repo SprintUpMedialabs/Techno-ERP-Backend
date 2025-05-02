@@ -1,8 +1,11 @@
 import { Schema } from "mongoose";
 import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
 import { PhysicalDocumentNoteStatus } from "../../config/constants";
+import { IPhysicalDocumentNoteSchema } from "../validators/physicalDocumentNoteSchema";
 
-export const physicalDocumentNoteSchema = new Schema({
+export interface IPhysicalDocumentNoteSchemaDoc extends IPhysicalDocumentNoteSchema, Document { }
+
+export const physicalDocumentNoteSchema = new Schema<IPhysicalDocumentNoteSchemaDoc>({
     type: {
         type: String,
     },

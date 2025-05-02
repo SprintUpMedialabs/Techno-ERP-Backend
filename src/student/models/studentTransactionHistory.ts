@@ -83,4 +83,4 @@ const removeExtraInfo = (_: any, ret: any) => {
 StudentTransactionModel.set('toJSON', { transform: removeExtraInfo });
 StudentTransactionModel.set('toObject', { transform: removeExtraInfo });
 
-export const StudentTransaction = mongoose.model<IStudentTransactionDocument>(COLLECTION_NAMES.STUDENT_TRANSACTION_HISTORY, StudentTransactionModel);
+// export const StudentTransaction = mongoose.model<IStudentTransactionDocument>(COLLECTION_NAMES.STUDENT_TRANSACTION_HISTORY, StudentTransactionModel);

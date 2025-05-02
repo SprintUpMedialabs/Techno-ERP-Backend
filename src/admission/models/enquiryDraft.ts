@@ -100,10 +100,10 @@ export const enquiryDraftSchema = new Schema<IEnquiryDraftDocument>(
         },
         course: {
             type: String,
-            enum: {
-                values: Object.values(Course),
-                message: 'Invalid Course value'
-            },
+            // enum: {
+            //     values: Object.values(Course),
+            //     message: 'Invalid Course value'
+            // },
             required: false
         },
         reference: {
