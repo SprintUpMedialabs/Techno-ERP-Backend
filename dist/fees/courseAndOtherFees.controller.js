@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.fetchOtherFees = exports.fetchCourseFeeByCourse = exports.getOtherFees = exports.getCourseFeeByCourseName = exports.getFeesStructureById = exports.getAllFeesStructures = exports.updateFeesStructure = exports.createFeesStructure = void 0;
 const http_errors_1 = __importDefault(require("http-errors"));
 const courseAndOtherFees_model_1 = require("./courseAndOtherFees.model");
+const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const createFeesStructure = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const newDoc = yield courseAndOtherFees_model_1.CourseAndOtherFeesModel.create(req.body);
     res.status(201).json(newDoc);
@@ -41,15 +42,14 @@ const getFeesStructureById = (req, res) => __awaiter(void 0, void 0, void 0, fun
     res.json(doc);
 });
 exports.getFeesStructureById = getFeesStructureById;
-const getCourseFeeByCourseName = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.getCourseFeeByCourseName = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const courseName = req.params.courseName;
     const courseFee = yield (0, exports.fetchCourseFeeByCourse)(courseName);
     if (!courseFee) {
         throw (0, http_errors_1.default)(404, 'Course fee not found');
     }
     res.status(200).json(courseFee);
-});
-exports.getCourseFeeByCourseName = getCourseFeeByCourseName;
+}));
 const getOtherFees = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const otherFees = yield (0, exports.fetchOtherFees)();
     res.status(200).json(otherFees);

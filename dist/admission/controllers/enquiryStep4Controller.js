@@ -20,6 +20,7 @@ const updateFeeDetails_1 = require("../helpers/updateFeeDetails");
 const functionLevelLogging_1 = require("../../config/functionLevelLogging");
 exports.updateEnquiryStep4ById = (0, express_async_handler_1.default)((0, functionLevelLogging_1.functionLevelLogger)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const feesDraftUpdateData = req.body;
-    const feesDraft = yield (0, updateFeeDetails_1.updateFeeDetails)([constants_1.ApplicationStatus.STEP_1, constants_1.ApplicationStatus.STEP_2, constants_1.ApplicationStatus.STEP_3], feesDraftUpdateData);
+    // DA: will update this after having discussion with vb.
+    const feesDraft = yield (0, updateFeeDetails_1.updateFeeDetails)([constants_1.ApplicationStatus.STEP_4], feesDraftUpdateData);
     return (0, formatResponse_1.formatResponse)(res, 200, 'Fees Draft updated successfully', true, feesDraft);
 })));

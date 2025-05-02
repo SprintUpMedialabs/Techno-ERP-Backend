@@ -148,10 +148,6 @@ exports.enquirySchema = new mongoose_1.Schema({
     },
     course: {
         type: String,
-        enum: {
-            values: Object.values(constants_1.Course),
-            message: 'Invalid Course value'
-        },
         required: true
     },
     reference: {

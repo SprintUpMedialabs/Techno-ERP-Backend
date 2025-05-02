@@ -46,10 +46,11 @@ exports.uploadData = (0, express_async_handler_1.default)((req, res) => __awaite
     }
 }));
 exports.getFilteredLeadData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     const { query, search, page, limit, sort } = (0, parseFilter_1.parseFilter)(req);
-    if (search.trim()) {
+    if (search === null || search === void 0 ? void 0 : search.trim()) {
         query.$and = [
-            ...(query.$and || []),
+            ...((_a = query.$and) !== null && _a !== void 0 ? _a : []),
             {
                 $or: [
                     { name: { $regex: search, $options: 'i' } },
