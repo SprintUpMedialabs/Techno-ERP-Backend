@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { EducationLevel } from '../../config/constants';
 
 export const academicDetailSchema = z.object({
-  educationLevel : z.nativeEnum(EducationLevel), // Only allows fixed values
+  educationLevel: z.nativeEnum(EducationLevel), // Only allows fixed values
   schoolCollegeName: z.string().min(1, 'School/College Name is required'),
   universityBoardName: z.string().min(1, 'University/Board Name is required'),
   passingYear: z
@@ -16,8 +16,7 @@ export const academicDetailSchema = z.object({
     .min(0, 'Percentage must be at least 0')
     .max(100, 'Percentage cannot exceed 100'),
   subjects: z
-    .array(z.string().min(1, 'Subject name is required'))
-    .nonempty('Subjects cannot be empty').optional()
+    .array(z.string().nonempty('Subjects cannot be empty')).optional()
 });
 // Array schema
 export const academicDetailsArraySchema = z.array(academicDetailSchema);

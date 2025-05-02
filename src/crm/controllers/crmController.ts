@@ -36,9 +36,9 @@ export const getFilteredLeadData = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const { query, search, page, limit, sort } = parseFilter(req);
 
-    if (search.trim()) {
+    if (search?.trim()) {
       query.$and = [
-        ...(query.$and || []),
+        ...(query.$and ?? []),
         {
           $or: [
             { name: { $regex: search, $options: 'i' } },

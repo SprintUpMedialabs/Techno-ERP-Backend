@@ -4,23 +4,22 @@ import createHttpError from 'http-errors';
 import mongoose from 'mongoose';
 import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
 import { ApplicationStatus, Course, FormNoPrefixes, TGI } from '../../config/constants';
-import { Student } from '../../student-data/models/student';
-import { studentSchema } from '../../student-data/validators/student';
+import { functionLevelLogger } from '../../config/functionLevelLogging';
+import { createStudent } from '../../student/controllers/studentController';
+import { Student } from '../../student/models/student';
+import { CreateStudentSchema, StudentSchema } from '../../student/validators/studentSchema';
 import { formatResponse } from '../../utils/formatResponse';
 import { objectIdSchema } from '../../validators/commonSchema';
 import { Enquiry } from '../models/enquiry';
 import { EnquiryDraft } from '../models/enquiryDraft';
 import { EnquiryApplicationId } from '../models/enquiryIdMetaDataSchema';
-import { enquiryStatusUpdateSchema, IEnquiryStatusUpdateSchema } from '../validators/enquiryStatusUpdateSchema';
-import { checkIfStudentAdmitted } from '../helpers/checkIfStudentAdmitted';
-import { functionLevelLogger } from '../../config/functionLevelLogging';
 
 
 export const getEnquiryData = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
 
   let { search, applicationStatus } = req.body;
 
-  search ??='';
+  search ??= '';
 
   const filter: any = {
     $or: [
@@ -94,8 +93,8 @@ export const getEnquiryById = expressAsyncHandler(functionLevelLogger(async (req
 
       const enquiryPayload = {
         ...enquiryDraft.toObject(),
-        collegeName: course ? getCollegeName(course) : null,
-        affiliation: course ? getAffiliation(course) : null,
+        collegeName: course ? getCollegeName(course as Course) : null,
+        affiliation: course ? getAffiliation(course as Course) : null,
       };
 
       return formatResponse(res, 200, 'Enquiry draft details', true, enquiryPayload);
@@ -107,8 +106,8 @@ export const getEnquiryById = expressAsyncHandler(functionLevelLogger(async (req
 
     const enquiryPayload = {
       ...enquiry.toObject(),
-      collegeName: course ? getCollegeName(course) : null,
-      affiliation: course ? getAffiliation(course) : null,
+      collegeName: course ? getCollegeName(course as Course) : null,
+      affiliation: course ? getAffiliation(course as Course) : null,
     };
 
     return formatResponse(res, 200, 'Enquiry details', true, enquiryPayload);
@@ -126,14 +125,14 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
     throw createHttpError(400, validation.error.errors[0]);
   }
 
-  await checkIfStudentAdmitted(id);
+  // await checkIfStudentAdmitted(id);
 
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
     const enquiry = await Enquiry.findById(id).session(session);
-    if (!enquiry) {
+    if (!enquiry || enquiry.applicationStatus != ApplicationStatus.STEP_4) {
       throw createHttpError(404, 'Please create the enquiry first!');
     }
 
@@ -153,7 +152,7 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
       { new: true, runValidators: true, session }
     );
 
-    const universityId = generateUniversityId(enquiry.course, photoSerial!.lastSerialNumber);
+    const universityId = generateUniversityId(enquiry.course as Course, photoSerial!.lastSerialNumber);
 
     const approvedEnquiry = await Enquiry.findByIdAndUpdate(
       id,
@@ -162,27 +161,63 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
           formNo: formNo,
           photoNo: photoSerial!.lastSerialNumber,
           universityId: universityId,
-          applicationStatus: ApplicationStatus.STEP_4,
+          applicationStatus: ApplicationStatus.CONFIRMED,
         },
       },
       { runValidators: true, new: true, projection: { createdAt: 0, updatedAt: 0, __v: 0 }, session }
     );
 
-    const studentValidation = studentSchema.safeParse(approvedEnquiry);
+    // const studentValidation = studentSchema.safeParse(approvedEnquiry);
+
+    const enquiryData = approvedEnquiry?.toObject();
+
+    // console.log("Approved ENquiry is : ", enquiryData);
+
+    const studentData = {
+      // "studentName" : approvedEnquiry?.studentName,
+      // "studentPhoneNumber" : approvedEnquiry?.studentPhoneNumber,
+      // "fatherName" : approvedEnquiry?.fatherName,
+      // "fatherPhoneNumber" : approvedEnquiry?.fatherPhoneNumber,
+      // "studentId" : approvedEnquiry?.universityId,
+      ...enquiryData,
+      "courseCode": approvedEnquiry?.course,
+      "feeId": approvedEnquiry?.studentFee,
+      "dateOfAdmission": approvedEnquiry?.dateOfAdmission
+    }
+
+
+    console.log("Student Data : ", studentData);
+
+    const studentValidation = CreateStudentSchema.safeParse(studentData);
+
+    console.log("Student Validation Errors : ", studentValidation.error);
 
     if (!studentValidation.success)
       throw createHttpError(400, studentValidation.error.errors[0]);
 
 
-    const student = await Student.create([{
+    // const student = await Student.create([{
+    //   _id: enquiry._id,
+    //   ...studentValidation.data,
+    // }], { session });
+
+    const student = await createStudent(studentValidation.data);
+    const studentCreateValidation = StudentSchema.safeParse(student);
+
+    console.log("Student create validation errors : ", studentCreateValidation.error);
+
+    if (!studentCreateValidation.success)
+      throw createHttpError(400, studentCreateValidation.error.errors[0]);
+
+    const createdStudent = await Student.create([{
       _id: enquiry._id,
-      ...studentValidation.data,
+      ...studentCreateValidation.data,
     }], { session });
 
     await session.commitTransaction();
     session.endSession();
 
-    return formatResponse(res, 200, 'Student created successfully with this information', true, student);
+    return formatResponse(res, 200, 'Student created successfully with this information', true, createdStudent);
   }
   catch (error) {
     await session.abortTransaction();
@@ -192,25 +227,26 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
 }));
 
 
-export const updateStatus = (async (req: AuthenticatedRequest, res: Response) => {
-  const updateStatusData: IEnquiryStatusUpdateSchema = req.body;
+export const updateStatus = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  return formatResponse(res, 200, 'Enquiry Status Updated Successfully', true);
+  // const updateStatusData: IEnquiryStatusUpdateSchema = req.body;
 
-  const validation = enquiryStatusUpdateSchema.safeParse(updateStatusData);
+  // const validation = enquiryStatusUpdateSchema.safeParse(updateStatusData);
 
-  if (!validation.success) {
-    throw createHttpError(404, validation.error.errors[0]);
-  }
+  // if (!validation.success) {
+  //   throw createHttpError(404, validation.error.errors[0]);
+  // }
 
-  let updateEnquiryStatus = await Enquiry.findByIdAndUpdate(updateStatusData.id, { $set: { applicationStatus: updateStatusData.newStatus } }, { runValidators: true });
+  // let updateEnquiryStatus = await Enquiry.findByIdAndUpdate(updateStatusData.id, { $set: { applicationStatus: updateStatusData.newStatus } }, { runValidators: true });
 
-  if (!updateEnquiryStatus) {
-    throw createHttpError(404, 'Could not update the enquiry status');
-  }
-  else {
-    return formatResponse(res, 200, 'Enquiry Status Updated Successfully', true);
-  }
+  // if (!updateEnquiryStatus) {
+  //   throw createHttpError(404, 'Could not update the enquiry status');
+  // }
+  // else {
+  //   return formatResponse(res, 200, 'Enquiry Status Updated Successfully', true);
+  // }
 
-})
+});
 
 
 const generateUniversityId = (course: Course, photoSerialNumber: number) => {
