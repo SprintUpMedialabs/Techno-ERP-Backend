@@ -4,6 +4,7 @@ import { Response } from "express";
 import { FeeStatus } from "../../config/constants";
 import { Student } from "../models/student";
 import { formatResponse } from "../../utils/formatResponse";
+import mongoose, { Mongoose } from "mongoose";
 
 //DACHECK : Here, it won't make sense to have filter on academic year, we can discuss this in meeting.
 export const getStudentDues = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
@@ -135,5 +136,12 @@ export const getStudentDues = expressAsyncHandler(async (req: AuthenticatedReque
 });
 
 export const fetchFeeInformationByStudentId = expressAsyncHandler((req: AuthenticatedRequest, res: Response) => {
+    let { studentId } = req.body;
+    
+    studentId = new mongoose.Types.ObjectId(studentId);
+
+    const pipeline = [
+        { $match : { _id : studentId } }
+    ]
 
 });

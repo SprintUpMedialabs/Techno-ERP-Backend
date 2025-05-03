@@ -4,7 +4,6 @@ import { getCurrentAcademicYear } from "../../course/utils/getCurrentAcademicYea
 import { IAttendanceSchema, ICreateStudentSchema, IExamSchema, ISemesterSchema, IStudentBaseInformation } from "../validators/studentSchema";
 import { StudentFeesModel } from "../../admission/models/studentFees";
 import { FinanceFeeSchedule, FinanceFeeType, Schedule } from "../../config/constants";
-import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
 import { IFeeSchema } from "../validators/feeSchema";
 
 export const createStudent = async (studentData : ICreateStudentSchema) => {
@@ -15,7 +14,7 @@ export const createStudent = async (studentData : ICreateStudentSchema) => {
         ...studentData
     };
 
-    console.log("Student INformation is : ", studentBaseInformation);
+    console.log("Student Information is : ", studentBaseInformation);
 
     const course = await Course.findOne({ courseCode : courseCode, startingYear : dateOfAdmission.getFullYear()});
 
