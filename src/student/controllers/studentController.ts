@@ -241,7 +241,22 @@ export const getStudentDataBySearch = expressAsyncHandler(async (req: Authentica
 
   // Fetch students with pagination
   const [students, total] = await Promise.all([
-    Student.find().skip(skip).limit(limit),
+    Student.aggregate([
+      { $skip: skip },
+      { $limit: limit },
+      {
+        $project: {
+          universityId: '$studentInfo.universityId',
+          studentName: '$studentInfo.studentName',
+          studentPhoneNumber: '$studentInfo.studentPhoneNumber',
+          fatherName: '$studentInfo.fatherName',
+          fatherPhoneNumber: '$studentInfo.fatherPhoneNumber',
+          courseName: 1,
+          currentAcademicYear: 1,
+          currentSemester: 1,
+        },
+      },
+    ]),
     Student.countDocuments()
   ]);
 
