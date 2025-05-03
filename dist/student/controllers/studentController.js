@@ -237,7 +237,22 @@ exports.getStudentDataBySearch = (0, express_async_handler_1.default)((req, res)
     const skip = (page - 1) * limit;
     // Fetch students with pagination
     const [students, total] = yield Promise.all([
-        student_1.Student.find().skip(skip).limit(limit),
+        student_1.Student.aggregate([
+            { $skip: skip },
+            { $limit: limit },
+            {
+                $project: {
+                    universityId: '$studentInfo.universityId',
+                    studentName: '$studentInfo.studentName',
+                    studentPhoneNumber: '$studentInfo.studentPhoneNumber',
+                    fatherName: '$studentInfo.fatherName',
+                    fatherPhoneNumber: '$studentInfo.fatherPhoneNumber',
+                    courseName: 1,
+                    currentAcademicYear: 1,
+                    currentSemester: 1,
+                },
+            },
+        ]),
         student_1.Student.countDocuments()
     ]);
     // Send response
