@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import createHttpError from 'http-errors';
 import { CourseAndOtherFeesModel } from './courseAndOtherFees.model';
 import { Course } from '../config/constants';
+import expressAsyncHandler from 'express-async-handler';
 
 export const createFeesStructure = async (req: Request, res: Response) => {
     const newDoc = await CourseAndOtherFeesModel.create(req.body);
@@ -33,7 +34,7 @@ export const getFeesStructureById = async (req: Request, res: Response) => {
     res.json(doc);
 };
 
-export const getCourseFeeByCourseName = async (req: Request, res: Response) => {
+export const getCourseFeeByCourseName = expressAsyncHandler(async (req: Request, res: Response) => {
 
     const courseName = req.params.courseName;
     const courseFee = await fetchCourseFeeByCourse(courseName as Course);
@@ -44,7 +45,7 @@ export const getCourseFeeByCourseName = async (req: Request, res: Response) => {
 
     res.status(200).json(courseFee);
 
-};
+});
 
 export const getOtherFees = async (req: Request, res: Response) => {
     const otherFees = await fetchOtherFees();

@@ -3,7 +3,7 @@ import expressAsyncHandler from "express-async-handler";
 import createHttpError from "http-errors";
 import mongoose from "mongoose";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
-import { ApplicationStatus } from "../../config/constants";
+import { ApplicationStatus, Course } from "../../config/constants";
 import { functionLevelLogger } from "../../config/functionLevelLogging";
 import { fetchCourseFeeByCourse, fetchOtherFees } from "../../fees/courseAndOtherFees.controller";
 import { formatResponse } from "../../utils/formatResponse";
@@ -40,7 +40,7 @@ export const createEnquiryStep2 = expressAsyncHandler(functionLevelLogger(async 
   session.startTransaction();
   try {
     const otherFees = await fetchOtherFees();
-    const semWiseFee = await fetchCourseFeeByCourse(enquiry?.course);
+    const semWiseFee = await fetchCourseFeeByCourse(enquiry?.course as Course);
 
     const { counsellor, telecaller, ...feeRelatedData } = validation.data;
 

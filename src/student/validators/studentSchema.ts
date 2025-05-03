@@ -44,7 +44,7 @@ export const SemesterSchema = z.object({
     //DACHECK : Here we need to confirm, should academic year be of form 2024-25 or 2024-2025
     academicYear: z.string(),
     courseYear: z.nativeEnum(CourseYears),
-    subjects: z.array(SubjectSchema),
+    subjects: z.array(SubjectSchema).optional(),
     fees: FeeSchema
 })
 
@@ -52,6 +52,8 @@ export const StudentBaseInfoSchema = z.object({
     universityId: z.string({ required_error: "University ID cannot be empty." }).nonempty("University ID is required"),
     photoNo: z.number({ required_error: "Photo Number cannot be empty." }).nonnegative("Photo Number is required"),
     formNo: z.string({ required_error: "Form No cannot be empty." }).nonempty("Form No is required"),
+    lurnRegistrationNo: z.string().optional(),
+
 
     studentName: z.string({ required_error: "Student Name is required." }).nonempty("Student Name cannot be empty"),
     studentPhoneNumber: z.string().optional(),
@@ -79,7 +81,7 @@ export const StudentBaseInfoSchema = z.object({
     academicDetails: academicDetailsArraySchema.optional(),
 
     previousCollegeData: previousCollegeDataSchema.optional(),
-    documents: z.array(singleDocumentSchema).optional(),
+    documents: z.array(singleDocumentSchema.extend({ dueBy: z.date().optional() })).optional(),
     physicalDocumentNote: z.array(physicalDocumentNoteSchema).optional(),
     stateOfDomicile: z.nativeEnum(StatesOfIndia).optional(),
     areaType: z.nativeEnum(AreaType).optional(),
@@ -132,7 +134,7 @@ export const CreateStudentSchema = z.object({
         convertToMongoDate(date) as Date
     ),
     category: z.nativeEnum(Category),
-    course: z.nativeEnum(Course),
+    course: z.string(),
     reference: z.nativeEnum(AdmissionReference),
 
     aadharNumber: z.string().regex(/^\d{12}$/, 'Aadhar Number must be exactly 12 digits').optional(),
@@ -140,7 +142,7 @@ export const CreateStudentSchema = z.object({
     academicDetails: academicDetailsArraySchema.optional(),
 
     previousCollegeData: previousCollegeDataSchema.optional(),
-    documents: z.array(singleDocumentSchema).optional(),
+    documents: z.array(singleDocumentSchema.extend({ dueBy: z.date().optional() })).optional(),
     physicalDocumentNote: z.array(physicalDocumentNoteSchema).optional(),
     stateOfDomicile: z.nativeEnum(StatesOfIndia).optional(),
     areaType: z.nativeEnum(AreaType).optional(),
@@ -150,6 +152,44 @@ export const CreateStudentSchema = z.object({
     religion: z.nativeEnum(Religion).optional(),
     admittedThrough: z.nativeEnum(AdmittedThrough)
 });
+
+
+export const updateStudentDetailsRequestSchema = z.object({
+    id: objectIdSchema,
+    studentName: z.string({ required_error: "Student Name is required." }).nonempty("Student Name cannot be empty"),
+    studentPhoneNumber: z.string().optional(),
+    emailId: z.string().email('Invalid email format').optional(),
+
+    fatherName: z.string().optional(),
+    fatherPhoneNumber: contactNumberSchema,
+    fatherOccupation: z.string().optional(),
+
+    motherName: z.string().optional(),
+    motherPhoneNumber: contactNumberSchema.optional(),
+    motherOccupation: z.string().optional(),
+
+    gender: z.nativeEnum(Gender).default(Gender.OTHER),
+    dateOfBirth: requestDateSchema.transform((date) =>
+        convertToMongoDate(date) as Date
+    ),
+
+    religion: z.nativeEnum(Religion).optional(),
+    category: z.nativeEnum(Category),
+    
+    bloodGroup: z.nativeEnum(BloodGroup).optional(),
+    aadharNumber: z.string().regex(/^\d{12}$/, 'Aadhar Number must be exactly 12 digits').optional(),
+
+    stateOfDomicile: z.nativeEnum(StatesOfIndia).optional(),
+    areaType: z.nativeEnum(AreaType).optional(),
+    nationality: z.string().optional(),
+
+    address: addressSchema,
+
+    academicDetails: academicDetailsArraySchema.optional(),
+}).strict();
+
+export const updateStudentPhysicalDocumentRequestSchema = physicalDocumentNoteSchema.extend({id:objectIdSchema});
+
 
 export type ICreateStudentSchema = z.infer<typeof CreateStudentSchema>;
 export type IStudentSchema = z.infer<typeof StudentSchema>;
@@ -161,3 +201,4 @@ export type IStudentBaseInfoSchema = z.infer<typeof StudentBaseInfoSchema>;
 export type ISubjectSchema = z.infer<typeof SubjectSchema>;
 export type IBaseAttendanceSchema = z.infer<typeof baseAttendanceSchema>;
 export type IBaseExamSchema = z.infer<typeof BaseExamSchema>;
+export type IUpdateStudentDetailsRequestSchema = z.infer<typeof updateStudentDetailsRequestSchema>;

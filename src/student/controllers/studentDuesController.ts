@@ -99,23 +99,39 @@ export const getStudentDues = expressAsyncHandler(async (req: AuthenticatedReque
 
     const studentAggregation = Student.aggregate([
         { $match: filterStage },
-        { $sort: { 'studentInfo.studentName': 1 } },
         { $skip: (page - 1) * limit },
         { $limit: limit },
         {
             $project: {
                 feeStatus: 1,
                 courseName: 1,
-                'studentInfo.studentId': 1,
-                'studentInfo.studentName': 1,
-                'studentInfo.studentPhoneNumber': 1,
-                'studentInfo.fatherName': 1,
-                'studentInfo.fatherPhoneNumber': 1,
+                universityId: '$studentInfo.universityId',
+                studentName: '$studentInfo.studentName',
+                studentPhoneNumber: '$studentInfo.studentPhoneNumber',
+                fatherName: '$studentInfo.fatherName',
+                fatherPhoneNumber: '$studentInfo.fatherPhoneNumber',
                 currentSemester: 1,
                 courseYear: { $ceil: { $divide: ['$currentSemester', 2] } }
             }
         }
     ]);
+
+    // Student.aggregate([
+    //     { $skip: skip },
+    //     { $limit: limit },
+    //     {
+    //         $project: {
+    //             universityId: '$studentInfo.universityId',
+    //             studentName: '$studentInfo.studentName',
+    //             studentPhoneNumber: '$studentInfo.studentPhoneNumber',
+    //             fatherName: '$studentInfo.fatherName',
+    //             fatherPhoneNumber: '$studentInfo.fatherPhoneNumber',
+    //             courseName: 1,
+    //             currentAcademicYear: 1,
+    //             currentSemester: 1,
+    //         },
+    //     },
+    // ]);
 
     const countQuery = Student.countDocuments(filterStage);
 

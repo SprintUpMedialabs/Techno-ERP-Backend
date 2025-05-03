@@ -4,6 +4,7 @@ import { fetchCourseFeeByCourse, fetchOtherFees } from "../../fees/courseAndOthe
 import { Enquiry } from "../models/enquiry";
 import { StudentFeesModel } from "../models/studentFees";
 import { feesUpdateSchema, IFeesUpdateSchema } from "../validators/studentFees";
+import { Course } from "../../config/constants";
 
 export const updateFeeDetails = async (applicationStatusList: ApplicationStatus[], studentFeesData: IFeesUpdateSchema) => {
   const validation = feesUpdateSchema.safeParse(studentFeesData);
@@ -28,7 +29,7 @@ export const updateFeeDetails = async (applicationStatusList: ApplicationStatus[
   }
 
   const otherFees = await fetchOtherFees();
-  const semWiseFee = await fetchCourseFeeByCourse(enquiry?.course);
+  const semWiseFee = await fetchCourseFeeByCourse(enquiry?.course as Course);
 
   const feeData = {
     ...validation.data,

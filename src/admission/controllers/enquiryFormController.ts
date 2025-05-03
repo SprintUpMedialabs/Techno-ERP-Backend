@@ -19,7 +19,7 @@ export const getEnquiryData = expressAsyncHandler(functionLevelLogger(async (req
 
   let { search, applicationStatus } = req.body;
 
-  search ??='';
+  search ??= '';
 
   const filter: any = {
     $or: [
@@ -93,8 +93,8 @@ export const getEnquiryById = expressAsyncHandler(functionLevelLogger(async (req
 
       const enquiryPayload = {
         ...enquiryDraft.toObject(),
-        collegeName: course ? getCollegeName(course) : null,
-        affiliation: course ? getAffiliation(course) : null,
+        collegeName: course ? getCollegeName(course as Course) : null,
+        affiliation: course ? getAffiliation(course as Course) : null,
       };
 
       return formatResponse(res, 200, 'Enquiry draft details', true, enquiryPayload);
@@ -106,8 +106,8 @@ export const getEnquiryById = expressAsyncHandler(functionLevelLogger(async (req
 
     const enquiryPayload = {
       ...enquiry.toObject(),
-      collegeName: course ? getCollegeName(course) : null,
-      affiliation: course ? getAffiliation(course) : null,
+      collegeName: course ? getCollegeName(course as Course) : null,
+      affiliation: course ? getAffiliation(course as Course) : null,
     };
 
     return formatResponse(res, 200, 'Enquiry details', true, enquiryPayload);
@@ -132,7 +132,7 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
 
   try {
     const enquiry = await Enquiry.findById(id).session(session);
-    if (!enquiry) {
+    if (!enquiry || enquiry.applicationStatus != ApplicationStatus.STEP_4) {
       throw createHttpError(404, 'Please create the enquiry first!');
     }
 
@@ -152,8 +152,8 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
       { new: true, runValidators: true, session }
     );
 
-    const universityId = generateUniversityId(enquiry.course, photoSerial!.lastSerialNumber);
-    
+    const universityId = generateUniversityId(enquiry.course as Course, photoSerial!.lastSerialNumber);
+
     const approvedEnquiry = await Enquiry.findByIdAndUpdate(
       id,
       {
@@ -180,9 +180,9 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
       // "fatherPhoneNumber" : approvedEnquiry?.fatherPhoneNumber,
       // "studentId" : approvedEnquiry?.universityId,
       ...enquiryData,
-      "courseCode" : approvedEnquiry?.course,
-      "feeId" : approvedEnquiry?.studentFee,
-      "dateOfAdmission" : approvedEnquiry?.dateOfAdmission
+      "courseCode": approvedEnquiry?.course,
+      "feeId": approvedEnquiry?.studentFee,
+      "dateOfAdmission": approvedEnquiry?.dateOfAdmission
     }
 
 
@@ -206,7 +206,7 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
 
     console.log("Student create validation errors : ", studentCreateValidation.error);
 
-    if(!studentCreateValidation.success)
+    if (!studentCreateValidation.success)
       throw createHttpError(400, studentCreateValidation.error.errors[0]);
 
     const createdStudent = await Student.create([{

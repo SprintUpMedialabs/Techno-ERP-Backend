@@ -8,7 +8,6 @@ import { departmentMetaDataRoute } from './course/routes/departmentMetaDataRoute
 import { testRoute } from './course/routes/testRoute';
 import { crmRoute } from './crm/routes/crmRoute';
 import feesRouter from './fees/courseAndOtherFees.routes';
-import { studentDataRoute } from './student-data/routes/studentRoute';
 import { studentRoute } from './student/routes';
 import { dropDownRoute } from './utilityModules/dropdown/dropDownRoute';
 
@@ -60,12 +59,6 @@ apiRouter.use('/department-metadata', departmentMetaDataRoute);
  * Contains the router for Course Metadata Module
  */
 apiRouter.use('/course-metadata', courseMetaDataRoute);
-
-
-/**
- * Contains the router for Student Data Module
- */
-apiRouter.use('/student-data', studentDataRoute);
 
 
 /**
