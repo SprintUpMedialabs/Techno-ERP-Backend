@@ -6,6 +6,7 @@ import { DropDownType, FormNoPrefixes, PHOTO } from './constants';
 import logger from './logger';
 import { fixCourseCodeList } from './metadata';
 import { fixCityList } from './metadata';
+import { TechnoMetaData } from './models/TechnoMetaData';
 
 const connectToDatabase = async (): Promise<void> => {
   try {
@@ -48,15 +49,33 @@ export const initializeDB = async () => {
       }
     }
 
+    await initializeCounter("transactionID", 0);
+
     await initializeDropDowns();
 
     await initializeCourseMetadata();
 
-  } catch (error) {
+  } 
+  catch (error) {
     logger.error('Error initializing database:', error);
     process.exit(1);
   }
 };
+
+
+const initializeCounter = async(name : string, startValue : number = 0) => {
+  const existingCounter = await TechnoMetaData.findOne({ name });
+  if (!existingCounter) {
+    await TechnoMetaData.create({
+      name,
+      value: startValue
+    });
+    logger.debug(`Initialized ${name} counter with starting value ${startValue}`);
+  } 
+  else {
+    logger.debug(`${name} counter already exists with value ${existingCounter.value}`);
+  }
+}
 
 const initializeDropDowns = async () => {
   // City Dropdown => no need to add values from our side as its going to be used for marketing module only as of now
