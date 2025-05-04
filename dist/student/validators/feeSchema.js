@@ -12,7 +12,6 @@ exports.BaseFeeSchema = zod_1.z.object({
     finalFee: zod_1.z.number(),
     paidAmount: zod_1.z.number(),
     remark: zod_1.z.string(),
-    dueDate: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)).optional(),
 });
 exports.FeeSchema = zod_1.z.object({
     details: zod_1.z.array(exports.BaseFeeSchema),

@@ -81,6 +81,10 @@ exports.CollegeTransactionModel = new mongoose_1.Schema({
     remark: {
         type: String,
     },
+    actionedBy: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: constants_1.COLLECTION_NAMES.USER
+    }
 }, { timestamps: true });
 exports.CollegeTransactionModel.pre("save", function (next) {
     return __awaiter(this, void 0, void 0, function* () {

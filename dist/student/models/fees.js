@@ -30,10 +30,6 @@ const BaseFeeModel = new mongoose_1.Schema({
     remark: {
         type: String,
     },
-    dueDate: {
-        type: Date,
-        set: (value) => value ? (0, convertDateToFormatedDate_1.convertToMongoDate)(value) : undefined
-    }
 });
 exports.FeeModel = new mongoose_1.Schema({
     details: {

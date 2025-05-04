@@ -73,7 +73,6 @@ exports.getStudentDues = (0, express_async_handler_1.default)((req, res) => __aw
         }
     });
 }));
-//DTODO : Add the logic of fetching the transaction history after adding the logic of record payment.
 exports.fetchFeeInformationByStudentId = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
     const studentId = new mongoose_1.default.Types.ObjectId(id);
@@ -108,6 +107,7 @@ exports.fetchFeeInformationByStudentId = (0, express_async_handler_1.default)((r
                 feeSchedule: "$semester.fees.details.schedule",
                 feePaid: "$semester.fees.details.paidAmount",
                 semesterBreakup: {
+                    id: "$semester.fees.details._id",
                     semesterNumber: "$semester.semesterNumber",
                     feeCategory: "$semester.fees.details.type",
                     feeSchedule: "$semester.fees.details.schedule",
@@ -166,6 +166,12 @@ exports.fetchFeeInformationByStudentId = (0, express_async_handler_1.default)((r
                                     as: "feeCategory",
                                     in: {
                                         feeCategory: "$$feeCategory",
+                                        feeDetailId: {
+                                            $arrayElemAt: [
+                                                "$$semBKP.id",
+                                                { $indexOfArray: ["$$semBKP.feeCategory", "$$feeCategory"] }
+                                            ]
+                                        },
                                         feeSchedule: {
                                             $arrayElemAt: [
                                                 "$$semBKP.feeSchedule",
@@ -233,7 +239,8 @@ exports.recordPayment = (0, express_async_handler_1.default)((req, res) => __awa
                 txnType: validation.data.txnType,
                 feeAction: validation.data.feeAction,
                 remark: validation.data.remark || "",
-                dateTime: new Date()
+                dateTime: new Date(),
+                actionedBy: validation.data.actionedBy
             }], { session });
         // console.log("Transaction created : ", transaction);
         // console.log(transaction[0]._id);
@@ -266,7 +273,7 @@ const settleFees = (student, amount) => {
         for (const sem of student.semester) {
             const fees = sem.fees;
             //Below situation might not occur, its added just to increase robustness.
-            if (!fees || !fees.details || fees.details.length === 0)
+            if (!fees || !fees.details || fees.details.length === 0 || !fees.dueDate)
                 continue;
             let totalPaidAmount = fees.paidAmount || 0;
             const totalFinalFees = fees.totalFinalFee || 0;
@@ -316,9 +323,16 @@ exports.settleFees = settleFees;
 const fetchTransactionsByStudentID = (studentId) => __awaiter(void 0, void 0, void 0, function* () {
     const student = yield student_1.Student.findById(studentId);
     const transactionsId = student === null || student === void 0 ? void 0 : student.transactionHistory;
-    const transaction = yield collegeTransactionHistory_1.CollegeTransaction.find({
+    const transactions = yield collegeTransactionHistory_1.CollegeTransaction.find({
         _id: { $in: transactionsId }
+    }).populate('actionedBy', 'firstName lastName email');
+    const formattedTransactions = transactions.map(txn => {
+        const user = txn.actionedBy;
+        const formattedActionedBy = user
+            ? `${user.firstName} ${user.lastName} - ${user.email}`
+            : null;
+        return Object.assign(Object.assign({}, txn.toObject()), { actionedBy: formattedActionedBy });
     });
-    return transaction;
+    return formattedTransactions;
 });
 exports.fetchTransactionsByStudentID = fetchTransactionsByStudentID;

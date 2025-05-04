@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateCollegeTransactionSchema = exports.CollegeTransactionSchema = void 0;
 const zod_1 = require("zod");
 const constants_1 = require("../../config/constants");
+const commonSchema_1 = require("../../validators/commonSchema");
 exports.CollegeTransactionSchema = zod_1.z.object({
     studentId: zod_1.z.string(),
     dateTime: zod_1.z.date().default(new Date()).optional(),
@@ -10,6 +11,7 @@ exports.CollegeTransactionSchema = zod_1.z.object({
     transactionID: zod_1.z.number().optional(),
     amount: zod_1.z.number(),
     txnType: zod_1.z.nativeEnum(constants_1.TransactionTypes),
-    remark: zod_1.z.string().optional()
+    remark: zod_1.z.string().optional(),
+    actionedBy: commonSchema_1.objectIdSchema
 });
 exports.CreateCollegeTransactionSchema = exports.CollegeTransactionSchema;
