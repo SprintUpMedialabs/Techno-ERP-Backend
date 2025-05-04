@@ -135,6 +135,6 @@ courseModelSchema.set('toJSON', { transform: transformDates });
 courseModelSchema.set('toObject', { transform: transformDates });
 
 export const CourseMetaData = model<ICourseMetaDataDocument>(
-  COLLECTION_NAMES.COURSE_METADATA+'1',
+  COLLECTION_NAMES.COURSE_METADATA,
   courseModelSchema
 );
