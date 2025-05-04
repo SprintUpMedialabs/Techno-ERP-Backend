@@ -1,16 +1,16 @@
 import createHttpError from "http-errors";
 import mongoose, { Schema } from "mongoose";
-import { IAttendanceSchema, IBaseAttendanceSchema, IBaseExamSchema, IExamSchema, ISemesterSchema, IStudentBaseInfoSchema, IStudentSchema, ISubjectSchema } from "../validators/studentSchema";
-import { AdmissionReference, AdmittedThrough, AreaType, BloodGroup, Category, COLLECTION_NAMES, Course, CourseYears, FeeStatus as FeeStatus, Gender, Religion, StatesOfIndia } from "../../config/constants";
-import { FeeModel } from "./fees";
-import { contactNumberSchema, emailSchema } from "../../validators/commonSchema";
-import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
 import { academicDetailFormSchema } from "../../admission/models/academicDetail";
 import { addressSchema } from "../../admission/models/address";
+import { entranceExamDetailSchema } from "../../admission/models/entranceExamDetail";
+import { physicalDocumentNoteSchema } from "../../admission/models/physicalDocumentNoteSchema";
 import { previousCollegeDataSchema } from "../../admission/models/previousCollegeData";
 import { singleDocumentSchema } from "../../admission/models/singleDocument";
-import { physicalDocumentNoteSchema } from "../../admission/models/physicalDocumentNoteSchema";
-import { entranceExamDetailSchema } from "../../admission/models/entranceExamDetail";
+import { AdmissionReference, AdmittedThrough, AreaType, BloodGroup, Category, COLLECTION_NAMES, CourseYears, FeeStatus, Gender, Religion, StatesOfIndia } from "../../config/constants";
+import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
+import { contactNumberSchema, emailSchema } from "../../validators/commonSchema";
+import { IAttendanceSchema, IBaseAttendanceSchema, IBaseExamSchema, IExamSchema, ISemesterSchema, IStudentBaseInfoSchema, IStudentSchema, ISubjectSchema } from "../validators/studentSchema";
+import { FeeModel } from "./fees";
 
 export interface IStudentDocument extends IStudentSchema, Document { }
 export interface IStudentBasicInfoDocument extends IStudentBaseInfoSchema, Document { }
@@ -31,9 +31,9 @@ const StudentBaseInfoSchema = new Schema<IStudentBasicInfoDocument>({
     formNo: {
         type: String,
     },
-    lurnRegistrationNo:{
+    lurnRegistrationNo: {
         type: String,
-        default:'Not Provided'
+        default: 'Not Provided'
     },
 
     studentName: {
@@ -139,6 +139,9 @@ const StudentBaseInfoSchema = new Schema<IStudentBasicInfoDocument>({
         default: [],
         required: false
     },
+    entranceExamDetails: {
+        type: entranceExamDetailSchema
+    },
     previousCollegeData: {
         type: previousCollegeDataSchema
     },
@@ -164,9 +167,6 @@ const StudentBaseInfoSchema = new Schema<IStudentBasicInfoDocument>({
     },
     nationality: {
         type: String
-    },
-    entranceExamDetails: {
-        type: entranceExamDetailSchema
     },
     gender: {
         type: String,
@@ -293,7 +293,8 @@ const StudentModel = new Schema<IStudentDocument>({
     },
     departmentMetaDataId: {
         type: Schema.Types.ObjectId,
-        required: true
+        required: true,
+        ref: COLLECTION_NAMES.DEPARTMENT_META_DATA
     },
     courseName: {
         type: String,

@@ -279,7 +279,7 @@ export const getStudentDataById = expressAsyncHandler(async (req: AuthenticatedR
     throw createHttpError(400, 'Invalid student ID');
   }
 
-  const student = await Student.findById(id);
+  const student = await Student.findById(id).populate('departmentMetaDataId');
   if (!student) {
     throw createHttpError(404, 'Student not found');
   }
