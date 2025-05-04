@@ -39,16 +39,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Student = void 0;
 const http_errors_1 = __importDefault(require("http-errors"));
 const mongoose_1 = __importStar(require("mongoose"));
-const constants_1 = require("../../config/constants");
-const fees_1 = require("./fees");
-const commonSchema_1 = require("../../validators/commonSchema");
-const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
 const academicDetail_1 = require("../../admission/models/academicDetail");
 const address_1 = require("../../admission/models/address");
+const entranceExamDetail_1 = require("../../admission/models/entranceExamDetail");
+const physicalDocumentNoteSchema_1 = require("../../admission/models/physicalDocumentNoteSchema");
 const previousCollegeData_1 = require("../../admission/models/previousCollegeData");
 const singleDocument_1 = require("../../admission/models/singleDocument");
-const physicalDocumentNoteSchema_1 = require("../../admission/models/physicalDocumentNoteSchema");
-const entranceExamDetail_1 = require("../../admission/models/entranceExamDetail");
+const constants_1 = require("../../config/constants");
+const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
+const commonSchema_1 = require("../../validators/commonSchema");
+const fees_1 = require("./fees");
 const StudentBaseInfoSchema = new mongoose_1.Schema({
     universityId: {
         type: String
@@ -164,6 +164,9 @@ const StudentBaseInfoSchema = new mongoose_1.Schema({
         default: [],
         required: false
     },
+    entranceExamDetails: {
+        type: entranceExamDetail_1.entranceExamDetailSchema
+    },
     previousCollegeData: {
         type: previousCollegeData_1.previousCollegeDataSchema
     },
@@ -189,9 +192,6 @@ const StudentBaseInfoSchema = new mongoose_1.Schema({
     },
     nationality: {
         type: String
-    },
-    entranceExamDetails: {
-        type: entranceExamDetail_1.entranceExamDetailSchema
     },
     gender: {
         type: String,
@@ -310,7 +310,8 @@ const StudentModel = new mongoose_1.Schema({
     },
     departmentMetaDataId: {
         type: mongoose_1.Schema.Types.ObjectId,
-        required: true
+        required: true,
+        ref: constants_1.COLLECTION_NAMES.DEPARTMENT_META_DATA
     },
     courseName: {
         type: String,

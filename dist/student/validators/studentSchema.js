@@ -153,5 +153,6 @@ exports.updateStudentDetailsRequestSchema = zod_1.z.object({
     nationality: zod_1.z.string().optional(),
     address: commonSchema_1.addressSchema,
     academicDetails: academicDetailSchema_1.academicDetailsArraySchema.optional(),
+    entranceExamDetails: entranceExamDetailSchema_1.entranceExamDetailSchema.optional(),
 }).strict();
-exports.updateStudentPhysicalDocumentRequestSchema = physicalDocumentNoteSchema_1.physicalDocumentNoteSchema.extend({ id: commonSchema_1.objectIdSchema });
+exports.updateStudentPhysicalDocumentRequestSchema = physicalDocumentNoteSchema_1.physicalDocumentNoteSchema.extend({ id: commonSchema_1.objectIdSchema }).strict();

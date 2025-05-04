@@ -12,11 +12,21 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAdmissoinDocumentListByCourseCode = exports.getCourseMetadataBy = void 0;
+exports.getCourseFeeByCourseCodee = exports.getAdmissoinDocumentListByCourseCode = exports.getCourseMetadataByCourseCode = exports.getCourseCodes = exports.createCourse = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const formatResponse_1 = require("../../utils/formatResponse");
 const courseMetadata_1 = require("../models/courseMetadata");
-exports.getCourseMetadataBy = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.createCourse = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const course = yield courseMetadata_1.CourseMetaData.create(req.body);
+    console.log(course);
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Course Created Succesffully', true, course);
+}));
+exports.getCourseCodes = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const courseList = yield courseMetadata_1.CourseMetaData.find().select('courseCode');
+    const courseCodes = courseList.map(course => course.courseCode);
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Course Codes fetched successfully.', true, courseCodes);
+}));
+exports.getCourseMetadataByCourseCode = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { courseCode } = req.params;
     const courseMetadata = yield courseMetadata_1.CourseMetaData.findOne({ courseCode });
     if (!courseMetadata) {
@@ -31,4 +41,10 @@ exports.getAdmissoinDocumentListByCourseCode = (0, express_async_handler_1.defau
         return (0, formatResponse_1.formatResponse)(res, 404, 'Course metadata not found', false);
     }
     return (0, formatResponse_1.formatResponse)(res, 200, 'Course metadata fetched successfully', true, { documentTypeList: courseMetadata.documentType });
+}));
+exports.getCourseFeeByCourseCodee = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { courseCode } = req.params;
+    const courseFee = courseMetadata_1.CourseMetaData.findOne({ courseCode });
+    console.log(courseFee);
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Course Fee infromation', true, courseFee);
 }));

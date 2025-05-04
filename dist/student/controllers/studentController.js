@@ -271,7 +271,7 @@ exports.getStudentDataById = (0, express_async_handler_1.default)((req, res) => 
     if (!mongoose_1.default.Types.ObjectId.isValid(id)) {
         throw (0, http_errors_1.default)(400, 'Invalid student ID');
     }
-    const student = yield student_1.Student.findById(id);
+    const student = yield student_1.Student.findById(id).populate('departmentMetaDataId');
     if (!student) {
         throw (0, http_errors_1.default)(404, 'Student not found');
     }
