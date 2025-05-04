@@ -1,9 +1,10 @@
 import mongoose, { Schema } from "mongoose";
-import { COLLECTION_NAMES, FeeActions } from "../../config/constants";
+import { COLLECTION_NAMES, FeeActions, TransactionTypes } from "../../config/constants";
 import { ICollegeTransactionSchema } from "../validators/collegeTransactionSchema";
 import { Document } from "mongoose";
 import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
 import createHttpError from "http-errors";
+import { TechnoMetaData } from "../../config/models/TechnoMetaData";
 
 export interface ICollegeTransactionDocument extends ICollegeTransactionSchema, Document { }
 
@@ -14,7 +15,7 @@ export const CollegeTransactionModel = new Schema<ICollegeTransactionDocument>({
     },
     dateTime: {
         type: Date,
-        set: (value: Date | undefined) => value ? convertToMongoDate(value) : undefined
+        default : new Date()
     },
     feeAction: {
         type: String,
@@ -23,15 +24,16 @@ export const CollegeTransactionModel = new Schema<ICollegeTransactionDocument>({
     },
     transactionID: {
         type: Number,
-        required: true,
+        // required: true,
         unique: true,
     },
     amount: {
-        type: String,
+        type: Number,
         required: true,
     },
     txnType: {
-        type: String,
+        type: String,        
+        enum: Object.values(TransactionTypes),
         required: true,
     },
     remark: {
@@ -39,8 +41,25 @@ export const CollegeTransactionModel = new Schema<ICollegeTransactionDocument>({
     },
 }, { timestamps: true });
 
+
 CollegeTransactionModel.pre<ICollegeTransactionDocument>("save", async function (next) {
-    next();
+    if (!this.isNew) {
+        return next();
+    }
+
+    try {
+        const counter = await TechnoMetaData.findOneAndUpdate(
+            { name: "transactionID" },
+            { $inc: { value: 1 } },
+            { upsert: true, new: true }
+        );
+
+        this.transactionID = counter.value;
+        next();
+    }
+    catch (err: any) {
+        next(err);
+    }
 });
 
 

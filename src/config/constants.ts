@@ -301,7 +301,8 @@ export enum COLLECTION_NAMES {
   COURSE = 'Course',
   DROP_DOWN_META_DATA = 'DropDownMetaData',
   STUDENTREPO = "StudentRepo",
-  TRANSACTION_HISTORY = "TransactionHistory"
+  TRANSACTION_HISTORY = "TransactionHistory",
+  TECHNO_META_DATA = "TechnoMetaData"
 }
 
 
