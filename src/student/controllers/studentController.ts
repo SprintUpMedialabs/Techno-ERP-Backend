@@ -7,10 +7,11 @@ import { IFeeSchema } from "../validators/feeSchema";
 import { IAttendanceSchema, ICreateStudentSchema, IExamSchema, updateStudentDetailsRequestSchema, updateStudentPhysicalDocumentRequestSchema } from "../validators/studentSchema";
 import expressAsyncHandler from "express-async-handler";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
-import { Response } from "express";
+import { response, Response } from "express";
 import { Student } from "../models/student";
 import createHttpError from "http-errors";
 import { formatResponse } from "../../utils/formatResponse";
+import { User } from "../../auth/models/user";
 
 export const createStudent = async (studentData: ICreateStudentSchema) => {
   const { courseCode, feeId, dateOfAdmission } = studentData;
@@ -279,12 +280,9 @@ export const getStudentDataById = expressAsyncHandler(async (req: AuthenticatedR
     throw createHttpError(400, 'Invalid student ID');
   }
 
-  const student: any = await Student.findById(id).populate(
-    {
-      path: 'departmentMetaDataId',
-      select: 'departmentName'
-    }
-  ).lean();
+  const student: any = await Student.findById(id)
+    .populate({ path: 'departmentMetaDataId', select: 'departmentName' })
+    .lean();
 
   if (!student) {
     throw createHttpError(404, 'Student not found');
@@ -292,22 +290,50 @@ export const getStudentDataById = expressAsyncHandler(async (req: AuthenticatedR
 
   const { departmentMetaDataId, ...rest } = student;
 
-  const course = await Course.findById(student.courseId);
-  if( !course ){
-    throw createHttpError('Course is not exists');
+  const course = await Course.findById(student.courseId).lean();
+  if (!course) {
+    throw createHttpError(404, 'Course does not exist');
   }
-  console.log(student.semester);
-  console.log(course);
+
+  // Update student.semester with subject details and instructors
+  for (let i = 0; i < student.semester.length; i++) {
+    const studentSem = student.semester[i];
+    const courseSem = course.semester![i];
+
+    if (!courseSem) continue;
+
+    for (let j = 0; j < studentSem.subjects.length; j++) {
+      const studentSubject = studentSem.subjects[j];
+      const matchedCourseSubject = courseSem.subjects.find(courseSub =>
+        (courseSub as any)._id.toString() === studentSubject.subjectId.toString()
+      );
+
+      if (matchedCourseSubject) {
+        studentSubject.subjectName = matchedCourseSubject.subjectName;
+        studentSubject.subjectCode = matchedCourseSubject.subjectCode;
+
+        // Populate instructor names
+        const instructorList = [];
+        for (const instructorId of matchedCourseSubject.instructor) {
+          const instructor = await User.findById(instructorId).lean();
+          if (instructor) {
+            instructorList.push(`${instructor.firstName} ${instructor.lastName}`);
+          }
+        }
+        studentSubject.instructor = instructorList;
+      }
+    }
+  }
 
   const responseData = {
     ...rest,
+    semester: student.semester,
     departmentName: departmentMetaDataId?.departmentName ?? null
   };
 
-  console.log(responseData);
-
   return formatResponse(res, 200, 'ok', true, responseData);
 });
+
 
 export const updateStudentDataById = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const validation = updateStudentDetailsRequestSchema.safeParse(req.body);
