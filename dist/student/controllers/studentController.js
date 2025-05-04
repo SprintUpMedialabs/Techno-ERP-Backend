@@ -280,7 +280,14 @@ exports.getStudentDataById = (0, express_async_handler_1.default)((req, res) => 
         throw (0, http_errors_1.default)(404, 'Student not found');
     }
     const { departmentMetaDataId } = student, rest = __rest(student, ["departmentMetaDataId"]);
+    const course = yield course_1.Course.findById(student.courseId);
+    if (!course) {
+        throw (0, http_errors_1.default)('Course is not exists');
+    }
+    console.log(student.semester);
+    console.log(course);
     const responseData = Object.assign(Object.assign({}, rest), { departmentName: (_a = departmentMetaDataId === null || departmentMetaDataId === void 0 ? void 0 : departmentMetaDataId.departmentName) !== null && _a !== void 0 ? _a : null });
+    console.log(responseData);
     return (0, formatResponse_1.formatResponse)(res, 200, 'ok', true, responseData);
 }));
 exports.updateStudentDataById = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {

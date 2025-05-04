@@ -98,4 +98,4 @@ const transformDates = (_, ret) => {
 };
 exports.courseModelSchema.set('toJSON', { transform: transformDates });
 exports.courseModelSchema.set('toObject', { transform: transformDates });
-exports.CourseMetaData = (0, mongoose_1.model)(constants_1.COLLECTION_NAMES.COURSE_METADATA + '1', exports.courseModelSchema);
+exports.CourseMetaData = (0, mongoose_1.model)(constants_1.COLLECTION_NAMES.COURSE_METADATA, exports.courseModelSchema);
