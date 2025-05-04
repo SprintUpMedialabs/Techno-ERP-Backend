@@ -279,110 +279,34 @@ export const getStudentDataById = expressAsyncHandler(async (req: AuthenticatedR
     throw createHttpError(400, 'Invalid student ID');
   }
 
-  // const student: any = await Student.findById(id).populate(
-  //   {
-  //     path: 'departmentMetaDataId',
-  //     select: 'departmentName'
-  //   }
-  // ).lean();
-
-  // if (!student) {
-  //   throw createHttpError(404, 'Student not found');
-  // }
-
-  // const { departmentMetaDataId, ...rest } = student;
-
-  // const course = await Course.findById(student.courseId);
-  // if( !course ){
-  //   throw createHttpError('Course is not exists');
-  // }
-  // console.log(student.semester);
-  // console.log(course);
-
-  // const responseData = {
-  //   ...rest,
-  //   departmentName: departmentMetaDataId?.departmentName ?? null
-  // };
-
-  const studentData = await Student.aggregate([
+  const student: any = await Student.findById(id).populate(
     {
-      $match: { _id: new mongoose.Types.ObjectId(id) }
-    },
-    {
-      $lookup: {
-        from: 'departmentmetadatas', // Ensure this is the correct collection name
-        localField: 'departmentMetaDataId',
-        foreignField: '_id',
-        as: 'departmentMetaDataId'
-      }
-    },
-    {
-      $unwind: {
-        path: '$departmentMetaDataId',
-        preserveNullAndEmptyArrays: true
-      }
-    },
-    {
-      $unwind: {
-        path: '$semester', // Assuming the field in Student schema is `semester`
-        preserveNullAndEmptyArrays: true
-      }
-    },
-    {
-      $unwind: {
-        path: '$semester.subjects',
-        preserveNullAndEmptyArrays: true
-      }
-    },
-    {
-      $lookup: {
-        from: 'courses', // Assuming the collection is `courses`
-        let: { subjectId: '$semester.subjects.subjectId' },
-        pipeline: [
-          { $unwind: '$subjects' },
-          { $match: { $expr: { $eq: ['$subjects._id', '$$subjectId'] } } },
-          { $project: { _id: 0, subject: '$subjects' } }
-        ],
-        as: 'semester.subjects.subjectDetails'
-      }
-    },
-    {
-      $unwind: {
-        path: '$semester.subjects.subjectDetails',
-        preserveNullAndEmptyArrays: true
-      }
-    },
-    // Reconstruct the structure again after unwinding
-    {
-      $group: {
-        _id: '$_id',
-        departmentMetaDataId: { $first: '$departmentMetaDataId' },
-        semester: {
-          $push: {
-            _id: '$semester._id',
-            subjects: '$semester.subjects'
-          }
-        },
-        baseFields: { $first: '$$ROOT' }
-      }
-    },
-    {
-      $project: {
-        _id: 1,
-        name: '$baseFields.name', // Adjust as necessary
-        departmentMetaDataId: {
-          _id: '$departmentMetaDataId._id',
-          departmentName: '$departmentMetaDataId.departmentName'
-        },
-        semester: 1
-      }
+      path: 'departmentMetaDataId',
+      select: 'departmentName'
     }
-  ]);
-  
+  ).lean();
 
-  console.log(studentData);
+  if (!student) {
+    throw createHttpError(404, 'Student not found');
+  }
 
-  return formatResponse(res, 200, 'ok', true, studentData);
+  const { departmentMetaDataId, ...rest } = student;
+
+  const course = await Course.findById(student.courseId);
+  if( !course ){
+    throw createHttpError('Course is not exists');
+  }
+  console.log(student.semester);
+  console.log(course);
+
+  const responseData = {
+    ...rest,
+    departmentName: departmentMetaDataId?.departmentName ?? null
+  };
+
+  console.log(responseData);
+
+  return formatResponse(res, 200, 'ok', true, responseData);
 });
 
 export const updateStudentDataById = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
