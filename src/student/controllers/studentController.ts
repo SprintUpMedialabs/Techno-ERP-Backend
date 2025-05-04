@@ -279,13 +279,34 @@ export const getStudentDataById = expressAsyncHandler(async (req: AuthenticatedR
     throw createHttpError(400, 'Invalid student ID');
   }
 
-  const student = await Student.findById(id);
+  const student: any = await Student.findById(id).populate(
+    {
+      path: 'departmentMetaDataId',
+      select: 'departmentName'
+    }
+  ).lean();
+
   if (!student) {
     throw createHttpError(404, 'Student not found');
   }
 
-  console.log(student);
-  return formatResponse(res, 200, 'ok', true, student);
+  const { departmentMetaDataId, ...rest } = student;
+
+  const course = await Course.findById(student.courseId);
+  if( !course ){
+    throw createHttpError('Course is not exists');
+  }
+  console.log(student.semester);
+  console.log(course);
+
+  const responseData = {
+    ...rest,
+    departmentName: departmentMetaDataId?.departmentName ?? null
+  };
+
+  console.log(responseData);
+
+  return formatResponse(res, 200, 'ok', true, responseData);
 });
 
 export const updateStudentDataById = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {

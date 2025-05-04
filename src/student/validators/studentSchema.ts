@@ -80,6 +80,7 @@ export const StudentBaseInfoSchema = z.object({
     address: addressSchema,
     academicDetails: academicDetailsArraySchema.optional(),
 
+
     previousCollegeData: previousCollegeDataSchema.optional(),
     documents: z.array(singleDocumentSchema.extend({ dueBy: z.date().optional() })).optional(),
     physicalDocumentNote: z.array(physicalDocumentNoteSchema).optional(),
@@ -175,7 +176,7 @@ export const updateStudentDetailsRequestSchema = z.object({
 
     religion: z.nativeEnum(Religion).optional(),
     category: z.nativeEnum(Category),
-    
+
     bloodGroup: z.nativeEnum(BloodGroup).optional(),
     aadharNumber: z.string().regex(/^\d{12}$/, 'Aadhar Number must be exactly 12 digits').optional(),
 
@@ -186,9 +187,10 @@ export const updateStudentDetailsRequestSchema = z.object({
     address: addressSchema,
 
     academicDetails: academicDetailsArraySchema.optional(),
+    entranceExamDetails: entranceExamDetailSchema.optional(),
 }).strict();
 
-export const updateStudentPhysicalDocumentRequestSchema = physicalDocumentNoteSchema.extend({id:objectIdSchema});
+export const updateStudentPhysicalDocumentRequestSchema = physicalDocumentNoteSchema.extend({ id: objectIdSchema }).strict();
 
 
 export type ICreateStudentSchema = z.infer<typeof CreateStudentSchema>;
