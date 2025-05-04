@@ -39,6 +39,10 @@ export const CollegeTransactionModel = new Schema<ICollegeTransactionDocument>({
     remark: {
         type: String,
     },
+    actionedBy : {
+        type : Schema.Types.ObjectId,
+        ref : COLLECTION_NAMES.USER
+    }
 }, { timestamps: true });
 
 

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { FeeActions, TransactionTypes } from "../../config/constants";
+import { objectIdSchema } from "../../validators/commonSchema";
 
 export const CollegeTransactionSchema = z.object({
     studentId : z.string(),
@@ -8,7 +9,8 @@ export const CollegeTransactionSchema = z.object({
     transactionID : z.number().optional(),
     amount : z.number(),
     txnType : z.nativeEnum(TransactionTypes),
-    remark : z.string().optional()
+    remark : z.string().optional(),
+    actionedBy : objectIdSchema
 })
 
 export const CreateCollegeTransactionSchema = CollegeTransactionSchema;
