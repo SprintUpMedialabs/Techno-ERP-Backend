@@ -1,18 +1,17 @@
 import { z } from "zod";
-import { FeeActions } from "../../config/constants";
-import { objectIdSchema, requestDateSchema } from "../../validators/commonSchema";
-import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
+import { FeeActions, TransactionTypes } from "../../config/constants";
 
 export const CollegeTransactionSchema = z.object({
     studentId : z.string(),
-    dateTime : requestDateSchema.transform((date) =>
-        convertToMongoDate(date) as Date
-    ).optional(),
+    dateTime : z.date().default(new Date()).optional(),
     feeAction : z.nativeEnum(FeeActions),
-    transactionID : z.number(),
-    amount : z.string(),
-    txnType : z.string(),
-    remark : z.string()
+    transactionID : z.number().optional(),
+    amount : z.number(),
+    txnType : z.nativeEnum(TransactionTypes),
+    remark : z.string().optional()
 })
 
+export const CreateCollegeTransactionSchema = CollegeTransactionSchema;
+
 export type ICollegeTransactionSchema = z.infer<typeof CollegeTransactionSchema>;
+export type ICreateCollegeTransactionSchema = z.infer<typeof CreateCollegeTransactionSchema>;
