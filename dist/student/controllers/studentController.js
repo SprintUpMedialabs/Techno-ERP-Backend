@@ -267,16 +267,21 @@ exports.getStudentDataBySearch = (0, express_async_handler_1.default)((req, res)
     });
 }));
 exports.getStudentDataById = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     const { id } = req.params;
     if (!mongoose_1.default.Types.ObjectId.isValid(id)) {
         throw (0, http_errors_1.default)(400, 'Invalid student ID');
     }
-    const student = yield student_1.Student.findById(id).populate('departmentMetaDataId');
+    const student = yield student_1.Student.findById(id).populate({
+        path: 'departmentMetaDataId',
+        select: 'departmentName'
+    }).lean();
     if (!student) {
         throw (0, http_errors_1.default)(404, 'Student not found');
     }
-    console.log(student);
-    return (0, formatResponse_1.formatResponse)(res, 200, 'ok', true, student);
+    const { departmentMetaDataId } = student, rest = __rest(student, ["departmentMetaDataId"]);
+    const responseData = Object.assign(Object.assign({}, rest), { departmentName: (_a = departmentMetaDataId === null || departmentMetaDataId === void 0 ? void 0 : departmentMetaDataId.departmentName) !== null && _a !== void 0 ? _a : null });
+    return (0, formatResponse_1.formatResponse)(res, 200, 'ok', true, responseData);
 }));
 exports.updateStudentDataById = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const validation = studentSchema_1.updateStudentDetailsRequestSchema.safeParse(req.body);
