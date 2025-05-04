@@ -21,6 +21,7 @@ const constants_1 = require("./constants");
 const logger_1 = __importDefault(require("./logger"));
 const metadata_1 = require("./metadata");
 const metadata_2 = require("./metadata");
+const TechnoMetaData_1 = require("./models/TechnoMetaData");
 const connectToDatabase = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield mongoose_1.default.connect(secrets_1.MONGODB_DATABASE_URL, {
@@ -59,6 +60,7 @@ const initializeDB = () => __awaiter(void 0, void 0, void 0, function* () {
                 logger_1.default.debug(`${prefix} serial number already exists`);
             }
         }
+        yield initializeCounter("transactionID", 0);
         yield initializeDropDowns();
         yield initializeCourseMetadata();
     }
@@ -68,6 +70,19 @@ const initializeDB = () => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.initializeDB = initializeDB;
+const initializeCounter = (name_1, ...args_1) => __awaiter(void 0, [name_1, ...args_1], void 0, function* (name, startValue = 0) {
+    const existingCounter = yield TechnoMetaData_1.TechnoMetaData.findOne({ name });
+    if (!existingCounter) {
+        yield TechnoMetaData_1.TechnoMetaData.create({
+            name,
+            value: startValue
+        });
+        logger_1.default.debug(`Initialized ${name} counter with starting value ${startValue}`);
+    }
+    else {
+        logger_1.default.debug(`${name} counter already exists with value ${existingCounter.value}`);
+    }
+});
 const initializeDropDowns = () => __awaiter(void 0, void 0, void 0, function* () {
     // City Dropdown => no need to add values from our side as its going to be used for marketing module only as of now
     const existingCityDropDown = yield dropDownMetaDeta_1.DropDownMetaData.findOne({ type: constants_1.DropDownType.MARKETING_CITY });

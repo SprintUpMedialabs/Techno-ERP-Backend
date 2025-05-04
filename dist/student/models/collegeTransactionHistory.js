@@ -48,8 +48,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CollegeTransaction = exports.CollegeTransactionModel = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 const constants_1 = require("../../config/constants");
-const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
 const http_errors_1 = __importDefault(require("http-errors"));
+const TechnoMetaData_1 = require("../../config/models/TechnoMetaData");
 exports.CollegeTransactionModel = new mongoose_1.Schema({
     studentId: {
         type: String,
@@ -57,7 +57,7 @@ exports.CollegeTransactionModel = new mongoose_1.Schema({
     },
     dateTime: {
         type: Date,
-        set: (value) => value ? (0, convertDateToFormatedDate_1.convertToMongoDate)(value) : undefined
+        default: new Date()
     },
     feeAction: {
         type: String,
@@ -66,15 +66,16 @@ exports.CollegeTransactionModel = new mongoose_1.Schema({
     },
     transactionID: {
         type: Number,
-        required: true,
+        // required: true,
         unique: true,
     },
     amount: {
-        type: String,
+        type: Number,
         required: true,
     },
     txnType: {
         type: String,
+        enum: Object.values(constants_1.TransactionTypes),
         required: true,
     },
     remark: {
@@ -83,7 +84,17 @@ exports.CollegeTransactionModel = new mongoose_1.Schema({
 }, { timestamps: true });
 exports.CollegeTransactionModel.pre("save", function (next) {
     return __awaiter(this, void 0, void 0, function* () {
-        next();
+        if (!this.isNew) {
+            return next();
+        }
+        try {
+            const counter = yield TechnoMetaData_1.TechnoMetaData.findOneAndUpdate({ name: "transactionID" }, { $inc: { value: 1 } }, { upsert: true, new: true });
+            this.transactionID = counter.value;
+            next();
+        }
+        catch (err) {
+            next(err);
+        }
     });
 });
 const handleMongooseError = (error, next) => {

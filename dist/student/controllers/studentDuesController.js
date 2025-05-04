@@ -12,12 +12,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.fetchFeeInformationByStudentId = exports.getStudentDues = void 0;
+exports.fetchTransactionsByStudentID = exports.settleFees = exports.recordPayment = exports.fetchFeeInformationByStudentId = exports.getStudentDues = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const constants_1 = require("../../config/constants");
 const student_1 = require("../models/student");
 const formatResponse_1 = require("../../utils/formatResponse");
-//DACHECK : Here, it won't make sense to have filter on academic year, we can discuss this in meeting.
+const mongoose_1 = __importDefault(require("mongoose"));
+const commonSchema_1 = require("../../validators/commonSchema");
+const http_errors_1 = __importDefault(require("http-errors"));
+const collegeTransactionSchema_1 = require("../validators/collegeTransactionSchema");
+const collegeTransactionHistory_1 = require("../models/collegeTransactionHistory");
 exports.getStudentDues = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const { page, limit, search, academicYear } = req.body;
@@ -36,71 +40,6 @@ exports.getStudentDues = (0, express_async_handler_1.default)((req, res) => __aw
             }
         ];
     }
-    // query.$and = [
-    //     ...(query.$and || []),
-    //     {
-    //       $or: [
-    //         { name: { $regex: search, $options: 'i' } },
-    //         { phoneNumber: { $regex: search, $options: 'i' } }
-    //       ]
-    //     }
-    //   ];
-    // const commonPipeline = [
-    //     { $match: filterStage },
-    //     {
-    //         $addFields: {
-    //             currentSemesterData: {
-    //                 $arrayElemAt: [
-    //                     {
-    //                         $filter: {
-    //                             input: "$semester",
-    //                             as: "sem",
-    //                             cond: { $eq: ["$$sem.semesterNumber", "$currentSemester"] }
-    //                         }
-    //                     },
-    //                     0
-    //                 ]
-    //             }
-    //         }
-    //     },
-    //     {
-    //         $match: {
-    //             $expr: {
-    //                 $ne: [
-    //                     "$currentSemesterData.fees.paidAmount",
-    //                     "$currentSemesterData.fees.totalFinalFee"
-    //                 ]
-    //             },
-    //             ...searchMatchStage
-    //         }
-    //     }
-    // ];
-    // const totalCountAgg = await Student.aggregate([
-    //     ...commonPipeline,
-    //     { $count: "total" }
-    // ]);
-    // const totalCount = totalCountAgg[0]?.total || 0;
-    // const totalPages = Math.ceil(totalCount / limit);
-    // const students = await Student.aggregate([
-    //     ...commonPipeline,
-    //     {
-    //         $project: {
-    //             _id: 0,
-    //             studentName: "$studentInfo.studentName",
-    //             studentId: "$studentInfo.studentId",
-    //             studentPhoneNumber: "$studentInfo.studentPhoneNumber",
-    //             fatherName: "$studentInfo.fatherName",
-    //             fatherPhoneNumber: "$studentInfo.fatherPhoneNumber",
-    //             courseName: 1,
-    //             courseYear: "$currentSemesterData.courseYear",
-    //             semester: "$currentSemesterData.semesterNumber",
-    //             feeStatus: 1
-    //         }
-    //     },
-    //     { $sort: { studentName: 1 } },
-    //     { $skip: (page - 1) * limit },
-    //     { $limit: limit }
-    // ]);
     const studentAggregation = student_1.Student.aggregate([
         { $match: filterStage },
         { $skip: (page - 1) * limit },
@@ -119,22 +58,6 @@ exports.getStudentDues = (0, express_async_handler_1.default)((req, res) => __aw
             }
         }
     ]);
-    // Student.aggregate([
-    //     { $skip: skip },
-    //     { $limit: limit },
-    //     {
-    //         $project: {
-    //             universityId: '$studentInfo.universityId',
-    //             studentName: '$studentInfo.studentName',
-    //             studentPhoneNumber: '$studentInfo.studentPhoneNumber',
-    //             fatherName: '$studentInfo.fatherName',
-    //             fatherPhoneNumber: '$studentInfo.fatherPhoneNumber',
-    //             courseName: 1,
-    //             currentAcademicYear: 1,
-    //             currentSemester: 1,
-    //         },
-    //     },
-    // ]);
     const countQuery = student_1.Student.countDocuments(filterStage);
     const [students, totalCount] = yield Promise.all([
         studentAggregation,
@@ -150,5 +73,252 @@ exports.getStudentDues = (0, express_async_handler_1.default)((req, res) => __aw
         }
     });
 }));
-exports.fetchFeeInformationByStudentId = (0, express_async_handler_1.default)((req, res) => {
+//DTODO : Add the logic of fetching the transaction history after adding the logic of record payment.
+exports.fetchFeeInformationByStudentId = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.params;
+    const studentId = new mongoose_1.default.Types.ObjectId(id);
+    const validation = commonSchema_1.objectIdSchema.safeParse(studentId);
+    if (!validation.success) {
+        throw (0, http_errors_1.default)(400, validation.error.errors[0].message);
+    }
+    const pipeline = [
+        { $match: { _id: studentId } },
+        {
+            $lookup: {
+                from: "departmentmetadatas",
+                localField: "departmentMetaDataId",
+                foreignField: "_id",
+                as: "departmentInfo"
+            }
+        },
+        { $unwind: "$departmentInfo" },
+        { $unwind: "$semester" },
+        {
+            $project: {
+                studentInfo: 1,
+                courseName: 1,
+                feeStatus: 1,
+                departmentInfo: 1,
+                semesterNumber: "$semester.semesterNumber",
+                academicYear: "$semester.academicYear",
+                finalFee: "$semester.fees.totalFinalFee",
+                paidAmount: "$semester.fees.paidAmount",
+                dueDate: "$semester.fees.dueDate",
+                feeCategory: "$semester.fees.details.type",
+                feeSchedule: "$semester.fees.details.schedule",
+                feePaid: "$semester.fees.details.paidAmount",
+                semesterBreakup: {
+                    semesterNumber: "$semester.semesterNumber",
+                    feeCategory: "$semester.fees.details.type",
+                    feeSchedule: "$semester.fees.details.schedule",
+                    finalFee: "$semester.fees.details.finalFee",
+                    paidAmount: "$semester.fees.details.paidAmount"
+                }
+            }
+        },
+        {
+            $group: {
+                _id: "$_id",
+                studentInfo: { $first: "$studentInfo" },
+                courseName: { $first: "$courseName" },
+                feeStatus: { $first: "$feeStatus" },
+                departmentInfo: { $first: "$departmentInfo" },
+                semesterWiseFeeInformation: {
+                    $push: {
+                        semesterNumber: "$semesterNumber",
+                        academicYear: "$academicYear",
+                        finalFee: "$finalFee",
+                        paidAmount: "$paidAmount",
+                        dueDate: "$dueDate"
+                    }
+                },
+                semesterBreakUp: { $push: "$semesterBreakup" }
+            }
+        },
+        {
+            $addFields: {
+                semesterWiseFeeInformation: {
+                    $map: {
+                        input: "$semesterWiseFeeInformation",
+                        as: "semesterInfo",
+                        in: {
+                            semesterNumber: "$$semesterInfo.semesterNumber",
+                            academicYear: "$$semesterInfo.academicYear",
+                            finalFee: "$$semesterInfo.finalFee",
+                            paidAmount: "$$semesterInfo.paidAmount",
+                            dueDate: "$$semesterInfo.dueDate"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            $addFields: {
+                semesterBreakUp: {
+                    $map: {
+                        input: "$semesterBreakUp",
+                        as: "semBKP",
+                        in: {
+                            semesterNumber: "$$semBKP.semesterNumber",
+                            details: {
+                                $map: {
+                                    input: "$$semBKP.feeCategory",
+                                    as: "feeCategory",
+                                    in: {
+                                        feeCategory: "$$feeCategory",
+                                        feeSchedule: {
+                                            $arrayElemAt: [
+                                                "$$semBKP.feeSchedule",
+                                                { $indexOfArray: ["$$semBKP.feeCategory", "$$feeCategory"] }
+                                            ]
+                                        },
+                                        finalFee: {
+                                            $arrayElemAt: [
+                                                "$$semBKP.finalFee",
+                                                { $indexOfArray: ["$$semBKP.feeCategory", "$$feeCategory"] }
+                                            ]
+                                        },
+                                        paidAmount: {
+                                            $arrayElemAt: [
+                                                "$$semBKP.paidAmount",
+                                                { $indexOfArray: ["$$semBKP.feeCategory", "$$feeCategory"] }
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        {
+            $project: {
+                studentName: "$studentInfo.studentName",
+                studentID: "$studentInfo.universityId",
+                fatherName: "$studentInfo.fatherName",
+                feeStatus: 1,
+                HOD: "$departmentInfo.departmentHOD",
+                course: "$courseName",
+                semesterWiseFeeInformation: 1,
+                semesterBreakUp: 1,
+            }
+        }
+    ];
+    const transactions = yield (0, exports.fetchTransactionsByStudentID)(studentId);
+    const studentInformation = yield student_1.Student.aggregate(pipeline);
+    // console.log(studentInformation[0]);
+    studentInformation[0].transactionHistory = transactions;
+    return (0, formatResponse_1.formatResponse)(res, 200, "Student fee information fetched successfully", true, studentInformation[0]);
+}));
+// FUEX : Here in future, if needed, we can add retry mechanism, not required as of now.
+exports.recordPayment = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const paymentInfo = req.body;
+    // console.log("Payment Info is : ", paymentInfo);
+    const validation = collegeTransactionSchema_1.CreateCollegeTransactionSchema.safeParse(paymentInfo);
+    // console.log("Payment Info validation error is : ", validation.error);
+    if (!validation.success)
+        throw (0, http_errors_1.default)(400, validation.error.errors[0]);
+    const session = yield mongoose_1.default.startSession();
+    session.startTransaction();
+    try {
+        let student = yield student_1.Student.findById(validation.data.studentId).session(session);
+        // console.log("Student is : ", student);
+        if (!student) {
+            throw (0, http_errors_1.default)(404, "Student not found");
+        }
+        const transaction = yield collegeTransactionHistory_1.CollegeTransaction.create([{
+                studentId: paymentInfo.studentId.toString(),
+                amount: validation.data.amount,
+                txnType: validation.data.txnType,
+                feeAction: validation.data.feeAction,
+                remark: validation.data.remark || "",
+                dateTime: new Date()
+            }], { session });
+        // console.log("Transaction created : ", transaction);
+        // console.log(transaction[0]._id);
+        const { student: updatedStudent, remainingBalance } = (0, exports.settleFees)(student, paymentInfo.amount);
+        student = updatedStudent;
+        // console.log("Updated student is  : ", updatedStudent);
+        const finalStudent = yield student_1.Student.findByIdAndUpdate(validation.data.studentId, {
+            $set: {
+                semester: updatedStudent.semester,
+                extraBalance: updatedStudent.extraBalance,
+                feeStatus: updatedStudent.feeStatus,
+            },
+            $push: {
+                transactionHistory: transaction[0]._id,
+            },
+        }, { new: true, runValidators: true, session });
+        yield session.commitTransaction();
+        session.endSession();
+        return (0, formatResponse_1.formatResponse)(res, 200, "Payment settled successfully", true, finalStudent);
+    }
+    catch (err) {
+        yield session.abortTransaction();
+        session.endSession();
+        throw err;
+    }
+}));
+const settleFees = (student, amount) => {
+    if (student.feeStatus != constants_1.FeeStatus.PAID) {
+        console.log("Karu chu settle bhai!");
+        for (const sem of student.semester) {
+            const fees = sem.fees;
+            //Below situation might not occur, its added just to increase robustness.
+            if (!fees || !fees.details || fees.details.length === 0)
+                continue;
+            let totalPaidAmount = fees.paidAmount || 0;
+            const totalFinalFees = fees.totalFinalFee || 0;
+            //If the semester is already settled, then we have to move to next semester without processing.
+            if (totalPaidAmount >= totalFinalFees) {
+                console.log(`Semester ${sem.semesterNumber} already settled.`);
+                continue;
+            }
+            for (const det of fees.details) {
+                const { finalFee, paidAmount } = det;
+                //If fee for particular category is already settled in particular semester, move to next.
+                // Ex : HOSTEL FEE and EXAM FEE is settled, rest are to be settled, directly process the next.
+                if (paidAmount >= finalFee)
+                    continue;
+                const remainingFee = finalFee - paidAmount;
+                //Below we take minimum, because it can happen that amountToBePaid is more but the amount deposited is less.
+                const amountPaid = Math.min(remainingFee, amount);
+                det.paidAmount += amountPaid;
+                totalPaidAmount += amountPaid;
+                amount -= amountPaid;
+                // console.log(`Paid ₹${amountPaid} for '${det.type}' in Semester ${sem.semesterNumber}. Remaining amount: ₹${amount}`);
+                //After paying for particular category, if no more amount is left, we will stop.
+                if (amount === 0)
+                    break;
+            }
+            fees.paidAmount = totalPaidAmount;
+            // console.log(`Updated paid amount for Semester ${sem.semesterNumber}: ₹${totalPaidAmount}`);
+            if (amount === 0)
+                break;
+        }
+    }
+    console.log("Control is here");
+    if (amount > 0) {
+        //Add to existing extrabalance.
+        student.extraBalance = (student.extraBalance || 0) + amount;
+        // console.log(`Extra amount ₹${amount} added to student's extra balance.`);
+    }
+    const allSemestersSettled = student.semester.every((sem) => { var _a, _b; return (((_a = sem.fees) === null || _a === void 0 ? void 0 : _a.paidAmount) || 0) >= (((_b = sem.fees) === null || _b === void 0 ? void 0 : _b.totalFinalFee) || 0); });
+    student.feeStatus = allSemestersSettled ? constants_1.FeeStatus.PAID : constants_1.FeeStatus.DUE;
+    console.log("Final Fee Status:", student.feeStatus);
+    return {
+        student: student,
+        remainingBalance: student.extraBalance
+    };
+};
+exports.settleFees = settleFees;
+const fetchTransactionsByStudentID = (studentId) => __awaiter(void 0, void 0, void 0, function* () {
+    const student = yield student_1.Student.findById(studentId);
+    const transactionsId = student === null || student === void 0 ? void 0 : student.transactionHistory;
+    const transaction = yield collegeTransactionHistory_1.CollegeTransaction.find({
+        _id: { $in: transactionsId }
+    });
+    return transaction;
 });
+exports.fetchTransactionsByStudentID = fetchTransactionsByStudentID;

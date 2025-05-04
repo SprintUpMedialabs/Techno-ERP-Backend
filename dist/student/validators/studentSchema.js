@@ -94,7 +94,7 @@ exports.StudentSchema = zod_1.z.object({
     semester: zod_1.z.array(exports.SemesterSchema),
     feeStatus: zod_1.z.nativeEnum(constants_1.FeeStatus).default(constants_1.FeeStatus.DUE),
     extraBalance: zod_1.z.number().default(0),
-    transactionHistory: commonSchema_1.objectIdSchema.optional()
+    transactionHistory: zod_1.z.array(commonSchema_1.objectIdSchema).optional()
 });
 exports.CreateStudentSchema = zod_1.z.object({
     courseCode: zod_1.z.string(),

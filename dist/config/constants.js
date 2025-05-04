@@ -287,6 +287,7 @@ var COLLECTION_NAMES;
     COLLECTION_NAMES["DROP_DOWN_META_DATA"] = "DropDownMetaData";
     COLLECTION_NAMES["STUDENTREPO"] = "StudentRepo";
     COLLECTION_NAMES["TRANSACTION_HISTORY"] = "TransactionHistory";
+    COLLECTION_NAMES["TECHNO_META_DATA"] = "TechnoMetaData";
 })(COLLECTION_NAMES || (exports.COLLECTION_NAMES = COLLECTION_NAMES = {}));
 var LectureConfirmation;
 (function (LectureConfirmation) {
