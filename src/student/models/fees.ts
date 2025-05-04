@@ -32,10 +32,6 @@ const BaseFeeModel = new Schema<IBaseFeeDocument>({
     remark: { 
         type: String, 
     },
-    dueDate: { 
-        type: Date,
-        set: (value : Date|undefined) => value ? convertToMongoDate(value) : undefined
-    }
 });
 
 export const FeeModel = new Schema<IFeeDocument>({
