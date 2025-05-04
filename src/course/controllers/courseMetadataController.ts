@@ -3,11 +3,11 @@ import expressAsyncHandler from "express-async-handler";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
 import { formatResponse } from "../../utils/formatResponse";
 import { CourseMetaData } from "../models/courseMetadata";
+import createHttpError from "http-errors";
 
-export const createCourse = expressAsyncHandler(async(req:AuthenticatedRequest,res:Response)=>{
+export const createCourse = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const course = await CourseMetaData.create(req.body);
-    console.log(course);
-    return formatResponse(res,200,'Course Created Succesffully',true,course);
+    return formatResponse(res, 200, 'Course Created Succesffully', true, course);
 });
 
 export const getCourseCodes = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
@@ -20,7 +20,7 @@ export const getCourseMetadataByCourseCode = expressAsyncHandler(async (req: Aut
     const { courseCode } = req.params;
     const courseMetadata = await CourseMetaData.findOne({ courseCode });
     if (!courseMetadata) {
-        return formatResponse(res, 404, 'Course metadata not found', false);
+        throw createHttpError(404, 'Course metadata not found');
     }
     return formatResponse(res, 200, 'Course metadata fetched successfully', true, courseMetadata);
 });
@@ -29,14 +29,17 @@ export const getAdmissoinDocumentListByCourseCode = expressAsyncHandler(async (r
     const { courseCode } = req.params;
     const courseMetadata = await CourseMetaData.findOne({ courseCode });
     if (!courseMetadata) {
-        return formatResponse(res, 404, 'Course metadata not found', false);
+        throw createHttpError(404, 'Course metadata not found');
     }
     return formatResponse(res, 200, 'Course metadata fetched successfully', true, { documentTypeList: courseMetadata.documentType });
 });
 
 export const getCourseFeeByCourseCodee = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { courseCode } = req.params;
-    const courseFee = CourseMetaData.findOne({ courseCode });
-    console.log(courseFee);
+    console.log(courseCode)
+    const courseFee = await CourseMetaData.findOne({ courseCode }).select('fee');
+    if (!courseFee) {
+        throw createHttpError(404, 'Course metadata not found');
+    }
     return formatResponse(res, 200, 'Course Fee infromation', true, courseFee);
 })
