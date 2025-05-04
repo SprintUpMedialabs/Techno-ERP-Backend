@@ -34,6 +34,7 @@ const express_async_handler_1 = __importDefault(require("express-async-handler")
 const student_1 = require("../models/student");
 const http_errors_1 = __importDefault(require("http-errors"));
 const formatResponse_1 = require("../../utils/formatResponse");
+const user_1 = require("../../auth/models/user");
 const createStudent = (studentData) => __awaiter(void 0, void 0, void 0, function* () {
     const { courseCode, feeId, dateOfAdmission } = studentData;
     const studentBaseInformation = Object.assign({}, studentData);
@@ -272,22 +273,42 @@ exports.getStudentDataById = (0, express_async_handler_1.default)((req, res) => 
     if (!mongoose_1.default.Types.ObjectId.isValid(id)) {
         throw (0, http_errors_1.default)(400, 'Invalid student ID');
     }
-    const student = yield student_1.Student.findById(id).populate({
-        path: 'departmentMetaDataId',
-        select: 'departmentName'
-    }).lean();
+    const student = yield student_1.Student.findById(id)
+        .populate({ path: 'departmentMetaDataId', select: 'departmentName' })
+        .lean();
     if (!student) {
         throw (0, http_errors_1.default)(404, 'Student not found');
     }
     const { departmentMetaDataId } = student, rest = __rest(student, ["departmentMetaDataId"]);
-    const course = yield course_1.Course.findById(student.courseId);
+    const course = yield course_1.Course.findById(student.courseId).lean();
     if (!course) {
-        throw (0, http_errors_1.default)('Course is not exists');
+        throw (0, http_errors_1.default)(404, 'Course does not exist');
     }
-    console.log(student.semester);
-    console.log(course);
-    const responseData = Object.assign(Object.assign({}, rest), { departmentName: (_a = departmentMetaDataId === null || departmentMetaDataId === void 0 ? void 0 : departmentMetaDataId.departmentName) !== null && _a !== void 0 ? _a : null });
-    console.log(responseData);
+    // Update student.semester with subject details and instructors
+    for (let i = 0; i < student.semester.length; i++) {
+        const studentSem = student.semester[i];
+        const courseSem = course.semester[i];
+        if (!courseSem)
+            continue;
+        for (let j = 0; j < studentSem.subjects.length; j++) {
+            const studentSubject = studentSem.subjects[j];
+            const matchedCourseSubject = courseSem.subjects.find(courseSub => courseSub._id.toString() === studentSubject.subjectId.toString());
+            if (matchedCourseSubject) {
+                studentSubject.subjectName = matchedCourseSubject.subjectName;
+                studentSubject.subjectCode = matchedCourseSubject.subjectCode;
+                // Populate instructor names
+                const instructorList = [];
+                for (const instructorId of matchedCourseSubject.instructor) {
+                    const instructor = yield user_1.User.findById(instructorId).lean();
+                    if (instructor) {
+                        instructorList.push(`${instructor.firstName} ${instructor.lastName}`);
+                    }
+                }
+                studentSubject.instructor = instructorList;
+            }
+        }
+    }
+    const responseData = Object.assign(Object.assign({}, rest), { semester: student.semester, departmentName: (_a = departmentMetaDataId === null || departmentMetaDataId === void 0 ? void 0 : departmentMetaDataId.departmentName) !== null && _a !== void 0 ? _a : null });
     return (0, formatResponse_1.formatResponse)(res, 200, 'ok', true, responseData);
 }));
 exports.updateStudentDataById = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
