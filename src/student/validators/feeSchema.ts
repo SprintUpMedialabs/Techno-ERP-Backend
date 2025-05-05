@@ -33,8 +33,15 @@ export const FetchFeeHistorySchema = z.object({
     detailId : objectIdSchema
 });
 
+export const EditFeeBreakUpSchema = z.object({
+    studentId : objectIdSchema,
+    semesterId : objectIdSchema,
+    detailId : objectIdSchema,
+    amount : z.number()
+})
 
 export type IBaseFeeSchema = z.infer<typeof BaseFeeSchema>;
 export type IFeeSchema = z.infer<typeof FeeSchema>;
 export type IFeeUpdateHistorySchema = z.infer<typeof FeeUpdateHistorySchema>;
 export type IFetchFeeHistorySchema = z.infer<typeof FetchFeeHistorySchema>;
+export type IEditFeeBreakUpSchema = z.infer<typeof EditFeeBreakUpSchema>;

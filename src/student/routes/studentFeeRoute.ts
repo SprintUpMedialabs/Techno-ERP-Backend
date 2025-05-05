@@ -1,7 +1,7 @@
 import express from "express";
 import { authenticate, authorize } from "../../middleware/jwtAuthenticationMiddleware";
 import { UserRoles } from "../../config/constants";
-import { fetchFeeInformationByStudentId, fetchFeeUpdatesHistory, getStudentDues, recordPayment } from "../controllers/studentDuesController";
+import { editFeeBreakUp, fetchFeeInformationByStudentId, fetchFeeUpdatesHistory, getStudentDues, recordPayment } from "../controllers/studentDuesController";
 
 export const studentFeeRoute = express.Router();
 
@@ -27,4 +27,10 @@ studentFeeRoute.post("/fee-update-history",
     authenticate, 
     authorize([UserRoles.BASIC_USER]), 
     fetchFeeUpdatesHistory
+);
+
+studentFeeRoute.put("/fee-breakup", 
+    authenticate, 
+    authorize([UserRoles.BASIC_USER]), 
+    editFeeBreakUp
 );

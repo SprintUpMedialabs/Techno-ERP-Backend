@@ -101,6 +101,7 @@ export const createStudent = async (studentData: ICreateStudentSchema) => {
     }
     const fees = createSemesterFee(i, feesCourse);
     semesterArray.push({
+      // _id : semesterId,
       semesterId: semesterId,
       semesterNumber: semesterNumber,
       academicYear: academicYear,

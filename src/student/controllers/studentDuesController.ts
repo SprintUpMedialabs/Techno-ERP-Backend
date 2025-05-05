@@ -1,7 +1,7 @@
 import expressAsyncHandler from "express-async-handler";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
 import { Response } from "express";
-import { FeeActions, FeeStatus } from "../../config/constants";
+import { FeeActions, FeeStatus, FinanceFeeSchedule, FinanceFeeType } from "../../config/constants";
 import { Student } from "../models/student";
 import { formatResponse } from "../../utils/formatResponse";
 import mongoose from "mongoose";
@@ -9,8 +9,23 @@ import { objectIdSchema } from "../../validators/commonSchema";
 import createHttpError from "http-errors";
 import { CreateCollegeTransactionSchema, ICreateCollegeTransactionSchema } from "../validators/collegeTransactionSchema";
 import { CollegeTransaction } from "../models/collegeTransactionHistory";
-import { FetchFeeHistorySchema, IFetchFeeHistorySchema } from "../validators/feeSchema";
+import { EditFeeBreakUpSchema, FetchFeeHistorySchema, IEditFeeBreakUpSchema, IFetchFeeHistorySchema } from "../validators/feeSchema";
 
+type FeeDetail = {
+    _id: string;
+    type: FinanceFeeType;
+    schedule: FinanceFeeSchedule;
+    actualFee: number;
+    finalFee: number;
+    paidAmount: number;
+    remark: string;
+    feeUpdateHistory: {
+      updatedAt: Date;
+      updatedFee: number;
+    }[];
+};
+
+  
 export const getStudentDues = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { page, limit, search, academicYear } = req.body;
 
@@ -107,7 +122,7 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
                 feeSchedule: "$semester.fees.details.schedule",
                 feePaid: "$semester.fees.details.paidAmount",
                 semesterBreakup: {
-                    _id : "$semester._id",
+                    _id : "$semester.semesterId",
                     id: "$semester.fees.details._id",
                     semesterNumber: "$semester.semesterNumber",
                     feeCategory: "$semester.fees.details.type",
@@ -468,5 +483,82 @@ export const fetchFeeUpdatesHistory = expressAsyncHandler(async (req: Authentica
 });
 
 export const editFeeBreakUp = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    
+    const editFeeData : IEditFeeBreakUpSchema = req.body;
+    const editFeeDataValidation = EditFeeBreakUpSchema.safeParse(editFeeData);
 
-})
+    if (!editFeeDataValidation.success) {
+        throw createHttpError(400, editFeeDataValidation.error.errors[0])
+    }
+
+    const { studentId, semesterId, detailId, amount: newFinalFee } = editFeeDataValidation.data;
+
+    const student = await Student.findById(studentId);
+    if (!student){ 
+        throw createHttpError(404, "Student not found!")
+    }
+
+    const semester = student.semester.find(s  => s.semesterId!.toString() === semesterId.toString());
+    if (!semester){ 
+        throw createHttpError(404, "Semester not found!")
+    }
+
+    const feeDetail = semester.fees.details.find(d => (d as FeeDetail)._id?.toString() === detailId.toString());
+    if (!feeDetail){
+        throw createHttpError(404, "Details of break up not found")
+    }
+
+    const oldFinalFee = feeDetail.finalFee;
+    const paidAmount = feeDetail.paidAmount;
+    const extraBalance = student.extraBalance;
+
+    const diff = newFinalFee - oldFinalFee;
+
+    feeDetail.feeUpdateHistory.push({
+        updatedAt: new Date(),
+        updatedFee: newFinalFee,
+    });
+
+    semester.fees.totalFinalFee += diff;
+
+    if (newFinalFee < oldFinalFee) {
+        const overpaid = paidAmount - newFinalFee;
+        if (overpaid > 0) {
+            feeDetail.paidAmount -= overpaid;
+            semester.fees.paidAmount -= overpaid;
+            student.extraBalance += overpaid;
+        }
+    }
+
+    if (newFinalFee > oldFinalFee) {
+        const newDue = newFinalFee - paidAmount;
+
+        if (student.extraBalance >= newDue) {
+            feeDetail.paidAmount += newDue;
+            semester.fees.paidAmount += newDue;
+            student.extraBalance -= newDue;
+        } else {
+            const used = student.extraBalance;
+            feeDetail.paidAmount += used;
+            semester.fees.paidAmount += used;
+            student.extraBalance = 0;
+        }
+    }
+
+    feeDetail.finalFee = newFinalFee;
+
+    const totalFinal = semester.fees.totalFinalFee;
+    const totalPaid = semester.fees.paidAmount;
+    const totalDue = totalFinal - totalPaid;
+
+    const allSemestersSettled = student.semester.every(
+        (sem: any) => (sem.fees?.paidAmount || 0) >= (sem.fees?.totalFinalFee || 0)
+    );
+    student.feeStatus = allSemestersSettled ? FeeStatus.PAID : FeeStatus.DUE;
+
+    await student.save();
+
+    console.log(student.semester);
+
+    return formatResponse(res, 200, "Student fees updated successfully", true, null);
+});
