@@ -27,6 +27,14 @@ export const FeeSchema = z.object({
     totalFinalFee : z.number(),
 });
 
+export const FetchFeeHistorySchema = z.object({
+    studentId : objectIdSchema,
+    semesterId : objectIdSchema,
+    detailId : objectIdSchema
+});
+
+
 export type IBaseFeeSchema = z.infer<typeof BaseFeeSchema>;
 export type IFeeSchema = z.infer<typeof FeeSchema>;
 export type IFeeUpdateHistorySchema = z.infer<typeof FeeUpdateHistorySchema>;
+export type IFetchFeeHistorySchema = z.infer<typeof FetchFeeHistorySchema>;

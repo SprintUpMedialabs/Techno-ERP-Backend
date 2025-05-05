@@ -9,6 +9,7 @@ import { objectIdSchema } from "../../validators/commonSchema";
 import createHttpError from "http-errors";
 import { CreateCollegeTransactionSchema, ICreateCollegeTransactionSchema } from "../validators/collegeTransactionSchema";
 import { CollegeTransaction } from "../models/collegeTransactionHistory";
+import { FetchFeeHistorySchema, IFetchFeeHistorySchema } from "../validators/feeSchema";
 
 export const getStudentDues = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { page, limit, search, academicYear } = req.body;
@@ -67,6 +68,7 @@ export const getStudentDues = expressAsyncHandler(async (req: AuthenticatedReque
     })
 });
 
+
 export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
 
@@ -105,6 +107,7 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
                 feeSchedule: "$semester.fees.details.schedule",
                 feePaid: "$semester.fees.details.paidAmount",
                 semesterBreakup: {
+                    _id : "$semester._id",
                     id: "$semester.fees.details._id",
                     semesterNumber: "$semester.semesterNumber",
                     feeCategory: "$semester.fees.details.type",
@@ -158,6 +161,7 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
                         as: "semBKP",
                         in: {
                             semesterNumber: "$$semBKP.semesterNumber",
+                            semesterId : "$$semBKP._id",
                             details: {
                                 $map: {
                                     input: "$$semBKP.feeCategory",
@@ -311,6 +315,7 @@ export const recordPayment = expressAsyncHandler(async (req: AuthenticatedReques
     }
 });
 
+
 export const settleFees = (student: any, amount: number) => {
 
     if (student.feeStatus != FeeStatus.PAID) {
@@ -382,6 +387,7 @@ export const settleFees = (student: any, amount: number) => {
     }
 };
 
+
 export const fetchTransactionsByStudentID = async (studentId: any) => {
     const student = await Student.findById(studentId);
     const transactionsId = student?.transactionHistory;
@@ -406,6 +412,61 @@ export const fetchTransactionsByStudentID = async (studentId: any) => {
 };
 
 
-export const editFeeBreakUp = expressAsyncHandler( async ( req : AuthenticatedRequest, res : Response ) => {
+export const fetchFeeUpdatesHistory = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+
+    const feeUpdateHistoryData: IFetchFeeHistorySchema = req.body;
+
+    const validation = FetchFeeHistorySchema.safeParse(feeUpdateHistoryData);
+
+    if (validation.error)
+        throw createHttpError(400, validation.error.errors[0]);
+
+    let { studentId, semesterId, detailId } = validation.data;
+
+    studentId = new mongoose.Types.ObjectId(studentId);
+    semesterId = new mongoose.Types.ObjectId(semesterId);
+    detailId = new mongoose.Types.ObjectId(detailId);
+
+    console.log("Student ID is : ", studentId);
+    console.log("Semester ID is : ", semesterId);
+    console.log("Detail ID is : ", detailId);
+
+    const pipeline = [
+        {
+            $match: {
+                _id: studentId
+            }
+        },
+        {
+            $unwind: "$semester"
+        },
+        {
+            $match: {
+                "semester._id": semesterId
+            }
+        },
+        {
+            $unwind: "$semester.fees.details"
+        },
+        {
+            $match: {
+                "semester.fees.details._id": detailId
+            }
+        },
+        {
+            $project: {
+                _id: 0,
+                feeUpdateHistory: "$semester.fees.details.feeUpdateHistory"
+            }
+        }
+    ];
+
+    const feeHistory = await Student.aggregate(pipeline);
+    console.log("Fee history is : ", feeHistory[0]);
+
+    return formatResponse(res, 200, "Fee Update History fetched successfully.", true, feeHistory[0]);
+});
+
+export const editFeeBreakUp = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
 
 })
