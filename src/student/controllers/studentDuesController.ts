@@ -457,7 +457,7 @@ export const fetchFeeUpdatesHistory = expressAsyncHandler(async (req: Authentica
         },
         {
             $match: {
-                "semester._id": semesterId
+                "semester.semesterId": semesterId
             }
         },
         {
