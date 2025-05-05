@@ -1,7 +1,7 @@
 import expressAsyncHandler from "express-async-handler";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
 import { Response } from "express";
-import { FeeStatus } from "../../config/constants";
+import { FeeActions, FeeStatus, FinanceFeeSchedule, FinanceFeeType } from "../../config/constants";
 import { Student } from "../models/student";
 import { formatResponse } from "../../utils/formatResponse";
 import mongoose from "mongoose";
@@ -9,7 +9,23 @@ import { objectIdSchema } from "../../validators/commonSchema";
 import createHttpError from "http-errors";
 import { CreateCollegeTransactionSchema, ICreateCollegeTransactionSchema } from "../validators/collegeTransactionSchema";
 import { CollegeTransaction } from "../models/collegeTransactionHistory";
+import { EditFeeBreakUpSchema, FetchFeeHistorySchema, IEditFeeBreakUpSchema, IFetchFeeHistorySchema } from "../validators/feeSchema";
 
+type FeeDetail = {
+    _id: string;
+    type: FinanceFeeType;
+    schedule: FinanceFeeSchedule;
+    actualFee: number;
+    finalFee: number;
+    paidAmount: number;
+    remark: string;
+    feeUpdateHistory: {
+      updatedAt: Date;
+      updatedFee: number;
+    }[];
+};
+
+  
 export const getStudentDues = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { page, limit, search, academicYear } = req.body;
 
@@ -67,6 +83,7 @@ export const getStudentDues = expressAsyncHandler(async (req: AuthenticatedReque
     })
 });
 
+
 export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
 
@@ -105,7 +122,8 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
                 feeSchedule: "$semester.fees.details.schedule",
                 feePaid: "$semester.fees.details.paidAmount",
                 semesterBreakup: {
-                    id : "$semester.fees.details._id",
+                    _id : "$semester.semesterId",
+                    id: "$semester.fees.details._id",
                     semesterNumber: "$semester.semesterNumber",
                     feeCategory: "$semester.fees.details.type",
                     feeSchedule: "$semester.fees.details.schedule",
@@ -158,6 +176,7 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
                         as: "semBKP",
                         in: {
                             semesterNumber: "$$semBKP.semesterNumber",
+                            semesterId : "$$semBKP._id",
                             details: {
                                 $map: {
                                     input: "$$semBKP.feeCategory",
@@ -166,10 +185,10 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
                                         feeCategory: "$$feeCategory",
                                         feeDetailId: {
                                             $arrayElemAt: [
-                                              "$$semBKP.id",
-                                              { $indexOfArray: ["$$semBKP.feeCategory", "$$feeCategory"] }
+                                                "$$semBKP.id",
+                                                { $indexOfArray: ["$$semBKP.feeCategory", "$$feeCategory"] }
                                             ]
-                                          },
+                                        },
                                         feeSchedule: {
                                             $arrayElemAt: [
                                                 "$$semBKP.feeSchedule",
@@ -217,6 +236,7 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
     return formatResponse(res, 200, "Student fee information fetched successfully", true, studentInformation[0]);
 });
 
+
 // FUEX : Here in future, if needed, we can add retry mechanism, not required as of now.
 export const recordPayment = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const paymentInfo: ICreateCollegeTransactionSchema = req.body;
@@ -246,11 +266,37 @@ export const recordPayment = expressAsyncHandler(async (req: AuthenticatedReques
             feeAction: validation.data.feeAction,
             remark: validation.data.remark || "",
             dateTime: new Date(),
-            actionedBy : validation.data.actionedBy
+            actionedBy: validation.data.actionedBy
         }], { session });
 
         // console.log("Transaction created : ", transaction);
         // console.log(transaction[0]._id);
+
+        if (validation.data.feeAction === FeeActions.REFUND) {
+            if ((student.extraBalance || 0) < validation.data.amount) {
+                throw createHttpError(400, "Insufficient extra balance for refund");
+            }
+
+            student.extraBalance -= validation.data.amount;
+
+            const finalStudent = await Student.findByIdAndUpdate(
+                validation.data.studentId,
+                {
+                    $set: {
+                        extraBalance: student.extraBalance,
+                    },
+                    $push: {
+                        transactionHistory: transaction[0]._id,
+                    },
+                },
+                { new: true, runValidators: true, session }
+            );
+
+            await session.commitTransaction();
+            session.endSession();
+
+            return formatResponse(res, 200, "Refund processed successfully", true, finalStudent);
+        }
 
         const { student: updatedStudent, remainingBalance } = settleFees(student, paymentInfo.amount);
         student = updatedStudent;
@@ -284,6 +330,7 @@ export const recordPayment = expressAsyncHandler(async (req: AuthenticatedReques
     }
 });
 
+
 export const settleFees = (student: any, amount: number) => {
 
     if (student.feeStatus != FeeStatus.PAID) {
@@ -293,7 +340,7 @@ export const settleFees = (student: any, amount: number) => {
 
             //Below situation might not occur, its added just to increase robustness.
             if (!fees || !fees.details || fees.details.length === 0 || !fees.dueDate)
-                continue;            
+                continue;
 
             let totalPaidAmount = fees.paidAmount || 0;
             const totalFinalFees = fees.totalFinalFee || 0;
@@ -355,25 +402,163 @@ export const settleFees = (student: any, amount: number) => {
     }
 };
 
+
 export const fetchTransactionsByStudentID = async (studentId: any) => {
     const student = await Student.findById(studentId);
     const transactionsId = student?.transactionHistory;
 
     const transactions = await CollegeTransaction.find({
         _id: { $in: transactionsId }
-    }).populate('actionedBy', 'firstName lastName email'); 
+    }).populate('actionedBy', 'firstName lastName email');
 
     const formattedTransactions = transactions.map(txn => {
-        const user = txn.actionedBy as any; 
+        const user = txn.actionedBy as any;
         const formattedActionedBy = user
             ? `${user.firstName} ${user.lastName} - ${user.email}`
             : null;
 
         return {
-            ...txn.toObject(), 
+            ...txn.toObject(),
             actionedBy: formattedActionedBy
         };
     });
 
     return formattedTransactions;
 };
+
+
+export const fetchFeeUpdatesHistory = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+
+    const feeUpdateHistoryData: IFetchFeeHistorySchema = req.body;
+
+    const validation = FetchFeeHistorySchema.safeParse(feeUpdateHistoryData);
+
+    if (validation.error)
+        throw createHttpError(400, validation.error.errors[0]);
+
+    let { studentId, semesterId, detailId } = validation.data;
+
+    studentId = new mongoose.Types.ObjectId(studentId);
+    semesterId = new mongoose.Types.ObjectId(semesterId);
+    detailId = new mongoose.Types.ObjectId(detailId);
+
+    console.log("Student ID is : ", studentId);
+    console.log("Semester ID is : ", semesterId);
+    console.log("Detail ID is : ", detailId);
+
+    const pipeline = [
+        {
+            $match: {
+                _id: studentId
+            }
+        },
+        {
+            $unwind: "$semester"
+        },
+        {
+            $match: {
+                "semester.semesterId": semesterId
+            }
+        },
+        {
+            $unwind: "$semester.fees.details"
+        },
+        {
+            $match: {
+                "semester.fees.details._id": detailId
+            }
+        },
+        {
+            $project: {
+                _id: 0,
+                feeUpdateHistory: "$semester.fees.details.feeUpdateHistory"
+            }
+        }
+    ];
+
+    const feeHistory = await Student.aggregate(pipeline);
+    console.log("Fee history is : ", feeHistory[0]);
+
+    return formatResponse(res, 200, "Fee Update History fetched successfully.", true, feeHistory[0]);
+});
+
+export const editFeeBreakUp = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    
+    const editFeeData : IEditFeeBreakUpSchema = req.body;
+    const editFeeDataValidation = EditFeeBreakUpSchema.safeParse(editFeeData);
+
+    if (!editFeeDataValidation.success) {
+        throw createHttpError(400, editFeeDataValidation.error.errors[0])
+    }
+
+    const { studentId, semesterId, detailId, amount: newFinalFee } = editFeeDataValidation.data;
+
+    const student = await Student.findById(studentId);
+    if (!student){ 
+        throw createHttpError(404, "Student not found!")
+    }
+
+    const semester = student.semester.find(s  => s.semesterId!.toString() === semesterId.toString());
+    if (!semester){ 
+        throw createHttpError(404, "Semester not found!")
+    }
+
+    const feeDetail = semester.fees.details.find(d => (d as FeeDetail)._id?.toString() === detailId.toString());
+    if (!feeDetail){
+        throw createHttpError(404, "Details of break up not found")
+    }
+
+    const oldFinalFee = feeDetail.finalFee;
+    const paidAmount = feeDetail.paidAmount;
+    const extraBalance = student.extraBalance;
+
+    const diff = newFinalFee - oldFinalFee;
+
+    feeDetail.feeUpdateHistory.push({
+        updatedAt: new Date(),
+        updatedFee: newFinalFee,
+    });
+
+    semester.fees.totalFinalFee += diff;
+
+    if (newFinalFee < oldFinalFee) {
+        const overpaid = paidAmount - newFinalFee;
+        if (overpaid > 0) {
+            feeDetail.paidAmount -= overpaid;
+            semester.fees.paidAmount -= overpaid;
+            student.extraBalance += overpaid;
+        }
+    }
+
+    if (newFinalFee > oldFinalFee) {
+        const newDue = newFinalFee - paidAmount;
+
+        if (student.extraBalance >= newDue) {
+            feeDetail.paidAmount += newDue;
+            semester.fees.paidAmount += newDue;
+            student.extraBalance -= newDue;
+        } else {
+            const used = student.extraBalance;
+            feeDetail.paidAmount += used;
+            semester.fees.paidAmount += used;
+            student.extraBalance = 0;
+        }
+    }
+
+    feeDetail.finalFee = newFinalFee;
+
+    const totalFinal = semester.fees.totalFinalFee;
+    const totalPaid = semester.fees.paidAmount;
+    const totalDue = totalFinal - totalPaid;
+
+    const allSemestersSettled = student.semester.every(
+        (sem: any) => (sem.fees?.paidAmount || 0) >= (sem.fees?.totalFinalFee || 0)
+    );
+    student.feeStatus = allSemestersSettled ? FeeStatus.PAID : FeeStatus.DUE;
+
+    await student.save();
+
+    console.log(student.semester);
+
+    return formatResponse(res, 200, "Student fees updated successfully", true, null);
+});

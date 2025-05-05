@@ -24,6 +24,7 @@ export const createStudent = async (studentData: ICreateStudentSchema) => {
 
   const course = await Course.findOne({ courseCode: courseCode, startingYear: dateOfAdmission.getFullYear() });
 
+  console.log("Course is : ", course);
   const feesCourse = await StudentFeesModel.findOne({ _id: feeId });
 
   const semSubjectIds = await Course.aggregate([
@@ -100,6 +101,7 @@ export const createStudent = async (studentData: ICreateStudentSchema) => {
     }
     const fees = createSemesterFee(i, feesCourse);
     semesterArray.push({
+      // _id : semesterId,
       semesterId: semesterId,
       semesterNumber: semesterNumber,
       academicYear: academicYear,
@@ -164,12 +166,19 @@ const createSemesterFee = (semesterNumber: number, feesCourse: any): IFeeSchema 
     ];
   }
 
+  const createFeeUpdateHistory = (amount: number) => ({
+    updatedAt: new Date(),
+    updatedFee: amount,
+  });
+
   const details = requiredFeeTypes.map((type) => {
     const feeDetail = getFeeDetail(type);
 
     let actualFee = 0;
     let finalFee = 0;
     let paidAmount = 0;
+
+    const feeUpdateHistory = [];
 
     if (feeDetail) {
       if (semesterNumber % 2 === 0) {
@@ -189,11 +198,14 @@ const createSemesterFee = (semesterNumber: number, feesCourse: any): IFeeSchema 
           finalFee = feeDetail.finalFee;
           paidAmount = feeDetail.feesDepositedTOA || 0;
         }
-      } else {
+      }
+      else {
         actualFee = feeDetail.feeAmount;
         finalFee = feeDetail.finalFee;
         paidAmount = feeDetail.feesDepositedTOA || 0;
       }
+
+      feeUpdateHistory.push(createFeeUpdateHistory(finalFee));
     }
 
     return {
@@ -203,6 +215,7 @@ const createSemesterFee = (semesterNumber: number, feesCourse: any): IFeeSchema 
       finalFee,
       paidAmount,
       remark: "",
+      feeUpdateHistory
     };
   });
 
@@ -216,6 +229,10 @@ const createSemesterFee = (semesterNumber: number, feesCourse: any): IFeeSchema 
       finalFee: semFeeInfo.finalFee || 0,
       paidAmount: semFeeInfo.feesPaid || 0,
       remark: "",
+      feeUpdateHistory: [{
+        updatedAt : new Date(),
+        updatedFee : semFeeInfo.finalFee || 0
+      }]
     });
   }
 

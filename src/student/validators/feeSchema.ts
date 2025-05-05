@@ -1,7 +1,12 @@
 import { z } from "zod";
 import { FinanceFeeSchedule, FinanceFeeType } from "../../config/constants";
 import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
-import { requestDateSchema } from "../../validators/commonSchema";
+import { objectIdSchema, requestDateSchema } from "../../validators/commonSchema";
+
+export const FeeUpdateHistorySchema = z.object({
+    updatedAt : z.date(),
+    updatedFee : z.number()
+});
 
 export const BaseFeeSchema = z.object({
     type : z.nativeEnum(FinanceFeeType),
@@ -10,6 +15,7 @@ export const BaseFeeSchema = z.object({
     finalFee : z.number(),
     paidAmount : z.number(),
     remark : z.string(),
+    feeUpdateHistory : z.array(FeeUpdateHistorySchema)
 })
 
 export const FeeSchema = z.object({
@@ -21,5 +27,21 @@ export const FeeSchema = z.object({
     totalFinalFee : z.number(),
 });
 
+export const FetchFeeHistorySchema = z.object({
+    studentId : objectIdSchema,
+    semesterId : objectIdSchema,
+    detailId : objectIdSchema
+});
+
+export const EditFeeBreakUpSchema = z.object({
+    studentId : objectIdSchema,
+    semesterId : objectIdSchema,
+    detailId : objectIdSchema,
+    amount : z.number()
+})
+
 export type IBaseFeeSchema = z.infer<typeof BaseFeeSchema>;
 export type IFeeSchema = z.infer<typeof FeeSchema>;
+export type IFeeUpdateHistorySchema = z.infer<typeof FeeUpdateHistorySchema>;
+export type IFetchFeeHistorySchema = z.infer<typeof FetchFeeHistorySchema>;
+export type IEditFeeBreakUpSchema = z.infer<typeof EditFeeBreakUpSchema>;
