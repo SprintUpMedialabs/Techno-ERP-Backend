@@ -13,6 +13,7 @@ import { objectIdSchema } from '../../validators/commonSchema';
 import { Enquiry } from '../models/enquiry';
 import { EnquiryDraft } from '../models/enquiryDraft';
 import { EnquiryApplicationId } from '../models/enquiryIdMetaDataSchema';
+import { enquiryStatusUpdateSchema, IEnquiryStatusUpdateSchema } from '../validators/enquiryStatusUpdateSchema';
 
 
 export const getEnquiryData = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
@@ -132,6 +133,7 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
 
   try {
     const enquiry = await Enquiry.findById(id).session(session);
+    console.log("Enquiry is  : ", enquiry);
     if (!enquiry || enquiry.applicationStatus != ApplicationStatus.STEP_4) {
       throw createHttpError(404, 'Please create the enquiry first!');
     }
@@ -245,7 +247,6 @@ export const updateStatus = expressAsyncHandler(async (req: AuthenticatedRequest
   // else {
   //   return formatResponse(res, 200, 'Enquiry Status Updated Successfully', true);
   // }
-
 });
 
 

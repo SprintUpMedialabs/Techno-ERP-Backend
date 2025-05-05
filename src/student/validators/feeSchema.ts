@@ -3,6 +3,11 @@ import { FinanceFeeSchedule, FinanceFeeType } from "../../config/constants";
 import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
 import { objectIdSchema, requestDateSchema } from "../../validators/commonSchema";
 
+export const FeeUpdateHistorySchema = z.object({
+    updatedAt : z.date(),
+    updatedFee : z.number()
+});
+
 export const BaseFeeSchema = z.object({
     type : z.nativeEnum(FinanceFeeType),
     schedule: z.nativeEnum(FinanceFeeSchedule),
@@ -10,6 +15,7 @@ export const BaseFeeSchema = z.object({
     finalFee : z.number(),
     paidAmount : z.number(),
     remark : z.string(),
+    feeUpdateHistory : z.array(FeeUpdateHistorySchema)
 })
 
 export const FeeSchema = z.object({
@@ -23,3 +29,4 @@ export const FeeSchema = z.object({
 
 export type IBaseFeeSchema = z.infer<typeof BaseFeeSchema>;
 export type IFeeSchema = z.infer<typeof FeeSchema>;
+export type IFeeUpdateHistorySchema = z.infer<typeof FeeUpdateHistorySchema>;

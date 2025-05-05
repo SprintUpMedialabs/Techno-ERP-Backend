@@ -1,10 +1,20 @@
 import { Schema } from "mongoose";
 import { FinanceFeeSchedule, FinanceFeeType } from "../../config/constants";
-import { IBaseFeeSchema, IFeeSchema } from "../validators/feeSchema";
+import { IBaseFeeSchema, IFeeSchema, IFeeUpdateHistorySchema } from "../validators/feeSchema";
 import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
 
 export interface IBaseFeeDocument extends IBaseFeeSchema, Document{}
 export interface IFeeDocument extends IFeeSchema, Document{}
+export interface IFeeUpdateHistoryDocument extends IFeeUpdateHistorySchema, Document{}
+
+const FeeUpdateHistoryModel = new Schema <IFeeUpdateHistoryDocument>({
+    updatedAt : {
+        type : Date
+    },
+    updatedFee : {
+        type : Number
+    }
+})
 
 const BaseFeeModel = new Schema<IBaseFeeDocument>({
     type: { 
@@ -32,6 +42,7 @@ const BaseFeeModel = new Schema<IBaseFeeDocument>({
     remark: { 
         type: String, 
     },
+    feeUpdateHistory : [FeeUpdateHistoryModel]
 });
 
 export const FeeModel = new Schema<IFeeDocument>({

@@ -165,12 +165,19 @@ const createSemesterFee = (semesterNumber: number, feesCourse: any): IFeeSchema 
     ];
   }
 
+  const createFeeUpdateHistory = (amount: number) => ({
+    updatedAt: new Date(),
+    updatedFee: amount,
+  });
+
   const details = requiredFeeTypes.map((type) => {
     const feeDetail = getFeeDetail(type);
 
     let actualFee = 0;
     let finalFee = 0;
     let paidAmount = 0;
+
+    const feeUpdateHistory = [];
 
     if (feeDetail) {
       if (semesterNumber % 2 === 0) {
@@ -190,11 +197,14 @@ const createSemesterFee = (semesterNumber: number, feesCourse: any): IFeeSchema 
           finalFee = feeDetail.finalFee;
           paidAmount = feeDetail.feesDepositedTOA || 0;
         }
-      } else {
+      }
+      else {
         actualFee = feeDetail.feeAmount;
         finalFee = feeDetail.finalFee;
         paidAmount = feeDetail.feesDepositedTOA || 0;
       }
+
+      feeUpdateHistory.push(createFeeUpdateHistory(finalFee));
     }
 
     return {
@@ -204,6 +214,7 @@ const createSemesterFee = (semesterNumber: number, feesCourse: any): IFeeSchema 
       finalFee,
       paidAmount,
       remark: "",
+      feeUpdateHistory
     };
   });
 
@@ -217,6 +228,10 @@ const createSemesterFee = (semesterNumber: number, feesCourse: any): IFeeSchema 
       finalFee: semFeeInfo.finalFee || 0,
       paidAmount: semFeeInfo.feesPaid || 0,
       remark: "",
+      feeUpdateHistory: [{
+        updatedAt : new Date(),
+        updatedFee : semFeeInfo.finalFee || 0
+      }]
     });
   }
 
