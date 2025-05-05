@@ -171,7 +171,7 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
 
     const enquiryData = approvedEnquiry?.toObject();
 
-    // console.log("Approved ENquiry is : ", enquiryData);
+    console.log("Approved ENquiry is : ", enquiryData);
 
     const studentData = {
       // "studentName" : approvedEnquiry?.studentName,

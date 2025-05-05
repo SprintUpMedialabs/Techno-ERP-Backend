@@ -1,7 +1,7 @@
 import expressAsyncHandler from "express-async-handler";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
 import { Response } from "express";
-import { FeeStatus } from "../../config/constants";
+import { FeeActions, FeeStatus } from "../../config/constants";
 import { Student } from "../models/student";
 import { formatResponse } from "../../utils/formatResponse";
 import mongoose from "mongoose";
@@ -105,7 +105,7 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
                 feeSchedule: "$semester.fees.details.schedule",
                 feePaid: "$semester.fees.details.paidAmount",
                 semesterBreakup: {
-                    id : "$semester.fees.details._id",
+                    id: "$semester.fees.details._id",
                     semesterNumber: "$semester.semesterNumber",
                     feeCategory: "$semester.fees.details.type",
                     feeSchedule: "$semester.fees.details.schedule",
@@ -166,10 +166,10 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
                                         feeCategory: "$$feeCategory",
                                         feeDetailId: {
                                             $arrayElemAt: [
-                                              "$$semBKP.id",
-                                              { $indexOfArray: ["$$semBKP.feeCategory", "$$feeCategory"] }
+                                                "$$semBKP.id",
+                                                { $indexOfArray: ["$$semBKP.feeCategory", "$$feeCategory"] }
                                             ]
-                                          },
+                                        },
                                         feeSchedule: {
                                             $arrayElemAt: [
                                                 "$$semBKP.feeSchedule",
@@ -217,6 +217,7 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
     return formatResponse(res, 200, "Student fee information fetched successfully", true, studentInformation[0]);
 });
 
+
 // FUEX : Here in future, if needed, we can add retry mechanism, not required as of now.
 export const recordPayment = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const paymentInfo: ICreateCollegeTransactionSchema = req.body;
@@ -246,11 +247,37 @@ export const recordPayment = expressAsyncHandler(async (req: AuthenticatedReques
             feeAction: validation.data.feeAction,
             remark: validation.data.remark || "",
             dateTime: new Date(),
-            actionedBy : validation.data.actionedBy
+            actionedBy: validation.data.actionedBy
         }], { session });
 
         // console.log("Transaction created : ", transaction);
         // console.log(transaction[0]._id);
+
+        if (validation.data.feeAction === FeeActions.REFUND) {
+            if ((student.extraBalance || 0) < validation.data.amount) {
+                throw createHttpError(400, "Insufficient extra balance for refund");
+            }
+
+            student.extraBalance -= validation.data.amount;
+
+            const finalStudent = await Student.findByIdAndUpdate(
+                validation.data.studentId,
+                {
+                    $set: {
+                        extraBalance: student.extraBalance,
+                    },
+                    $push: {
+                        transactionHistory: transaction[0]._id,
+                    },
+                },
+                { new: true, runValidators: true, session }
+            );
+
+            await session.commitTransaction();
+            session.endSession();
+
+            return formatResponse(res, 200, "Refund processed successfully", true, finalStudent);
+        }
 
         const { student: updatedStudent, remainingBalance } = settleFees(student, paymentInfo.amount);
         student = updatedStudent;
@@ -293,7 +320,7 @@ export const settleFees = (student: any, amount: number) => {
 
             //Below situation might not occur, its added just to increase robustness.
             if (!fees || !fees.details || fees.details.length === 0 || !fees.dueDate)
-                continue;            
+                continue;
 
             let totalPaidAmount = fees.paidAmount || 0;
             const totalFinalFees = fees.totalFinalFee || 0;
@@ -361,19 +388,24 @@ export const fetchTransactionsByStudentID = async (studentId: any) => {
 
     const transactions = await CollegeTransaction.find({
         _id: { $in: transactionsId }
-    }).populate('actionedBy', 'firstName lastName email'); 
+    }).populate('actionedBy', 'firstName lastName email');
 
     const formattedTransactions = transactions.map(txn => {
-        const user = txn.actionedBy as any; 
+        const user = txn.actionedBy as any;
         const formattedActionedBy = user
             ? `${user.firstName} ${user.lastName} - ${user.email}`
             : null;
 
         return {
-            ...txn.toObject(), 
+            ...txn.toObject(),
             actionedBy: formattedActionedBy
         };
     });
 
     return formattedTransactions;
 };
+
+
+export const editFeeBreakUp = expressAsyncHandler( async ( req : AuthenticatedRequest, res : Response ) => {
+
+})

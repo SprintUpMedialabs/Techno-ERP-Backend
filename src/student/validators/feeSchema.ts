@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { FinanceFeeSchedule, FinanceFeeType } from "../../config/constants";
 import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
-import { requestDateSchema } from "../../validators/commonSchema";
+import { objectIdSchema, requestDateSchema } from "../../validators/commonSchema";
 
 export const BaseFeeSchema = z.object({
     type : z.nativeEnum(FinanceFeeType),

@@ -24,6 +24,7 @@ export const createStudent = async (studentData: ICreateStudentSchema) => {
 
   const course = await Course.findOne({ courseCode: courseCode, startingYear: dateOfAdmission.getFullYear() });
 
+  console.log("Course is : ", course);
   const feesCourse = await StudentFeesModel.findOne({ _id: feeId });
 
   const semSubjectIds = await Course.aggregate([
