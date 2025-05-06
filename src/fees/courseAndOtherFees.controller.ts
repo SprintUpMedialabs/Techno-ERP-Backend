@@ -37,20 +37,21 @@ export const getFeesStructureById = async (req: Request, res: Response) => {
 };
 
 export const getCourseFeeByCourseName = expressAsyncHandler(async (req: Request, res: Response) => {
-
-    const courseName = req.params.courseName;
-    const courseFee = await fetchCourseFeeByCourse(courseName as Course);
+    // console.log("Here")
+    const courseCode = req.params.courseCode;
+    // console.log("COurse code is : ", courseCode);
+    const courseFee = await fetchCourseFeeByCourse(courseCode as String);
 
     if(!courseFee)
         throw createHttpError(404, "Fee not found for this course");
 
-    return formatResponse(res, 200, "Other fees fetched successfully for this course", true, courseFee);
+    return formatResponse(res, 200, "Course fees fetched successfully for this course", true, courseFee);
     
 });
 
 export const getOtherFees = async (req: Request, res: Response) => {
-    const courseName = req.params.courseName;
-    const otherFees = await fetchOtherFees(courseName as Course);
+    const courseCode = req.params.courseCode;
+    const otherFees = await fetchOtherFees(courseCode as String);
 
     if(!otherFees)
         throw createHttpError(404, "Other fees not found for this course");
@@ -59,9 +60,9 @@ export const getOtherFees = async (req: Request, res: Response) => {
 };
 
 
-export const fetchCourseFeeByCourse = async (courseName: Course) => {
+export const fetchCourseFeeByCourse = async (courseCode: String) => {
     const record = await CourseMetaData.findOne({
-        'courseName': courseName
+        'courseCode': courseCode
     });
 
     if (!record) 
@@ -72,10 +73,10 @@ export const fetchCourseFeeByCourse = async (courseName: Course) => {
     return courseFee || null;
 };
 
-export const fetchOtherFees = async (courseName : Course) => {
+export const fetchOtherFees = async (courseCode : String) => {
     
     const record = await CourseMetaData.findOne({
-        'courseName': courseName
+        'courseCode': courseCode
     });
 
     if (!record) 
