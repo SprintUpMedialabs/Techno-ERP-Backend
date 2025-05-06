@@ -9,7 +9,7 @@ import { addressSchema } from './address';
 import { previousCollegeDataSchema } from './previousCollegeData';
 import { singleDocumentSchema } from './singleDocument';
 import { entranceExamDetailSchema } from './entranceExamDetail';
-import { physicalDocumentNoteSchema } from './physicalDocumentNoteSchema';
+import { IPhysicalDocumentNoteSchemaDoc, physicalDocumentNoteSchema } from './physicalDocumentNoteSchema';
 
 export interface IEnquiryDocument extends IEnquirySchema, Document {
   formNo: string;
@@ -191,7 +191,7 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
     documents: {
       type: [singleDocumentSchema]
     },
-    physicalDocumentNote:{
+    physicalDocumentNote: {
       type: [physicalDocumentNoteSchema]
     },
     stateOfDomicile: {
@@ -317,6 +317,11 @@ const transformDates = (_: any, ret: any) => {
       ret[key] = convertToDDMMYYYY(ret[key]);
     }
   });
+  ret['physicalDocumentNote'].forEach((physicalDocumentNote: any) => {
+    if (physicalDocumentNote.dueBy != undefined) {
+      physicalDocumentNote.dueBy = convertToDDMMYYYY(physicalDocumentNote.dueBy);
+    }
+  })
   delete ret.createdAt;
   delete ret.updatedAt;
   delete ret.__v;
