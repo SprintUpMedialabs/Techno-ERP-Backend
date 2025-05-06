@@ -73,6 +73,7 @@ export const fetchCourseFeeByCourse = async (courseName: Course) => {
 };
 
 export const fetchOtherFees = async (courseName : Course) => {
+    
     const record = await CourseMetaData.findOne({
         'courseName': courseName
     });
@@ -86,7 +87,7 @@ export const fetchOtherFees = async (courseName : Course) => {
     const oneTimeFee = record.fee.oneTime || [];
     const otherFees = [...yearlyFee, ...oneTimeFee];
     // console.log("Other fees : ", otherFees);
-    
+
     return otherFees;
-   
+
 };
