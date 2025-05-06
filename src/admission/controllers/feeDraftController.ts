@@ -32,15 +32,20 @@ export const createFeeDraft = expressAsyncHandler(functionLevelLogger(async (req
     throw createHttpError(400, 'Valid enquiry does not exist. Please complete step 1 first!');
   }
 
-  const otherFees = await fetchOtherFees();
-  const semWiseFee = await fetchCourseFeeByCourse(enquiry.course as Course);
+  const otherFees = await fetchOtherFees(enquiry.course as String);
+  const semWiseFee = await fetchCourseFeeByCourse(enquiry.course as String);
 
+  if (!semWiseFee) {
+    throw createHttpError(500, 'Semester-wise fee structure not found for the course');
+  }
+  
   const { counsellor, telecaller, ...feeRelatedData } = validation.data;
   const feeData = {
     ...feeRelatedData,
     otherFees: feeRelatedData.otherFees?.map(fee => {
       let feeAmount = fee.feeAmount;
-      feeAmount = feeAmount ?? otherFees?.find(otherFee => otherFee.type === fee.type)?.fee ?? 0;
+      // feeAmount = feeAmount ?? otherFees?.find(otherFee => otherFee.type === fee.type)?.fee ?? 0;
+      feeAmount = otherFees?.find(otherFee => otherFee.type === fee.type)?.amount ?? 0;
       return {
         ...fee,
         feeAmount,
@@ -49,7 +54,7 @@ export const createFeeDraft = expressAsyncHandler(functionLevelLogger(async (req
       };
     }) || [],
     semWiseFees: feeRelatedData.semWiseFees?.map((semFee, index) => ({
-      feeAmount: semFee.feeAmount ?? semWiseFee?.fee[index] ?? 0,
+      feeAmount: semFee.feeAmount ?? semWiseFee[index].amount ?? 0,
       finalFee: semFee.finalFee ?? 0
     })) || []
   };
@@ -98,8 +103,12 @@ export const updateFeeDraft = expressAsyncHandler(functionLevelLogger(async (req
     throw createHttpError(404, 'Not a valid enquiry');
   }
 
-  const otherFees = await fetchOtherFees();
-  const semWiseFee = await fetchCourseFeeByCourse(enquiry.course as Course);
+  const otherFees = await fetchOtherFees(enquiry.course as String);
+  const semWiseFee = await fetchCourseFeeByCourse(enquiry.course as String);
+
+  if (!semWiseFee) {
+    throw createHttpError(500, 'Semester-wise fee structure not found for the course');
+  }
 
   // DTODO: remove telecaller and counsellor from updatedData
   const { counsellor, telecaller, ...feeRelatedData } = validation.data;
@@ -108,7 +117,8 @@ export const updateFeeDraft = expressAsyncHandler(functionLevelLogger(async (req
     otherFees: feeRelatedData.otherFees?.map(fee => {
       let feeAmount = fee.feeAmount;
 
-      feeAmount = feeAmount ?? otherFees?.find(otherFee => otherFee.type === fee.type)?.fee ?? 0;
+        // feeAmount = otherFees?.find(otherFee => otherFee.type === fee.type)?.amount ?? 0;
+        feeAmount = otherFees?.find(otherFee => otherFee.type === fee.type)?.amount ?? 0;
 
       return {
         ...fee,
@@ -118,7 +128,8 @@ export const updateFeeDraft = expressAsyncHandler(functionLevelLogger(async (req
       };
     }) || [],
     semWiseFees: feeRelatedData.semWiseFees?.map((semFee, index) => ({
-      feeAmount: semFee.feeAmount ?? semWiseFee?.fee[index] ?? 0,
+      // feeAmount: semFee.feeAmount ?? semWiseFee?.fee[index] ?? 0,
+      feeAmount: semFee.feeAmount ?? semWiseFee[index].amount ?? 0,
       finalFee: semFee.finalFee ?? 0
     })) || []
   };

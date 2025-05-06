@@ -39,8 +39,8 @@ export const createEnquiryStep2 = expressAsyncHandler(functionLevelLogger(async 
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    const otherFees = await fetchOtherFees(enquiry?.course as Course);
-    const semWiseFee = await fetchCourseFeeByCourse(enquiry?.course as Course);
+    const otherFees = await fetchOtherFees(enquiry?.course as String);
+    const semWiseFee = await fetchCourseFeeByCourse(enquiry?.course as String);
 
     // console.log("Other fees is : ", otherFees);
     // console.log("Semwise fee is : ", semWiseFee);
