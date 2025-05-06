@@ -341,6 +341,11 @@ const transformDates = (_, ret) => {
             ret[key] = (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(ret[key]);
         }
     });
+    ret['physicalDocumentNote'].forEach((physicalDocumentNote) => {
+        if (physicalDocumentNote.dueBy != undefined) {
+            physicalDocumentNote.dueBy = (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(physicalDocumentNote.dueBy);
+        }
+    });
     delete ret.createdAt;
     delete ret.updatedAt;
     delete ret.__v;
