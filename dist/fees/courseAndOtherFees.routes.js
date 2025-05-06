@@ -8,6 +8,6 @@ exports.feesRouter.post('/', courseAndOtherFees_controller_1.createFeesStructure
 // feesRouter.put('/:id', updateFeesStructure);
 exports.feesRouter.get('/', courseAndOtherFees_controller_1.getAllFeesStructures);
 // feesRouter.get('/:id', getFeesStructureById);
-exports.feesRouter.get('/course/:courseName', courseAndOtherFees_controller_1.getCourseFeeByCourseName);
-exports.feesRouter.get('/other-fees/:courseName', courseAndOtherFees_controller_1.getOtherFees);
+exports.feesRouter.get('/course/:courseCode', courseAndOtherFees_controller_1.getCourseFeeByCourseName);
+exports.feesRouter.get('/other-fees/:courseCode', courseAndOtherFees_controller_1.getOtherFees);
 exports.default = exports.feesRouter;

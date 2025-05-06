@@ -45,23 +45,25 @@ const getFeesStructureById = (req, res) => __awaiter(void 0, void 0, void 0, fun
 });
 exports.getFeesStructureById = getFeesStructureById;
 exports.getCourseFeeByCourseName = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const courseName = req.params.courseName;
-    const courseFee = yield (0, exports.fetchCourseFeeByCourse)(courseName);
+    // console.log("Here")
+    const courseCode = req.params.courseCode;
+    // console.log("COurse code is : ", courseCode);
+    const courseFee = yield (0, exports.fetchCourseFeeByCourse)(courseCode);
     if (!courseFee)
         throw (0, http_errors_1.default)(404, "Fee not found for this course");
-    return (0, formatResponse_1.formatResponse)(res, 200, "Other fees fetched successfully for this course", true, courseFee);
+    return (0, formatResponse_1.formatResponse)(res, 200, "Course fees fetched successfully for this course", true, courseFee);
 }));
 const getOtherFees = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const courseName = req.params.courseName;
-    const otherFees = yield (0, exports.fetchOtherFees)(courseName);
+    const courseCode = req.params.courseCode;
+    const otherFees = yield (0, exports.fetchOtherFees)(courseCode);
     if (!otherFees)
         throw (0, http_errors_1.default)(404, "Other fees not found for this course");
     return (0, formatResponse_1.formatResponse)(res, 200, "Other fees fetched successfully for this course", true, otherFees);
 });
 exports.getOtherFees = getOtherFees;
-const fetchCourseFeeByCourse = (courseName) => __awaiter(void 0, void 0, void 0, function* () {
+const fetchCourseFeeByCourse = (courseCode) => __awaiter(void 0, void 0, void 0, function* () {
     const record = yield courseMetadata_1.CourseMetaData.findOne({
-        'courseName': courseName
+        'courseCode': courseCode
     });
     if (!record)
         return null;
@@ -70,9 +72,9 @@ const fetchCourseFeeByCourse = (courseName) => __awaiter(void 0, void 0, void 0,
     return courseFee || null;
 });
 exports.fetchCourseFeeByCourse = fetchCourseFeeByCourse;
-const fetchOtherFees = (courseName) => __awaiter(void 0, void 0, void 0, function* () {
+const fetchOtherFees = (courseCode) => __awaiter(void 0, void 0, void 0, function* () {
     const record = yield courseMetadata_1.CourseMetaData.findOne({
-        'courseName': courseName
+        'courseCode': courseCode
     });
     if (!record)
         return null;
