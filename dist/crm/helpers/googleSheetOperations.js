@@ -68,7 +68,6 @@ exports.readFromGoogleSheet = readFromGoogleSheet;
 const updateStatusForMarketingSheet = (newLastReadIndex, lastSavedIndex, report, MARKETING_SHEET_ID, MARKETING_SHEET_PAGE_NAME) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     const sheetInstance = googleapis_1.google.sheets({ version: 'v4', auth: googleAuth_1.googleAuth });
-    newLastReadIndex = newLastReadIndex + 1;
     yield spreadSheet_1.SpreadSheetMetaData.findOneAndUpdate({ name: MARKETING_SHEET_PAGE_NAME }, { $set: { lastIdxMarketingSheet: newLastReadIndex } }, { new: true, upsert: true });
     const sheetMeta = yield sheetInstance.spreadsheets.get({
         spreadsheetId: MARKETING_SHEET_ID
@@ -89,6 +88,8 @@ const updateStatusForMarketingSheet = (newLastReadIndex, lastSavedIndex, report,
                     sheetId,
                     startRowIndex: newLastReadIndex - 1,
                     endRowIndex: newLastReadIndex,
+                    startColumnIndex: 0,
+                    endColumnIndex: 2
                 },
                 cell: {
                     userEnteredFormat: {
@@ -107,6 +108,8 @@ const updateStatusForMarketingSheet = (newLastReadIndex, lastSavedIndex, report,
                     sheetId,
                     startRowIndex: rowIndex - 1,
                     endRowIndex: rowIndex,
+                    startColumnIndex: 0,
+                    endColumnIndex: 2
                 },
                 cell: {
                     userEnteredFormat: {
@@ -125,6 +128,8 @@ const updateStatusForMarketingSheet = (newLastReadIndex, lastSavedIndex, report,
                     sheetId,
                     startRowIndex: lastSavedIndex - 1,
                     endRowIndex: lastSavedIndex,
+                    startColumnIndex: 0,
+                    endColumnIndex: 2
                 },
                 cell: {
                     userEnteredFormat: {
@@ -143,6 +148,8 @@ const updateStatusForMarketingSheet = (newLastReadIndex, lastSavedIndex, report,
                     sheetId,
                     startRowIndex: rowIndex - 1,
                     endRowIndex: rowIndex,
+                    startColumnIndex: 0,
+                    endColumnIndex: 2
                 },
                 cell: {
                     userEnteredFormat: {

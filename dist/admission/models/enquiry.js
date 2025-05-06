@@ -336,9 +336,15 @@ exports.enquirySchema.post('findOneAndUpdate', function (error, doc, next) {
     handleMongooseError(error, next);
 });
 const transformDates = (_, ret) => {
+    var _a;
     ['dateOfEnquiry', 'dateOfAdmission', 'dateOfBirth', 'dueBy'].forEach((key) => {
         if (ret[key]) {
             ret[key] = (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(ret[key]);
+        }
+    });
+    (_a = ret['physicalDocumentNote']) === null || _a === void 0 ? void 0 : _a.forEach((physicalDocumentNote) => {
+        if ((physicalDocumentNote === null || physicalDocumentNote === void 0 ? void 0 : physicalDocumentNote.dueBy) != undefined) {
+            physicalDocumentNote.dueBy = (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(physicalDocumentNote.dueBy);
         }
     });
     delete ret.createdAt;
