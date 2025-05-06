@@ -3,6 +3,8 @@ import createHttpError from 'http-errors';
 import { CourseAndOtherFeesModel } from './courseAndOtherFees.model';
 import { Course } from '../config/constants';
 import expressAsyncHandler from 'express-async-handler';
+import { CourseMetaData } from '../course/models/courseMetadata';
+import { formatResponse } from '../utils/formatResponse';
 
 export const createFeesStructure = async (req: Request, res: Response) => {
     const newDoc = await CourseAndOtherFeesModel.create(req.body);
@@ -35,36 +37,58 @@ export const getFeesStructureById = async (req: Request, res: Response) => {
 };
 
 export const getCourseFeeByCourseName = expressAsyncHandler(async (req: Request, res: Response) => {
+    // console.log("Here")
+    const courseCode = req.params.courseCode;
+    // console.log("COurse code is : ", courseCode);
+    const courseFee = await fetchCourseFeeByCourse(courseCode as String);
 
-    const courseName = req.params.courseName;
-    const courseFee = await fetchCourseFeeByCourse(courseName as Course);
+    if(!courseFee)
+        throw createHttpError(404, "Fee not found for this course");
 
-    if (!courseFee) {
-        throw createHttpError(404, 'Course fee not found');
-    }
-
-    res.status(200).json(courseFee);
-
+    return formatResponse(res, 200, "Course fees fetched successfully for this course", true, courseFee);
+    
 });
 
 export const getOtherFees = async (req: Request, res: Response) => {
-    const otherFees = await fetchOtherFees();
-    res.status(200).json(otherFees);
+    const courseCode = req.params.courseCode;
+    const otherFees = await fetchOtherFees(courseCode as String);
+
+    if(!otherFees)
+        throw createHttpError(404, "Other fees not found for this course");
+
+    return formatResponse(res, 200, "Other fees fetched successfully for this course", true, otherFees);
 };
 
-// ✅ Reusable function
-export const fetchCourseFeeByCourse = async (courseName: Course) => {
-    const record = await CourseAndOtherFeesModel.findOne({
-        'courseFees.course': courseName
+
+export const fetchCourseFeeByCourse = async (courseCode: String) => {
+    const record = await CourseMetaData.findOne({
+        'courseCode': courseCode
     });
 
-    if (!record) return null;
+    if (!record) 
+        return null;
 
-    const courseFee = record.courseFees.find(c => c.course === courseName);
+    const courseFee = record.fee.semWiseFee;
+    // console.log("Course Fee : ", courseFee);
     return courseFee || null;
 };
 
-export const fetchOtherFees = async () => {
-    const record = await CourseAndOtherFeesModel.findOne();
-    return record?.otherFees || [];
+export const fetchOtherFees = async (courseCode : String) => {
+    
+    const record = await CourseMetaData.findOne({
+        'courseCode': courseCode
+    });
+
+    if (!record) 
+        return null;
+    // console.log("Record is : ", record);
+    // console.log("Fees : ", record.fee);
+
+    const yearlyFee = record.fee.yearlyFee || [];
+    const oneTimeFee = record.fee.oneTime || [];
+    const otherFees = [...yearlyFee, ...oneTimeFee];
+    // console.log("Other fees : ", otherFees);
+
+    return otherFees;
+
 };

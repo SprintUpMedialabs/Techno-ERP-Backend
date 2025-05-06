@@ -39,8 +39,15 @@ export const createEnquiryStep2 = expressAsyncHandler(functionLevelLogger(async 
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    const otherFees = await fetchOtherFees();
-    const semWiseFee = await fetchCourseFeeByCourse(enquiry?.course as Course);
+    const otherFees = await fetchOtherFees(enquiry?.course as String);
+    const semWiseFee = await fetchCourseFeeByCourse(enquiry?.course as String);
+
+    // console.log("Other fees is : ", otherFees);
+    // console.log("Semwise fee is : ", semWiseFee);
+
+    if (!semWiseFee) {
+      throw createHttpError(500, 'Semester-wise fee structure not found for the course');
+    }
 
     const { counsellor, telecaller, ...feeRelatedData } = validation.data;
 
@@ -48,7 +55,7 @@ export const createEnquiryStep2 = expressAsyncHandler(functionLevelLogger(async 
       ...feeRelatedData,
       otherFees: feeRelatedData.otherFees?.map(fee => {
         let feeAmount;
-        feeAmount = otherFees?.find(otherFee => otherFee.type === fee.type)?.fee ?? 0;
+        feeAmount = otherFees?.find(otherFee => otherFee.type === fee.type)?.amount ?? 0;
         return {
           ...fee,
           feeAmount,
@@ -58,7 +65,7 @@ export const createEnquiryStep2 = expressAsyncHandler(functionLevelLogger(async 
       }) || [],
       semWiseFees: feeRelatedData.semWiseFees.map((semFee, index: number) => ({
         finalFee: semFee.finalFee,
-        feeAmount: semWiseFee?.fee[index] ?? 0,
+        feeAmount: semWiseFee[index].amount ?? 0,
         feesPaid: 0,
       })),
     };
