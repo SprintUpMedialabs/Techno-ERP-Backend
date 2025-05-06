@@ -23,7 +23,7 @@ exports.enquirySchema = zod_1.z.object({
     motherOccupation: zod_1.z.string({ required_error: "Mother occupation is required", }).nonempty('Mother occupation is required'),
     dateOfBirth: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)),
     category: zod_1.z.nativeEnum(constants_1.Category),
-    course: zod_1.z.nativeEnum(constants_1.Course),
+    course: zod_1.z.string().nonempty('Course can not be empty'),
     reference: zod_1.z.nativeEnum(constants_1.AdmissionReference),
     address: commonSchema_1.addressSchema,
     academicDetails: academicDetailSchema_1.academicDetailsArraySchema.optional(),

@@ -26,16 +26,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateEnquiryDocuments = exports.updateEnquiryStep3ById = exports.saveStep3Draft = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const http_errors_1 = __importDefault(require("http-errors"));
+const mongoose_1 = __importDefault(require("mongoose"));
 const constants_1 = require("../../config/constants");
+const functionLevelLogging_1 = require("../../config/functionLevelLogging");
+const s3Upload_1 = require("../../config/s3Upload");
+const dropDownMetadataController_1 = require("../../utilityModules/dropdown/dropDownMetadataController");
 const formatResponse_1 = require("../../utils/formatResponse");
-const checkIfStudentAdmitted_1 = require("../helpers/checkIfStudentAdmitted");
 const enquiry_1 = require("../models/enquiry");
 const enquiry_2 = require("../validators/enquiry");
-const functionLevelLogging_1 = require("../../config/functionLevelLogging");
-const mongoose_1 = __importDefault(require("mongoose"));
-const s3Upload_1 = require("../../config/s3Upload");
 const singleDocumentSchema_1 = require("../validators/singleDocumentSchema");
-const dropDownMetadataController_1 = require("../../utilityModules/dropdown/dropDownMetadataController");
 exports.saveStep3Draft = (0, express_async_handler_1.default)((0, functionLevelLogging_1.functionLevelLogger)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const data = req.body;
@@ -44,7 +43,14 @@ exports.saveStep3Draft = (0, express_async_handler_1.default)((0, functionLevelL
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }
     const _b = validation.data, { id } = _b, validatedData = __rest(_b, ["id"]);
-    const enquiry = yield enquiry_1.Enquiry.findByIdAndUpdate(id, Object.assign({}, validatedData), { new: true, runValidators: true });
+    const isEnquiryExists = yield enquiry_1.Enquiry.exists({
+        _id: id,
+        applicationStatus: constants_1.ApplicationStatus.STEP_3
+    });
+    if (!isEnquiryExists) {
+        throw (0, http_errors_1.default)(400, 'Enquiry not found');
+    }
+    const enquiry = yield enquiry_1.Enquiry.findByIdAndUpdate(id, Object.assign(Object.assign({}, validatedData), { applicationStatus: constants_1.ApplicationStatus.STEP_3 }), { new: true, runValidators: true });
     (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.DISTRICT, (_a = enquiry === null || enquiry === void 0 ? void 0 : enquiry.address) === null || _a === void 0 ? void 0 : _a.district);
     return (0, formatResponse_1.formatResponse)(res, 200, 'Created Step 3 draft successfully', true, enquiry);
 })));
@@ -55,16 +61,14 @@ exports.updateEnquiryStep3ById = (0, express_async_handler_1.default)((0, functi
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }
     const _b = validation.data, { id } = _b, data = __rest(_b, ["id"]);
-    yield (0, checkIfStudentAdmitted_1.checkIfStudentAdmitted)(id);
-    const enquiry = yield enquiry_1.Enquiry.findOne({
+    const isEnquiryExists = yield enquiry_1.Enquiry.exists({
         _id: id,
-        applicationStatus: { $ne: constants_1.ApplicationStatus.STEP_1 }
-    }, { applicationStatus: 1 });
-    if (!enquiry) {
-        // is it can't happen that id was not exists so case which is possible is that ki student only did step1 and came to register [we are ignoring postman possibility here]
-        throw (0, http_errors_1.default)(400, "Please complete step 1 first");
+        applicationStatus: constants_1.ApplicationStatus.STEP_3
+    });
+    if (!isEnquiryExists) {
+        throw (0, http_errors_1.default)(400, 'Enquiry not found');
     }
-    const updatedData = yield enquiry_1.Enquiry.findByIdAndUpdate(id, Object.assign({}, data), { new: true, runValidators: true });
+    const updatedData = yield enquiry_1.Enquiry.findByIdAndUpdate(id, Object.assign(Object.assign({}, data), { applicationStatus: constants_1.ApplicationStatus.STEP_4 }), { new: true, runValidators: true });
     (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.DISTRICT, (_a = updatedData === null || updatedData === void 0 ? void 0 : updatedData.address) === null || _a === void 0 ? void 0 : _a.district);
     return (0, formatResponse_1.formatResponse)(res, 200, 'Enquiry data updated successfully', true, updatedData);
 })));
@@ -81,7 +85,13 @@ exports.updateEnquiryDocuments = (0, express_async_handler_1.default)((0, functi
         dueBy: dueBy,
         file: file
     });
-    yield (0, checkIfStudentAdmitted_1.checkIfStudentAdmitted)(id);
+    const isEnquiryExists = yield enquiry_1.Enquiry.exists({
+        _id: id,
+        applicationStatus: constants_1.ApplicationStatus.STEP_3
+    });
+    if (!isEnquiryExists) {
+        throw (0, http_errors_1.default)(400, 'Enquiry not found');
+    }
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }

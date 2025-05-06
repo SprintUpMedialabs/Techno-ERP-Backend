@@ -15,11 +15,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateStatusForMarketingSheet = exports.readFromGoogleSheet = void 0;
 const googleapis_1 = require("googleapis");
 const logger_1 = __importDefault(require("../../config/logger"));
+const marketingSheetHeader_1 = require("../enums/marketingSheetHeader");
 const spreadSheet_1 = require("../models/spreadSheet");
 const googleAuth_1 = require("./googleAuth");
 // TODO: what if google api is down? we will focus on this on phase - 2
 const readFromGoogleSheet = (MARKETING_SHEET_ID, MARKETING_SHEET_PAGE_NAME) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _a, _b;
     const sheetInstance = googleapis_1.google.sheets({ version: 'v4', auth: googleAuth_1.googleAuth });
     let spreadSheetMetaData = yield spreadSheet_1.SpreadSheetMetaData.findOne({
         name: MARKETING_SHEET_PAGE_NAME
@@ -46,12 +47,21 @@ const readFromGoogleSheet = (MARKETING_SHEET_ID, MARKETING_SHEET_PAGE_NAME) => _
         logger_1.default.info('No new data found in the sheet.');
         return;
     }
-    console.log(rowData);
+    const headerResponse = yield sheetInstance.spreadsheets.values.get({
+        spreadsheetId: MARKETING_SHEET_ID,
+        range: `${MARKETING_SHEET_PAGE_NAME}!A1:Z1`
+    });
+    const columnHeaders = ((_b = headerResponse.data.values) === null || _b === void 0 ? void 0 : _b[0]) || [];
+    const requiredColumnHeaderWithIndex = {};
+    Object.values(marketingSheetHeader_1.MarketingsheetHeaders).forEach((header) => {
+        requiredColumnHeaderWithIndex[header] = columnHeaders.indexOf(header);
+    });
     const newLastReadIndex = lastSavedIndex + rowData.length;
     logger_1.default.info(`New Last Read Index: ${newLastReadIndex}`);
     return {
-        RowData: rowData,
-        LastSavedIndex: lastSavedIndex
+        requiredColumnHeaders: requiredColumnHeaderWithIndex,
+        rowData: rowData,
+        lastSavedIndex: lastSavedIndex
     };
 });
 exports.readFromGoogleSheet = readFromGoogleSheet;

@@ -12,7 +12,9 @@ const errorHandler = (err, req, res, next) => {
     var _a, _b, _c, _d;
     logger_1.default.error(`Error occurred during ${req.method} request to ${req.url} | Status: ${(_a = err.statusCode) !== null && _a !== void 0 ? _a : 500} | Message: ${(_b = err.message) !== null && _b !== void 0 ? _b : 'No error message'} | Stack: ${(_c = err.stack) !== null && _c !== void 0 ? _c : 'No stack trace'}`);
     if (!err.statusCode || err.statusCode === 500) {
-        (0, mailer_1.sendEmail)(secrets_1.DEVELOPER_EMAIL, 'Error in the application', err.message);
+        if (process.env.NODE_ENV !== 'development') {
+            (0, mailer_1.sendEmail)(secrets_1.DEVELOPER_EMAIL, 'Error in the application', err.message);
+        }
     }
     // if statusCode is there it means that message will also be created by us
     // if statusCode is not there it means that message is not created by us its something else in this situation we want to send internal server error.

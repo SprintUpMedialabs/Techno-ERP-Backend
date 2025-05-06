@@ -5,17 +5,17 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.apiRouter = void 0;
 const express_1 = __importDefault(require("express"));
+const routes_1 = require("./admission/routes");
 const authRoute_1 = require("./auth/routes/authRoute");
 const userRoute_1 = require("./auth/routes/userRoute");
-const crmRoute_1 = require("./crm/routes/crmRoute");
-const routes_1 = require("./admission/routes");
-const courseAndOtherFees_routes_1 = __importDefault(require("./fees/courseAndOtherFees.routes"));
-const courseRoute_1 = require("./course/routes/courseRoute");
-const studentRoute_1 = require("./student-data/routes/studentRoute");
-const departmentMetaDataRoute_1 = require("./course/routes/departmentMetaDataRoute");
-const dropDownRoute_1 = require("./utilityModules/dropdown/dropDownRoute");
-const testRoute_1 = require("./course/routes/testRoute");
 const courseMetadataRoute_1 = __importDefault(require("./course/routes/courseMetadataRoute"));
+const courseRoute_1 = require("./course/routes/courseRoute");
+const departmentMetaDataRoute_1 = require("./course/routes/departmentMetaDataRoute");
+const testRoute_1 = require("./course/routes/testRoute");
+const crmRoute_1 = require("./crm/routes/crmRoute");
+const courseAndOtherFees_routes_1 = __importDefault(require("./fees/courseAndOtherFees.routes"));
+const routes_2 = require("./student/routes");
+const dropDownRoute_1 = require("./utilityModules/dropdown/dropDownRoute");
 exports.apiRouter = express_1.default.Router();
 /**
  * Contains the router for Authentication
@@ -50,10 +50,6 @@ exports.apiRouter.use('/department-metadata', departmentMetaDataRoute_1.departme
  */
 exports.apiRouter.use('/course-metadata', courseMetadataRoute_1.default);
 /**
- * Contains the router for Student Data Module
- */
-exports.apiRouter.use('/student-data', studentRoute_1.studentDataRoute);
-/**
  * Contains the router for Dropdown related information
  */
 exports.apiRouter.use('/dropdown', dropDownRoute_1.dropDownRoute);
@@ -61,3 +57,7 @@ exports.apiRouter.use('/dropdown', dropDownRoute_1.dropDownRoute);
  * Contains the router for Testing Purpose
  */
 exports.apiRouter.use('/test', testRoute_1.testRoute);
+/**
+ * Contains the router for Student Module
+ */
+exports.apiRouter.use('/student', routes_2.studentRoute);

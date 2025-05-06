@@ -15,6 +15,17 @@ var CourseStatus;
     CourseStatus["COMPLETED"] = "Completed";
     CourseStatus["INACTIVE"] = "Inactive";
 })(CourseStatus || (exports.CourseStatus = CourseStatus = {}));
+const FeeItemSchema = new mongoose_1.Schema({
+    type: {
+        type: String,
+        required: true,
+    },
+    amount: {
+        type: Number,
+        required: true,
+        min: [0, 'Amount cannot be negative'],
+    },
+}, { _id: false });
 exports.courseModelSchema = new mongoose_1.Schema({
     departmentName: {
         type: String,
@@ -63,6 +74,20 @@ exports.courseModelSchema = new mongoose_1.Schema({
     documentType: {
         type: [String],
         default: [],
+    },
+    fee: {
+        yearlyFee: {
+            type: [FeeItemSchema],
+            default: [],
+        },
+        semWiseFee: {
+            type: [Number],
+            default: [],
+        },
+        oneTime: {
+            type: [FeeItemSchema],
+            default: [],
+        },
     },
 }, { timestamps: true });
 const transformDates = (_, ret) => {

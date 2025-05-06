@@ -22,12 +22,6 @@ const StudentFeesDraftSchema = new mongoose_1.Schema({
         type: [studentFees_1.SingleSemWiseFeesSchema],
         required: false
     },
-    feeStatus: {
-        type: String,
-        enum: Object.values(constants_1.FeeStatus),
-        default: constants_1.FeeStatus.DRAFT,
-        required: false
-    },
     feesClearanceDate: {
         type: Date,
         required: false

@@ -7,10 +7,10 @@ const constants_1 = require("../config/constants");
 const CourseFeeSchema = new mongoose_1.Schema({
     course: {
         type: String,
-        enum: {
-            values: Object.values(constants_1.Course),
-            message: 'Invalid Course value'
-        },
+        // enum: {
+        //     values: Object.values(Course),
+        //     message: 'Invalid Course value'
+        // },
         required: true
     },
     fee: {
@@ -22,7 +22,6 @@ const CourseFeeSchema = new mongoose_1.Schema({
 const OtherFeeSchema = new mongoose_1.Schema({
     type: {
         type: String,
-        enum: Object.values(constants_1.FeeType),
         required: true
     },
     fee: {
