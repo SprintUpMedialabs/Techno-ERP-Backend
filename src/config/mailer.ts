@@ -26,7 +26,7 @@ export const sendEmail = async (to: string, subject: string, text: string) => {
     html: text
   };
 
-  transport.sendMail(mailOptions, function (err, info) {
+  transport.sendMail(mailOptions, function (err : any, info : any) {
     if (err) {
       logger.error('Error in sending email');
       logger.error(err);
