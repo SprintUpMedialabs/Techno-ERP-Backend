@@ -55,19 +55,24 @@ exports.createEnquiryStep2 = (0, express_async_handler_1.default)((0, functionLe
     const session = yield mongoose_1.default.startSession();
     session.startTransaction();
     try {
-        const otherFees = yield (0, courseAndOtherFees_controller_1.fetchOtherFees)();
+        const otherFees = yield (0, courseAndOtherFees_controller_1.fetchOtherFees)(enquiry === null || enquiry === void 0 ? void 0 : enquiry.course);
         const semWiseFee = yield (0, courseAndOtherFees_controller_1.fetchCourseFeeByCourse)(enquiry === null || enquiry === void 0 ? void 0 : enquiry.course);
+        // console.log("Other fees is : ", otherFees);
+        // console.log("Semwise fee is : ", semWiseFee);
+        if (!semWiseFee) {
+            throw (0, http_errors_1.default)(500, 'Semester-wise fee structure not found for the course');
+        }
         const _b = validation.data, { counsellor, telecaller } = _b, feeRelatedData = __rest(_b, ["counsellor", "telecaller"]);
         const feeData = Object.assign(Object.assign({}, feeRelatedData), { otherFees: ((_a = feeRelatedData.otherFees) === null || _a === void 0 ? void 0 : _a.map(fee => {
                 var _a, _b, _c, _d;
                 let feeAmount;
-                feeAmount = (_b = (_a = otherFees === null || otherFees === void 0 ? void 0 : otherFees.find(otherFee => otherFee.type === fee.type)) === null || _a === void 0 ? void 0 : _a.fee) !== null && _b !== void 0 ? _b : 0;
+                feeAmount = (_b = (_a = otherFees === null || otherFees === void 0 ? void 0 : otherFees.find(otherFee => otherFee.type === fee.type)) === null || _a === void 0 ? void 0 : _a.amount) !== null && _b !== void 0 ? _b : 0;
                 return Object.assign(Object.assign({}, fee), { feeAmount, finalFee: (_c = fee.finalFee) !== null && _c !== void 0 ? _c : 0, feesDepositedTOA: (_d = fee.feesDepositedTOA) !== null && _d !== void 0 ? _d : 0 });
             })) || [], semWiseFees: feeRelatedData.semWiseFees.map((semFee, index) => {
                 var _a;
                 return ({
                     finalFee: semFee.finalFee,
-                    feeAmount: (_a = semWiseFee === null || semWiseFee === void 0 ? void 0 : semWiseFee.fee[index]) !== null && _a !== void 0 ? _a : 0,
+                    feeAmount: (_a = semWiseFee[index].amount) !== null && _a !== void 0 ? _a : 0,
                     feesPaid: 0,
                 });
             }) });
