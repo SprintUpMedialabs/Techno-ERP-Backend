@@ -17,16 +17,15 @@ const express_async_handler_1 = __importDefault(require("express-async-handler")
 const http_errors_1 = __importDefault(require("http-errors"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const constants_1 = require("../../config/constants");
-const student_1 = require("../../student-data/models/student");
-const student_2 = require("../../student-data/validators/student");
+const functionLevelLogging_1 = require("../../config/functionLevelLogging");
+const studentController_1 = require("../../student/controllers/studentController");
+const student_1 = require("../../student/models/student");
+const studentSchema_1 = require("../../student/validators/studentSchema");
 const formatResponse_1 = require("../../utils/formatResponse");
 const commonSchema_1 = require("../../validators/commonSchema");
 const enquiry_1 = require("../models/enquiry");
 const enquiryDraft_1 = require("../models/enquiryDraft");
 const enquiryIdMetaDataSchema_1 = require("../models/enquiryIdMetaDataSchema");
-const enquiryStatusUpdateSchema_1 = require("../validators/enquiryStatusUpdateSchema");
-const checkIfStudentAdmitted_1 = require("../helpers/checkIfStudentAdmitted");
-const functionLevelLogging_1 = require("../../config/functionLevelLogging");
 exports.getEnquiryData = (0, express_async_handler_1.default)((0, functionLevelLogging_1.functionLevelLogger)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let { search, applicationStatus } = req.body;
     search !== null && search !== void 0 ? search : (search = '');
@@ -106,12 +105,13 @@ exports.approveEnquiry = (0, express_async_handler_1.default)((0, functionLevelL
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }
-    yield (0, checkIfStudentAdmitted_1.checkIfStudentAdmitted)(id);
+    // await checkIfStudentAdmitted(id);
     const session = yield mongoose_1.default.startSession();
     session.startTransaction();
     try {
         const enquiry = yield enquiry_1.Enquiry.findById(id).session(session);
-        if (!enquiry) {
+        console.log("Enquiry is  : ", enquiry);
+        if (!enquiry || enquiry.applicationStatus != constants_1.ApplicationStatus.STEP_4) {
             throw (0, http_errors_1.default)(404, 'Please create the enquiry first!');
         }
         const prefix = getCollegeName(enquiry.course);
@@ -124,16 +124,31 @@ exports.approveEnquiry = (0, express_async_handler_1.default)((0, functionLevelL
                 formNo: formNo,
                 photoNo: photoSerial.lastSerialNumber,
                 universityId: universityId,
-                applicationStatus: constants_1.ApplicationStatus.STEP_4,
+                applicationStatus: constants_1.ApplicationStatus.CONFIRMED,
             },
         }, { runValidators: true, new: true, projection: { createdAt: 0, updatedAt: 0, __v: 0 }, session });
-        const studentValidation = student_2.studentSchema.safeParse(approvedEnquiry);
+        // const studentValidation = studentSchema.safeParse(approvedEnquiry);
+        const enquiryData = approvedEnquiry === null || approvedEnquiry === void 0 ? void 0 : approvedEnquiry.toObject();
+        console.log("Approved ENquiry is : ", enquiryData);
+        const studentData = Object.assign(Object.assign({}, enquiryData), { "courseCode": approvedEnquiry === null || approvedEnquiry === void 0 ? void 0 : approvedEnquiry.course, "feeId": approvedEnquiry === null || approvedEnquiry === void 0 ? void 0 : approvedEnquiry.studentFee, "dateOfAdmission": approvedEnquiry === null || approvedEnquiry === void 0 ? void 0 : approvedEnquiry.dateOfAdmission });
+        console.log("Student Data : ", studentData);
+        const studentValidation = studentSchema_1.CreateStudentSchema.safeParse(studentData);
+        console.log("Student Validation Errors : ", studentValidation.error);
         if (!studentValidation.success)
             throw (0, http_errors_1.default)(400, studentValidation.error.errors[0]);
-        const student = yield student_1.Student.create([Object.assign({ _id: enquiry._id }, studentValidation.data)], { session });
+        // const student = await Student.create([{
+        //   _id: enquiry._id,
+        //   ...studentValidation.data,
+        // }], { session });
+        const student = yield (0, studentController_1.createStudent)(studentValidation.data);
+        const studentCreateValidation = studentSchema_1.StudentSchema.safeParse(student);
+        console.log("Student create validation errors : ", studentCreateValidation.error);
+        if (!studentCreateValidation.success)
+            throw (0, http_errors_1.default)(400, studentCreateValidation.error.errors[0]);
+        const createdStudent = yield student_1.Student.create([Object.assign({ _id: enquiry._id }, studentCreateValidation.data)], { session });
         yield session.commitTransaction();
         session.endSession();
-        return (0, formatResponse_1.formatResponse)(res, 200, 'Student created successfully with this information', true, student);
+        return (0, formatResponse_1.formatResponse)(res, 200, 'Student created successfully with this information', true, createdStudent);
     }
     catch (error) {
         yield session.abortTransaction();
@@ -141,19 +156,20 @@ exports.approveEnquiry = (0, express_async_handler_1.default)((0, functionLevelL
         throw error;
     }
 })));
-exports.updateStatus = ((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const updateStatusData = req.body;
-    const validation = enquiryStatusUpdateSchema_1.enquiryStatusUpdateSchema.safeParse(updateStatusData);
-    if (!validation.success) {
-        throw (0, http_errors_1.default)(404, validation.error.errors[0]);
-    }
-    let updateEnquiryStatus = yield enquiry_1.Enquiry.findByIdAndUpdate(updateStatusData.id, { $set: { applicationStatus: updateStatusData.newStatus } }, { runValidators: true });
-    if (!updateEnquiryStatus) {
-        throw (0, http_errors_1.default)(404, 'Could not update the enquiry status');
-    }
-    else {
-        return (0, formatResponse_1.formatResponse)(res, 200, 'Enquiry Status Updated Successfully', true);
-    }
+exports.updateStatus = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Enquiry Status Updated Successfully', true);
+    // const updateStatusData: IEnquiryStatusUpdateSchema = req.body;
+    // const validation = enquiryStatusUpdateSchema.safeParse(updateStatusData);
+    // if (!validation.success) {
+    //   throw createHttpError(404, validation.error.errors[0]);
+    // }
+    // let updateEnquiryStatus = await Enquiry.findByIdAndUpdate(updateStatusData.id, { $set: { applicationStatus: updateStatusData.newStatus } }, { runValidators: true });
+    // if (!updateEnquiryStatus) {
+    //   throw createHttpError(404, 'Could not update the enquiry status');
+    // }
+    // else {
+    //   return formatResponse(res, 200, 'Enquiry Status Updated Successfully', true);
+    // }
 }));
 const generateUniversityId = (course, photoSerialNumber) => {
     return `${constants_1.TGI}${new Date().getFullYear().toString()}${course.toString()}${photoSerialNumber.toString()}`;

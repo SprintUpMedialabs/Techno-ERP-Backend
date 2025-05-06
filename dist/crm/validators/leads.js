@@ -53,7 +53,7 @@ exports.leadSheetSchema = zod_1.z.object({
     // temporary fields
     course: zod_1.z.string().optional().transform(val => val === null || val === void 0 ? void 0 : val.toUpperCase()),
     area: zod_1.z.string().optional().transform(formators_1.toTitleCase),
-    leadType: zod_1.z.nativeEnum(constants_1.LeadType).optional(),
+    leadType: zod_1.z.string().transform(formators_1.formatAndValidateLeadType),
     remarks: zod_1.z.string().optional(),
     schoolName: zod_1.z.string().optional().transform(formators_1.toTitleCase),
 });

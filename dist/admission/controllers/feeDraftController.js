@@ -26,13 +26,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateFeeDraft = exports.createFeeDraft = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const http_errors_1 = __importDefault(require("http-errors"));
+const mongoose_1 = __importDefault(require("mongoose"));
 const constants_1 = require("../../config/constants");
+const functionLevelLogging_1 = require("../../config/functionLevelLogging");
 const courseAndOtherFees_controller_1 = require("../../fees/courseAndOtherFees.controller");
 const formatResponse_1 = require("../../utils/formatResponse");
 const enquiry_1 = require("../models/enquiry");
 const studentFeesDraft_1 = require("../models/studentFeesDraft");
 const studentFees_1 = require("../validators/studentFees");
-const functionLevelLogging_1 = require("../../config/functionLevelLogging");
 exports.createFeeDraft = (0, express_async_handler_1.default)((0, functionLevelLogging_1.functionLevelLogger)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     const data = req.body;
@@ -49,18 +50,13 @@ exports.createFeeDraft = (0, express_async_handler_1.default)((0, functionLevelL
         throw (0, http_errors_1.default)(400, 'Valid enquiry does not exist. Please complete step 1 first!');
     }
     const otherFees = yield (0, courseAndOtherFees_controller_1.fetchOtherFees)();
-    const semWiseFee = yield (0, courseAndOtherFees_controller_1.fetchCourseFeeByCourse)(enquiry.course.toString());
+    const semWiseFee = yield (0, courseAndOtherFees_controller_1.fetchCourseFeeByCourse)(enquiry.course);
     const _c = validation.data, { counsellor, telecaller } = _c, feeRelatedData = __rest(_c, ["counsellor", "telecaller"]);
     const feeData = Object.assign(Object.assign({}, feeRelatedData), { otherFees: ((_a = feeRelatedData.otherFees) === null || _a === void 0 ? void 0 : _a.map(fee => {
-            var _a, _b, _c, _d, _e;
+            var _a, _b, _c, _d;
             let feeAmount = fee.feeAmount;
-            if (fee.type === constants_1.FeeType.SEM1FEE) {
-                feeAmount = (_a = semWiseFee === null || semWiseFee === void 0 ? void 0 : semWiseFee.fee[0]) !== null && _a !== void 0 ? _a : 0;
-            }
-            else {
-                feeAmount = (_c = feeAmount !== null && feeAmount !== void 0 ? feeAmount : (_b = otherFees === null || otherFees === void 0 ? void 0 : otherFees.find(otherFee => otherFee.type === fee.type)) === null || _b === void 0 ? void 0 : _b.fee) !== null && _c !== void 0 ? _c : 0;
-            }
-            return Object.assign(Object.assign({}, fee), { feeAmount, finalFee: (_d = fee.finalFee) !== null && _d !== void 0 ? _d : 0, feesDepositedTOA: (_e = fee.feesDepositedTOA) !== null && _e !== void 0 ? _e : 0 });
+            feeAmount = (_b = feeAmount !== null && feeAmount !== void 0 ? feeAmount : (_a = otherFees === null || otherFees === void 0 ? void 0 : otherFees.find(otherFee => otherFee.type === fee.type)) === null || _a === void 0 ? void 0 : _a.fee) !== null && _b !== void 0 ? _b : 0;
+            return Object.assign(Object.assign({}, fee), { feeAmount, finalFee: (_c = fee.finalFee) !== null && _c !== void 0 ? _c : 0, feesDepositedTOA: (_d = fee.feesDepositedTOA) !== null && _d !== void 0 ? _d : 0 });
         })) || [], semWiseFees: ((_b = feeRelatedData.semWiseFees) === null || _b === void 0 ? void 0 : _b.map((semFee, index) => {
             var _a, _b, _c;
             return ({
@@ -68,9 +64,21 @@ exports.createFeeDraft = (0, express_async_handler_1.default)((0, functionLevelL
                 finalFee: (_c = semFee.finalFee) !== null && _c !== void 0 ? _c : 0
             });
         })) || [] });
-    const feesDraft = yield studentFeesDraft_1.StudentFeesDraftModel.create(feeData);
-    yield enquiry_1.Enquiry.findByIdAndUpdate(data.enquiryId, { $set: { studentFeeDraft: feesDraft._id, counsellor, telecaller } });
-    return (0, formatResponse_1.formatResponse)(res, 201, 'Fees Draft created successfully', true, feesDraft);
+    const session = yield mongoose_1.default.startSession();
+    session.startTransaction();
+    try {
+        const feesDraftList = yield studentFeesDraft_1.StudentFeesDraftModel.create([feeData], { session });
+        const feesDraft = feesDraftList[0];
+        yield enquiry_1.Enquiry.findByIdAndUpdate(data.enquiryId, { $set: { studentFeeDraft: feesDraft._id, counsellor, telecaller } }, { session });
+        yield session.commitTransaction();
+        session.endSession();
+        return (0, formatResponse_1.formatResponse)(res, 201, 'Fees Draft created successfully', true, feesDraft);
+    }
+    catch (error) {
+        yield session.abortTransaction();
+        session.endSession();
+        throw (0, http_errors_1.default)(error);
+    }
 })));
 exports.updateFeeDraft = (0, express_async_handler_1.default)((0, functionLevelLogging_1.functionLevelLogger)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
@@ -85,22 +93,17 @@ exports.updateFeeDraft = (0, express_async_handler_1.default)((0, functionLevelL
     }, { course: 1 })
         .lean();
     if (!enquiry) {
-        throw (0, http_errors_1.default)(400, 'Not a valid enquiry');
+        throw (0, http_errors_1.default)(404, 'Not a valid enquiry');
     }
     const otherFees = yield (0, courseAndOtherFees_controller_1.fetchOtherFees)();
-    const semWiseFee = yield (0, courseAndOtherFees_controller_1.fetchCourseFeeByCourse)(enquiry.course.toString());
+    const semWiseFee = yield (0, courseAndOtherFees_controller_1.fetchCourseFeeByCourse)(enquiry.course);
     // DTODO: remove telecaller and counsellor from updatedData
     const _c = validation.data, { counsellor, telecaller } = _c, feeRelatedData = __rest(_c, ["counsellor", "telecaller"]);
     const updateData = Object.assign(Object.assign({}, feeRelatedData), { otherFees: ((_a = feeRelatedData.otherFees) === null || _a === void 0 ? void 0 : _a.map(fee => {
-            var _a, _b, _c, _d, _e;
+            var _a, _b, _c, _d;
             let feeAmount = fee.feeAmount;
-            if (fee.type === constants_1.FeeType.SEM1FEE) {
-                feeAmount = (_a = semWiseFee === null || semWiseFee === void 0 ? void 0 : semWiseFee.fee[0]) !== null && _a !== void 0 ? _a : 0;
-            }
-            else {
-                feeAmount = (_c = feeAmount !== null && feeAmount !== void 0 ? feeAmount : (_b = otherFees === null || otherFees === void 0 ? void 0 : otherFees.find(otherFee => otherFee.type === fee.type)) === null || _b === void 0 ? void 0 : _b.fee) !== null && _c !== void 0 ? _c : 0;
-            }
-            return Object.assign(Object.assign({}, fee), { feeAmount, finalFee: (_d = fee.finalFee) !== null && _d !== void 0 ? _d : 0, feesDepositedTOA: (_e = fee.feesDepositedTOA) !== null && _e !== void 0 ? _e : 0 });
+            feeAmount = (_b = feeAmount !== null && feeAmount !== void 0 ? feeAmount : (_a = otherFees === null || otherFees === void 0 ? void 0 : otherFees.find(otherFee => otherFee.type === fee.type)) === null || _a === void 0 ? void 0 : _a.fee) !== null && _b !== void 0 ? _b : 0;
+            return Object.assign(Object.assign({}, fee), { feeAmount, finalFee: (_c = fee.finalFee) !== null && _c !== void 0 ? _c : 0, feesDepositedTOA: (_d = fee.feesDepositedTOA) !== null && _d !== void 0 ? _d : 0 });
         })) || [], semWiseFees: ((_b = feeRelatedData.semWiseFees) === null || _b === void 0 ? void 0 : _b.map((semFee, index) => {
             var _a, _b, _c;
             return ({
@@ -108,7 +111,18 @@ exports.updateFeeDraft = (0, express_async_handler_1.default)((0, functionLevelL
                 finalFee: (_c = semFee.finalFee) !== null && _c !== void 0 ? _c : 0
             });
         })) || [] });
-    const updatedDraft = yield studentFeesDraft_1.StudentFeesDraftModel.findByIdAndUpdate(data.id, { $set: updateData }, { new: true, runValidators: true });
-    yield enquiry_1.Enquiry.findByIdAndUpdate(data.enquiryId, { $set: { counsellor, telecaller } });
-    return (0, formatResponse_1.formatResponse)(res, 200, 'Fees Draft updated successfully', true, updatedDraft);
+    const session = yield mongoose_1.default.startSession();
+    session.startTransaction();
+    try {
+        const updatedDraft = yield studentFeesDraft_1.StudentFeesDraftModel.findByIdAndUpdate(data.id, { $set: updateData }, { new: true, runValidators: true, session });
+        yield enquiry_1.Enquiry.findByIdAndUpdate(data.enquiryId, { $set: { counsellor, telecaller } }, { session });
+        yield session.commitTransaction();
+        session.endSession();
+        return (0, formatResponse_1.formatResponse)(res, 200, 'Fees Draft updated successfully', true, updatedDraft);
+    }
+    catch (error) {
+        yield session.abortTransaction();
+        session.endSession();
+        throw (0, http_errors_1.default)(error);
+    }
 })));

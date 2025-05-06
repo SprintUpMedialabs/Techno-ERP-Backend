@@ -31,12 +31,12 @@ exports.uploadData = (0, express_async_handler_1.default)((req, res) => __awaite
     var _a;
     const user = yield user_1.User.findById((_a = req.data) === null || _a === void 0 ? void 0 : _a.id);
     const marketingSheet = user === null || user === void 0 ? void 0 : user.marketingSheet;
-    console.log(marketingSheet);
     if (marketingSheet && marketingSheet.length > 0) {
         for (const sheet of marketingSheet) {
             const latestData = yield (0, googleSheetOperations_1.readFromGoogleSheet)(sheet.id, sheet.name);
+            console.log('we are here');
             if (latestData) {
-                yield (0, updateAndSaveToDb_1.saveDataToDb)(latestData.RowData, latestData.LastSavedIndex, sheet.id, sheet.name);
+                yield (0, updateAndSaveToDb_1.saveDataToDb)(latestData.rowData, latestData.lastSavedIndex, sheet.id, sheet.name, latestData.requiredColumnHeaders);
             }
         }
         return (0, formatResponse_1.formatResponse)(res, 200, 'Data updated in Database!', true);
@@ -46,10 +46,11 @@ exports.uploadData = (0, express_async_handler_1.default)((req, res) => __awaite
     }
 }));
 exports.getFilteredLeadData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     const { query, search, page, limit, sort } = (0, parseFilter_1.parseFilter)(req);
-    if (search.trim()) {
+    if (search === null || search === void 0 ? void 0 : search.trim()) {
         query.$and = [
-            ...(query.$and || []),
+            ...((_a = query.$and) !== null && _a !== void 0 ? _a : []),
             {
                 $or: [
                     { name: { $regex: search, $options: 'i' } },

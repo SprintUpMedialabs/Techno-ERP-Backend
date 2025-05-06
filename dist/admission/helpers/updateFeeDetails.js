@@ -18,16 +18,15 @@ const courseAndOtherFees_controller_1 = require("../../fees/courseAndOtherFees.c
 const enquiry_1 = require("../models/enquiry");
 const studentFees_1 = require("../models/studentFees");
 const studentFees_2 = require("../validators/studentFees");
-const checkIfStudentAdmitted_1 = require("./checkIfStudentAdmitted");
 const updateFeeDetails = (applicationStatusList, studentFeesData) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _a, _b;
     const validation = studentFees_2.feesUpdateSchema.safeParse(studentFeesData);
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }
     const enquiry = yield enquiry_1.Enquiry.findOne({
         studentFee: studentFeesData.id,
-        applicationStatus: { $nin: [...applicationStatusList] }
+        applicationStatus: { $in: [...applicationStatusList] }
     }, {
         course: 1, // Only return course field
         telecaller: 1,
@@ -37,9 +36,8 @@ const updateFeeDetails = (applicationStatusList, studentFeesData) => __awaiter(v
     if (!enquiry) {
         throw (0, http_errors_1.default)(404, 'Could not find valid Enquiry');
     }
-    yield (0, checkIfStudentAdmitted_1.checkIfStudentAdmitted)(enquiry._id);
     const otherFees = yield (0, courseAndOtherFees_controller_1.fetchOtherFees)();
-    const semWiseFee = yield (0, courseAndOtherFees_controller_1.fetchCourseFeeByCourse)((_a = enquiry === null || enquiry === void 0 ? void 0 : enquiry.course.toString()) !== null && _a !== void 0 ? _a : '');
+    const semWiseFee = yield (0, courseAndOtherFees_controller_1.fetchCourseFeeByCourse)(enquiry === null || enquiry === void 0 ? void 0 : enquiry.course);
     const feeData = Object.assign(Object.assign({}, validation.data), { otherFees: validation.data.otherFees.map(fee => {
             var _a, _b;
             return (Object.assign(Object.assign({}, fee), { feeAmount: (_b = (_a = otherFees === null || otherFees === void 0 ? void 0 : otherFees.find(otherFee => otherFee.type == fee.type)) === null || _a === void 0 ? void 0 : _a.fee) !== null && _b !== void 0 ? _b : 0 }));
@@ -63,9 +61,6 @@ const updateFeeDetails = (applicationStatusList, studentFeesData) => __awaiter(v
             $set: enquiryUpdatePayload
         });
     }
-    if (!feesDraft) {
-        throw (0, http_errors_1.default)(404, 'Failed to update Fees Details');
-    }
-    return Object.assign(Object.assign({}, feesDraft), { telecaller: enquiryUpdatePayload.telecaller ? enquiryUpdatePayload.telecaller : enquiry.telecaller, counsellor: enquiryUpdatePayload.counsellor ? enquiryUpdatePayload.counsellor : enquiry.counsellor });
+    return Object.assign(Object.assign({}, feesDraft), { telecaller: (_a = enquiryUpdatePayload.telecaller) !== null && _a !== void 0 ? _a : enquiry.telecaller, counsellor: (_b = enquiryUpdatePayload.counsellor) !== null && _b !== void 0 ? _b : enquiry.counsellor });
 });
 exports.updateFeeDetails = updateFeeDetails;

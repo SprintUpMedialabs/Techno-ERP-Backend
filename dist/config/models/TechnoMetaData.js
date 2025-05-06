@@ -33,13 +33,18 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SpreadSheetMetaData = void 0;
+exports.TechnoMetaData = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
-const constants_1 = require("../../config/constants");
-const spreadSheetSchema = new mongoose_1.Schema({
-    name: { type: String, required: true },
-    lastIdxMarketingSheet: { type: Number, required: true },
-}, { timestamps: true });
-// NOTE: here we are not putting error middleware as we don't want to showcase msg from here to the user.
-// as this is from the server side and we will be handling it in the server side only by checking up logs
-exports.SpreadSheetMetaData = mongoose_1.default.model(constants_1.COLLECTION_NAMES.SPREADSHEET_META_DATA, spreadSheetSchema);
+const constants_1 = require("../constants");
+const TechnoMetaDataSchema = new mongoose_1.Schema({
+    name: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    value: {
+        type: Number,
+        required: true
+    }
+});
+exports.TechnoMetaData = mongoose_1.default.model(constants_1.COLLECTION_NAMES.TECHNO_META_DATA, TechnoMetaDataSchema);

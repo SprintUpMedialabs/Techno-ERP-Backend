@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CourseMaterialType = exports.RequestAction = exports.LectureConfirmation = exports.COLLECTION_NAMES = exports.PHOTO = exports.TGI = exports.ADMISSION = exports.AreaType = exports.Countries = exports.StatesOfIndia = exports.AdmissionMode = exports.FeeStatus = exports.FeeType = exports.Locations = exports.ModuleNames = exports.ApplicationStatus = exports.DocumentType = exports.AdmittedThrough = exports.BloodGroup = exports.Religion = exports.FormNoPrefixes = exports.EducationLevel = exports.Course = exports.PhysicalDocumentNoteStatus = exports.DropDownType = exports.AdmissionReference = exports.Category = exports.Marketing_Source = exports.FinalConversionType = exports.LeadType = exports.Source = exports.Gender = exports.UserRoles = void 0;
+exports.FinanceFeeSchedule = exports.FinanceFeeType = exports.TransactionTypes = exports.FeeActions = exports.Schedule = exports.FeeStatus = exports.CourseYears = exports.CourseMaterialType = exports.RequestAction = exports.LectureConfirmation = exports.COLLECTION_NAMES = exports.PHOTO = exports.TGI = exports.ADMISSION = exports.AreaType = exports.Countries = exports.StatesOfIndia = exports.AdmissionMode = exports.FeeType = exports.Locations = exports.ModuleNames = exports.ApplicationStatus = exports.DocumentType = exports.AdmittedThrough = exports.BloodGroup = exports.Religion = exports.FormNoPrefixes = exports.EducationLevel = exports.Course = exports.PhysicalDocumentNoteStatus = exports.DropDownType = exports.AdmissionReference = exports.Category = exports.Marketing_Source = exports.FinalConversionType = exports.LeadType = exports.Source = exports.Gender = exports.UserRoles = void 0;
 /**
  * Marketing Module Enums
 */
@@ -177,6 +177,7 @@ var ApplicationStatus;
     ApplicationStatus["STEP_2"] = "Step_2";
     ApplicationStatus["STEP_3"] = "Step_3";
     ApplicationStatus["STEP_4"] = "Step_4";
+    ApplicationStatus["CONFIRMED"] = "Confirmed";
 })(ApplicationStatus || (exports.ApplicationStatus = ApplicationStatus = {}));
 var ModuleNames;
 (function (ModuleNames) {
@@ -205,13 +206,7 @@ var FeeType;
     FeeType["STUDENTWELFARE"] = "STUDENTWELFARE";
     FeeType["BOOKBANK"] = "BOOKBANK";
     FeeType["EXAMFEES"] = "EXAMFEES";
-    FeeType["SEM1FEE"] = "SEM1FEE";
 })(FeeType || (exports.FeeType = FeeType = {}));
-var FeeStatus;
-(function (FeeStatus) {
-    FeeStatus["FINAL"] = "FINAL";
-    FeeStatus["DRAFT"] = "DRAFT";
-})(FeeStatus || (exports.FeeStatus = FeeStatus = {}));
 var AdmissionMode;
 (function (AdmissionMode) {
     AdmissionMode["ONLINE"] = "ONLINE";
@@ -261,14 +256,6 @@ var Countries;
     Countries["India"] = "India";
     Countries["NON_INDIA"] = "Non-India";
 })(Countries || (exports.Countries = Countries = {}));
-// export enum Districts {
-//   Lucknow = "Lucknow",
-//   Sitapur = "Sitapur",
-//   Hardoi = "Hardoi",
-//   Barabanki = "Barabanki",
-//   Raebareli = "Raebareli",
-//   Unnao = "Unnao",
-// }
 var AreaType;
 (function (AreaType) {
     AreaType["URBAN"] = "URBAN";
@@ -298,6 +285,9 @@ var COLLECTION_NAMES;
     COLLECTION_NAMES["COURSE_METADATA"] = "CourseMetadata";
     COLLECTION_NAMES["COURSE"] = "Course";
     COLLECTION_NAMES["DROP_DOWN_META_DATA"] = "DropDownMetaData";
+    COLLECTION_NAMES["STUDENTREPO"] = "StudentRepo";
+    COLLECTION_NAMES["TRANSACTION_HISTORY"] = "TransactionHistory";
+    COLLECTION_NAMES["TECHNO_META_DATA"] = "TechnoMetaData";
 })(COLLECTION_NAMES || (exports.COLLECTION_NAMES = COLLECTION_NAMES = {}));
 var LectureConfirmation;
 (function (LectureConfirmation) {
@@ -318,3 +308,65 @@ var CourseMaterialType;
     CourseMaterialType["PPLAN"] = "PPlan";
     CourseMaterialType["GENERAL"] = "General";
 })(CourseMaterialType || (exports.CourseMaterialType = CourseMaterialType = {}));
+var CourseYears;
+(function (CourseYears) {
+    CourseYears["First"] = "First";
+    CourseYears["Second"] = "Second";
+    CourseYears["Third"] = "Third";
+    CourseYears["Fourth"] = "Fourth";
+    CourseYears["Fifth"] = "Fifth";
+    CourseYears["Sixth"] = "Sixth";
+})(CourseYears || (exports.CourseYears = CourseYears = {}));
+var FeeStatus;
+(function (FeeStatus) {
+    FeeStatus["DUE"] = "DUE";
+    FeeStatus["PAID"] = "PAID";
+    FeeStatus["NOT_PROVIDED"] = "NOT_PROVIDED";
+})(FeeStatus || (exports.FeeStatus = FeeStatus = {}));
+var Schedule;
+(function (Schedule) {
+    Schedule["ONE_TIME"] = "ONE_TIME";
+    Schedule["SEMESTER"] = "SEMESTER";
+    Schedule["YEARLY"] = "YEARLY";
+    Schedule["OPTIONAL"] = "OPTIONAL";
+    Schedule["AS_APPLICABLE"] = "AS_APPLICABLE";
+})(Schedule || (exports.Schedule = Schedule = {}));
+var FeeActions;
+(function (FeeActions) {
+    FeeActions["REFUND"] = "REFUND";
+    FeeActions["DEPOSIT"] = "DEPOSIT";
+})(FeeActions || (exports.FeeActions = FeeActions = {}));
+var TransactionTypes;
+(function (TransactionTypes) {
+    TransactionTypes["NEFT_IMPS_RTGS"] = "NEFT/RTGS/IMPS";
+    TransactionTypes["UPI"] = "UPI";
+    TransactionTypes["CASH"] = "CASH";
+    TransactionTypes["CHEQUE"] = "CHEQUE";
+    TransactionTypes["OTHERS"] = "OTHERS";
+})(TransactionTypes || (exports.TransactionTypes = TransactionTypes = {}));
+var FinanceFeeType;
+(function (FinanceFeeType) {
+    FinanceFeeType["HOSTEL"] = "HOSTEL";
+    FinanceFeeType["TRANSPORT"] = "TRANSPORT";
+    FinanceFeeType["PROSPECTUS"] = "PROSPECTUS";
+    FinanceFeeType["STUDENTID"] = "STUDENTID";
+    FinanceFeeType["UNIFORM"] = "UNIFORM";
+    FinanceFeeType["STUDENTWELFARE"] = "STUDENTWELFARE";
+    FinanceFeeType["BOOKBANK"] = "BOOKBANK";
+    FinanceFeeType["EXAMFEES"] = "EXAMFEES";
+    FinanceFeeType["MISCELLANEOUS"] = "MISCELLANEOUS";
+    FinanceFeeType["SEMESTERFEE"] = "SEMESTERFEE";
+})(FinanceFeeType || (exports.FinanceFeeType = FinanceFeeType = {}));
+var FinanceFeeSchedule;
+(function (FinanceFeeSchedule) {
+    FinanceFeeSchedule["HOSTEL"] = "YEARLY";
+    FinanceFeeSchedule["TRANSPORT"] = "YEARLY";
+    FinanceFeeSchedule["PROSPECTUS"] = "ONETIME";
+    FinanceFeeSchedule["STUDENTID"] = "ONETIME";
+    FinanceFeeSchedule["UNIFORM"] = "ONETIME";
+    FinanceFeeSchedule["STUDENTWELFARE"] = "YEARLY";
+    FinanceFeeSchedule["BOOKBANK"] = "HALF_YEARLY";
+    FinanceFeeSchedule["EXAMFEES"] = "HALF_YEARLY";
+    FinanceFeeSchedule["MISCELLANEOUS"] = "HALF_YEARLY";
+    FinanceFeeSchedule["SEMESTERFEE"] = "HALF_YEARLY";
+})(FinanceFeeSchedule || (exports.FinanceFeeSchedule = FinanceFeeSchedule = {}));

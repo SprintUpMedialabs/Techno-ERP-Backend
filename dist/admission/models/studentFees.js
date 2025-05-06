@@ -12,7 +12,6 @@ const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDa
 exports.OtherFeesSchema = new mongoose_1.Schema({
     type: {
         type: String,
-        enum: Object.values(constants_1.FeeType),
     },
     feeAmount: {
         type: Number,
@@ -53,11 +52,6 @@ const StudentFeesSchema = new mongoose_1.Schema({
     },
     semWiseFees: {
         type: [exports.SingleSemWiseFeesSchema],
-    },
-    feeStatus: {
-        type: String,
-        enum: Object.values(constants_1.FeeStatus),
-        default: constants_1.FeeStatus.DRAFT,
     },
     feesClearanceDate: {
         type: Date
