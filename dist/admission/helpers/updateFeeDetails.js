@@ -36,16 +36,22 @@ const updateFeeDetails = (applicationStatusList, studentFeesData) => __awaiter(v
     if (!enquiry) {
         throw (0, http_errors_1.default)(404, 'Could not find valid Enquiry');
     }
-    const otherFees = yield (0, courseAndOtherFees_controller_1.fetchOtherFees)();
+    const otherFees = yield (0, courseAndOtherFees_controller_1.fetchOtherFees)(enquiry === null || enquiry === void 0 ? void 0 : enquiry.course);
     const semWiseFee = yield (0, courseAndOtherFees_controller_1.fetchCourseFeeByCourse)(enquiry === null || enquiry === void 0 ? void 0 : enquiry.course);
+    if (!semWiseFee) {
+        throw (0, http_errors_1.default)(500, 'Semester-wise fee structure not found for the course');
+    }
     const feeData = Object.assign(Object.assign({}, validation.data), { otherFees: validation.data.otherFees.map(fee => {
             var _a, _b;
-            return (Object.assign(Object.assign({}, fee), { feeAmount: (_b = (_a = otherFees === null || otherFees === void 0 ? void 0 : otherFees.find(otherFee => otherFee.type == fee.type)) === null || _a === void 0 ? void 0 : _a.fee) !== null && _b !== void 0 ? _b : 0 }));
+            return (Object.assign(Object.assign({}, fee), { 
+                // feeAmount: otherFees?.find(otherFee => otherFee.type == fee.type)?.fee ?? 0
+                feeAmount: (_b = (_a = otherFees === null || otherFees === void 0 ? void 0 : otherFees.find(otherFee => otherFee.type === fee.type)) === null || _a === void 0 ? void 0 : _a.amount) !== null && _b !== void 0 ? _b : 0 }));
         }), semWiseFees: validation.data.semWiseFees.map((semFee, index) => {
             var _a;
             return ({
                 finalFee: semFee.finalFee,
-                feeAmount: (_a = (semWiseFee === null || semWiseFee === void 0 ? void 0 : semWiseFee.fee[index])) !== null && _a !== void 0 ? _a : 0
+                // feeAmount: (semWiseFee?.fee[index]) ?? 0
+                feeAmount: (_a = (semWiseFee[index].amount)) !== null && _a !== void 0 ? _a : 0
             });
         }) });
     const feesDraft = yield studentFees_1.StudentFeesModel.findByIdAndUpdate(studentFeesData.id, { $set: feeData }, { new: true, runValidators: true });

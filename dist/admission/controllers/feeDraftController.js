@@ -49,18 +49,22 @@ exports.createFeeDraft = (0, express_async_handler_1.default)((0, functionLevelL
     if (!enquiry) {
         throw (0, http_errors_1.default)(400, 'Valid enquiry does not exist. Please complete step 1 first!');
     }
-    const otherFees = yield (0, courseAndOtherFees_controller_1.fetchOtherFees)();
+    const otherFees = yield (0, courseAndOtherFees_controller_1.fetchOtherFees)(enquiry.course);
     const semWiseFee = yield (0, courseAndOtherFees_controller_1.fetchCourseFeeByCourse)(enquiry.course);
+    if (!semWiseFee) {
+        throw (0, http_errors_1.default)(500, 'Semester-wise fee structure not found for the course');
+    }
     const _c = validation.data, { counsellor, telecaller } = _c, feeRelatedData = __rest(_c, ["counsellor", "telecaller"]);
     const feeData = Object.assign(Object.assign({}, feeRelatedData), { otherFees: ((_a = feeRelatedData.otherFees) === null || _a === void 0 ? void 0 : _a.map(fee => {
             var _a, _b, _c, _d;
             let feeAmount = fee.feeAmount;
-            feeAmount = (_b = feeAmount !== null && feeAmount !== void 0 ? feeAmount : (_a = otherFees === null || otherFees === void 0 ? void 0 : otherFees.find(otherFee => otherFee.type === fee.type)) === null || _a === void 0 ? void 0 : _a.fee) !== null && _b !== void 0 ? _b : 0;
+            // feeAmount = feeAmount ?? otherFees?.find(otherFee => otherFee.type === fee.type)?.fee ?? 0;
+            feeAmount = (_b = (_a = otherFees === null || otherFees === void 0 ? void 0 : otherFees.find(otherFee => otherFee.type === fee.type)) === null || _a === void 0 ? void 0 : _a.amount) !== null && _b !== void 0 ? _b : 0;
             return Object.assign(Object.assign({}, fee), { feeAmount, finalFee: (_c = fee.finalFee) !== null && _c !== void 0 ? _c : 0, feesDepositedTOA: (_d = fee.feesDepositedTOA) !== null && _d !== void 0 ? _d : 0 });
         })) || [], semWiseFees: ((_b = feeRelatedData.semWiseFees) === null || _b === void 0 ? void 0 : _b.map((semFee, index) => {
             var _a, _b, _c;
             return ({
-                feeAmount: (_b = (_a = semFee.feeAmount) !== null && _a !== void 0 ? _a : semWiseFee === null || semWiseFee === void 0 ? void 0 : semWiseFee.fee[index]) !== null && _b !== void 0 ? _b : 0,
+                feeAmount: (_b = (_a = semFee.feeAmount) !== null && _a !== void 0 ? _a : semWiseFee[index].amount) !== null && _b !== void 0 ? _b : 0,
                 finalFee: (_c = semFee.finalFee) !== null && _c !== void 0 ? _c : 0
             });
         })) || [] });
@@ -95,19 +99,24 @@ exports.updateFeeDraft = (0, express_async_handler_1.default)((0, functionLevelL
     if (!enquiry) {
         throw (0, http_errors_1.default)(404, 'Not a valid enquiry');
     }
-    const otherFees = yield (0, courseAndOtherFees_controller_1.fetchOtherFees)();
+    const otherFees = yield (0, courseAndOtherFees_controller_1.fetchOtherFees)(enquiry.course);
     const semWiseFee = yield (0, courseAndOtherFees_controller_1.fetchCourseFeeByCourse)(enquiry.course);
+    if (!semWiseFee) {
+        throw (0, http_errors_1.default)(500, 'Semester-wise fee structure not found for the course');
+    }
     // DTODO: remove telecaller and counsellor from updatedData
     const _c = validation.data, { counsellor, telecaller } = _c, feeRelatedData = __rest(_c, ["counsellor", "telecaller"]);
     const updateData = Object.assign(Object.assign({}, feeRelatedData), { otherFees: ((_a = feeRelatedData.otherFees) === null || _a === void 0 ? void 0 : _a.map(fee => {
             var _a, _b, _c, _d;
             let feeAmount = fee.feeAmount;
-            feeAmount = (_b = feeAmount !== null && feeAmount !== void 0 ? feeAmount : (_a = otherFees === null || otherFees === void 0 ? void 0 : otherFees.find(otherFee => otherFee.type === fee.type)) === null || _a === void 0 ? void 0 : _a.fee) !== null && _b !== void 0 ? _b : 0;
+            // feeAmount = otherFees?.find(otherFee => otherFee.type === fee.type)?.amount ?? 0;
+            feeAmount = (_b = (_a = otherFees === null || otherFees === void 0 ? void 0 : otherFees.find(otherFee => otherFee.type === fee.type)) === null || _a === void 0 ? void 0 : _a.amount) !== null && _b !== void 0 ? _b : 0;
             return Object.assign(Object.assign({}, fee), { feeAmount, finalFee: (_c = fee.finalFee) !== null && _c !== void 0 ? _c : 0, feesDepositedTOA: (_d = fee.feesDepositedTOA) !== null && _d !== void 0 ? _d : 0 });
         })) || [], semWiseFees: ((_b = feeRelatedData.semWiseFees) === null || _b === void 0 ? void 0 : _b.map((semFee, index) => {
             var _a, _b, _c;
             return ({
-                feeAmount: (_b = (_a = semFee.feeAmount) !== null && _a !== void 0 ? _a : semWiseFee === null || semWiseFee === void 0 ? void 0 : semWiseFee.fee[index]) !== null && _b !== void 0 ? _b : 0,
+                // feeAmount: semFee.feeAmount ?? semWiseFee?.fee[index] ?? 0,
+                feeAmount: (_b = (_a = semFee.feeAmount) !== null && _a !== void 0 ? _a : semWiseFee[index].amount) !== null && _b !== void 0 ? _b : 0,
                 finalFee: (_c = semFee.finalFee) !== null && _c !== void 0 ? _c : 0
             });
         })) || [] });

@@ -39,6 +39,7 @@ exports.createEnquiry = (0, express_async_handler_1.default)((0, functionLevelLo
     const data = req.body;
     const { _id: id } = data, enquiryData = __rest(data, ["_id"]);
     const validation = enquiry_2.enquiryStep1RequestSchema.safeParse(enquiryData);
+    console.log("Validation error : ", validation.error);
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }
