@@ -22,6 +22,7 @@ export const uploadData = expressAsyncHandler(async (req: AuthenticatedRequest, 
   if (marketingSheet && marketingSheet.length > 0) {
     for (const sheet of marketingSheet) {
       const latestData = await readFromGoogleSheet(sheet.id, sheet.name);
+      console.log('we are here');
       if (latestData) {
         await saveDataToDb(latestData.RowData, latestData.LastSavedIndex, sheet.id, sheet.name);
       }
