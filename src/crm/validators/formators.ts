@@ -1,3 +1,5 @@
+import { LeadType } from "../../config/constants";
+
 // Utility functions
 export const formatDate = (date: string | undefined): string => {
     if (!date) {
@@ -29,6 +31,14 @@ export const toTitleCase = (text: string | undefined): string => {
         .filter(Boolean)
         .map(word => word[0].toUpperCase() + word.slice(1))
         .join(" ");
+};
+
+export const formatAndValidateLeadType = (val?: string): LeadType => {
+    const leadTypeValues = Object.values(LeadType);
+    const formatted = val?.trim().toUpperCase();
+    return (formatted && leadTypeValues.includes(formatted as LeadType))
+        ? formatted as LeadType
+        : LeadType.OPEN;
 };
 
 export const extractLast10Digits = (number: string | undefined): string => {

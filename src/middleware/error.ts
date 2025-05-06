@@ -10,12 +10,14 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
   );
 
   if (!err.statusCode || err.statusCode === 500) {
-    sendEmail(DEVELOPER_EMAIL, 'Error in the application', err.message);
+    if (process.env.NODE_ENV !== 'development') {
+      sendEmail(DEVELOPER_EMAIL, 'Error in the application', err.message);
+    }
   }
 
   // if statusCode is there it means that message will also be created by us
   // if statusCode is not there it means that message is not created by us its something else in this situation we want to send internal server error.
-  let statusCode = err.statusCode ??  500;
+  let statusCode = err.statusCode ?? 500;
   let message = err.statusCode ? err.message : 'Internal Server Error. Please try again later.'
 
 

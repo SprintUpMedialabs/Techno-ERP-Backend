@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { Course, FinalConversionType, Gender, LeadType } from '../../config/constants';
 import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import { contactNumberSchema, objectIdSchema, requestDateSchema } from '../../validators/commonSchema';
-import { extractLast10Digits, formatDate, splitEmails, toTitleCase } from './formators';
+import { extractLast10Digits, formatAndValidateLeadType, formatDate, splitEmails, toTitleCase } from './formators';
 
 export const leadMasterSchema = z.object({
   date: z.date(),
@@ -56,7 +56,7 @@ export const leadSheetSchema = z.object({
   // temporary fields
   course: z.string().optional().transform(val => val?.toUpperCase()),
   area: z.string().optional().transform(toTitleCase),
-  leadType: z.nativeEnum(LeadType).optional(),
+  leadType: z.string().transform(formatAndValidateLeadType),
   remarks: z.string().optional(),
   schoolName: z.string().optional().transform(toTitleCase),
 });

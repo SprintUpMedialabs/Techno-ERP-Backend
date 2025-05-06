@@ -1,10 +1,9 @@
 import { google } from 'googleapis';
 import logger from '../../config/logger';
+import { MarketingsheetHeaders } from '../enums/marketingSheetHeader';
 import { SpreadSheetMetaData } from '../models/spreadSheet';
-import { googleAuth } from './googleAuth';
-// import { MARKETING_SHEET_PAGE_NAME, MARKETING_SHEET_ID } from '../../secrets';
-// import { MARKETING_SHEET } from '../../config/constants';
 import { IMarketingSpreadsheetProcessReport } from '../types/marketingSpreadsheet';
+import { googleAuth } from './googleAuth';
 
 // TODO: what if google api is down? we will focus on this on phase - 2
 
@@ -15,12 +14,13 @@ export const readFromGoogleSheet = async (MARKETING_SHEET_ID: string, MARKETING_
     name: MARKETING_SHEET_PAGE_NAME
   });
 
-  spreadSheetMetaData ??= await SpreadSheetMetaData.create({
+  spreadSheetMetaData ??=  await SpreadSheetMetaData.create({
     name: MARKETING_SHEET_PAGE_NAME,
     lastIdxMarketingSheet: 1
   });
 
   const lastSavedIndex = spreadSheetMetaData.lastIdxMarketingSheet;
+
   logger.info(`Last saved index from DB: ${lastSavedIndex}`);
 
   const sheetMeta = await sheetInstance.spreadsheets.get({
@@ -45,14 +45,23 @@ export const readFromGoogleSheet = async (MARKETING_SHEET_ID: string, MARKETING_
     return;
   }
 
-  console.log(rowData);
+  const headerResponse = await sheetInstance.spreadsheets.values.get({
+    spreadsheetId: MARKETING_SHEET_ID,
+    range: `${MARKETING_SHEET_PAGE_NAME}!A1:Z1`
+  });
+  const columnHeaders = headerResponse.data.values?.[0] || [];
+  const requiredColumnHeaderWithIndex: { [key: string]: number } = {};
+  Object.values(MarketingsheetHeaders).forEach((header) => {
+    requiredColumnHeaderWithIndex[header] = columnHeaders.indexOf(header);
+  });
 
   const newLastReadIndex = lastSavedIndex + rowData.length;
   logger.info(`New Last Read Index: ${newLastReadIndex}`);
 
   return {
-    RowData: rowData,
-    LastSavedIndex: lastSavedIndex
+    requiredColumnHeaders: requiredColumnHeaderWithIndex,
+    rowData: rowData,
+    lastSavedIndex: lastSavedIndex
   };
 };
 

@@ -1,14 +1,15 @@
+import { Response } from "express";
 import expressAsyncHandler from "express-async-handler";
 import createHttpError from "http-errors";
+import mongoose from "mongoose";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
-import { ApplicationStatus, FeeType } from "../../config/constants";
-import { fetchOtherFees, fetchCourseFeeByCourse } from "../../fees/courseAndOtherFees.controller";
+import { ApplicationStatus, Course } from "../../config/constants";
+import { functionLevelLogger } from "../../config/functionLevelLogging";
+import { fetchCourseFeeByCourse, fetchOtherFees } from "../../fees/courseAndOtherFees.controller";
 import { formatResponse } from "../../utils/formatResponse";
 import { Enquiry } from "../models/enquiry";
 import { StudentFeesDraftModel } from "../models/studentFeesDraft";
-import { IFeesDraftRequestSchema, feesDraftRequestSchema, IFeesDraftUpdateSchema, feesDraftUpdateSchema } from "../validators/studentFees";
-import { Response } from "express";
-import { functionLevelLogger } from "../../config/functionLevelLogging";
+import { IFeesDraftRequestSchema, IFeesDraftUpdateSchema, feesDraftRequestSchema, feesDraftUpdateSchema } from "../validators/studentFees";
 
 export const createFeeDraft = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
 
@@ -31,22 +32,15 @@ export const createFeeDraft = expressAsyncHandler(functionLevelLogger(async (req
     throw createHttpError(400, 'Valid enquiry does not exist. Please complete step 1 first!');
   }
 
-
   const otherFees = await fetchOtherFees();
-  const semWiseFee = await fetchCourseFeeByCourse(enquiry.course.toString());
+  const semWiseFee = await fetchCourseFeeByCourse(enquiry.course as Course);
 
   const { counsellor, telecaller, ...feeRelatedData } = validation.data;
   const feeData = {
     ...feeRelatedData,
     otherFees: feeRelatedData.otherFees?.map(fee => {
       let feeAmount = fee.feeAmount;
-
-      if (fee.type === FeeType.SEM1FEE) {
-        feeAmount = semWiseFee?.fee[0] ?? 0;
-      }
-      else {
-        feeAmount = feeAmount ?? otherFees?.find(otherFee => otherFee.type === fee.type)?.fee ?? 0;
-      }
+      feeAmount = feeAmount ?? otherFees?.find(otherFee => otherFee.type === fee.type)?.fee ?? 0;
       return {
         ...fee,
         feeAmount,
@@ -60,15 +54,26 @@ export const createFeeDraft = expressAsyncHandler(functionLevelLogger(async (req
     })) || []
   };
 
-  const feesDraft = await StudentFeesDraftModel.create(feeData);
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-  await Enquiry.findByIdAndUpdate(
-    data.enquiryId,
-    { $set: { studentFeeDraft: feesDraft._id, counsellor, telecaller } }
-  );
+  try {
+    const feesDraftList = await StudentFeesDraftModel.create([feeData], { session });
+    const feesDraft = feesDraftList[0];
 
-  return formatResponse(res, 201, 'Fees Draft created successfully', true, feesDraft);
-
+    await Enquiry.findByIdAndUpdate(
+      data.enquiryId,
+      { $set: { studentFeeDraft: feesDraft._id, counsellor, telecaller } },
+      { session }
+    );
+    await session.commitTransaction();
+    session.endSession();
+    return formatResponse(res, 201, 'Fees Draft created successfully', true, feesDraft);
+  } catch (error: any) {
+    await session.abortTransaction();
+    session.endSession();
+    throw createHttpError(error);
+  }
 }));
 
 
@@ -81,7 +86,7 @@ export const updateFeeDraft = expressAsyncHandler(functionLevelLogger(async (req
   if (!validation.success) {
     throw createHttpError(400, validation.error.errors[0].message);
   }
-  
+
   const enquiry = await Enquiry.findOne(
     {
       _id: data.enquiryId,
@@ -90,11 +95,11 @@ export const updateFeeDraft = expressAsyncHandler(functionLevelLogger(async (req
     .lean();
 
   if (!enquiry) {
-    throw createHttpError(400, 'Not a valid enquiry');
+    throw createHttpError(404, 'Not a valid enquiry');
   }
 
   const otherFees = await fetchOtherFees();
-  const semWiseFee = await fetchCourseFeeByCourse(enquiry.course.toString());
+  const semWiseFee = await fetchCourseFeeByCourse(enquiry.course as Course);
 
   // DTODO: remove telecaller and counsellor from updatedData
   const { counsellor, telecaller, ...feeRelatedData } = validation.data;
@@ -103,12 +108,7 @@ export const updateFeeDraft = expressAsyncHandler(functionLevelLogger(async (req
     otherFees: feeRelatedData.otherFees?.map(fee => {
       let feeAmount = fee.feeAmount;
 
-      if (fee.type === FeeType.SEM1FEE) {
-        feeAmount = semWiseFee?.fee[0] ?? 0;
-      }
-      else {
-        feeAmount = feeAmount ?? otherFees?.find(otherFee => otherFee.type === fee.type)?.fee ?? 0;
-      }
+      feeAmount = feeAmount ?? otherFees?.find(otherFee => otherFee.type === fee.type)?.fee ?? 0;
 
       return {
         ...fee,
@@ -122,15 +122,27 @@ export const updateFeeDraft = expressAsyncHandler(functionLevelLogger(async (req
       finalFee: semFee.finalFee ?? 0
     })) || []
   };
-  
-  const updatedDraft = await StudentFeesDraftModel.findByIdAndUpdate(
-    data.id,
-    { $set: updateData },
-    { new: true, runValidators: true }
-  );
-  await Enquiry.findByIdAndUpdate(
-    data.enquiryId,
-    { $set: { counsellor, telecaller } }
-  );
-  return formatResponse(res, 200, 'Fees Draft updated successfully', true, updatedDraft);
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const updatedDraft = await StudentFeesDraftModel.findByIdAndUpdate(
+      data.id,
+      { $set: updateData },
+      { new: true, runValidators: true, session }
+    );
+    await Enquiry.findByIdAndUpdate(
+      data.enquiryId,
+      { $set: { counsellor, telecaller } },
+      { session }
+    );
+    await session.commitTransaction();
+    session.endSession();
+    return formatResponse(res, 200, 'Fees Draft updated successfully', true, updatedDraft);
+  } catch (error: any) {
+    await session.abortTransaction();
+    session.endSession();
+    throw createHttpError(error);
+  }
 }));

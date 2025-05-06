@@ -4,14 +4,14 @@ import { DropDownType, Gender, UserRoles } from '../../config/constants';
 import logger from '../../config/logger';
 import { sendEmail } from '../../config/mailer';
 import { LEAD_MARKETING_EMAIL } from '../../secrets';
+import { DropDownMetaData } from '../../utilityModules/dropdown/dropDownMetaDeta';
+import { formatCapital, formatDropdownValue, updateDropDownByType } from '../../utilityModules/dropdown/dropDownMetadataController';
 import { MarketingsheetHeaders } from '../enums/marketingSheetHeader';
 import { LeadMaster } from '../models/lead';
 import { IMarketingSpreadsheetProcessReport } from '../types/marketingSpreadsheet';
-import { ILeadRequest, ISheetLeadRequest, leadRequestSchema, leadSheetSchema } from '../validators/leads';
+import { leadSheetSchema } from '../validators/leads';
 import { formatReport } from './formatReport';
 import { updateStatusForMarketingSheet } from './googleSheetOperations';
-import { DropDownMetaData } from '../../utilityModules/dropdown/dropDownMetaDeta';
-import { formatCapital, formatDropdownValue, updateDropDownByType } from '../../utilityModules/dropdown/dropDownMetadataController';
 
 const leadsToBeInserted = async (
   latestData: any[],
@@ -19,7 +19,8 @@ const leadsToBeInserted = async (
   lastSavedIndex: number,
   citySet: Set<string>,
   sourceSet: Set<string>,
-  courseSet: Set<string>
+  courseSet: Set<string>,
+  requiredColumnHeaders: { [key: string]: number }
 ) => {
   let MarketingEmployees: Map<string, Types.ObjectId> = new Map();
 
@@ -40,7 +41,7 @@ const leadsToBeInserted = async (
       }
 
       // if assignTo is not mentationed in sheet
-      if (!row[MarketingsheetHeaders.AssignedTo]) {
+      if (!row[requiredColumnHeaders[MarketingsheetHeaders.AssignedTo]]) {
         // logger.info('Assigned to not found at index : ', correspondingSheetIndex);
         report.assignedToNotFound.push(correspondingSheetIndex);
         report.rowsFailed++;
@@ -48,28 +49,30 @@ const leadsToBeInserted = async (
       }
 
       let leadData = {
-        ...(row[MarketingsheetHeaders.Date] && { date: row[MarketingsheetHeaders.Date] }),
-        ...(row[MarketingsheetHeaders.Source] && { source: row[MarketingsheetHeaders.Source] }),
-        ...(row[MarketingsheetHeaders.Name] && { name: row[MarketingsheetHeaders.Name] }),
-        ...(row[MarketingsheetHeaders.PhoneNumber] && { phoneNumber: row[MarketingsheetHeaders.PhoneNumber] }),
-        ...(row[MarketingsheetHeaders.AltPhoneNumber] && { altPhoneNumber: row[MarketingsheetHeaders.AltPhoneNumber] }),
-        ...(row[MarketingsheetHeaders.Email] && { email: row[MarketingsheetHeaders.Email] }),
+        ...(row[requiredColumnHeaders[MarketingsheetHeaders.Date]] && { date: row[requiredColumnHeaders[MarketingsheetHeaders.Date]] }),
+        ...(row[requiredColumnHeaders[MarketingsheetHeaders.Source]] && { source: row[requiredColumnHeaders[MarketingsheetHeaders.Source]] }),
+        ...(row[requiredColumnHeaders[MarketingsheetHeaders.Name]] && { name: row[requiredColumnHeaders[MarketingsheetHeaders.Name]] }),
+        ...(row[requiredColumnHeaders[MarketingsheetHeaders.PhoneNumber]] && { phoneNumber: row[requiredColumnHeaders[MarketingsheetHeaders.PhoneNumber]] }),
+        ...(row[requiredColumnHeaders[MarketingsheetHeaders.AltPhoneNumber]] && { altPhoneNumber: row[requiredColumnHeaders[MarketingsheetHeaders.AltPhoneNumber]] }),
+        ...(row[requiredColumnHeaders[MarketingsheetHeaders.Email]] && { email: row[requiredColumnHeaders[MarketingsheetHeaders.Email]] }),
         gender: Gender.OTHER,
-        ...(row[MarketingsheetHeaders.City] && { city: row[MarketingsheetHeaders.City] }),
-        ...(row[MarketingsheetHeaders.LeadType] && { leadType: row[MarketingsheetHeaders.LeadType] }),
-        ...(row[MarketingsheetHeaders.Remarks] && { remarks: row[MarketingsheetHeaders.Remarks] }),
-        ...(row[MarketingsheetHeaders.SchoolName] && { schoolName: row[MarketingsheetHeaders.SchoolName] }),
-        ...(row[MarketingsheetHeaders.Area] && { area: row[MarketingsheetHeaders.Area] }),
-        ...(row[MarketingsheetHeaders.Course] && { course: row[MarketingsheetHeaders.Course] }),
-        assignedTo: row[MarketingsheetHeaders.AssignedTo],
+        ...(row[requiredColumnHeaders[MarketingsheetHeaders.City]] && { city: row[requiredColumnHeaders[MarketingsheetHeaders.City]] }),
+        ...(row[requiredColumnHeaders[MarketingsheetHeaders.LeadType]] && { leadType: row[requiredColumnHeaders[MarketingsheetHeaders.LeadType]] }),
+        ...(row[requiredColumnHeaders[MarketingsheetHeaders.Remarks]] && { remarks: row[requiredColumnHeaders[MarketingsheetHeaders.Remarks]] }),
+        ...(row[requiredColumnHeaders[MarketingsheetHeaders.SchoolName]] && { schoolName: row[requiredColumnHeaders[MarketingsheetHeaders.SchoolName]] }),
+        ...(row[requiredColumnHeaders[MarketingsheetHeaders.Area]] && { area: row[requiredColumnHeaders[MarketingsheetHeaders.Area]] }),
+        ...(row[requiredColumnHeaders[MarketingsheetHeaders.Course]] && { course: row[requiredColumnHeaders[MarketingsheetHeaders.Course]] }),
+        assignedTo: row[requiredColumnHeaders[MarketingsheetHeaders.AssignedTo]],
       };
-
+      
+      row[requiredColumnHeaders[MarketingsheetHeaders.Gender]] = row[requiredColumnHeaders[MarketingsheetHeaders.Gender]]?.toUpperCase();
       if (
-        row[MarketingsheetHeaders.Gender] &&
-        Gender[row[MarketingsheetHeaders.Gender] as keyof typeof Gender]
+        row[requiredColumnHeaders[MarketingsheetHeaders.Gender]] &&
+        Gender[row[requiredColumnHeaders[MarketingsheetHeaders.Gender]] as keyof typeof Gender]
       ) {
-        leadData.gender = Gender[row[MarketingsheetHeaders.Gender] as keyof typeof Gender];
+        leadData.gender = Gender[row[requiredColumnHeaders[MarketingsheetHeaders.Gender]] as keyof typeof Gender];
       }
+      console.log(leadData);
 
       const leadDataValidation = leadSheetSchema.safeParse(leadData);
 
@@ -136,7 +139,7 @@ const leadsToBeInserted = async (
   return dataToInsert;
 };
 
-export const saveDataToDb = async (latestData: any[], lastSavedIndex: number, sheetId: string, sheetName: string) => {
+export const saveDataToDb = async (latestData: any[], lastSavedIndex: number, sheetId: string, sheetName: string, requiredColumnHeaders: { [key: string]: number }) => {
   const report: IMarketingSpreadsheetProcessReport = {
     rowsToBeProcessed: latestData.length,
     actullyProcessedRows: 0,
@@ -157,7 +160,7 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number, sh
   const sourceSet = new Set(sourceDropDown?.value || []);
   const courseSet = new Set(courseDropDown?.value || []);
 
-  const dataToInsert = await leadsToBeInserted(latestData, report, lastSavedIndex, citySet, sourceSet, courseSet);
+  const dataToInsert = await leadsToBeInserted(latestData, report, lastSavedIndex, citySet, sourceSet, courseSet, requiredColumnHeaders);
   if (!dataToInsert || dataToInsert.length === 0) {
     if (report.rowsFailed != 0) {
       sendEmail(LEAD_MARKETING_EMAIL, 'Lead Processing Report', formatReport(report));

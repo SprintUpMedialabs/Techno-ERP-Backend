@@ -182,7 +182,8 @@ export enum ApplicationStatus {
   STEP_1 = 'Step_1',
   STEP_2 = 'Step_2',
   STEP_3 = 'Step_3',
-  STEP_4 = 'Step_4'
+  STEP_4 = 'Step_4',
+  CONFIRMED = 'Confirmed'
 }
 
 
@@ -213,16 +214,8 @@ export enum FeeType {
   UNIFORM = "UNIFORM",
   STUDENTWELFARE = "STUDENTWELFARE",
   BOOKBANK = "BOOKBANK",
-  EXAMFEES = "EXAMFEES",
-  SEM1FEE = "SEM1FEE"
+  EXAMFEES = "EXAMFEES"
 }
-
-
-export enum FeeStatus {
-  FINAL = "FINAL",
-  DRAFT = "DRAFT"
-}
-
 
 export enum AdmissionMode {
   ONLINE = "ONLINE",
@@ -274,15 +267,6 @@ export enum Countries {
   NON_INDIA = "Non-India"
 }
 
-// export enum Districts {
-//   Lucknow = "Lucknow",
-//   Sitapur = "Sitapur",
-//   Hardoi = "Hardoi",
-//   Barabanki = "Barabanki",
-//   Raebareli = "Raebareli",
-//   Unnao = "Unnao",
-// }
-
 export enum AreaType {
   URBAN = "URBAN",
   RURAL = "RURAL",
@@ -315,7 +299,10 @@ export enum COLLECTION_NAMES {
   DEPARTMENT_META_DATA = 'DepartmentMetaData',
   COURSE_METADATA = 'CourseMetadata',
   COURSE = 'Course',
-  DROP_DOWN_META_DATA = 'DropDownMetaData'
+  DROP_DOWN_META_DATA = 'DropDownMetaData',
+  STUDENTREPO = "StudentRepo",
+  TRANSACTION_HISTORY = "TransactionHistory",
+  TECHNO_META_DATA = "TechnoMetaData"
 }
 
 
@@ -336,4 +323,69 @@ export enum CourseMaterialType {
   LPLAN = 'LPlan',
   PPLAN = 'PPlan',
   GENERAL = 'General'
+}
+
+
+export enum CourseYears {
+  First = 'First',
+  Second = 'Second',
+  Third = 'Third',
+  Fourth = 'Fourth',
+  Fifth = 'Fifth',
+  Sixth = 'Sixth'
+}
+
+export enum FeeStatus {
+  DUE = "DUE",
+  PAID = "PAID",
+  NOT_PROVIDED = "NOT_PROVIDED"
+}
+
+export enum Schedule {
+  ONE_TIME = "ONE_TIME",
+  SEMESTER = "SEMESTER",
+  YEARLY = "YEARLY",
+  OPTIONAL = "OPTIONAL",
+  AS_APPLICABLE = "AS_APPLICABLE"
+}
+
+export enum FeeActions {
+  REFUND = "REFUND",
+  DEPOSIT = "DEPOSIT"
+}
+
+export enum TransactionTypes {
+  NEFT_IMPS_RTGS = "NEFT/RTGS/IMPS",
+  UPI = "UPI",
+  CASH = "CASH",
+  CHEQUE = "CHEQUE",
+  OTHERS = "OTHERS"
+}
+
+
+export enum FinanceFeeType {
+  HOSTEL = "HOSTEL",    //OPTIONAL
+  TRANSPORT = "TRANSPORT",  //OPTIONAL
+  PROSPECTUS = "PROSPECTUS",  //ONE-TIME
+  STUDENTID = "STUDENTID",  //ONE-TIME
+  UNIFORM = "UNIFORM",    //ONE-TIME
+  STUDENTWELFARE = "STUDENTWELFARE",  //YEARLY
+  BOOKBANK = "BOOKBANK",  //SEMESTERWISE
+  EXAMFEES = "EXAMFEES",
+  MISCELLANEOUS = "MISCELLANEOUS", //OTHERS
+  SEMESTERFEE = "SEMESTERFEE"
+}
+
+
+export enum FinanceFeeSchedule {
+  HOSTEL = "YEARLY",
+  TRANSPORT = "YEARLY",
+  PROSPECTUS = "ONETIME",
+  STUDENTID = "ONETIME",
+  UNIFORM = "ONETIME",
+  STUDENTWELFARE = "YEARLY",
+  BOOKBANK = "HALF_YEARLY",
+  EXAMFEES = "HALF_YEARLY",
+  MISCELLANEOUS = "HALF_YEARLY",
+  SEMESTERFEE = "HALF_YEARLY",
 }

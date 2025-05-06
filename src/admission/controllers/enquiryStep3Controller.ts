@@ -1,18 +1,16 @@
+import { Response } from "express";
 import expressAsyncHandler from "express-async-handler";
 import createHttpError from "http-errors";
+import mongoose from "mongoose";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
-import { ADMISSION, ApplicationStatus, DropDownType } from "../../config/constants";
+import { ADMISSION, ApplicationStatus, DocumentType, DropDownType } from "../../config/constants";
+import { functionLevelLogger } from "../../config/functionLevelLogging";
+import { uploadToS3 } from "../../config/s3Upload";
+import { updateOnlyOneValueInDropDown } from "../../utilityModules/dropdown/dropDownMetadataController";
 import { formatResponse } from "../../utils/formatResponse";
-import { checkIfStudentAdmitted } from "../helpers/checkIfStudentAdmitted";
 import { Enquiry } from "../models/enquiry";
 import { IEnquiryDraftStep3Schema, enquiryDraftStep3Schema, enquiryStep3UpdateRequestSchema } from "../validators/enquiry";
-import { Response } from "express";
-import { functionLevelLogger } from "../../config/functionLevelLogging";
-import mongoose from "mongoose";
-import { uploadToS3 } from "../../config/s3Upload";
 import { singleDocumentSchema } from "../validators/singleDocumentSchema";
-import { DocumentType } from "../../config/constants";
-import { updateOnlyOneValueInDropDown } from "../../utilityModules/dropdown/dropDownMetadataController";
 
 export const saveStep3Draft = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
 
@@ -26,9 +24,17 @@ export const saveStep3Draft = expressAsyncHandler(functionLevelLogger(async (req
 
   const { id, ...validatedData } = validation.data;
 
+  const isEnquiryExists = await Enquiry.exists({
+    _id: id,
+    applicationStatus: ApplicationStatus.STEP_3
+  });
+  if (!isEnquiryExists) {
+    throw createHttpError(400, 'Enquiry not found');
+  }
+
   const enquiry = await Enquiry.findByIdAndUpdate(
     id,
-    { ...validatedData },
+    { ...validatedData, applicationStatus: ApplicationStatus.STEP_3 },
     { new: true, runValidators: true }
   );
 
@@ -48,24 +54,18 @@ export const updateEnquiryStep3ById = expressAsyncHandler(functionLevelLogger(as
 
   const { id, ...data } = validation.data;
 
-  await checkIfStudentAdmitted(id);
-
-  const enquiry = await Enquiry.findOne({
+  const isEnquiryExists = await Enquiry.exists({
     _id: id,
-    applicationStatus: { $ne: ApplicationStatus.STEP_1 }
-  }, { applicationStatus: 1 });
-
-  if (!enquiry) {
-    // is it can't happen that id was not exists so case which is possible is that ki student only did step1 and came to register [we are ignoring postman possibility here]
-    throw createHttpError(400, "Please complete step 1 first");
+    applicationStatus: ApplicationStatus.STEP_3
+  });
+  if (!isEnquiryExists) {
+    throw createHttpError(400, 'Enquiry not found');
   }
 
-
-  const updatedData = await Enquiry.findByIdAndUpdate(id, { ...data, }, { new: true, runValidators: true });
+  const updatedData = await Enquiry.findByIdAndUpdate(id, { ...data, applicationStatus: ApplicationStatus.STEP_4 }, { new: true, runValidators: true });
 
   updateOnlyOneValueInDropDown(DropDownType.DISTRICT, updatedData?.address?.district);
   return formatResponse(res, 200, 'Enquiry data updated successfully', true, updatedData);
-
 }));
 
 
@@ -87,7 +87,13 @@ export const updateEnquiryDocuments = expressAsyncHandler(functionLevelLogger(as
     file: file
   });
 
-  await checkIfStudentAdmitted(id);
+  const isEnquiryExists = await Enquiry.exists({
+    _id: id,
+    applicationStatus: ApplicationStatus.STEP_3
+  });
+  if (!isEnquiryExists) {
+    throw createHttpError(400, 'Enquiry not found');
+  }
 
 
   if (!validation.success) {
