@@ -317,8 +317,8 @@ const transformDates = (_: any, ret: any) => {
       ret[key] = convertToDDMMYYYY(ret[key]);
     }
   });
-  ret['physicalDocumentNote'].forEach((physicalDocumentNote: any) => {
-    if (physicalDocumentNote.dueBy != undefined) {
+  ret['physicalDocumentNote']?.forEach((physicalDocumentNote: any) => {
+    if (physicalDocumentNote?.dueBy != undefined) {
       physicalDocumentNote.dueBy = convertToDDMMYYYY(physicalDocumentNote.dueBy);
     }
   })
