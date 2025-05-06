@@ -16,7 +16,7 @@ feesRouter.get('/', getAllFeesStructures);
 // feesRouter.get('/:id', getFeesStructureById);
 
 feesRouter.get('/course/:courseName', getCourseFeeByCourseName);
-feesRouter.get('/other-fees', getOtherFees);
+feesRouter.get('/other-fees/:courseName', getOtherFees);
 
 
 
