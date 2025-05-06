@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import createHttpError from 'http-errors';
 import { CourseAndOtherFeesModel } from './courseAndOtherFees.model';
+import { Course } from '../config/constants';
+import expressAsyncHandler from 'express-async-handler';
 
 export const createFeesStructure = async (req: Request, res: Response) => {
     const newDoc = await CourseAndOtherFeesModel.create(req.body);
@@ -32,10 +34,10 @@ export const getFeesStructureById = async (req: Request, res: Response) => {
     res.json(doc);
 };
 
-export const getCourseFeeByCourseName = async (req: Request, res: Response) => {
+export const getCourseFeeByCourseName = expressAsyncHandler(async (req: Request, res: Response) => {
 
     const courseName = req.params.courseName;
-    const courseFee = await fetchCourseFeeByCourse(courseName);
+    const courseFee = await fetchCourseFeeByCourse(courseName as Course);
 
     if (!courseFee) {
         throw createHttpError(404, 'Course fee not found');
@@ -43,7 +45,7 @@ export const getCourseFeeByCourseName = async (req: Request, res: Response) => {
 
     res.status(200).json(courseFee);
 
-};
+});
 
 export const getOtherFees = async (req: Request, res: Response) => {
     const otherFees = await fetchOtherFees();
@@ -51,7 +53,7 @@ export const getOtherFees = async (req: Request, res: Response) => {
 };
 
 // ✅ Reusable function
-export const fetchCourseFeeByCourse = async (courseName: string) => {
+export const fetchCourseFeeByCourse = async (courseName: Course) => {
     const record = await CourseAndOtherFeesModel.findOne({
         'courseFees.course': courseName
     });
