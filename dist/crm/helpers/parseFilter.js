@@ -83,6 +83,7 @@ const parseFilter = (req) => {
         else {
             sort[field] = direction;
         }
+        sort['_id'] = 1;
     });
     return {
         search: search,
