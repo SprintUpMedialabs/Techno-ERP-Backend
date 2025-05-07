@@ -35,6 +35,7 @@ const student_1 = require("../models/student");
 const http_errors_1 = __importDefault(require("http-errors"));
 const formatResponse_1 = require("../../utils/formatResponse");
 const user_1 = require("../../auth/models/user");
+const physicalDocumentNoteSchema_1 = require("../../admission/validators/physicalDocumentNoteSchema");
 const createStudent = (studentData) => __awaiter(void 0, void 0, void 0, function* () {
     const { courseCode, feeId, dateOfAdmission } = studentData;
     const studentBaseInformation = Object.assign({}, studentData);
@@ -340,7 +341,7 @@ exports.updateStudentDataById = (0, express_async_handler_1.default)((req, res) 
     return (0, formatResponse_1.formatResponse)(res, 200, 'Student details updated successfully', true, updatedStudent);
 }));
 exports.updateStudentPhysicalDocumentById = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const validation = studentSchema_1.updateStudentPhysicalDocumentRequestSchema.safeParse(req.body);
+    const validation = physicalDocumentNoteSchema_1.updateStudentPhysicalDocumentRequestSchema.safeParse(req.body);
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }

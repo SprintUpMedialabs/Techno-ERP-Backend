@@ -133,6 +133,7 @@ exports.approveEnquiry = (0, express_async_handler_1.default)((0, functionLevelL
         const studentData = Object.assign(Object.assign({}, enquiryData), { "courseCode": approvedEnquiry === null || approvedEnquiry === void 0 ? void 0 : approvedEnquiry.course, "feeId": approvedEnquiry === null || approvedEnquiry === void 0 ? void 0 : approvedEnquiry.studentFee, "dateOfAdmission": approvedEnquiry === null || approvedEnquiry === void 0 ? void 0 : approvedEnquiry.dateOfAdmission });
         console.log("Student Data : ", studentData);
         const studentValidation = studentSchema_1.CreateStudentSchema.safeParse(studentData);
+        console.log("create student schema : ", studentValidation.data);
         console.log("Student Validation Errors : ", studentValidation.error);
         if (!studentValidation.success)
             throw (0, http_errors_1.default)(400, studentValidation.error.errors[0]);
@@ -143,8 +144,10 @@ exports.approveEnquiry = (0, express_async_handler_1.default)((0, functionLevelL
         const student = yield (0, studentController_1.createStudent)(studentValidation.data);
         const studentCreateValidation = studentSchema_1.StudentSchema.safeParse(student);
         console.log("Student create validation errors : ", studentCreateValidation.error);
-        if (!studentCreateValidation.success)
+        console.log(studentCreateValidation.data);
+        if (!studentCreateValidation.success) {
             throw (0, http_errors_1.default)(400, studentCreateValidation.error.errors[0]);
+        }
         const createdStudent = yield student_1.Student.create([Object.assign({ _id: enquiry._id }, studentCreateValidation.data)], { session });
         yield session.commitTransaction();
         session.endSession();
