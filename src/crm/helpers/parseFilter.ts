@@ -74,7 +74,7 @@ export const parseFilter = (req: AuthenticatedRequest) => {
   ) {
     if (filters.assignedTo.length > 0) {
       query.assignedTo = { $in: filters.assignedTo };
-    } 
+    }
   }
 
 
@@ -106,14 +106,15 @@ export const parseFilter = (req: AuthenticatedRequest) => {
   let sort: any = {};
 
   reversedSortBy.forEach((field, index) => {
-  const direction = reversedOrderBy[index] === OrderBy.DESC ? -1 : 1;
+    const direction = reversedOrderBy[index] === OrderBy.DESC ? -1 : 1;
 
     if (field === SortableFields.LTC_DATE) {
       sort['leadTypeModifiedDate'] = direction;
-    } 
+    }
     else {
       sort[field] = direction;
     }
+    sort['_id'] = 1;
   });
 
 
