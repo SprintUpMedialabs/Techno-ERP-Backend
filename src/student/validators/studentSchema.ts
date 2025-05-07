@@ -6,8 +6,8 @@ import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
 import { academicDetailsArraySchema } from "../../admission/validators/academicDetailSchema";
 import { previousCollegeDataSchema } from "../../admission/validators/previousCollegeDataSchema";
 import { singleDocumentSchema } from "../../admission/validators/singleDocumentSchema";
-import { physicalDocumentNoteSchema } from "../../admission/validators/physicalDocumentNoteSchema";
 import { entranceExamDetailSchema } from "../../admission/validators/entranceExamDetailSchema";
+import { physicalDocumentNoteRequestSchema, physicalDocumentNoteSchema } from "../../admission/validators/physicalDocumentNoteSchema";
 
 export const BaseExamSchema = z.object({
     type: z.string().optional(),
@@ -144,7 +144,7 @@ export const CreateStudentSchema = z.object({
 
     previousCollegeData: previousCollegeDataSchema.optional(),
     documents: z.array(singleDocumentSchema.extend({ dueBy: z.date().optional() })).optional(),
-    physicalDocumentNote: z.array(physicalDocumentNoteSchema).optional(),
+    physicalDocumentNote: z.array(physicalDocumentNoteRequestSchema).optional(),
     stateOfDomicile: z.nativeEnum(StatesOfIndia).optional(),
     areaType: z.nativeEnum(AreaType).optional(),
     nationality: z.string().optional(),
@@ -190,12 +190,9 @@ export const updateStudentDetailsRequestSchema = z.object({
     entranceExamDetails: entranceExamDetailSchema.optional(),
 }).strict();
 
-export const updateStudentPhysicalDocumentRequestSchema = physicalDocumentNoteSchema.extend({ id: objectIdSchema }).strict();
-
 
 export type ICreateStudentSchema = z.infer<typeof CreateStudentSchema>;
 export type IStudentSchema = z.infer<typeof StudentSchema>;
-export type IStudentBaseInformation = z.infer<typeof StudentBaseInfoSchema>;
 export type ISemesterSchema = z.infer<typeof SemesterSchema>;
 export type IAttendanceSchema = z.infer<typeof AttendanceSchema>;
 export type IExamSchema = z.infer<typeof ExamsSchema>;
