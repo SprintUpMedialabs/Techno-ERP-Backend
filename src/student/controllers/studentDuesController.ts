@@ -242,11 +242,12 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
 export const recordPayment = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const paymentInfo: ICreateCollegeTransactionSchema = req.body;
 
-    // console.log("Payment Info is : ", paymentInfo);
+
+    console.log("Payment Info is : ", paymentInfo);
 
     const validation = CreateCollegeTransactionSchema.safeParse(paymentInfo);
 
-    // console.log("Payment Info validation error is : ", validation.error);
+    console.log("Payment Info validation error is : ", validation.error);
     if (!validation.success)
         throw createHttpError(400, validation.error.errors[0]);
 
@@ -255,7 +256,7 @@ export const recordPayment = expressAsyncHandler(async (req: AuthenticatedReques
 
     try {
         let student = await Student.findById(validation.data.studentId).session(session);
-        // console.log("Student is : ", student);
+        console.log("Student is : ", student);
         if (!student) {
             throw createHttpError(404, "Student not found");
         }
@@ -272,8 +273,8 @@ export const recordPayment = expressAsyncHandler(async (req: AuthenticatedReques
             actionedBy: currentLoggedInUser
         }], { session });
 
-        // console.log("Transaction created : ", transaction);
-        // console.log(transaction[0]._id);
+        console.log("Transaction created : ", transaction);
+        console.log(transaction[0]._id);
 
         if (validation.data.feeAction === FeeActions.REFUND) {
             if ((student.extraBalance || 0) < validation.data.amount) {
