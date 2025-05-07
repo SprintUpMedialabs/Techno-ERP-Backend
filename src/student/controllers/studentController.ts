@@ -80,7 +80,7 @@ export const createStudent = async (studentData: ICreateStudentSchema) => {
   const currentAcademicYear = getCurrentAcademicYear();
 
   const totalSemesters = course?.totalSemesters!;
-
+  let transactionAmount = 0;
   const semSubIds = semSubjectIds[0].semester;
   const semesterArray = [];
   for (let i = 1; i <= totalSemesters; i++) {
@@ -100,7 +100,10 @@ export const createStudent = async (studentData: ICreateStudentSchema) => {
         exams: exams
       });
     }
-    const fees = createSemesterFee(i, feesCourse);
+    const { amountForTransaction, ...fees } = createSemesterFee(i, feesCourse);
+    if(semesterNumber === 1)
+      transactionAmount = amountForTransaction;
+
     semesterArray.push({
       // _id : semesterId,
       semesterId: semesterId,
@@ -110,7 +113,8 @@ export const createStudent = async (studentData: ICreateStudentSchema) => {
       subjects: subjects,
       fees: fees
     })
-  }
+  };
+
   const student = {
     studentInfo: studentBaseInformation,
     courseId: courseId,
@@ -122,12 +126,13 @@ export const createStudent = async (studentData: ICreateStudentSchema) => {
     currentAcademicYear: currentAcademicYear,
     totalSemester: totalSemesters,
     semester: semesterArray,
+    transactionAmount : transactionAmount
   }
 
   return student;
 }
 
-const createSemesterFee = (semesterNumber: number, feesCourse: any): IFeeSchema => {
+const createSemesterFee = (semesterNumber: number, feesCourse: any): any => {
 
   const otherFees = feesCourse.otherFees || [];
   const semWiseFees = feesCourse.semWiseFees || [];
@@ -172,6 +177,7 @@ const createSemesterFee = (semesterNumber: number, feesCourse: any): IFeeSchema 
     updatedFee: amount,
   });
 
+  let amountForTransaction = 0;
   const details = requiredFeeTypes.map((type) => {
     const feeDetail = getFeeDetail(type);
 
@@ -180,7 +186,8 @@ const createSemesterFee = (semesterNumber: number, feesCourse: any): IFeeSchema 
     let paidAmount = 0;
 
     const feeUpdateHistory = [];
-
+   
+    
     if (feeDetail) {
       if (semesterNumber % 2 === 0) {
         if (
@@ -194,7 +201,8 @@ const createSemesterFee = (semesterNumber: number, feesCourse: any): IFeeSchema 
           actualFee = 0;
           finalFee = 0;
           paidAmount = 0;
-        } else {
+        } 
+        else {
           actualFee = feeDetail.feeAmount;
           finalFee = feeDetail.finalFee;
           // paidAmount = feeDetail.feesDepositedTOA || 0;
@@ -206,8 +214,10 @@ const createSemesterFee = (semesterNumber: number, feesCourse: any): IFeeSchema 
         finalFee = feeDetail.finalFee;
         if(semesterNumber !== 1)
           paidAmount = 0;
-        else
+        else{
           paidAmount = feeDetail.feesDepositedTOA || 0;
+          amountForTransaction = amountForTransaction + (feeDetail.feesDepositedTOA || 0);
+        }
       }
 
       feeUpdateHistory.push(createFeeUpdateHistory(finalFee));
@@ -224,15 +234,19 @@ const createSemesterFee = (semesterNumber: number, feesCourse: any): IFeeSchema 
     };
   });
 
+  
   const semFeeInfo = semWiseFees[semesterNumber - 1] || null;
 
   if (semFeeInfo) {
+
+    amountForTransaction = semesterNumber == 1 ? ( amountForTransaction + semFeeInfo.feesPaid || 0 ) : 0;
+
     details.push({
       type: FinanceFeeType.SEMESTERFEE,
       schedule: FinanceFeeSchedule[FinanceFeeType.SEMESTERFEE] ?? "YEARLY",
       actualFee: semFeeInfo.actualFee || 0,
       finalFee: semFeeInfo.finalFee || 0,
-      paidAmount: semFeeInfo.feesPaid || 0,
+      paidAmount: semesterNumber == 1 ? semFeeInfo.feesPaid || 0 : 0,
       remark: "",
       feeUpdateHistory: [{
         updatedAt : new Date(),
@@ -241,14 +255,16 @@ const createSemesterFee = (semesterNumber: number, feesCourse: any): IFeeSchema 
     });
   }
 
+
   const totalFinalFee = details.reduce((sum, item) => sum + item.finalFee, 0);
   const totalPaidAmount = details.reduce((sum, item) => sum + item.paidAmount, 0);
 
   return {
     details: details,
-    dueDate: undefined,
+    dueDate: semesterNumber == 1 ? new Date() : undefined,
     paidAmount: totalPaidAmount,
     totalFinalFee: totalFinalFee,
+    amountForTransaction : amountForTransaction
   };
 };
 
