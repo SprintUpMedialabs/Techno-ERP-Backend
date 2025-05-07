@@ -5,7 +5,7 @@ import axiosInstance from '../../api/axiosInstance';
 import { Endpoints } from '../../api/endPoints';
 import { safeAxiosPost } from '../../api/safeAxios';
 import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
-import { DropDownType, LeadType, RequestAction } from '../../config/constants';
+import { Actions, DropDownType, LeadType, RequestAction } from '../../config/constants';
 import { formatResponse } from '../../utils/formatResponse';
 import { readFromGoogleSheet } from '../helpers/googleSheetOperations';
 import { parseFilter } from '../helpers/parseFilter';
@@ -14,6 +14,10 @@ import { LeadMaster } from '../models/lead';
 import { IUpdateLeadRequestSchema, updateLeadRequestSchema } from '../validators/leads';
 import { updateOnlyOneValueInDropDown } from '../../utilityModules/dropdown/dropDownMetadataController';
 import { User } from '../../auth/models/user';
+import { normaliseText } from '../validators/formators';
+import { MarketingFollowUpModel } from '../models/marketingFollowUp';
+import { getCurrentLoggedInUser } from '../../auth/utils/getCurrentLoggedInUser';
+import { objectInputType } from 'zod';
 
 export const uploadData = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const user = await User.findById(req.data?.id);
@@ -111,6 +115,7 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
     throw createHttpError(400, validation.error.errors[0]);
   }
 
+  console.log("Validation error : ", validation.error)
   const existingLead = await LeadMaster.findById(leadRequestData._id);
 
   if (existingLead) {
@@ -122,6 +127,19 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
     // }
 
     let leadTypeModifiedDate = existingLead.leadTypeModifiedDate;
+
+    let existingRemark = normaliseText(existingLead.remarks);
+    let leadRequestDataRemark = normaliseText(leadRequestData.remarks);
+
+    let existingFollowUpCount = existingLead.leadsFollowUpCount;
+    let leadRequestDataFollowUpCount = leadRequestData.leadsFollowUpCount;
+
+    const isRemarkChanged = existingRemark !== leadRequestDataRemark;
+    const isFollowUpCountChanged = existingFollowUpCount !== leadRequestDataFollowUpCount;
+    
+    if (isRemarkChanged && !isFollowUpCountChanged) {
+      leadRequestData.leadsFollowUpCount = existingLead.leadsFollowUpCount + 1;
+    }
 
     if (leadRequestData.leadType && existingLead.leadType != leadRequestData.leadType) {
       leadTypeModifiedDate = new Date();
@@ -135,6 +153,21 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
         runValidators: true
       }
     );
+
+    const currentLoggedInUser = getCurrentLoggedInUser(req);
+
+    const updatedFollowUpCount = updatedData?.leadsFollowUpCount || 0;
+
+
+    if(updatedFollowUpCount  > existingFollowUpCount)
+    {
+      logFollowUpChange(existingLead._id, currentLoggedInUser, Actions.INCREAMENT)
+    }
+    else if(updatedFollowUpCount < existingFollowUpCount)
+    {
+      logFollowUpChange(existingLead._id, currentLoggedInUser, Actions.DECREAMENT)
+    }
+
 
     updateOnlyOneValueInDropDown(DropDownType.FIX_MARKETING_CITY, updatedData?.city);
     updateOnlyOneValueInDropDown(DropDownType.MARKETING_CITY, updatedData?.city);
@@ -156,3 +189,14 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
     throw createHttpError(404, 'Lead does not found with the given ID.');
   }
 });
+
+
+export const logFollowUpChange = (leadId: any, userId : any, action : Actions) => {
+  MarketingFollowUpModel.create({
+    currentLoggedInUser: userId,
+    leadId,
+    action
+  })
+  .then(() => console.log(`Follow-up ${action.toLowerCase()} logged for lead ${leadId} by ${userId}.`))
+  .catch(err => console.error(`Error for lead ${leadId} by ${userId}. Error logging follow-up ${action.toLowerCase()}:`, err));
+};

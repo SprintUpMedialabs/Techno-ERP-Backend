@@ -13,6 +13,7 @@ import {
   updateYellowLead
 } from '../controllers/yellowLeadController';
 import { adminAnalytics } from '../controllers/adminController';
+import { createMarketingAnalytics, getCallAnalytics } from '../controllers/marketingAnalyticsController';
 
 export const crmRoute = express.Router();
 
@@ -72,4 +73,18 @@ crmRoute.post('/admin/analytics',
   authenticate, 
   authorize([UserRoles.ADMIN]), 
   adminAnalytics
+);
+
+
+crmRoute.get('/marketing-analytics', 
+  authenticate, 
+  authorize([UserRoles.ADMIN]), 
+  createMarketingAnalytics
+);
+
+
+crmRoute.get('/call-analytics', 
+  authenticate, 
+  authorize([UserRoles.ADMIN]), 
+  getCallAnalytics
 );

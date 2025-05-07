@@ -58,3 +58,5 @@ export const splitEmails = (input: string): string[] => {
         .map(email => email.trim())
         .filter(email => email.length > 0);
 };
+
+export const normaliseText = (text : string | undefined) => text === undefined?  text : text.toLowerCase().replace(/[\W_]+/g, ''); 
