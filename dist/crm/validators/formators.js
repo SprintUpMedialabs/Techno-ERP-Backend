@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.splitEmails = exports.extractLast10Digits = exports.formatAndValidateLeadType = exports.toTitleCase = exports.formatDate = void 0;
+exports.normaliseText = exports.splitEmails = exports.extractLast10Digits = exports.formatAndValidateLeadType = exports.toTitleCase = exports.formatDate = void 0;
 const constants_1 = require("../../config/constants");
 // Utility functions
 const formatDate = (date) => {
@@ -61,3 +61,5 @@ const splitEmails = (input) => {
         .filter(email => email.length > 0);
 };
 exports.splitEmails = splitEmails;
+const normaliseText = (text) => text === undefined ? text : text.toLowerCase().replace(/[\W_]+/g, '');
+exports.normaliseText = normaliseText;

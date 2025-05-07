@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateData = exports.getAllLeadAnalytics = exports.getFilteredLeadData = exports.uploadData = void 0;
+exports.logFollowUpChange = exports.updateData = exports.getAllLeadAnalytics = exports.getFilteredLeadData = exports.uploadData = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const http_errors_1 = __importDefault(require("http-errors"));
 const axiosInstance_1 = __importDefault(require("../../api/axiosInstance"));
@@ -27,6 +27,9 @@ const lead_1 = require("../models/lead");
 const leads_1 = require("../validators/leads");
 const dropDownMetadataController_1 = require("../../utilityModules/dropdown/dropDownMetadataController");
 const user_1 = require("../../auth/models/user");
+const formators_1 = require("../validators/formators");
+const marketingFollowUp_1 = require("../models/marketingFollowUp");
+const getCurrentLoggedInUser_1 = require("../../auth/utils/getCurrentLoggedInUser");
 exports.uploadData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const user = yield user_1.User.findById((_a = req.data) === null || _a === void 0 ? void 0 : _a.id);
@@ -109,6 +112,7 @@ exports.updateData = (0, express_async_handler_1.default)((req, res) => __awaite
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }
+    console.log("Validation error : ", validation.error);
     const existingLead = yield lead_1.LeadMaster.findById(leadRequestData._id);
     if (existingLead) {
         // if (existingLead.leadType === LeadType.INTERESTED) {
@@ -118,6 +122,15 @@ exports.updateData = (0, express_async_handler_1.default)((req, res) => __awaite
         //   );
         // }
         let leadTypeModifiedDate = existingLead.leadTypeModifiedDate;
+        let existingRemark = (0, formators_1.normaliseText)(existingLead.remarks);
+        let leadRequestDataRemark = (0, formators_1.normaliseText)(leadRequestData.remarks);
+        let existingFollowUpCount = existingLead.leadsFollowUpCount;
+        let leadRequestDataFollowUpCount = leadRequestData.leadsFollowUpCount;
+        const isRemarkChanged = existingRemark !== leadRequestDataRemark;
+        const isFollowUpCountChanged = existingFollowUpCount !== leadRequestDataFollowUpCount;
+        if (isRemarkChanged && !isFollowUpCountChanged) {
+            leadRequestData.leadsFollowUpCount = existingLead.leadsFollowUpCount + 1;
+        }
         if (leadRequestData.leadType && existingLead.leadType != leadRequestData.leadType) {
             leadTypeModifiedDate = new Date();
         }
@@ -125,6 +138,14 @@ exports.updateData = (0, express_async_handler_1.default)((req, res) => __awaite
             new: true,
             runValidators: true
         });
+        const currentLoggedInUser = (0, getCurrentLoggedInUser_1.getCurrentLoggedInUser)(req);
+        const updatedFollowUpCount = (updatedData === null || updatedData === void 0 ? void 0 : updatedData.leadsFollowUpCount) || 0;
+        if (updatedFollowUpCount > existingFollowUpCount) {
+            (0, exports.logFollowUpChange)(existingLead._id, currentLoggedInUser, constants_1.Actions.INCREAMENT);
+        }
+        else if (updatedFollowUpCount < existingFollowUpCount) {
+            (0, exports.logFollowUpChange)(existingLead._id, currentLoggedInUser, constants_1.Actions.DECREAMENT);
+        }
         (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.FIX_MARKETING_CITY, updatedData === null || updatedData === void 0 ? void 0 : updatedData.city);
         (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.MARKETING_CITY, updatedData === null || updatedData === void 0 ? void 0 : updatedData.city);
         (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.FIX_MARKETING_COURSE_CODE, updatedData === null || updatedData === void 0 ? void 0 : updatedData.course);
@@ -142,3 +163,13 @@ exports.updateData = (0, express_async_handler_1.default)((req, res) => __awaite
         throw (0, http_errors_1.default)(404, 'Lead does not found with the given ID.');
     }
 }));
+const logFollowUpChange = (leadId, userId, action) => {
+    marketingFollowUp_1.MarketingFollowUpModel.create({
+        currentLoggedInUser: userId,
+        leadId,
+        action
+    })
+        .then(() => console.log(`Follow-up ${action.toLowerCase()} logged for lead ${leadId} by ${userId}.`))
+        .catch(err => console.error(`Error for lead ${leadId} by ${userId}. Error logging follow-up ${action.toLowerCase()}:`, err));
+};
+exports.logFollowUpChange = logFollowUpChange;

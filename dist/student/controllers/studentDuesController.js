@@ -23,6 +23,7 @@ const http_errors_1 = __importDefault(require("http-errors"));
 const collegeTransactionSchema_1 = require("../validators/collegeTransactionSchema");
 const collegeTransactionHistory_1 = require("../models/collegeTransactionHistory");
 const feeSchema_1 = require("../validators/feeSchema");
+const getCurrentLoggedInUser_1 = require("../../auth/utils/getCurrentLoggedInUser");
 exports.getStudentDues = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const { page, limit, search, academicYear } = req.body;
@@ -236,6 +237,7 @@ exports.recordPayment = (0, express_async_handler_1.default)((req, res) => __awa
         if (!student) {
             throw (0, http_errors_1.default)(404, "Student not found");
         }
+        const currentLoggedInUser = (0, getCurrentLoggedInUser_1.getCurrentLoggedInUser)(req);
         const transaction = yield collegeTransactionHistory_1.CollegeTransaction.create([{
                 studentId: paymentInfo.studentId.toString(),
                 amount: validation.data.amount,
@@ -243,7 +245,7 @@ exports.recordPayment = (0, express_async_handler_1.default)((req, res) => __awa
                 feeAction: validation.data.feeAction,
                 remark: validation.data.remark || "",
                 dateTime: new Date(),
-                actionedBy: validation.data.actionedBy
+                actionedBy: currentLoggedInUser
             }], { session });
         // console.log("Transaction created : ", transaction);
         // console.log(transaction[0]._id);

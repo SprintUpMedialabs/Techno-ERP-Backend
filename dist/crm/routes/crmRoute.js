@@ -10,6 +10,7 @@ const jwtAuthenticationMiddleware_1 = require("../../middleware/jwtAuthenticatio
 const crmController_1 = require("../controllers/crmController");
 const yellowLeadController_1 = require("../controllers/yellowLeadController");
 const adminController_1 = require("../controllers/adminController");
+const marketingAnalyticsController_1 = require("../controllers/marketingAnalyticsController");
 exports.crmRoute = express_1.default.Router();
 exports.crmRoute.post('/upload', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.ADMIN, constants_1.UserRoles.LEAD_MARKETING]), crmController_1.uploadData);
 exports.crmRoute.put('/edit', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.ADMIN, constants_1.UserRoles.LEAD_MARKETING, constants_1.UserRoles.EMPLOYEE_MARKETING]), crmController_1.updateData);
@@ -21,3 +22,5 @@ exports.crmRoute.put('/update-yellow-lead', jwtAuthenticationMiddleware_1.authen
 // crmRoute.post('/yellow-lead', createYellowLead);
 exports.crmRoute.post('/yellow-lead-analytics', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.ADMIN, constants_1.UserRoles.LEAD_MARKETING, constants_1.UserRoles.EMPLOYEE_MARKETING]), yellowLeadController_1.getYellowLeadsAnalytics);
 exports.crmRoute.post('/admin/analytics', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.ADMIN]), adminController_1.adminAnalytics);
+exports.crmRoute.get('/marketing-analytics', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.ADMIN]), marketingAnalyticsController_1.createMarketingAnalytics);
+exports.crmRoute.get('/call-analytics', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.ADMIN]), marketingAnalyticsController_1.getCallAnalytics);

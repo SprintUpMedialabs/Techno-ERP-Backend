@@ -24,6 +24,9 @@ const axiosInstance_1 = __importDefault(require("../../api/axiosInstance"));
 const endPoints_1 = require("../../api/endPoints");
 const safeAxios_1 = require("../../api/safeAxios");
 const dropDownMetadataController_1 = require("../../utilityModules/dropdown/dropDownMetadataController");
+const formators_1 = require("../validators/formators");
+const getCurrentLoggedInUser_1 = require("../../auth/utils/getCurrentLoggedInUser");
+const crmController_1 = require("./crmController");
 exports.updateYellowLead = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     const updateData = req.body;
@@ -55,10 +58,27 @@ exports.updateYellowLead = (0, express_async_handler_1.default)((req, res) => __
         // if footfall is yes, then final conversion can not be no footfall.
         throw (0, http_errors_1.default)(400, 'Final conversion can not be no footfall if campus visit is yes.');
     }
+    let existingRemark = (0, formators_1.normaliseText)(existingLead.remarks);
+    let yellowLeadRequestDataRemark = (0, formators_1.normaliseText)(updateData.remarks);
+    let existingFollowUpCount = existingLead.yellowLeadsFollowUpCount;
+    let yellowLeadRequestDataFollowUpCount = updateData.yellowLeadsFollowUpCount;
+    const isRemarkChanged = existingRemark !== yellowLeadRequestDataRemark;
+    const isFollowUpCountChanged = existingFollowUpCount !== yellowLeadRequestDataFollowUpCount;
+    if (isRemarkChanged && !isFollowUpCountChanged) {
+        updateData.yellowLeadsFollowUpCount = existingLead.yellowLeadsFollowUpCount + 1;
+    }
     const updatedYellowLead = yield lead_1.LeadMaster.findByIdAndUpdate(updateData._id, updateData, {
         new: true,
         runValidators: true
     });
+    const currentLoggedInUser = (0, getCurrentLoggedInUser_1.getCurrentLoggedInUser)(req);
+    const updatedFollowUpCount = (updatedYellowLead === null || updatedYellowLead === void 0 ? void 0 : updatedYellowLead.yellowLeadsFollowUpCount) || 0;
+    if (updatedFollowUpCount > existingFollowUpCount) {
+        (0, crmController_1.logFollowUpChange)(existingLead._id, currentLoggedInUser, constants_1.Actions.INCREAMENT);
+    }
+    else if (updatedFollowUpCount < existingFollowUpCount) {
+        (0, crmController_1.logFollowUpChange)(existingLead._id, currentLoggedInUser, constants_1.Actions.DECREAMENT);
+    }
     (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.FIX_MARKETING_CITY, updatedYellowLead === null || updatedYellowLead === void 0 ? void 0 : updatedYellowLead.city);
     (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.MARKETING_CITY, updatedYellowLead === null || updatedYellowLead === void 0 ? void 0 : updatedYellowLead.city);
     (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.FIX_MARKETING_COURSE_CODE, updatedYellowLead === null || updatedYellowLead === void 0 ? void 0 : updatedYellowLead.course);
