@@ -224,16 +224,16 @@ exports.fetchFeeInformationByStudentId = (0, express_async_handler_1.default)((r
 // FUEX : Here in future, if needed, we can add retry mechanism, not required as of now.
 exports.recordPayment = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const paymentInfo = req.body;
-    // console.log("Payment Info is : ", paymentInfo);
+    console.log("Payment Info is : ", paymentInfo);
     const validation = collegeTransactionSchema_1.CreateCollegeTransactionSchema.safeParse(paymentInfo);
-    // console.log("Payment Info validation error is : ", validation.error);
+    console.log("Payment Info validation error is : ", validation.error);
     if (!validation.success)
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     const session = yield mongoose_1.default.startSession();
     session.startTransaction();
     try {
         let student = yield student_1.Student.findById(validation.data.studentId).session(session);
-        // console.log("Student is : ", student);
+        console.log("Student is : ", student);
         if (!student) {
             throw (0, http_errors_1.default)(404, "Student not found");
         }
@@ -247,8 +247,8 @@ exports.recordPayment = (0, express_async_handler_1.default)((req, res) => __awa
                 dateTime: new Date(),
                 actionedBy: currentLoggedInUser
             }], { session });
-        // console.log("Transaction created : ", transaction);
-        // console.log(transaction[0]._id);
+        console.log("Transaction created : ", transaction);
+        console.log(transaction[0]._id);
         if (validation.data.feeAction === constants_1.FeeActions.REFUND) {
             if ((student.extraBalance || 0) < validation.data.amount) {
                 throw (0, http_errors_1.default)(400, "Insufficient extra balance for refund");

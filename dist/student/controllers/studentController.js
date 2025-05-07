@@ -199,13 +199,17 @@ const createSemesterFee = (semesterNumber, feesCourse) => {
                 else {
                     actualFee = feeDetail.feeAmount;
                     finalFee = feeDetail.finalFee;
-                    paidAmount = feeDetail.feesDepositedTOA || 0;
+                    // paidAmount = feeDetail.feesDepositedTOA || 0;
+                    paidAmount = 0;
                 }
             }
             else {
                 actualFee = feeDetail.feeAmount;
                 finalFee = feeDetail.finalFee;
-                paidAmount = feeDetail.feesDepositedTOA || 0;
+                if (semesterNumber !== 1)
+                    paidAmount = 0;
+                else
+                    paidAmount = feeDetail.feesDepositedTOA || 0;
             }
             feeUpdateHistory.push(createFeeUpdateHistory(finalFee));
         }
