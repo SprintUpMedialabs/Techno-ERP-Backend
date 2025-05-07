@@ -10,6 +10,7 @@ import createHttpError from "http-errors";
 import { CreateCollegeTransactionSchema, ICreateCollegeTransactionSchema } from "../validators/collegeTransactionSchema";
 import { CollegeTransaction } from "../models/collegeTransactionHistory";
 import { EditFeeBreakUpSchema, FetchFeeHistorySchema, IEditFeeBreakUpSchema, IFetchFeeHistorySchema } from "../validators/feeSchema";
+import { getCurrentLoggedInUser } from "../../auth/utils/getCurrentLoggedInUser";
 
 type FeeDetail = {
     _id: string;
@@ -259,6 +260,8 @@ export const recordPayment = expressAsyncHandler(async (req: AuthenticatedReques
             throw createHttpError(404, "Student not found");
         }
 
+        const currentLoggedInUser = getCurrentLoggedInUser(req);
+        
         const transaction = await CollegeTransaction.create([{
             studentId: paymentInfo.studentId.toString(),
             amount: validation.data.amount,
@@ -266,7 +269,7 @@ export const recordPayment = expressAsyncHandler(async (req: AuthenticatedReques
             feeAction: validation.data.feeAction,
             remark: validation.data.remark || "",
             dateTime: new Date(),
-            actionedBy: validation.data.actionedBy
+            actionedBy: currentLoggedInUser
         }], { session });
 
         // console.log("Transaction created : ", transaction);

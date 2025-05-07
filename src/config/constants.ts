@@ -302,7 +302,9 @@ export enum COLLECTION_NAMES {
   DROP_DOWN_META_DATA = 'DropDownMetaData',
   STUDENTREPO = "StudentRepo",
   TRANSACTION_HISTORY = "TransactionHistory",
-  TECHNO_META_DATA = "TechnoMetaData"
+  TECHNO_META_DATA = "TechnoMetaData",
+  MARKETING_FOLLOW_UP_RAW_DATA = "MarketingFollowUpData",
+  MARKETING_ANALYTICS = "MarketingAnalytics"
 }
 
 
@@ -388,4 +390,13 @@ export enum FinanceFeeSchedule {
   EXAMFEES = "HALF_YEARLY",
   MISCELLANEOUS = "HALF_YEARLY",
   SEMESTERFEE = "HALF_YEARLY",
+}
+
+export enum Actions {
+  INCREAMENT = 'INCREAMENT',
+  DECREAMENT = 'DECREAMENT'
+}
+
+export enum MarketingAnalyticsEnum{
+  NO_OF_CALLS = "NO_OF_CALLS"
 }
