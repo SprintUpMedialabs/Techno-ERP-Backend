@@ -13,7 +13,6 @@ import { objectIdSchema } from '../../validators/commonSchema';
 import { Enquiry } from '../models/enquiry';
 import { EnquiryDraft } from '../models/enquiryDraft';
 import { EnquiryApplicationId } from '../models/enquiryIdMetaDataSchema';
-import { enquiryStatusUpdateSchema, IEnquiryStatusUpdateSchema } from '../validators/enquiryStatusUpdateSchema';
 
 
 export const getEnquiryData = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
@@ -192,6 +191,8 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
 
     const studentValidation = CreateStudentSchema.safeParse(studentData);
 
+    console.log("create student schema : ", studentValidation.data);
+
     console.log("Student Validation Errors : ", studentValidation.error);
 
     if (!studentValidation.success)
@@ -207,10 +208,10 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
     const studentCreateValidation = StudentSchema.safeParse(student);
 
     console.log("Student create validation errors : ", studentCreateValidation.error);
-
-    if (!studentCreateValidation.success)
+    console.log(studentCreateValidation.data);
+    if (!studentCreateValidation.success) {
       throw createHttpError(400, studentCreateValidation.error.errors[0]);
-
+    }
     const createdStudent = await Student.create([{
       _id: enquiry._id,
       ...studentCreateValidation.data,

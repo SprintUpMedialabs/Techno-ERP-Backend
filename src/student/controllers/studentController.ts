@@ -4,7 +4,7 @@ import { FinanceFeeSchedule, FinanceFeeType } from "../../config/constants";
 import { Course } from "../../course/models/course";
 import { getCurrentAcademicYear } from "../../course/utils/getCurrentAcademicYear";
 import { IFeeSchema } from "../validators/feeSchema";
-import { IAttendanceSchema, ICreateStudentSchema, IExamSchema, updateStudentDetailsRequestSchema, updateStudentPhysicalDocumentRequestSchema } from "../validators/studentSchema";
+import { IAttendanceSchema, ICreateStudentSchema, IExamSchema, updateStudentDetailsRequestSchema } from "../validators/studentSchema";
 import expressAsyncHandler from "express-async-handler";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
 import { response, Response } from "express";
@@ -12,6 +12,7 @@ import { Student } from "../models/student";
 import createHttpError from "http-errors";
 import { formatResponse } from "../../utils/formatResponse";
 import { User } from "../../auth/models/user";
+import { updateStudentPhysicalDocumentRequestSchema } from "../../admission/validators/physicalDocumentNoteSchema";
 
 export const createStudent = async (studentData: ICreateStudentSchema) => {
   const { courseCode, feeId, dateOfAdmission } = studentData;
