@@ -20,9 +20,7 @@ export const BaseFeeSchema = z.object({
 
 export const FeeSchema = z.object({
     details : z.array(BaseFeeSchema),
-    dueDate : requestDateSchema.transform((date) =>
-        convertToMongoDate(date) as Date
-    ).optional(),
+    dueDate: z.union([z.date(), z.undefined()]),
     paidAmount : z.number(),
     totalFinalFee : z.number(),
 });

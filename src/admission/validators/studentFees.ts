@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
 import { objectIdSchema, requestDateSchema } from "../../validators/commonSchema";
+import { AdmissionReference } from "../../config/constants";
 
 export const otherFeesSchema = z.object({
     type: z.string(),
@@ -18,45 +19,48 @@ export const singleSemSchema = z.object({
 
 const otherFeesSchemaWithoutFeeAmount = otherFeesSchema.omit({ feeAmount: true });
 
-const singleSemSchemaWithoutFeeAmount = singleSemSchema.omit({ feeAmount: true, dueDate: true,feesPaid: true });
+const singleSemSchemaWithoutFeeAmount = singleSemSchema.omit({ feeAmount: true, dueDate: true, feesPaid: true });
 
 
 const studentFeesSchema = z.object({
     otherFees: z.array(otherFeesSchema).optional(),
     semWiseFees: z.array(singleSemSchema),
-    feesClearanceDate : requestDateSchema.transform((date) =>
+    feesClearanceDate: requestDateSchema.transform((date) =>
         convertToMongoDate(date) as Date
     ),
-    remarks : z.string().optional()
+    remarks: z.string().optional()
 });
 
 export const feesRequestSchema = studentFeesSchema.extend({
     otherFees: z.array(otherFeesSchemaWithoutFeeAmount),
     semWiseFees: z.array(singleSemSchemaWithoutFeeAmount),
     enquiryId: objectIdSchema,
-    feesClearanceDate : requestDateSchema.transform((date) =>
+    feesClearanceDate: requestDateSchema.transform((date) =>
         convertToMongoDate(date) as Date
     ),
+    reference: z.nativeEnum(AdmissionReference).optional(),
     counsellor: z.array(z.union([objectIdSchema, z.enum(['Other'])])).optional(),
     telecaller: z.array(z.union([objectIdSchema, z.enum(['Other'])])).optional(),
-});
+}).strict();
 
 export const feesUpdateSchema = feesRequestSchema.extend({
-    id: objectIdSchema, //This is referring to the fees table _id
-}).omit({  enquiryId : true }).strict();
+    id: objectIdSchema,
+    reference: z.nativeEnum(AdmissionReference).optional()
+}).omit({ enquiryId: true }).strict();
 
 
 export const feesDraftRequestSchema = feesRequestSchema.extend({
     otherFees: z.array(otherFeesSchema.partial()).optional(),
     semWiseFees: z.array(singleSemSchema.partial()).optional(),
-    feesClearanceDate : requestDateSchema.transform((date) =>
+    feesClearanceDate: requestDateSchema.transform((date) =>
         convertToMongoDate(date) as Date
     ).optional(),
+    reference: z.nativeEnum(AdmissionReference).optional()
 }).strict();
 
 
 export const feesDraftUpdateSchema = feesDraftRequestSchema.extend({
-    id : objectIdSchema,
+    id: objectIdSchema,
 }).strict();
 
 

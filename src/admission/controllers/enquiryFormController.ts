@@ -3,7 +3,7 @@ import expressAsyncHandler from 'express-async-handler';
 import createHttpError from 'http-errors';
 import mongoose from 'mongoose';
 import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
-import { ApplicationStatus, Course, FormNoPrefixes, TGI } from '../../config/constants';
+import { ApplicationStatus, Course, FeeActions, FormNoPrefixes, TGI, TransactionTypes } from '../../config/constants';
 import { functionLevelLogger } from '../../config/functionLevelLogging';
 import { createStudent } from '../../student/controllers/studentController';
 import { Student } from '../../student/models/student';
@@ -13,6 +13,8 @@ import { objectIdSchema } from '../../validators/commonSchema';
 import { Enquiry } from '../models/enquiry';
 import { EnquiryDraft } from '../models/enquiryDraft';
 import { EnquiryApplicationId } from '../models/enquiryIdMetaDataSchema';
+import { CollegeTransaction, CollegeTransactionModel } from '../../student/models/collegeTransactionHistory';
+import { getCurrentLoggedInUser } from '../../auth/utils/getCurrentLoggedInUser';
 
 
 export const getEnquiryData = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
@@ -117,7 +119,7 @@ export const getEnquiryById = expressAsyncHandler(functionLevelLogger(async (req
 
 
 export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
-  const { id } = req.body;
+  const { id, transactionType } = req.body;
 
   const validation = objectIdSchema.safeParse(id);
 
@@ -204,7 +206,7 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
     //   ...studentValidation.data,
     // }], { session });
 
-    const student = await createStudent(studentValidation.data);
+    const { transactionAmount, ...student } = await createStudent(studentValidation.data);
     const studentCreateValidation = StudentSchema.safeParse(student);
 
     console.log("Student create validation errors : ", studentCreateValidation.error);
@@ -212,9 +214,20 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
     if (!studentCreateValidation.success) {
       throw createHttpError(400, studentCreateValidation.error.errors[0]);
     }
+
+    const createTransaction = await CollegeTransaction.create([{
+      studentId: enquiry._id,
+      dateTime: new Date(),
+      feeAction: FeeActions.DEPOSIT,
+      amount: transactionAmount,
+      txnType: transactionType ?? TransactionTypes.CASH,
+      actionedBy: req?.data?.id
+    }], { session });
+
     const createdStudent = await Student.create([{
       _id: enquiry._id,
       ...studentCreateValidation.data,
+      transactionHistory: [createTransaction[0]._id]
     }], { session });
 
     await session.commitTransaction();
