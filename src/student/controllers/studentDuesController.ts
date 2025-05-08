@@ -228,6 +228,7 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
                 course: "$courseName",
                 semesterWiseFeeInformation: 1,
                 semesterBreakUp: 1,
+                extraBalance : 1
             }
         }
     ];
