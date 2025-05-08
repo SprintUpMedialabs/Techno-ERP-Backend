@@ -1,7 +1,7 @@
 import expressAsyncHandler from "express-async-handler";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
 import { Response } from "express";
-import { FeeActions, FeeStatus, FinanceFeeSchedule, FinanceFeeType } from "../../config/constants";
+import { COLLECTION_NAMES, FeeActions, FeeStatus, FinanceFeeSchedule, FinanceFeeType } from "../../config/constants";
 import { Student } from "../models/student";
 import { formatResponse } from "../../utils/formatResponse";
 import mongoose from "mongoose";
@@ -12,7 +12,7 @@ import { CollegeTransaction } from "../models/collegeTransactionHistory";
 import { EditFeeBreakUpSchema, FetchFeeHistorySchema, IEditFeeBreakUpSchema, IFetchFeeHistorySchema } from "../validators/feeSchema";
 import { getCurrentLoggedInUser } from "../../auth/utils/getCurrentLoggedInUser";
 
-type FeeDetail = {
+type FeeDetailInterface = {
     _id: string;
     type: FinanceFeeType;
     schedule: FinanceFeeSchedule;
@@ -114,6 +114,7 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
                 courseName: 1,
                 feeStatus: 1,
                 departmentInfo: 1,
+                extraBalance : 1,
                 semesterNumber: "$semester.semesterNumber",
                 academicYear: "$semester.academicYear",
                 finalFee: "$semester.fees.totalFinalFee",
@@ -139,6 +140,7 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
                 studentInfo: { $first: "$studentInfo" },
                 courseName: { $first: "$courseName" },
                 feeStatus: { $first: "$feeStatus" },
+                extraBalance: { $first: "$extraBalance" },
                 departmentInfo: { $first: "$departmentInfo" },
                 semesterWiseFeeInformation: {
                     $push: {
@@ -226,6 +228,7 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
                 course: "$courseName",
                 semesterWiseFeeInformation: 1,
                 semesterBreakUp: 1,
+                extraBalance : 1
             }
         }
     ];
@@ -241,7 +244,6 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
 // FUEX : Here in future, if needed, we can add retry mechanism, not required as of now.
 export const recordPayment = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const paymentInfo: ICreateCollegeTransactionSchema = req.body;
-
 
     console.log("Payment Info is : ", paymentInfo);
 
@@ -394,8 +396,12 @@ export const settleFees = (student: any, amount: number) => {
     }
 
     const allSemestersSettled = student.semester.every(
-        (sem: any) => (sem.fees?.paidAmount || 0) >= (sem.fees?.totalFinalFee || 0)
-    );
+        (sem: any) => {
+            if (!sem.fees?.dueDate) 
+                return true;
+            return (sem.fees?.paidAmount || 0) >= (sem.fees?.totalFinalFee || 0)
+    });
+    
     student.feeStatus = allSemestersSettled ? FeeStatus.PAID : FeeStatus.DUE;
 
     console.log("Final Fee Status:", student.feeStatus);
@@ -413,12 +419,12 @@ export const fetchTransactionsByStudentID = async (studentId: any) => {
 
     const transactions = await CollegeTransaction.find({
         _id: { $in: transactionsId }
-    }).populate('actionedBy', 'firstName lastName email');
+    }).populate('actionedBy', 'firstName lastName');
 
     const formattedTransactions = transactions.map(txn => {
         const user = txn.actionedBy as any;
         const formattedActionedBy = user
-            ? `${user.firstName} ${user.lastName} - ${user.email}`
+            ? `${user.firstName} ${user.lastName}`
             : null;
 
         return {
@@ -472,11 +478,38 @@ export const fetchFeeUpdatesHistory = expressAsyncHandler(async (req: Authentica
                 "semester.fees.details._id": detailId
             }
         },
+        { $unwind: "$semester.fees.details.feeUpdateHistory" }, // unwind each fee update
         {
-            $project: {
-                _id: 0,
-                feeUpdateHistory: "$semester.fees.details.feeUpdateHistory"
+          $lookup: {
+            from: "users",
+            localField: "semester.fees.details.feeUpdateHistory.updatedBy",
+            foreignField: "_id",
+            as: "updatedUser"
+          }
+        },
+        {
+            $addFields: {
+              "semester.fees.details.feeUpdateHistory.updatedBy": {
+                $concat: [
+                  { $arrayElemAt: ["$updatedUser.firstName", 0] }, " ", 
+                  { $arrayElemAt: ["$updatedUser.lastName", 0] }
+                ]
+              }
             }
+        },
+        {
+          $group: {
+            _id: "$semester.fees.details._id",
+            feeUpdateHistory: {
+              $push: "$semester.fees.details.feeUpdateHistory"
+            }
+          }
+        },
+        {
+          $project: {
+            _id: 0,
+            feeUpdateHistory: 1
+          }
         }
     ];
 
@@ -507,7 +540,7 @@ export const editFeeBreakUp = expressAsyncHandler(async (req: AuthenticatedReque
         throw createHttpError(404, "Semester not found!")
     }
 
-    const feeDetail = semester.fees.details.find(d => (d as FeeDetail)._id?.toString() === detailId.toString());
+    const feeDetail = semester.fees.details.find(d => (d as unknown as FeeDetailInterface)._id?.toString() === detailId.toString());
     if (!feeDetail){
         throw createHttpError(404, "Details of break up not found")
     }
@@ -520,7 +553,9 @@ export const editFeeBreakUp = expressAsyncHandler(async (req: AuthenticatedReque
 
     feeDetail.feeUpdateHistory.push({
         updatedAt: new Date(),
+        extraAmount : diff,
         updatedFee: newFinalFee,
+        updatedBy : new mongoose.Types.ObjectId(req.data?.id)
     });
 
     semester.fees.totalFinalFee += diff;
