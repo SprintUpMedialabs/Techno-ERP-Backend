@@ -4,7 +4,6 @@ import { fetchCourseFeeByCourse, fetchOtherFees } from "../../fees/courseAndOthe
 import { Enquiry } from "../models/enquiry";
 import { StudentFeesModel } from "../models/studentFees";
 import { feesUpdateSchema, IFeesUpdateSchema } from "../validators/studentFees";
-import { Course } from "../../config/constants";
 
 export const updateFeeDetails = async (applicationStatusList: ApplicationStatus[], studentFeesData: IFeesUpdateSchema) => {
   const validation = feesUpdateSchema.safeParse(studentFeesData);
@@ -12,10 +11,17 @@ export const updateFeeDetails = async (applicationStatusList: ApplicationStatus[
   if (!validation.success) {
     throw createHttpError(400, validation.error.errors[0]);
   }
-
-  const enquiry = await Enquiry.findOne({
+  const query: any = {
     studentFee: studentFeesData.id,
     applicationStatus: { $in: [...applicationStatusList] }
+  };
+
+  if (studentFeesData.reference != null) {
+    query.reference = studentFeesData.reference;
+  }
+
+  const enquiry = await Enquiry.findOne({
+    query
   },
     {
       course: 1, // Only return course field
@@ -35,14 +41,14 @@ export const updateFeeDetails = async (applicationStatusList: ApplicationStatus[
   if (!semWiseFee) {
     throw createHttpError(500, 'Semester-wise fee structure not found for the course');
   }
-  
+
 
   const feeData = {
     ...validation.data,
     otherFees: validation.data.otherFees.map(fee => ({
       ...fee,
       // feeAmount: otherFees?.find(otherFee => otherFee.type == fee.type)?.fee ?? 0
-      feeAmount : otherFees?.find(otherFee => otherFee.type === fee.type)?.amount ?? 0
+      feeAmount: otherFees?.find(otherFee => otherFee.type === fee.type)?.amount ?? 0
     })),
     semWiseFees: validation.data.semWiseFees.map((semFee, index: number) => ({
       finalFee: semFee.finalFee,

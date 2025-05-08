@@ -86,6 +86,10 @@ export const createEnquiryStep2 = expressAsyncHandler(functionLevelLogger(async 
       enquiryUpdatePayload.telecaller = data.telecaller;
     }
 
+    if (data.reference != null) {
+      enquiryUpdatePayload.reference = data.reference;
+    }
+
     await Enquiry.findByIdAndUpdate(
       data.enquiryId,
       { $set: enquiryUpdatePayload },

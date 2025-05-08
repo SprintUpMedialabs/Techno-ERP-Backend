@@ -44,11 +44,11 @@ export const updateEnquiryDraftStep1 = expressAsyncHandler(functionLevelLogger(a
         { new: true, runValidators: true }
     );
 
-    
+
     if (!updatedDraft) {
         throw createHttpError(404, 'Failed to update draft');
     }
-    
+
     updateOnlyOneValueInDropDown(DropDownType.DISTRICT, updatedDraft?.address?.district);
     return formatResponse(res, 200, 'Draft updated successfully', true, updatedDraft);
 
