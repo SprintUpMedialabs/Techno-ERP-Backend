@@ -11,9 +11,9 @@ export const createCourse = expressAsyncHandler(async (req: AuthenticatedRequest
 });
 
 export const getCourseCodes = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const courseList = await CourseMetaData.find().select('courseCode');
-    const courseCodes = courseList.map(course => course.courseCode);
-    return formatResponse(res, 200, 'Course Codes fetched successfully.', true, courseCodes);
+    const courseList = await CourseMetaData.find().select('courseCode courseName');
+    const courseCodeList = courseList.map(course => ({ courseCode: course.courseCode, courseName: course.courseName }));
+    return formatResponse(res, 200, 'Course Codes fetched successfully.', true, courseCodeList);
 });
 
 export const getCourseMetadataByCourseCode = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
