@@ -95,6 +95,7 @@ export const StudentBaseInfoSchema = z.object({
 
 export const StudentSchema = z.object({
     studentInfo: StudentBaseInfoSchema,
+    collegeName : z.string(),
     courseId: objectIdSchema,
     departmentMetaDataId: objectIdSchema,
     courseName: z.string({ required_error: "Course Name is required." }).nonempty("Course Name is required"),
@@ -114,6 +115,8 @@ export const CreateStudentSchema = z.object({
     feeId: objectIdSchema,
     dateOfAdmission: z.date(),
 
+    collegeName : z.string(),
+    
     universityId: z.string({ required_error: "University ID cannot be empty." }).nonempty("University ID is required"),
     photoNo: z.number({ required_error: "Photo Number cannot be empty." }).nonnegative("Photo Number is required"),
     formNo: z.string({ required_error: "Form No cannot be empty." }).nonempty("Form No is required"),
