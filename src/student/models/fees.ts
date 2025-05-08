@@ -71,4 +71,3 @@ export const FeeModel = new Schema<IFeeDocument>({
         required: true
     }
 });
-
