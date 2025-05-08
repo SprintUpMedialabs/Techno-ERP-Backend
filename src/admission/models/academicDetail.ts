@@ -28,6 +28,6 @@ export const academicDetailFormSchema = new Schema<IAcademicDetailDocument>({
     max: [100, 'Percentage cannot exceed 100']
   },
   subjects: {
-    type: [String],
+    type: String,
   }
 });
