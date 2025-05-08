@@ -8,6 +8,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -26,6 +37,7 @@ const commonSchema_1 = require("../../validators/commonSchema");
 const enquiry_1 = require("../models/enquiry");
 const enquiryDraft_1 = require("../models/enquiryDraft");
 const enquiryIdMetaDataSchema_1 = require("../models/enquiryIdMetaDataSchema");
+const collegeTransactionHistory_1 = require("../../student/models/collegeTransactionHistory");
 exports.getEnquiryData = (0, express_async_handler_1.default)((0, functionLevelLogging_1.functionLevelLogger)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let { search, applicationStatus } = req.body;
     search !== null && search !== void 0 ? search : (search = '');
@@ -100,7 +112,8 @@ exports.getEnquiryById = (0, express_async_handler_1.default)((0, functionLevelL
     }
 })));
 exports.approveEnquiry = (0, express_async_handler_1.default)((0, functionLevelLogging_1.functionLevelLogger)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { id } = req.body;
+    var _a;
+    const { id, transactionType } = req.body;
     const validation = commonSchema_1.objectIdSchema.safeParse(id);
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
@@ -141,14 +154,22 @@ exports.approveEnquiry = (0, express_async_handler_1.default)((0, functionLevelL
         //   _id: enquiry._id,
         //   ...studentValidation.data,
         // }], { session });
-        const student = yield (0, studentController_1.createStudent)(studentValidation.data);
+        const _b = yield (0, studentController_1.createStudent)(studentValidation.data), { transactionAmount } = _b, student = __rest(_b, ["transactionAmount"]);
         const studentCreateValidation = studentSchema_1.StudentSchema.safeParse(student);
         console.log("Student create validation errors : ", studentCreateValidation.error);
         console.log(studentCreateValidation.data);
         if (!studentCreateValidation.success) {
             throw (0, http_errors_1.default)(400, studentCreateValidation.error.errors[0]);
         }
-        const createdStudent = yield student_1.Student.create([Object.assign({ _id: enquiry._id }, studentCreateValidation.data)], { session });
+        const createTransaction = yield collegeTransactionHistory_1.CollegeTransaction.create([{
+                studentId: enquiry._id,
+                dateTime: new Date(),
+                feeAction: constants_1.FeeActions.DEPOSIT,
+                amount: transactionAmount,
+                txnType: transactionType !== null && transactionType !== void 0 ? transactionType : constants_1.TransactionTypes.CASH,
+                actionedBy: (_a = req === null || req === void 0 ? void 0 : req.data) === null || _a === void 0 ? void 0 : _a.id
+            }], { session });
+        const createdStudent = yield student_1.Student.create([Object.assign(Object.assign({ _id: enquiry._id }, studentCreateValidation.data), { transactionHistory: [createTransaction[0]._id] })], { session });
         yield session.commitTransaction();
         session.endSession();
         return (0, formatResponse_1.formatResponse)(res, 200, 'Student created successfully with this information', true, createdStudent);

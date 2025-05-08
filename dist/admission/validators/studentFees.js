@@ -4,6 +4,7 @@ exports.feesDraftUpdateSchema = exports.feesDraftRequestSchema = exports.feesUpd
 const zod_1 = require("zod");
 const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
 const commonSchema_1 = require("../../validators/commonSchema");
+const constants_1 = require("../../config/constants");
 exports.otherFeesSchema = zod_1.z.object({
     type: zod_1.z.string(),
     feeAmount: zod_1.z.number().min(0, 'Fee amount must be greater than 0'),
@@ -29,16 +30,19 @@ exports.feesRequestSchema = studentFeesSchema.extend({
     semWiseFees: zod_1.z.array(singleSemSchemaWithoutFeeAmount),
     enquiryId: commonSchema_1.objectIdSchema,
     feesClearanceDate: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)),
+    reference: zod_1.z.nativeEnum(constants_1.AdmissionReference).optional(),
     counsellor: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['Other'])])).optional(),
     telecaller: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['Other'])])).optional(),
-});
+}).strict();
 exports.feesUpdateSchema = exports.feesRequestSchema.extend({
-    id: commonSchema_1.objectIdSchema, //This is referring to the fees table _id
+    id: commonSchema_1.objectIdSchema,
+    reference: zod_1.z.nativeEnum(constants_1.AdmissionReference).optional()
 }).omit({ enquiryId: true }).strict();
 exports.feesDraftRequestSchema = exports.feesRequestSchema.extend({
     otherFees: zod_1.z.array(exports.otherFeesSchema.partial()).optional(),
     semWiseFees: zod_1.z.array(exports.singleSemSchema.partial()).optional(),
     feesClearanceDate: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)).optional(),
+    reference: zod_1.z.nativeEnum(constants_1.AdmissionReference).optional()
 }).strict();
 exports.feesDraftUpdateSchema = exports.feesDraftRequestSchema.extend({
     id: commonSchema_1.objectIdSchema,

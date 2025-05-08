@@ -89,6 +89,9 @@ exports.createEnquiryStep2 = (0, express_async_handler_1.default)((0, functionLe
         if (data.telecaller) {
             enquiryUpdatePayload.telecaller = data.telecaller;
         }
+        if (data.reference != null) {
+            enquiryUpdatePayload.reference = data.reference;
+        }
         yield enquiry_1.Enquiry.findByIdAndUpdate(data.enquiryId, { $set: enquiryUpdatePayload }, { new: true, session });
         if (enquiry === null || enquiry === void 0 ? void 0 : enquiry.studentFeeDraft) {
             yield studentFeesDraft_1.StudentFeesDraftModel.findByIdAndDelete(enquiry.studentFeeDraft, { session });

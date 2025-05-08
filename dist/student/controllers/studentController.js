@@ -90,6 +90,7 @@ const createStudent = (studentData) => __awaiter(void 0, void 0, void 0, functio
     const currentSemester = 1;
     const currentAcademicYear = (0, getCurrentAcademicYear_1.getCurrentAcademicYear)();
     const totalSemesters = course === null || course === void 0 ? void 0 : course.totalSemesters;
+    let transactionAmount = 0;
     const semSubIds = semSubjectIds[0].semester;
     const semesterArray = [];
     for (let i = 1; i <= totalSemesters; i++) {
@@ -109,7 +110,9 @@ const createStudent = (studentData) => __awaiter(void 0, void 0, void 0, functio
                 exams: exams
             });
         }
-        const fees = createSemesterFee(i, feesCourse);
+        const _a = createSemesterFee(i, feesCourse), { amountForTransaction } = _a, fees = __rest(_a, ["amountForTransaction"]);
+        if (semesterNumber === 1)
+            transactionAmount = amountForTransaction;
         semesterArray.push({
             // _id : semesterId,
             semesterId: semesterId,
@@ -120,6 +123,7 @@ const createStudent = (studentData) => __awaiter(void 0, void 0, void 0, functio
             fees: fees
         });
     }
+    ;
     const student = {
         studentInfo: studentBaseInformation,
         courseId: courseId,
@@ -131,6 +135,7 @@ const createStudent = (studentData) => __awaiter(void 0, void 0, void 0, functio
         currentAcademicYear: currentAcademicYear,
         totalSemester: totalSemesters,
         semester: semesterArray,
+        transactionAmount: transactionAmount
     };
     return student;
 });
@@ -177,6 +182,7 @@ const createSemesterFee = (semesterNumber, feesCourse) => {
         updatedAt: new Date(),
         updatedFee: amount,
     });
+    let amountForTransaction = 0;
     const details = requiredFeeTypes.map((type) => {
         var _a;
         const feeDetail = getFeeDetail(type);
@@ -208,8 +214,10 @@ const createSemesterFee = (semesterNumber, feesCourse) => {
                 finalFee = feeDetail.finalFee;
                 if (semesterNumber !== 1)
                     paidAmount = 0;
-                else
+                else {
                     paidAmount = feeDetail.feesDepositedTOA || 0;
+                    amountForTransaction = amountForTransaction + (feeDetail.feesDepositedTOA || 0);
+                }
             }
             feeUpdateHistory.push(createFeeUpdateHistory(finalFee));
         }
@@ -225,12 +233,13 @@ const createSemesterFee = (semesterNumber, feesCourse) => {
     });
     const semFeeInfo = semWiseFees[semesterNumber - 1] || null;
     if (semFeeInfo) {
+        amountForTransaction = semesterNumber == 1 ? (amountForTransaction + semFeeInfo.feesPaid || 0) : 0;
         details.push({
             type: constants_1.FinanceFeeType.SEMESTERFEE,
             schedule: (_a = constants_1.FinanceFeeSchedule[constants_1.FinanceFeeType.SEMESTERFEE]) !== null && _a !== void 0 ? _a : "YEARLY",
             actualFee: semFeeInfo.actualFee || 0,
             finalFee: semFeeInfo.finalFee || 0,
-            paidAmount: semFeeInfo.feesPaid || 0,
+            paidAmount: semesterNumber == 1 ? semFeeInfo.feesPaid || 0 : 0,
             remark: "",
             feeUpdateHistory: [{
                     updatedAt: new Date(),
@@ -242,9 +251,10 @@ const createSemesterFee = (semesterNumber, feesCourse) => {
     const totalPaidAmount = details.reduce((sum, item) => sum + item.paidAmount, 0);
     return {
         details: details,
-        dueDate: undefined,
+        dueDate: semesterNumber == 1 ? new Date() : undefined,
         paidAmount: totalPaidAmount,
         totalFinalFee: totalFinalFee,
+        amountForTransaction: amountForTransaction
     };
 };
 exports.getStudentDataBySearch = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {

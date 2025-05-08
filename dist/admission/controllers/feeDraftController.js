@@ -73,7 +73,13 @@ exports.createFeeDraft = (0, express_async_handler_1.default)((0, functionLevelL
     try {
         const feesDraftList = yield studentFeesDraft_1.StudentFeesDraftModel.create([feeData], { session });
         const feesDraft = feesDraftList[0];
-        yield enquiry_1.Enquiry.findByIdAndUpdate(data.enquiryId, { $set: { studentFeeDraft: feesDraft._id, counsellor, telecaller } }, { session });
+        const enquiryDataUpdate = {
+            studentFeeDraft: feesDraft._id, counsellor, telecaller
+        };
+        if (data.reference != null) {
+            enquiryDataUpdate.reference = data.reference;
+        }
+        yield enquiry_1.Enquiry.findByIdAndUpdate(data.enquiryId, { $set: enquiryDataUpdate }, { session });
         yield session.commitTransaction();
         session.endSession();
         return (0, formatResponse_1.formatResponse)(res, 201, 'Fees Draft created successfully', true, feesDraft);
@@ -124,7 +130,11 @@ exports.updateFeeDraft = (0, express_async_handler_1.default)((0, functionLevelL
     session.startTransaction();
     try {
         const updatedDraft = yield studentFeesDraft_1.StudentFeesDraftModel.findByIdAndUpdate(data.id, { $set: updateData }, { new: true, runValidators: true, session });
-        yield enquiry_1.Enquiry.findByIdAndUpdate(data.enquiryId, { $set: { counsellor, telecaller } }, { session });
+        const enquiryData = { counsellor, telecaller };
+        if (data.reference != null) {
+            enquiryData.reference = data.reference;
+        }
+        yield enquiry_1.Enquiry.findByIdAndUpdate(data.enquiryId, { $set: enquiryData }, { session });
         yield session.commitTransaction();
         session.endSession();
         return (0, formatResponse_1.formatResponse)(res, 200, 'Fees Draft updated successfully', true, updatedDraft);

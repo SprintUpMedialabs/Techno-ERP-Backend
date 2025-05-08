@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.EditFeeBreakUpSchema = exports.FetchFeeHistorySchema = exports.FeeSchema = exports.BaseFeeSchema = exports.FeeUpdateHistorySchema = void 0;
 const zod_1 = require("zod");
 const constants_1 = require("../../config/constants");
-const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
 const commonSchema_1 = require("../../validators/commonSchema");
 exports.FeeUpdateHistorySchema = zod_1.z.object({
     updatedAt: zod_1.z.date(),
@@ -20,7 +19,7 @@ exports.BaseFeeSchema = zod_1.z.object({
 });
 exports.FeeSchema = zod_1.z.object({
     details: zod_1.z.array(exports.BaseFeeSchema),
-    dueDate: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)).optional(),
+    dueDate: zod_1.z.union([zod_1.z.date(), zod_1.z.undefined()]),
     paidAmount: zod_1.z.number(),
     totalFinalFee: zod_1.z.number(),
 });
