@@ -60,17 +60,16 @@ export enum Category {
   OTHER = "Other"
 };
 
-
 export enum AdmissionReference {
-  Advertising = "Advertising",
-  BusinessAssociate = "Business Associate",
-  DigitalMarketing = "Digital Marketing",
-  DirectWalkIn = "Direct Walk-in",
-  LUNPGExternalVenue = "LU/NPG/External Venue",
-  StudentReference = "Student Reference",
-  TechnoligenceStaffCalling = "Technoligence/Staff Calling",
-  Other = "Other"
-};
+  Advertising = 'Advertising',
+  BusinessAssociate = 'Business Associate',
+  DigitalMarketing = 'Digital Marketing',
+  DirectWalkIn = 'Direct Walk-in',
+  LUNPGExternalVenue = 'LU/NPG/External Venue',
+  StudentReference = 'Student Reference',
+  TechnoligenceStaffCalling = 'Technoligence',
+  Other = 'Other'
+}
 
 export enum DropDownType {
   MARKETING_CITY = "MARKETING_CITY",
@@ -397,6 +396,6 @@ export enum Actions {
   DECREAMENT = 'DECREAMENT'
 }
 
-export enum MarketingAnalyticsEnum{
+export enum MarketingAnalyticsEnum {
   NO_OF_CALLS = "NO_OF_CALLS"
 }
