@@ -24,15 +24,9 @@ const updateFeeDetails = (applicationStatusList, studentFeesData) => __awaiter(v
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }
-    const query = {
+    const enquiry = yield enquiry_1.Enquiry.findOne({
         studentFee: studentFeesData.id,
         applicationStatus: { $in: [...applicationStatusList] }
-    };
-    if (studentFeesData.reference != null) {
-        query.reference = studentFeesData.reference;
-    }
-    const enquiry = yield enquiry_1.Enquiry.findOne({
-        query
     }, {
         course: 1, // Only return course field
         telecaller: 1,
@@ -67,6 +61,9 @@ const updateFeeDetails = (applicationStatusList, studentFeesData) => __awaiter(v
     }
     if (studentFeesData.telecaller) {
         enquiryUpdatePayload.telecaller = studentFeesData.telecaller;
+    }
+    if (validation.data.reference != null) {
+        enquiryUpdatePayload.reference = validation.data.reference;
     }
     if (Object.keys(enquiryUpdatePayload).length > 0) {
         yield enquiry_1.Enquiry.findByIdAndUpdate(enquiry._id, {
