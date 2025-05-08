@@ -68,10 +68,9 @@ var AdmissionReference;
     AdmissionReference["DirectWalkIn"] = "Direct Walk-in";
     AdmissionReference["LUNPGExternalVenue"] = "LU/NPG/External Venue";
     AdmissionReference["StudentReference"] = "Student Reference";
-    AdmissionReference["TechnoligenceStaffCalling"] = "Technoligence/Staff Calling";
+    AdmissionReference["TechnoligenceStaffCalling"] = "Technoligence";
     AdmissionReference["Other"] = "Other";
 })(AdmissionReference || (exports.AdmissionReference = AdmissionReference = {}));
-;
 var DropDownType;
 (function (DropDownType) {
     DropDownType["MARKETING_CITY"] = "MARKETING_CITY";
