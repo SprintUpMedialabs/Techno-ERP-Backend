@@ -33,8 +33,11 @@ export const getStudentDues = expressAsyncHandler(async (req: AuthenticatedReque
     const filterStage: any = {
         feeStatus: FeeStatus.DUE,
         currentAcademicYear: academicYear,
-        courseCode: courseCode
     };
+
+    if (courseCode) {
+        filterStage.courseCode = courseCode;
+    }
     
     if (search?.trim()) {
         filterStage.$and = [
