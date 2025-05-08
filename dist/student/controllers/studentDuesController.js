@@ -30,8 +30,10 @@ exports.getStudentDues = (0, express_async_handler_1.default)((req, res) => __aw
     const filterStage = {
         feeStatus: constants_1.FeeStatus.DUE,
         currentAcademicYear: academicYear,
-        courseCode: courseCode
     };
+    if (courseCode) {
+        filterStage.courseCode = courseCode;
+    }
     if (search === null || search === void 0 ? void 0 : search.trim()) {
         filterStage.$and = [
             ...((_a = filterStage.$and) !== null && _a !== void 0 ? _a : []),
