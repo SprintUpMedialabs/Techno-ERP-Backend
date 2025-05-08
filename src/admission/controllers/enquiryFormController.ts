@@ -185,7 +185,8 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
       ...enquiryData,
       "courseCode": approvedEnquiry?.course,
       "feeId": approvedEnquiry?.studentFee,
-      "dateOfAdmission": approvedEnquiry?.dateOfAdmission
+      "dateOfAdmission": approvedEnquiry?.dateOfAdmission,
+      "collegeName" : getCollegeNameFromFormNo(enquiryData?.formNo)
     }
 
 
@@ -199,7 +200,6 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
 
     if (!studentValidation.success)
       throw createHttpError(400, studentValidation.error.errors[0]);
-
 
     // const student = await Student.create([{
     //   _id: enquiry._id,
@@ -278,6 +278,17 @@ const getCollegeName = (course: Course): FormNoPrefixes => {
   if (course === Course.LLB) return FormNoPrefixes.TCL;
   return FormNoPrefixes.TIHS;
 };
+
+const getCollegeNameFromFormNo = (formNo : string | undefined) => {
+  if(!formNo)
+    return;
+  if(formNo.startsWith(FormNoPrefixes.TCL))
+    return FormNoPrefixes.TCL;
+  else if(formNo.startsWith(FormNoPrefixes.TIHS))
+    return FormNoPrefixes.TIHS;
+  else if(formNo.startsWith(FormNoPrefixes.TIMS))
+    return FormNoPrefixes.TIMS
+}
 
 
 const getAffiliation = (course: Course) => {
