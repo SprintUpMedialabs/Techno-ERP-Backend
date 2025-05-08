@@ -143,7 +143,7 @@ exports.approveEnquiry = (0, express_async_handler_1.default)((0, functionLevelL
         // const studentValidation = studentSchema.safeParse(approvedEnquiry);
         const enquiryData = approvedEnquiry === null || approvedEnquiry === void 0 ? void 0 : approvedEnquiry.toObject();
         console.log("Approved ENquiry is : ", enquiryData);
-        const studentData = Object.assign(Object.assign({}, enquiryData), { "courseCode": approvedEnquiry === null || approvedEnquiry === void 0 ? void 0 : approvedEnquiry.course, "feeId": approvedEnquiry === null || approvedEnquiry === void 0 ? void 0 : approvedEnquiry.studentFee, "dateOfAdmission": approvedEnquiry === null || approvedEnquiry === void 0 ? void 0 : approvedEnquiry.dateOfAdmission });
+        const studentData = Object.assign(Object.assign({}, enquiryData), { "courseCode": approvedEnquiry === null || approvedEnquiry === void 0 ? void 0 : approvedEnquiry.course, "feeId": approvedEnquiry === null || approvedEnquiry === void 0 ? void 0 : approvedEnquiry.studentFee, "dateOfAdmission": approvedEnquiry === null || approvedEnquiry === void 0 ? void 0 : approvedEnquiry.dateOfAdmission, "collegeName": getCollegeNameFromFormNo(enquiryData === null || enquiryData === void 0 ? void 0 : enquiryData.formNo) });
         console.log("Student Data : ", studentData);
         const studentValidation = studentSchema_1.CreateStudentSchema.safeParse(studentData);
         console.log("create student schema : ", studentValidation.data);
@@ -206,6 +206,16 @@ const getCollegeName = (course) => {
     if (course === constants_1.Course.LLB)
         return constants_1.FormNoPrefixes.TCL;
     return constants_1.FormNoPrefixes.TIHS;
+};
+const getCollegeNameFromFormNo = (formNo) => {
+    if (!formNo)
+        return;
+    if (formNo.startsWith(constants_1.FormNoPrefixes.TCL))
+        return constants_1.FormNoPrefixes.TCL;
+    else if (formNo.startsWith(constants_1.FormNoPrefixes.TIHS))
+        return constants_1.FormNoPrefixes.TIHS;
+    else if (formNo.startsWith(constants_1.FormNoPrefixes.TIMS))
+        return constants_1.FormNoPrefixes.TIMS;
 };
 const getAffiliation = (course) => {
     if (course === constants_1.Course.MBA)

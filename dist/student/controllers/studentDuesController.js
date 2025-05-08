@@ -25,11 +25,12 @@ const collegeTransactionHistory_1 = require("../models/collegeTransactionHistory
 const feeSchema_1 = require("../validators/feeSchema");
 const getCurrentLoggedInUser_1 = require("../../auth/utils/getCurrentLoggedInUser");
 exports.getStudentDues = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
-    const { page, limit, search, academicYear } = req.body;
+    var _a, _b;
+    const { page, limit, search, academicYear, courseCode, courseYear } = req.body;
     const filterStage = {
         feeStatus: constants_1.FeeStatus.DUE,
-        currentAcademicYear: academicYear
+        currentAcademicYear: academicYear,
+        courseCode: courseCode
     };
     if (search === null || search === void 0 ? void 0 : search.trim()) {
         filterStage.$and = [
@@ -38,6 +39,19 @@ exports.getStudentDues = (0, express_async_handler_1.default)((req, res) => __aw
                 $or: [
                     { 'studentInfo.studentName': { $regex: search, $options: 'i' } },
                     { 'studentInfo.studentId': { $regex: search, $options: 'i' } }
+                ]
+            }
+        ];
+    }
+    if (courseYear) {
+        const year = Number(courseYear);
+        const semesters = [(year * 2) - 1, year * 2];
+        // If $and already exists, push into it; else create $and
+        filterStage.$and = [
+            ...((_b = filterStage.$and) !== null && _b !== void 0 ? _b : []),
+            {
+                $or: [
+                    { currentSemester: { $in: semesters } }
                 ]
             }
         ];
@@ -56,7 +70,47 @@ exports.getStudentDues = (0, express_async_handler_1.default)((req, res) => __aw
                 fatherName: '$studentInfo.fatherName',
                 fatherPhoneNumber: '$studentInfo.fatherPhoneNumber',
                 currentSemester: 1,
-                courseYear: { $ceil: { $divide: ['$currentSemester', 2] } }
+                courseYear: { $ceil: { $divide: ['$currentSemester', 2] } },
+                dueSemesters: {
+                    $map: {
+                        input: {
+                            $filter: {
+                                input: '$semester',
+                                as: 'sem',
+                                cond: {
+                                    $and: [
+                                        { $ne: ['$$sem.fees.dueDate', null] },
+                                        { $ifNull: ['$$sem.fees.dueDate', false] }
+                                    ]
+                                }
+                            }
+                        },
+                        as: 'sem',
+                        in: '$$sem.semesterNumber'
+                    }
+                },
+                totalDueAmount: {
+                    $sum: {
+                        $map: {
+                            input: {
+                                $filter: {
+                                    input: '$semester',
+                                    as: 'sem',
+                                    cond: {
+                                        $and: [
+                                            { $ne: ['$$sem.fees.dueDate', null] },
+                                            { $ifNull: ['$$sem.fees.dueDate', false] }
+                                        ]
+                                    }
+                                }
+                            },
+                            as: 'filteredSem',
+                            in: {
+                                $subtract: ['$$filteredSem.fees.totalFinalFee', '$$filteredSem.fees.paidAmount']
+                            }
+                        }
+                    }
+                }
             }
         }
     ]);

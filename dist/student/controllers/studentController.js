@@ -144,6 +144,7 @@ const createStudent = (id, studentData) => __awaiter(void 0, void 0, void 0, fun
         totalSemester: totalSemesters,
         semester: semesterArray,
         feeStatus: feeStatus,
+        collegeName: studentData.collegeName,
         transactionAmount: transactionAmount
     };
     return student;

@@ -83,6 +83,7 @@ exports.StudentBaseInfoSchema = zod_1.z.object({
 });
 exports.StudentSchema = zod_1.z.object({
     studentInfo: exports.StudentBaseInfoSchema,
+    collegeName: zod_1.z.string(),
     courseId: commonSchema_1.objectIdSchema,
     departmentMetaDataId: commonSchema_1.objectIdSchema,
     courseName: zod_1.z.string({ required_error: "Course Name is required." }).nonempty("Course Name is required"),
@@ -100,6 +101,7 @@ exports.CreateStudentSchema = zod_1.z.object({
     courseCode: zod_1.z.string(),
     feeId: commonSchema_1.objectIdSchema,
     dateOfAdmission: zod_1.z.date(),
+    collegeName: zod_1.z.string(),
     universityId: zod_1.z.string({ required_error: "University ID cannot be empty." }).nonempty("University ID is required"),
     photoNo: zod_1.z.number({ required_error: "Photo Number cannot be empty." }).nonnegative("Photo Number is required"),
     formNo: zod_1.z.string({ required_error: "Form No cannot be empty." }).nonempty("Form No is required"),
