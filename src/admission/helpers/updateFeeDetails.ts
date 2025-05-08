@@ -11,17 +11,10 @@ export const updateFeeDetails = async (applicationStatusList: ApplicationStatus[
   if (!validation.success) {
     throw createHttpError(400, validation.error.errors[0]);
   }
-  const query: any = {
+  
+  const enquiry = await Enquiry.findOne({
     studentFee: studentFeesData.id,
     applicationStatus: { $in: [...applicationStatusList] }
-  };
-
-  if (studentFeesData.reference != null) {
-    query.reference = studentFeesData.reference;
-  }
-
-  const enquiry = await Enquiry.findOne({
-    query
   },
     {
       course: 1, // Only return course field
@@ -71,6 +64,10 @@ export const updateFeeDetails = async (applicationStatusList: ApplicationStatus[
 
   if (studentFeesData.telecaller) {
     enquiryUpdatePayload.telecaller = studentFeesData.telecaller;
+  }
+
+  if (validation.data.reference != null) {
+    enquiryUpdatePayload.reference = validation.data.reference;
   }
 
   if (Object.keys(enquiryUpdatePayload).length > 0) {
