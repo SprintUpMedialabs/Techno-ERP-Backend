@@ -77,24 +77,6 @@ export const getStudentDues = expressAsyncHandler(async (req: AuthenticatedReque
                 fatherPhoneNumber: '$studentInfo.fatherPhoneNumber',
                 currentSemester: 1,
                 courseYear: { $ceil: { $divide: ['$currentSemester', 2] } },
-                dueSemesters: {
-                    $map: {
-                        input: {
-                            $filter: {
-                                input: '$semester',
-                                as: 'sem',
-                                cond: {
-                                    $and: [
-                                        { $ne: ['$$sem.fees.dueDate', null] },
-                                        { $ifNull: ['$$sem.fees.dueDate', false] }
-                                    ]
-                                }
-                            }
-                        },
-                        as: 'sem',
-                        in: '$$sem.semesterNumber'
-                    }
-                },
                 totalDueAmount: {
                     $sum: {
                         $map: {
