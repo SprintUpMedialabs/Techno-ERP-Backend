@@ -100,6 +100,7 @@ exports.fetchFeeInformationByStudentId = (0, express_async_handler_1.default)((r
                 courseName: 1,
                 feeStatus: 1,
                 departmentInfo: 1,
+                extraBalance: 1,
                 semesterNumber: "$semester.semesterNumber",
                 academicYear: "$semester.academicYear",
                 finalFee: "$semester.fees.totalFinalFee",
@@ -125,6 +126,7 @@ exports.fetchFeeInformationByStudentId = (0, express_async_handler_1.default)((r
                 studentInfo: { $first: "$studentInfo" },
                 courseName: { $first: "$courseName" },
                 feeStatus: { $first: "$feeStatus" },
+                extraBalance: { $first: "$extraBalance" },
                 departmentInfo: { $first: "$departmentInfo" },
                 semesterWiseFeeInformation: {
                     $push: {
@@ -212,6 +214,7 @@ exports.fetchFeeInformationByStudentId = (0, express_async_handler_1.default)((r
                 course: "$courseName",
                 semesterWiseFeeInformation: 1,
                 semesterBreakUp: 1,
+                extraBalance: 1
             }
         }
     ];
@@ -333,7 +336,12 @@ const settleFees = (student, amount) => {
         student.extraBalance = (student.extraBalance || 0) + amount;
         // console.log(`Extra amount ₹${amount} added to student's extra balance.`);
     }
-    const allSemestersSettled = student.semester.every((sem) => { var _a, _b; return (((_a = sem.fees) === null || _a === void 0 ? void 0 : _a.paidAmount) || 0) >= (((_b = sem.fees) === null || _b === void 0 ? void 0 : _b.totalFinalFee) || 0); });
+    const allSemestersSettled = student.semester.every((sem) => {
+        var _a, _b, _c;
+        if (!((_a = sem.fees) === null || _a === void 0 ? void 0 : _a.dueDate))
+            return true;
+        return (((_b = sem.fees) === null || _b === void 0 ? void 0 : _b.paidAmount) || 0) >= (((_c = sem.fees) === null || _c === void 0 ? void 0 : _c.totalFinalFee) || 0);
+    });
     student.feeStatus = allSemestersSettled ? constants_1.FeeStatus.PAID : constants_1.FeeStatus.DUE;
     console.log("Final Fee Status:", student.feeStatus);
     return {
@@ -347,11 +355,11 @@ const fetchTransactionsByStudentID = (studentId) => __awaiter(void 0, void 0, vo
     const transactionsId = student === null || student === void 0 ? void 0 : student.transactionHistory;
     const transactions = yield collegeTransactionHistory_1.CollegeTransaction.find({
         _id: { $in: transactionsId }
-    }).populate('actionedBy', 'firstName lastName email');
+    }).populate('actionedBy', 'firstName lastName');
     const formattedTransactions = transactions.map(txn => {
         const user = txn.actionedBy;
         const formattedActionedBy = user
-            ? `${user.firstName} ${user.lastName} - ${user.email}`
+            ? `${user.firstName} ${user.lastName}`
             : null;
         return Object.assign(Object.assign({}, txn.toObject()), { actionedBy: formattedActionedBy });
     });
@@ -392,10 +400,37 @@ exports.fetchFeeUpdatesHistory = (0, express_async_handler_1.default)((req, res)
                 "semester.fees.details._id": detailId
             }
         },
+        { $unwind: "$semester.fees.details.feeUpdateHistory" }, // unwind each fee update
+        {
+            $lookup: {
+                from: "users",
+                localField: "semester.fees.details.feeUpdateHistory.updatedBy",
+                foreignField: "_id",
+                as: "updatedUser"
+            }
+        },
+        {
+            $addFields: {
+                "semester.fees.details.feeUpdateHistory.updatedBy": {
+                    $concat: [
+                        { $arrayElemAt: ["$updatedUser.firstName", 0] }, " ",
+                        { $arrayElemAt: ["$updatedUser.lastName", 0] }
+                    ]
+                }
+            }
+        },
+        {
+            $group: {
+                _id: "$semester.fees.details._id",
+                feeUpdateHistory: {
+                    $push: "$semester.fees.details.feeUpdateHistory"
+                }
+            }
+        },
         {
             $project: {
                 _id: 0,
-                feeUpdateHistory: "$semester.fees.details.feeUpdateHistory"
+                feeUpdateHistory: 1
             }
         }
     ];
@@ -404,6 +439,7 @@ exports.fetchFeeUpdatesHistory = (0, express_async_handler_1.default)((req, res)
     return (0, formatResponse_1.formatResponse)(res, 200, "Fee Update History fetched successfully.", true, feeHistory[0]);
 }));
 exports.editFeeBreakUp = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     const editFeeData = req.body;
     const editFeeDataValidation = feeSchema_1.EditFeeBreakUpSchema.safeParse(editFeeData);
     if (!editFeeDataValidation.success) {
@@ -428,7 +464,9 @@ exports.editFeeBreakUp = (0, express_async_handler_1.default)((req, res) => __aw
     const diff = newFinalFee - oldFinalFee;
     feeDetail.feeUpdateHistory.push({
         updatedAt: new Date(),
+        extraAmount: diff,
         updatedFee: newFinalFee,
+        updatedBy: new mongoose_1.default.Types.ObjectId((_a = req.data) === null || _a === void 0 ? void 0 : _a.id)
     });
     semester.fees.totalFinalFee += diff;
     if (newFinalFee < oldFinalFee) {

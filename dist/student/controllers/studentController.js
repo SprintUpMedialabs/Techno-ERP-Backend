@@ -36,7 +36,7 @@ const http_errors_1 = __importDefault(require("http-errors"));
 const formatResponse_1 = require("../../utils/formatResponse");
 const user_1 = require("../../auth/models/user");
 const physicalDocumentNoteSchema_1 = require("../../admission/validators/physicalDocumentNoteSchema");
-const createStudent = (studentData) => __awaiter(void 0, void 0, void 0, function* () {
+const createStudent = (id, studentData) => __awaiter(void 0, void 0, void 0, function* () {
     const { courseCode, feeId, dateOfAdmission } = studentData;
     const studentBaseInformation = Object.assign({}, studentData);
     console.log("Student INformation is : ", studentBaseInformation);
@@ -110,7 +110,8 @@ const createStudent = (studentData) => __awaiter(void 0, void 0, void 0, functio
                 exams: exams
             });
         }
-        const _a = createSemesterFee(i, feesCourse), { amountForTransaction } = _a, fees = __rest(_a, ["amountForTransaction"]);
+        const _a = createSemesterFee(id, i, feesCourse), { amountForTransaction } = _a, fees = __rest(_a, ["amountForTransaction"]);
+        // console.log( `Fees are ${semesterNumber}: `, fees);
         if (semesterNumber === 1)
             transactionAmount = amountForTransaction;
         semesterArray.push({
@@ -124,6 +125,13 @@ const createStudent = (studentData) => __awaiter(void 0, void 0, void 0, functio
         });
     }
     ;
+    const allSemestersSettled = semesterArray.every((sem) => {
+        var _a, _b, _c;
+        if (!((_a = sem.fees) === null || _a === void 0 ? void 0 : _a.dueDate))
+            return true;
+        return (((_b = sem.fees) === null || _b === void 0 ? void 0 : _b.paidAmount) || 0) >= (((_c = sem.fees) === null || _c === void 0 ? void 0 : _c.totalFinalFee) || 0);
+    });
+    const feeStatus = allSemestersSettled ? constants_1.FeeStatus.PAID : constants_1.FeeStatus.DUE;
     const student = {
         studentInfo: studentBaseInformation,
         courseId: courseId,
@@ -135,13 +143,15 @@ const createStudent = (studentData) => __awaiter(void 0, void 0, void 0, functio
         currentAcademicYear: currentAcademicYear,
         totalSemester: totalSemesters,
         semester: semesterArray,
+        feeStatus: feeStatus,
         transactionAmount: transactionAmount
     };
     return student;
 });
 exports.createStudent = createStudent;
-const createSemesterFee = (semesterNumber, feesCourse) => {
+const createSemesterFee = (id, semesterNumber, feesCourse) => {
     var _a;
+    // console.log("Creating the fees for semester : ", semesterNumber);
     const otherFees = feesCourse.otherFees || [];
     const semWiseFees = feesCourse.semWiseFees || [];
     const getFeeDetail = (type) => {
@@ -180,12 +190,16 @@ const createSemesterFee = (semesterNumber, feesCourse) => {
     }
     const createFeeUpdateHistory = (amount) => ({
         updatedAt: new Date(),
+        extraAmount: amount,
+        updatedBy: id,
         updatedFee: amount,
     });
     let amountForTransaction = 0;
     const details = requiredFeeTypes.map((type) => {
         var _a;
+        // console.log("Fee type is : ", type);
         const feeDetail = getFeeDetail(type);
+        // console.log("Fee Detail of type is : ", feeDetail);
         let actualFee = 0;
         let finalFee = 0;
         let paidAmount = 0;
@@ -201,12 +215,18 @@ const createSemesterFee = (semesterNumber, feesCourse) => {
                     actualFee = 0;
                     finalFee = 0;
                     paidAmount = 0;
+                    // console.log(`Actual fee for ${semesterNumber} for feeType ${type} is : ${actualFee}`);
+                    // console.log(`Final fee for ${semesterNumber} for feeType ${type} is : ${finalFee}`);
+                    // console.log(`Paid Amount fee for ${semesterNumber} for feeType ${type} is : ${paidAmount}`);
                 }
                 else {
                     actualFee = feeDetail.feeAmount;
                     finalFee = feeDetail.finalFee;
                     // paidAmount = feeDetail.feesDepositedTOA || 0;
                     paidAmount = 0;
+                    // console.log(`Actual fee for ${semesterNumber} for feeType ${type} is : ${actualFee}`);
+                    // console.log(`Final fee for ${semesterNumber} for feeType ${type} is : ${finalFee}`);
+                    // console.log(`Paid Amount fee for ${semesterNumber} for feeType ${type} is : ${paidAmount}`);
                 }
             }
             else {
@@ -217,7 +237,11 @@ const createSemesterFee = (semesterNumber, feesCourse) => {
                 else {
                     paidAmount = feeDetail.feesDepositedTOA || 0;
                     amountForTransaction = amountForTransaction + (feeDetail.feesDepositedTOA || 0);
+                    // console.log(`Adding ${feeDetail.feesDepositedTOA || 0} for ${type}`);
                 }
+                // console.log(`Actual fee for ${semesterNumber} for feeType ${type} is : ${actualFee}`);
+                // console.log(`Final fee for ${semesterNumber} for feeType ${type} is : ${finalFee}`);
+                // console.log(`Paid Amount fee for ${semesterNumber} for feeType ${type} is : ${paidAmount}`);
             }
             feeUpdateHistory.push(createFeeUpdateHistory(finalFee));
         }
@@ -232,18 +256,22 @@ const createSemesterFee = (semesterNumber, feesCourse) => {
         };
     });
     const semFeeInfo = semWiseFees[semesterNumber - 1] || null;
+    // console.log(`Sem fees info for semester number ${semesterNumber} : ${semFeeInfo}`);
     if (semFeeInfo) {
         amountForTransaction = semesterNumber == 1 ? (amountForTransaction + semFeeInfo.feesPaid || 0) : 0;
+        // console.log("Amount : ", amountForTransaction);
         details.push({
             type: constants_1.FinanceFeeType.SEMESTERFEE,
             schedule: (_a = constants_1.FinanceFeeSchedule[constants_1.FinanceFeeType.SEMESTERFEE]) !== null && _a !== void 0 ? _a : "YEARLY",
             actualFee: semFeeInfo.actualFee || 0,
             finalFee: semFeeInfo.finalFee || 0,
-            paidAmount: semesterNumber == 1 ? semFeeInfo.feesPaid || 0 : 0,
+            paidAmount: semesterNumber == 1 ? getFeeDetail("SEM1FEE").feesDepositedTOA || 0 : 0,
             remark: "",
             feeUpdateHistory: [{
                     updatedAt: new Date(),
-                    updatedFee: semFeeInfo.finalFee || 0
+                    extraAmount: semFeeInfo.finalFee || 0,
+                    updatedFee: semFeeInfo.finalFee || 0,
+                    updatedBy: id
                 }]
         });
     }

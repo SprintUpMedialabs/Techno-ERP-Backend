@@ -346,7 +346,7 @@ const StudentModel = new mongoose_1.Schema({
     feeStatus: {
         type: String,
         enum: Object.values(constants_1.FeeStatus),
-        default: constants_1.FeeStatus.NOT_PROVIDED
+        default: constants_1.FeeStatus.DUE
     },
     extraBalance: {
         type: Number,

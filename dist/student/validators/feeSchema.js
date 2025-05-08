@@ -6,7 +6,9 @@ const constants_1 = require("../../config/constants");
 const commonSchema_1 = require("../../validators/commonSchema");
 exports.FeeUpdateHistorySchema = zod_1.z.object({
     updatedAt: zod_1.z.date(),
-    updatedFee: zod_1.z.number()
+    extraAmount: zod_1.z.number(),
+    updatedFee: zod_1.z.number(),
+    updatedBy: commonSchema_1.objectIdSchema
 });
 exports.BaseFeeSchema = zod_1.z.object({
     type: zod_1.z.nativeEnum(constants_1.FinanceFeeType),

@@ -112,7 +112,7 @@ exports.getEnquiryById = (0, express_async_handler_1.default)((0, functionLevelL
     }
 })));
 exports.approveEnquiry = (0, express_async_handler_1.default)((0, functionLevelLogging_1.functionLevelLogger)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _a, _b;
     const { id, transactionType } = req.body;
     const validation = commonSchema_1.objectIdSchema.safeParse(id);
     if (!validation.success) {
@@ -154,25 +154,27 @@ exports.approveEnquiry = (0, express_async_handler_1.default)((0, functionLevelL
         //   _id: enquiry._id,
         //   ...studentValidation.data,
         // }], { session });
-        const _b = yield (0, studentController_1.createStudent)(studentValidation.data), { transactionAmount } = _b, student = __rest(_b, ["transactionAmount"]);
+        const _c = yield (0, studentController_1.createStudent)((_a = req.data) === null || _a === void 0 ? void 0 : _a.id, studentValidation.data), { transactionAmount } = _c, student = __rest(_c, ["transactionAmount"]);
         const studentCreateValidation = studentSchema_1.StudentSchema.safeParse(student);
+        console.log("Student to be created : ", student);
         console.log("Student create validation errors : ", studentCreateValidation.error);
         console.log(studentCreateValidation.data);
         if (!studentCreateValidation.success) {
             throw (0, http_errors_1.default)(400, studentCreateValidation.error.errors[0]);
         }
+        console.log("Transaction Amount : ", transactionAmount);
         const createTransaction = yield collegeTransactionHistory_1.CollegeTransaction.create([{
                 studentId: enquiry._id,
                 dateTime: new Date(),
                 feeAction: constants_1.FeeActions.DEPOSIT,
                 amount: transactionAmount,
                 txnType: transactionType !== null && transactionType !== void 0 ? transactionType : constants_1.TransactionTypes.CASH,
-                actionedBy: (_a = req === null || req === void 0 ? void 0 : req.data) === null || _a === void 0 ? void 0 : _a.id
+                actionedBy: (_b = req === null || req === void 0 ? void 0 : req.data) === null || _b === void 0 ? void 0 : _b.id
             }], { session });
         const createdStudent = yield student_1.Student.create([Object.assign(Object.assign({ _id: enquiry._id }, studentCreateValidation.data), { transactionHistory: [createTransaction[0]._id] })], { session });
         yield session.commitTransaction();
         session.endSession();
-        return (0, formatResponse_1.formatResponse)(res, 200, 'Student created successfully with this information', true, createdStudent);
+        return (0, formatResponse_1.formatResponse)(res, 200, 'Student created successfully with this information', true, null);
     }
     catch (error) {
         yield session.abortTransaction();
