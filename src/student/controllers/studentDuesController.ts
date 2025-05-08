@@ -12,7 +12,7 @@ import { CollegeTransaction } from "../models/collegeTransactionHistory";
 import { EditFeeBreakUpSchema, FetchFeeHistorySchema, IEditFeeBreakUpSchema, IFetchFeeHistorySchema } from "../validators/feeSchema";
 import { getCurrentLoggedInUser } from "../../auth/utils/getCurrentLoggedInUser";
 
-type FeeDetail = {
+type FeeDetailInterface = {
     _id: string;
     type: FinanceFeeType;
     schedule: FinanceFeeSchedule;
@@ -114,6 +114,7 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
                 courseName: 1,
                 feeStatus: 1,
                 departmentInfo: 1,
+                extraBalance : 1,
                 semesterNumber: "$semester.semesterNumber",
                 academicYear: "$semester.academicYear",
                 finalFee: "$semester.fees.totalFinalFee",
@@ -139,6 +140,7 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
                 studentInfo: { $first: "$studentInfo" },
                 courseName: { $first: "$courseName" },
                 feeStatus: { $first: "$feeStatus" },
+                extraBalance: { $first: "$extraBalance" },
                 departmentInfo: { $first: "$departmentInfo" },
                 semesterWiseFeeInformation: {
                     $push: {
@@ -394,8 +396,12 @@ export const settleFees = (student: any, amount: number) => {
     }
 
     const allSemestersSettled = student.semester.every(
-        (sem: any) => (sem.fees?.paidAmount || 0) >= (sem.fees?.totalFinalFee || 0)
-    );
+        (sem: any) => {
+            if (!sem.fees?.dueDate) 
+                return true;
+            return (sem.fees?.paidAmount || 0) >= (sem.fees?.totalFinalFee || 0)
+    });
+    
     student.feeStatus = allSemestersSettled ? FeeStatus.PAID : FeeStatus.DUE;
 
     console.log("Final Fee Status:", student.feeStatus);
@@ -507,7 +513,7 @@ export const editFeeBreakUp = expressAsyncHandler(async (req: AuthenticatedReque
         throw createHttpError(404, "Semester not found!")
     }
 
-    const feeDetail = semester.fees.details.find(d => (d as FeeDetail)._id?.toString() === detailId.toString());
+    const feeDetail = semester.fees.details.find(d => (d as unknown as FeeDetailInterface)._id?.toString() === detailId.toString());
     if (!feeDetail){
         throw createHttpError(404, "Details of break up not found")
     }
@@ -520,6 +526,7 @@ export const editFeeBreakUp = expressAsyncHandler(async (req: AuthenticatedReque
 
     feeDetail.feeUpdateHistory.push({
         updatedAt: new Date(),
+        extraAmount : diff,
         updatedFee: newFinalFee,
     });
 

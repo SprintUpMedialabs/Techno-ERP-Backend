@@ -329,7 +329,7 @@ const StudentModel = new Schema<IStudentDocument>({
     feeStatus: {
         type: String,
         enum: Object.values(FeeStatus),
-        default: FeeStatus.NOT_PROVIDED
+        default: FeeStatus.DUE
     },
     extraBalance: {
         type: Number,

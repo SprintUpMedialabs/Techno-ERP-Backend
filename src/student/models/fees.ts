@@ -11,6 +11,9 @@ const FeeUpdateHistoryModel = new Schema <IFeeUpdateHistoryDocument>({
     updatedAt : {
         type : Date
     },
+    extraAmount : {
+        type : Number
+    },
     updatedFee : {
         type : Number
     }

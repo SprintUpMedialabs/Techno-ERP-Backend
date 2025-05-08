@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { StudentFeesModel } from "../../admission/models/studentFees";
-import { FinanceFeeSchedule, FinanceFeeType } from "../../config/constants";
+import { FeeStatus, FinanceFeeSchedule, FinanceFeeType } from "../../config/constants";
 import { Course } from "../../course/models/course";
 import { getCurrentAcademicYear } from "../../course/utils/getCurrentAcademicYear";
 import { IFeeSchema } from "../validators/feeSchema";
@@ -101,6 +101,8 @@ export const createStudent = async (studentData: ICreateStudentSchema) => {
       });
     }
     const { amountForTransaction, ...fees } = createSemesterFee(i, feesCourse);
+
+    // console.log( `Fees are ${semesterNumber}: `, fees);
     if(semesterNumber === 1)
       transactionAmount = amountForTransaction;
 
@@ -115,6 +117,15 @@ export const createStudent = async (studentData: ICreateStudentSchema) => {
     })
   };
 
+  const allSemestersSettled = semesterArray.every(
+    (sem: any) => {
+        if (!sem.fees?.dueDate) 
+            return true;
+        return (sem.fees?.paidAmount || 0) >= (sem.fees?.totalFinalFee || 0)
+  });
+
+  const feeStatus = allSemestersSettled ? FeeStatus.PAID : FeeStatus.DUE;
+
   const student = {
     studentInfo: studentBaseInformation,
     courseId: courseId,
@@ -126,6 +137,7 @@ export const createStudent = async (studentData: ICreateStudentSchema) => {
     currentAcademicYear: currentAcademicYear,
     totalSemester: totalSemesters,
     semester: semesterArray,
+    feeStatus : feeStatus,
     transactionAmount : transactionAmount
   }
 
@@ -133,7 +145,7 @@ export const createStudent = async (studentData: ICreateStudentSchema) => {
 }
 
 const createSemesterFee = (semesterNumber: number, feesCourse: any): any => {
-
+  // console.log("Creating the fees for semester : ", semesterNumber);
   const otherFees = feesCourse.otherFees || [];
   const semWiseFees = feesCourse.semWiseFees || [];
 
@@ -174,12 +186,15 @@ const createSemesterFee = (semesterNumber: number, feesCourse: any): any => {
 
   const createFeeUpdateHistory = (amount: number) => ({
     updatedAt: new Date(),
+    extraAmount : amount,
     updatedFee: amount,
   });
 
   let amountForTransaction = 0;
   const details = requiredFeeTypes.map((type) => {
+    // console.log("Fee type is : ", type);
     const feeDetail = getFeeDetail(type);
+    // console.log("Fee Detail of type is : ", feeDetail);
 
     let actualFee = 0;
     let finalFee = 0;
@@ -201,12 +216,18 @@ const createSemesterFee = (semesterNumber: number, feesCourse: any): any => {
           actualFee = 0;
           finalFee = 0;
           paidAmount = 0;
+          // console.log(`Actual fee for ${semesterNumber} for feeType ${type} is : ${actualFee}`);
+          // console.log(`Final fee for ${semesterNumber} for feeType ${type} is : ${finalFee}`);
+          // console.log(`Paid Amount fee for ${semesterNumber} for feeType ${type} is : ${paidAmount}`);
         } 
         else {
           actualFee = feeDetail.feeAmount;
           finalFee = feeDetail.finalFee;
           // paidAmount = feeDetail.feesDepositedTOA || 0;
-          paidAmount = 0
+          paidAmount = 0;
+          // console.log(`Actual fee for ${semesterNumber} for feeType ${type} is : ${actualFee}`);
+          // console.log(`Final fee for ${semesterNumber} for feeType ${type} is : ${finalFee}`);
+          // console.log(`Paid Amount fee for ${semesterNumber} for feeType ${type} is : ${paidAmount}`);
         }
       }
       else {
@@ -217,9 +238,12 @@ const createSemesterFee = (semesterNumber: number, feesCourse: any): any => {
         else{
           paidAmount = feeDetail.feesDepositedTOA || 0;
           amountForTransaction = amountForTransaction + (feeDetail.feesDepositedTOA || 0);
+          // console.log(`Adding ${feeDetail.feesDepositedTOA || 0} for ${type}`);
         }
+        // console.log(`Actual fee for ${semesterNumber} for feeType ${type} is : ${actualFee}`);
+        // console.log(`Final fee for ${semesterNumber} for feeType ${type} is : ${finalFee}`);
+        // console.log(`Paid Amount fee for ${semesterNumber} for feeType ${type} is : ${paidAmount}`);
       }
-
       feeUpdateHistory.push(createFeeUpdateHistory(finalFee));
     }
 
@@ -237,19 +261,21 @@ const createSemesterFee = (semesterNumber: number, feesCourse: any): any => {
   
   const semFeeInfo = semWiseFees[semesterNumber - 1] || null;
 
+  // console.log(`Sem fees info for semester number ${semesterNumber} : ${semFeeInfo}`);
+
   if (semFeeInfo) {
-
     amountForTransaction = semesterNumber == 1 ? ( amountForTransaction + semFeeInfo.feesPaid || 0 ) : 0;
-
+    // console.log("Amount : ", amountForTransaction);
     details.push({
       type: FinanceFeeType.SEMESTERFEE,
       schedule: FinanceFeeSchedule[FinanceFeeType.SEMESTERFEE] ?? "YEARLY",
       actualFee: semFeeInfo.actualFee || 0,
       finalFee: semFeeInfo.finalFee || 0,
-      paidAmount: semesterNumber == 1 ? semFeeInfo.feesPaid || 0 : 0,
+      paidAmount: semesterNumber == 1 ? getFeeDetail("SEM1FEE").feesDepositedTOA || 0 : 0,
       remark: "",
       feeUpdateHistory: [{
         updatedAt : new Date(),
+        extraAmount : semFeeInfo.finalFee || 0,
         updatedFee : semFeeInfo.finalFee || 0
       }]
     });
@@ -258,7 +284,6 @@ const createSemesterFee = (semesterNumber: number, feesCourse: any): any => {
 
   const totalFinalFee = details.reduce((sum, item) => sum + item.finalFee, 0);
   const totalPaidAmount = details.reduce((sum, item) => sum + item.paidAmount, 0);
-
   return {
     details: details,
     dueDate: semesterNumber == 1 ? new Date() : undefined,
