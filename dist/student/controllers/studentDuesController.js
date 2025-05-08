@@ -71,24 +71,6 @@ exports.getStudentDues = (0, express_async_handler_1.default)((req, res) => __aw
                 fatherPhoneNumber: '$studentInfo.fatherPhoneNumber',
                 currentSemester: 1,
                 courseYear: { $ceil: { $divide: ['$currentSemester', 2] } },
-                dueSemesters: {
-                    $map: {
-                        input: {
-                            $filter: {
-                                input: '$semester',
-                                as: 'sem',
-                                cond: {
-                                    $and: [
-                                        { $ne: ['$$sem.fees.dueDate', null] },
-                                        { $ifNull: ['$$sem.fees.dueDate', false] }
-                                    ]
-                                }
-                            }
-                        },
-                        as: 'sem',
-                        in: '$$sem.semesterNumber'
-                    }
-                },
                 totalDueAmount: {
                     $sum: {
                         $map: {
