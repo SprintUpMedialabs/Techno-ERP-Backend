@@ -21,7 +21,6 @@ export const saveStep3Draft = expressAsyncHandler(functionLevelLogger(async (req
   if (!validation.success) {
     throw createHttpError(400, validation.error.errors[0]);
   }
-
   const { id, ...validatedData } = validation.data;
 
   const isEnquiryExists = await Enquiry.exists({
