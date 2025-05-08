@@ -206,9 +206,8 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
     //   ...studentValidation.data,
     // }], { session });
 
-    const { transactionAmount, ...student } = await createStudent(studentValidation.data);
+    const { transactionAmount, ...student } = await createStudent(req.data?.id, studentValidation.data);
     const studentCreateValidation = StudentSchema.safeParse(student);
-
 
     console.log("Student to be created : ", student);
 

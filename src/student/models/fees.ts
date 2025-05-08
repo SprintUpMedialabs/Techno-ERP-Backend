@@ -1,5 +1,5 @@
 import { Schema } from "mongoose";
-import { FinanceFeeSchedule, FinanceFeeType } from "../../config/constants";
+import { COLLECTION_NAMES, FinanceFeeSchedule, FinanceFeeType } from "../../config/constants";
 import { IBaseFeeSchema, IFeeSchema, IFeeUpdateHistorySchema } from "../validators/feeSchema";
 import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
 
@@ -16,6 +16,10 @@ const FeeUpdateHistoryModel = new Schema <IFeeUpdateHistoryDocument>({
     },
     updatedFee : {
         type : Number
+    },
+    updatedBy : {
+        type : Schema.Types.ObjectId,
+        ref : COLLECTION_NAMES.USER
     }
 })
 

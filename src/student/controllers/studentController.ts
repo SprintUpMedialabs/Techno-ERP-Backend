@@ -14,7 +14,7 @@ import { formatResponse } from "../../utils/formatResponse";
 import { User } from "../../auth/models/user";
 import { updateStudentPhysicalDocumentRequestSchema } from "../../admission/validators/physicalDocumentNoteSchema";
 
-export const createStudent = async (studentData: ICreateStudentSchema) => {
+export const createStudent = async (id : any, studentData: ICreateStudentSchema) => {
   const { courseCode, feeId, dateOfAdmission } = studentData;
 
   const studentBaseInformation = {
@@ -100,7 +100,7 @@ export const createStudent = async (studentData: ICreateStudentSchema) => {
         exams: exams
       });
     }
-    const { amountForTransaction, ...fees } = createSemesterFee(i, feesCourse);
+    const { amountForTransaction, ...fees } = createSemesterFee(id, i, feesCourse);
 
     // console.log( `Fees are ${semesterNumber}: `, fees);
     if(semesterNumber === 1)
@@ -144,7 +144,7 @@ export const createStudent = async (studentData: ICreateStudentSchema) => {
   return student;
 }
 
-const createSemesterFee = (semesterNumber: number, feesCourse: any): any => {
+const createSemesterFee = (id : any, semesterNumber: number, feesCourse: any): any => {
   // console.log("Creating the fees for semester : ", semesterNumber);
   const otherFees = feesCourse.otherFees || [];
   const semWiseFees = feesCourse.semWiseFees || [];
@@ -187,6 +187,7 @@ const createSemesterFee = (semesterNumber: number, feesCourse: any): any => {
   const createFeeUpdateHistory = (amount: number) => ({
     updatedAt: new Date(),
     extraAmount : amount,
+    updatedBy : id,
     updatedFee: amount,
   });
 
@@ -276,7 +277,8 @@ const createSemesterFee = (semesterNumber: number, feesCourse: any): any => {
       feeUpdateHistory: [{
         updatedAt : new Date(),
         extraAmount : semFeeInfo.finalFee || 0,
-        updatedFee : semFeeInfo.finalFee || 0
+        updatedFee : semFeeInfo.finalFee || 0,
+        updatedBy : id
       }]
     });
   }

@@ -6,7 +6,8 @@ import { objectIdSchema, requestDateSchema } from "../../validators/commonSchema
 export const FeeUpdateHistorySchema = z.object({
     updatedAt : z.date(),
     extraAmount : z.number(),
-    updatedFee : z.number()
+    updatedFee : z.number(),
+    updatedBy : objectIdSchema
 });
 
 export const BaseFeeSchema = z.object({

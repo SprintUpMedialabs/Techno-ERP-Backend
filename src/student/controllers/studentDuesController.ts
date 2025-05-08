@@ -1,7 +1,7 @@
 import expressAsyncHandler from "express-async-handler";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
 import { Response } from "express";
-import { FeeActions, FeeStatus, FinanceFeeSchedule, FinanceFeeType } from "../../config/constants";
+import { COLLECTION_NAMES, FeeActions, FeeStatus, FinanceFeeSchedule, FinanceFeeType } from "../../config/constants";
 import { Student } from "../models/student";
 import { formatResponse } from "../../utils/formatResponse";
 import mongoose from "mongoose";
@@ -245,7 +245,6 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
 export const recordPayment = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const paymentInfo: ICreateCollegeTransactionSchema = req.body;
 
-
     console.log("Payment Info is : ", paymentInfo);
 
     const validation = CreateCollegeTransactionSchema.safeParse(paymentInfo);
@@ -420,12 +419,12 @@ export const fetchTransactionsByStudentID = async (studentId: any) => {
 
     const transactions = await CollegeTransaction.find({
         _id: { $in: transactionsId }
-    }).populate('actionedBy', 'firstName lastName email');
+    }).populate('actionedBy', 'firstName lastName');
 
     const formattedTransactions = transactions.map(txn => {
         const user = txn.actionedBy as any;
         const formattedActionedBy = user
-            ? `${user.firstName} ${user.lastName} - ${user.email}`
+            ? `${user.firstName} ${user.lastName}`
             : null;
 
         return {
@@ -479,11 +478,38 @@ export const fetchFeeUpdatesHistory = expressAsyncHandler(async (req: Authentica
                 "semester.fees.details._id": detailId
             }
         },
+        { $unwind: "$semester.fees.details.feeUpdateHistory" }, // unwind each fee update
         {
-            $project: {
-                _id: 0,
-                feeUpdateHistory: "$semester.fees.details.feeUpdateHistory"
+          $lookup: {
+            from: "users",
+            localField: "semester.fees.details.feeUpdateHistory.updatedBy",
+            foreignField: "_id",
+            as: "updatedUser"
+          }
+        },
+        {
+            $addFields: {
+              "semester.fees.details.feeUpdateHistory.updatedBy": {
+                $concat: [
+                  { $arrayElemAt: ["$updatedUser.firstName", 0] }, " ", 
+                  { $arrayElemAt: ["$updatedUser.lastName", 0] }
+                ]
+              }
             }
+        },
+        {
+          $group: {
+            _id: "$semester.fees.details._id",
+            feeUpdateHistory: {
+              $push: "$semester.fees.details.feeUpdateHistory"
+            }
+          }
+        },
+        {
+          $project: {
+            _id: 0,
+            feeUpdateHistory: 1
+          }
         }
     ];
 
@@ -529,6 +555,7 @@ export const editFeeBreakUp = expressAsyncHandler(async (req: AuthenticatedReque
         updatedAt: new Date(),
         extraAmount : diff,
         updatedFee: newFinalFee,
+        updatedBy : new mongoose.Types.ObjectId(req.data?.id)
     });
 
     semester.fees.totalFinalFee += diff;
