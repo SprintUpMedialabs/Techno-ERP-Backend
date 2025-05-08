@@ -21,8 +21,6 @@ const fetchScheduleInformation = (crsId, semId, subId, insId, search) => __await
     let semesterId = new mongoose_1.default.Types.ObjectId(semId);
     let subjectId = new mongoose_1.default.Types.ObjectId(subId);
     let instructorId = new mongoose_1.default.Types.ObjectId(insId);
-    console.log(search);
-    console.log(courseId, semesterId, subjectId, instructorId);
     const pipeline = [
         {
             $match: {
@@ -175,7 +173,6 @@ const fetchScheduleInformation = (crsId, semId, subId, insId, search) => __await
         },
     ];
     let subjectDetails = yield course_1.Course.aggregate(pipeline);
-    // console.log(typeof subjectDetails);
     let payload = subjectDetails[0];
     payload = (0, transformDates_1.transformDates)(payload);
     return payload;
