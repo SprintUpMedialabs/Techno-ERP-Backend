@@ -21,20 +21,21 @@ type FeeDetailInterface = {
     paidAmount: number;
     remark: string;
     feeUpdateHistory: {
-      updatedAt: Date;
-      updatedFee: number;
+        updatedAt: Date;
+        updatedFee: number;
     }[];
 };
 
-  
+
 export const getStudentDues = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const { page, limit, search, academicYear } = req.body;
+    const { page, limit, search, academicYear, courseCode, courseYear } = req.body;
 
     const filterStage: any = {
         feeStatus: FeeStatus.DUE,
-        currentAcademicYear: academicYear
+        currentAcademicYear: academicYear,
+        courseCode: courseCode
     };
-
+    
     if (search?.trim()) {
         filterStage.$and = [
             ...(filterStage.$and ?? []),
@@ -42,6 +43,20 @@ export const getStudentDues = expressAsyncHandler(async (req: AuthenticatedReque
                 $or: [
                     { 'studentInfo.studentName': { $regex: search, $options: 'i' } },
                     { 'studentInfo.studentId': { $regex: search, $options: 'i' } }
+                ]
+            }
+        ];
+    }
+    if (courseYear) {
+        const year = Number(courseYear);
+        const semesters = [(year * 2) - 1, year * 2];
+
+        // If $and already exists, push into it; else create $and
+        filterStage.$and = [
+            ...(filterStage.$and ?? []),
+            {
+                $or: [
+                    { currentSemester: { $in: semesters } }
                 ]
             }
         ];
@@ -61,7 +76,47 @@ export const getStudentDues = expressAsyncHandler(async (req: AuthenticatedReque
                 fatherName: '$studentInfo.fatherName',
                 fatherPhoneNumber: '$studentInfo.fatherPhoneNumber',
                 currentSemester: 1,
-                courseYear: { $ceil: { $divide: ['$currentSemester', 2] } }
+                courseYear: { $ceil: { $divide: ['$currentSemester', 2] } },
+                dueSemesters: {
+                    $map: {
+                        input: {
+                            $filter: {
+                                input: '$semester',
+                                as: 'sem',
+                                cond: {
+                                    $and: [
+                                        { $ne: ['$$sem.fees.dueDate', null] },
+                                        { $ifNull: ['$$sem.fees.dueDate', false] }
+                                    ]
+                                }
+                            }
+                        },
+                        as: 'sem',
+                        in: '$$sem.semesterNumber'
+                    }
+                },
+                totalDueAmount: {
+                    $sum: {
+                        $map: {
+                            input: {
+                                $filter: {
+                                    input: '$semester',
+                                    as: 'sem',
+                                    cond: {
+                                        $and: [
+                                            { $ne: ['$$sem.fees.dueDate', null] },
+                                            { $ifNull: ['$$sem.fees.dueDate', false] }
+                                        ]
+                                    }
+                                }
+                            },
+                            as: 'filteredSem',
+                            in: {
+                                $subtract: ['$$filteredSem.fees.totalFinalFee', '$$filteredSem.fees.paidAmount']
+                            }
+                        }
+                    }
+                }
             }
         }
     ]);
@@ -114,7 +169,7 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
                 courseName: 1,
                 feeStatus: 1,
                 departmentInfo: 1,
-                extraBalance : 1,
+                extraBalance: 1,
                 semesterNumber: "$semester.semesterNumber",
                 academicYear: "$semester.academicYear",
                 finalFee: "$semester.fees.totalFinalFee",
@@ -124,7 +179,7 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
                 feeSchedule: "$semester.fees.details.schedule",
                 feePaid: "$semester.fees.details.paidAmount",
                 semesterBreakup: {
-                    _id : "$semester.semesterId",
+                    _id: "$semester.semesterId",
                     id: "$semester.fees.details._id",
                     semesterNumber: "$semester.semesterNumber",
                     feeCategory: "$semester.fees.details.type",
@@ -179,7 +234,7 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
                         as: "semBKP",
                         in: {
                             semesterNumber: "$$semBKP.semesterNumber",
-                            semesterId : "$$semBKP._id",
+                            semesterId: "$$semBKP._id",
                             details: {
                                 $map: {
                                     input: "$$semBKP.feeCategory",
@@ -228,7 +283,7 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
                 course: "$courseName",
                 semesterWiseFeeInformation: 1,
                 semesterBreakUp: 1,
-                extraBalance : 1
+                extraBalance: 1
             }
         }
     ];
@@ -264,7 +319,7 @@ export const recordPayment = expressAsyncHandler(async (req: AuthenticatedReques
         }
 
         const currentLoggedInUser = getCurrentLoggedInUser(req);
-        
+
         const transaction = await CollegeTransaction.create([{
             studentId: paymentInfo.studentId.toString(),
             amount: validation.data.amount,
@@ -397,11 +452,11 @@ export const settleFees = (student: any, amount: number) => {
 
     const allSemestersSettled = student.semester.every(
         (sem: any) => {
-            if (!sem.fees?.dueDate) 
+            if (!sem.fees?.dueDate)
                 return true;
             return (sem.fees?.paidAmount || 0) >= (sem.fees?.totalFinalFee || 0)
-    });
-    
+        });
+
     student.feeStatus = allSemestersSettled ? FeeStatus.PAID : FeeStatus.DUE;
 
     console.log("Final Fee Status:", student.feeStatus);
@@ -480,36 +535,36 @@ export const fetchFeeUpdatesHistory = expressAsyncHandler(async (req: Authentica
         },
         { $unwind: "$semester.fees.details.feeUpdateHistory" }, // unwind each fee update
         {
-          $lookup: {
-            from: "users",
-            localField: "semester.fees.details.feeUpdateHistory.updatedBy",
-            foreignField: "_id",
-            as: "updatedUser"
-          }
+            $lookup: {
+                from: "users",
+                localField: "semester.fees.details.feeUpdateHistory.updatedBy",
+                foreignField: "_id",
+                as: "updatedUser"
+            }
         },
         {
             $addFields: {
-              "semester.fees.details.feeUpdateHistory.updatedBy": {
-                $concat: [
-                  { $arrayElemAt: ["$updatedUser.firstName", 0] }, " ", 
-                  { $arrayElemAt: ["$updatedUser.lastName", 0] }
-                ]
-              }
+                "semester.fees.details.feeUpdateHistory.updatedBy": {
+                    $concat: [
+                        { $arrayElemAt: ["$updatedUser.firstName", 0] }, " ",
+                        { $arrayElemAt: ["$updatedUser.lastName", 0] }
+                    ]
+                }
             }
         },
         {
-          $group: {
-            _id: "$semester.fees.details._id",
-            feeUpdateHistory: {
-              $push: "$semester.fees.details.feeUpdateHistory"
+            $group: {
+                _id: "$semester.fees.details._id",
+                feeUpdateHistory: {
+                    $push: "$semester.fees.details.feeUpdateHistory"
+                }
             }
-          }
         },
         {
-          $project: {
-            _id: 0,
-            feeUpdateHistory: 1
-          }
+            $project: {
+                _id: 0,
+                feeUpdateHistory: 1
+            }
         }
     ];
 
@@ -520,8 +575,8 @@ export const fetchFeeUpdatesHistory = expressAsyncHandler(async (req: Authentica
 });
 
 export const editFeeBreakUp = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    
-    const editFeeData : IEditFeeBreakUpSchema = req.body;
+
+    const editFeeData: IEditFeeBreakUpSchema = req.body;
     const editFeeDataValidation = EditFeeBreakUpSchema.safeParse(editFeeData);
 
     if (!editFeeDataValidation.success) {
@@ -531,17 +586,17 @@ export const editFeeBreakUp = expressAsyncHandler(async (req: AuthenticatedReque
     const { studentId, semesterId, detailId, amount: newFinalFee } = editFeeDataValidation.data;
 
     const student = await Student.findById(studentId);
-    if (!student){ 
+    if (!student) {
         throw createHttpError(404, "Student not found!")
     }
 
-    const semester = student.semester.find(s  => s.semesterId!.toString() === semesterId.toString());
-    if (!semester){ 
+    const semester = student.semester.find(s => s.semesterId!.toString() === semesterId.toString());
+    if (!semester) {
         throw createHttpError(404, "Semester not found!")
     }
 
     const feeDetail = semester.fees.details.find(d => (d as unknown as FeeDetailInterface)._id?.toString() === detailId.toString());
-    if (!feeDetail){
+    if (!feeDetail) {
         throw createHttpError(404, "Details of break up not found")
     }
 
@@ -553,9 +608,9 @@ export const editFeeBreakUp = expressAsyncHandler(async (req: AuthenticatedReque
 
     feeDetail.feeUpdateHistory.push({
         updatedAt: new Date(),
-        extraAmount : diff,
+        extraAmount: diff,
         updatedFee: newFinalFee,
-        updatedBy : new mongoose.Types.ObjectId(req.data?.id)
+        updatedBy: new mongoose.Types.ObjectId(req.data?.id)
     });
 
     semester.fees.totalFinalFee += diff;
