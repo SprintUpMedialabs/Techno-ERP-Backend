@@ -11,11 +11,22 @@ export const createDepartmentMetaData = expressAsyncHandler(async (req : Authent
     const departmentMetaData : IDepartmentMetaDataSchema = req.body;
     const validation = departmentMetaDataSchema.safeParse(departmentMetaData);
 
+    const existingDepartment = await DepartmentMetaData.findOne({ departmentName : validation.data?.departmentName });
+    
     if(!validation.success)
         throw createHttpError(400, validation.error.errors[0]);
 
-    // DTODO (ICEBOXED) : Do we want to keep check here : Check is there any existing course with incoming course name, set ending year there and then create new one.
-    const department = await DepartmentMetaData.create(validation.data);
+    let department;
+
+    if (existingDepartment) {
+        department = await DepartmentMetaData.findByIdAndUpdate(
+            existingDepartment._id,
+            validation.data,
+            { new: true, runValidators: true }
+        );
+    } else {
+        department = await DepartmentMetaData.create(validation.data);
+    }
 
     return formatResponse(res, 201, 'Department Meta Data added successfully', true, department);
 });
