@@ -40,7 +40,7 @@ const formatAndValidateLeadType = (val) => {
     const formatted = val === null || val === void 0 ? void 0 : val.trim().toUpperCase();
     return (formatted && leadTypeValues.includes(formatted))
         ? formatted
-        : constants_1.LeadType.OPEN;
+        : constants_1.LeadType.LEFT_OVER;
 };
 exports.formatAndValidateLeadType = formatAndValidateLeadType;
 const extractLast10Digits = (number) => {

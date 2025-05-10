@@ -13,6 +13,7 @@ const adminController_1 = require("../controllers/adminController");
 const marketingAnalyticsController_1 = require("../controllers/marketingAnalyticsController");
 exports.crmRoute = express_1.default.Router();
 exports.crmRoute.post('/upload', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.ADMIN, constants_1.UserRoles.LEAD_MARKETING]), crmController_1.uploadData);
+exports.crmRoute.get('/export-data', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.ADMIN, constants_1.UserRoles.LEAD_MARKETING, constants_1.UserRoles.EMPLOYEE_MARKETING]), crmController_1.exportData);
 exports.crmRoute.put('/edit', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.ADMIN, constants_1.UserRoles.LEAD_MARKETING, constants_1.UserRoles.EMPLOYEE_MARKETING]), crmController_1.updateData);
 exports.crmRoute.post('/fetch-data', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.ADMIN, constants_1.UserRoles.LEAD_MARKETING, constants_1.UserRoles.EMPLOYEE_MARKETING]), crmController_1.getFilteredLeadData);
 exports.crmRoute.post('/analytics', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.ADMIN, constants_1.UserRoles.LEAD_MARKETING, constants_1.UserRoles.EMPLOYEE_MARKETING]), crmController_1.getAllLeadAnalytics);

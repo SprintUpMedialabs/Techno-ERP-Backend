@@ -99,6 +99,7 @@ const leadSchema = new mongoose_1.Schema({
     assignedTo: {
         type: [mongoose_1.Schema.Types.ObjectId],
         default: [],
+        ref: constants_1.COLLECTION_NAMES.USER
     },
     // Must be one of the predefined lead types; defaults to "ORANGE"
     leadType: {
@@ -107,9 +108,12 @@ const leadSchema = new mongoose_1.Schema({
             values: Object.values(constants_1.LeadType),
             message: 'Invalid lead type'
         },
-        default: constants_1.LeadType.OPEN
+        default: constants_1.LeadType.LEFT_OVER
     },
-    remarks: { type: String },
+    remarks: {
+        type: [String],
+        default: [],
+    },
     leadTypeModifiedDate: { type: Date },
     nextDueDate: {
         type: Date,

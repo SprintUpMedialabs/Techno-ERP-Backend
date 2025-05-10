@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MarketingAnalyticsEnum = exports.Actions = exports.FinanceFeeSchedule = exports.FinanceFeeType = exports.TransactionTypes = exports.FeeActions = exports.Schedule = exports.FeeStatus = exports.CourseYears = exports.CourseMaterialType = exports.RequestAction = exports.LectureConfirmation = exports.COLLECTION_NAMES = exports.PHOTO = exports.TGI = exports.ADMISSION = exports.AreaType = exports.Countries = exports.StatesOfIndia = exports.AdmissionMode = exports.FeeType = exports.Locations = exports.ModuleNames = exports.ApplicationStatus = exports.DocumentType = exports.AdmittedThrough = exports.BloodGroup = exports.Religion = exports.FormNoPrefixes = exports.EducationLevel = exports.Course = exports.PhysicalDocumentNoteStatus = exports.DropDownType = exports.AdmissionReference = exports.Category = exports.Marketing_Source = exports.FinalConversionType = exports.LeadType = exports.Source = exports.Gender = exports.UserRoles = void 0;
+exports.MarketingAnalyticsEnum = exports.Actions = exports.FinanceFeeSchedule = exports.FinanceFeeType = exports.TransactionTypes = exports.FeeActions = exports.Schedule = exports.FeeStatus = exports.CourseYears = exports.CourseMaterialType = exports.RequestAction = exports.LectureConfirmation = exports.COLLECTION_NAMES = exports.PHOTO = exports.TGI = exports.ADMISSION = exports.AreaType = exports.Countries = exports.StatesOfIndia = exports.AdmissionMode = exports.FeeType = exports.Locations = exports.ModuleNames = exports.ApplicationStatus = exports.DocumentType = exports.AdmittedThrough = exports.BloodGroup = exports.Religion = exports.FormNoPrefixes = exports.EducationLevel = exports.Course = exports.PhysicalDocumentNoteStatus = exports.DropDownType = exports.AdmissionReference = exports.Category = exports.FinalConversionType = exports.LeadType = exports.Source = exports.Gender = exports.UserRoles = void 0;
 /**
  * Marketing Module Enums
 */
@@ -25,14 +25,16 @@ var Source;
 (function (Source) {
     Source["SCHOOL"] = "School";
 })(Source || (exports.Source = Source = {}));
+// Left Over Leads
+// Not Interested
 var LeadType;
 (function (LeadType) {
-    LeadType["OPEN"] = "OPEN";
-    LeadType["DEAD"] = "DEAD";
-    LeadType["COURSE_UNAVAILABLE"] = "COURSE_UNAVAILABLE";
-    LeadType["NO_CLARITY"] = "NO_CLARITY";
-    LeadType["INTERESTED"] = "INTERESTED";
+    LeadType["LEFT_OVER"] = "LEFT_OVER";
+    LeadType["NOT_INTERESTED"] = "NOT_INTERESTED";
+    LeadType["ACTIVE"] = "ACTIVE";
+    LeadType["NEUTRAL"] = "NEUTRAL";
     LeadType["DID_NOT_PICK"] = "DID_NOT_PICK";
+    LeadType["COURSE_UNAVAILABLE"] = "COURSE_UNAVAILABLE";
     LeadType["INVALID"] = "INVALID";
 })(LeadType || (exports.LeadType = LeadType = {}));
 var FinalConversionType;
@@ -42,11 +44,6 @@ var FinalConversionType;
     FinalConversionType["CONVERTED"] = "CONVERTED";
     FinalConversionType["DEAD"] = "DEAD";
 })(FinalConversionType || (exports.FinalConversionType = FinalConversionType = {}));
-var Marketing_Source;
-(function (Marketing_Source) {
-    Marketing_Source["SCHOOL"] = "School";
-    Marketing_Source["DIGITAL_MARKETING"] = "Digital_Marketing";
-})(Marketing_Source || (exports.Marketing_Source = Marketing_Source = {}));
 /*
  * Admission Module Enums
 */
@@ -289,6 +286,7 @@ var COLLECTION_NAMES;
     COLLECTION_NAMES["TECHNO_META_DATA"] = "TechnoMetaData";
     COLLECTION_NAMES["MARKETING_FOLLOW_UP_RAW_DATA"] = "MarketingFollowUpData";
     COLLECTION_NAMES["MARKETING_ANALYTICS"] = "MarketingAnalytics";
+    COLLECTION_NAMES["COURSE_DUES"] = "CourseDues";
 })(COLLECTION_NAMES || (exports.COLLECTION_NAMES = COLLECTION_NAMES = {}));
 var LectureConfirmation;
 (function (LectureConfirmation) {

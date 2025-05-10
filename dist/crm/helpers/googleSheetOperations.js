@@ -31,6 +31,8 @@ const readFromGoogleSheet = (MARKETING_SHEET_ID, MARKETING_SHEET_PAGE_NAME) => _
     }));
     const lastSavedIndex = spreadSheetMetaData.lastIdxMarketingSheet;
     logger_1.default.info(`Last saved index from DB: ${lastSavedIndex}`);
+    console.log(MARKETING_SHEET_ID);
+    console.log(MARKETING_SHEET_PAGE_NAME);
     const sheetMeta = yield sheetInstance.spreadsheets.get({
         spreadsheetId: MARKETING_SHEET_ID
     });
@@ -52,9 +54,11 @@ const readFromGoogleSheet = (MARKETING_SHEET_ID, MARKETING_SHEET_PAGE_NAME) => _
         range: `${MARKETING_SHEET_PAGE_NAME}!A1:Z1`
     });
     const columnHeaders = ((_b = headerResponse.data.values) === null || _b === void 0 ? void 0 : _b[0]) || [];
+    const lowerCaseColumnHeaders = columnHeaders.map(header => header.toLowerCase());
     const requiredColumnHeaderWithIndex = {};
     Object.values(marketingSheetHeader_1.MarketingsheetHeaders).forEach((header) => {
-        requiredColumnHeaderWithIndex[header] = columnHeaders.indexOf(header);
+        const index = lowerCaseColumnHeaders.indexOf(header.toLowerCase());
+        requiredColumnHeaderWithIndex[header] = index;
     });
     const newLastReadIndex = lastSavedIndex + rowData.length;
     logger_1.default.info(`New Last Read Index: ${newLastReadIndex}`);
