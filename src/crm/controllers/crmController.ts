@@ -128,18 +128,18 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
 
     let leadTypeModifiedDate = existingLead.leadTypeModifiedDate;
 
-    // let existingRemark = normaliseText(existingLead.remarks);
-    // let leadRequestDataRemark = normaliseText(leadRequestData.remarks);
+    let existingRemark = existingLead.remarks?.length;
+    let leadRequestDataRemark = leadRequestData.remarks?.length;
 
-    // let existingFollowUpCount = existingLead.leadsFollowUpCount;
-    // let leadRequestDataFollowUpCount = leadRequestData.leadsFollowUpCount;
+    let existingFollowUpCount = existingLead.leadsFollowUpCount;
+    let leadRequestDataFollowUpCount = leadRequestData.leadsFollowUpCount;
 
-    // const isRemarkChanged = existingRemark !== leadRequestDataRemark;
-    // const isFollowUpCountChanged = existingFollowUpCount !== leadRequestDataFollowUpCount;
+    const isRemarkChanged = existingRemark !== leadRequestDataRemark;
+    const isFollowUpCountChanged = existingFollowUpCount !== leadRequestDataFollowUpCount;
 
-    // if (isRemarkChanged && !isFollowUpCountChanged) {
-    //   leadRequestData.leadsFollowUpCount = existingLead.leadsFollowUpCount + 1;
-    // }
+    if (isRemarkChanged && !isFollowUpCountChanged) {
+      leadRequestData.leadsFollowUpCount = existingLead.leadsFollowUpCount + 1;
+    }
 
     if (leadRequestData.leadType && existingLead.leadType != leadRequestData.leadType) {
       leadTypeModifiedDate = new Date();
@@ -159,12 +159,12 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
     const updatedFollowUpCount = updatedData?.leadsFollowUpCount || 0;
 
 
-    // if (updatedFollowUpCount > existingFollowUpCount) {
-    //   logFollowUpChange(existingLead._id, currentLoggedInUser, Actions.INCREAMENT)
-    // }
-    // else if (updatedFollowUpCount < existingFollowUpCount) {
-    //   logFollowUpChange(existingLead._id, currentLoggedInUser, Actions.DECREAMENT)
-    // }
+    if (updatedFollowUpCount > existingFollowUpCount) {
+      logFollowUpChange(existingLead._id, currentLoggedInUser, Actions.INCREAMENT)
+    }
+    else if (updatedFollowUpCount < existingFollowUpCount) {
+      logFollowUpChange(existingLead._id, currentLoggedInUser, Actions.DECREAMENT)
+    }
 
 
     updateOnlyOneValueInDropDown(DropDownType.FIX_MARKETING_CITY, updatedData?.city);
@@ -189,15 +189,15 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
 });
 
 
-// export const logFollowUpChange = (leadId: any, userId: any, action: Actions) => {
-//   MarketingFollowUpModel.create({
-//     currentLoggedInUser: userId,
-//     leadId,
-//     action
-//   })
-//     .then(() => console.log(`Follow-up ${action.toLowerCase()} logged for lead ${leadId} by ${userId}.`))
-//     .catch(err => console.error(`Error for lead ${leadId} by ${userId}. Error logging follow-up ${action.toLowerCase()}:`, err));
-// };
+export const logFollowUpChange = (leadId: any, userId: any, action: Actions) => {
+  MarketingFollowUpModel.create({
+    currentLoggedInUser: userId,
+    leadId,
+    action
+  })
+    .then(() => console.log(`Follow-up ${action.toLowerCase()} logged for lead ${leadId} by ${userId}.`))
+    .catch(err => console.error(`Error for lead ${leadId} by ${userId}. Error logging follow-up ${action.toLowerCase()}:`, err));
+};
 
 
 export const exportData = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
