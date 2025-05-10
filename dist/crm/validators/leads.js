@@ -25,7 +25,7 @@ exports.leadMasterSchema = zod_1.z.object({
     nextDueDate: zod_1.z.date().optional(),
     footFall: zod_1.z.boolean().optional(), //This is referring to Campus Visit
     finalConversion: zod_1.z.nativeEnum(constants_1.FinalConversionType).optional().default(constants_1.FinalConversionType.NO_FOOTFALL),
-    remarks: zod_1.z.array(zod_1.z.string().nonempty("Remark can't be empty")).optional(),
+    remarks: zod_1.z.array(zod_1.z.string().optional()).default([]),
     leadsFollowUpCount: zod_1.z.number().optional().default(0),
     yellowLeadsFollowUpCount: zod_1.z.number().optional().default(0)
 });
