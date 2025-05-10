@@ -23,14 +23,16 @@ export enum Source {
   SCHOOL = 'School'
 }
 
+// Left Over Leads
+// Not Interested
 
 export enum LeadType {
-  OPEN = 'OPEN',
-  DEAD = 'DEAD',
-  COURSE_UNAVAILABLE = 'COURSE_UNAVAILABLE',
-  NO_CLARITY = 'NO_CLARITY',
-  INTERESTED = 'INTERESTED',
+  LEFT_OVER = 'LEFT_OVER',
+  NOT_INTERESTED = 'NOT_INTERESTED',
+  ACTIVE = 'ACTIVE',
+  NEUTRAL = 'NEUTRAL',
   DID_NOT_PICK = 'DID_NOT_PICK',
+  COURSE_UNAVAILABLE = 'COURSE_UNAVAILABLE',
   INVALID = 'INVALID'
 }
 
@@ -42,11 +44,6 @@ export enum FinalConversionType {
   DEAD = 'DEAD',
 }
 
-
-export enum Marketing_Source {
-  SCHOOL = 'School',
-  DIGITAL_MARKETING = 'Digital_Marketing'
-}
 
 /*
  * Admission Module Enums
@@ -303,7 +300,8 @@ export enum COLLECTION_NAMES {
   TRANSACTION_HISTORY = "TransactionHistory",
   TECHNO_META_DATA = "TechnoMetaData",
   MARKETING_FOLLOW_UP_RAW_DATA = "MarketingFollowUpData",
-  MARKETING_ANALYTICS = "MarketingAnalytics"
+  MARKETING_ANALYTICS = "MarketingAnalytics",
+  COURSE_DUES = 'CourseDues'
 }
 
 

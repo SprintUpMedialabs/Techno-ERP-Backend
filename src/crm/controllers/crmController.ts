@@ -4,20 +4,21 @@ import createHttpError from 'http-errors';
 import axiosInstance from '../../api/axiosInstance';
 import { Endpoints } from '../../api/endPoints';
 import { safeAxiosPost } from '../../api/safeAxios';
+import { User } from '../../auth/models/user';
+import { getCurrentLoggedInUser } from '../../auth/utils/getCurrentLoggedInUser';
 import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
 import { Actions, DropDownType, LeadType, RequestAction } from '../../config/constants';
+import { updateOnlyOneValueInDropDown } from '../../utilityModules/dropdown/dropDownMetadataController';
 import { formatResponse } from '../../utils/formatResponse';
 import { readFromGoogleSheet } from '../helpers/googleSheetOperations';
 import { parseFilter } from '../helpers/parseFilter';
 import { saveDataToDb } from '../helpers/updateAndSaveToDb';
 import { LeadMaster } from '../models/lead';
-import { IUpdateLeadRequestSchema, updateLeadRequestSchema } from '../validators/leads';
-import { updateOnlyOneValueInDropDown } from '../../utilityModules/dropdown/dropDownMetadataController';
-import { User } from '../../auth/models/user';
-import { normaliseText } from '../validators/formators';
 import { MarketingFollowUpModel } from '../models/marketingFollowUp';
-import { getCurrentLoggedInUser } from '../../auth/utils/getCurrentLoggedInUser';
-import { objectInputType } from 'zod';
+import { normaliseText } from '../validators/formators';
+import ExcelJS from 'exceljs';
+import { IUpdateLeadRequestSchema, updateLeadRequestSchema } from '../validators/leads';
+import { convertToDDMMYYYY } from '../../utils/convertDateToFormatedDate';
 
 export const uploadData = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const user = await User.findById(req.data?.id);
@@ -26,7 +27,6 @@ export const uploadData = expressAsyncHandler(async (req: AuthenticatedRequest, 
   if (marketingSheet && marketingSheet.length > 0) {
     for (const sheet of marketingSheet) {
       const latestData = await readFromGoogleSheet(sheet.id, sheet.name);
-      console.log('we are here');
       if (latestData) {
         await saveDataToDb(latestData.rowData, latestData.lastSavedIndex, sheet.id, sheet.name, latestData.requiredColumnHeaders);
       }
@@ -86,20 +86,20 @@ export const getAllLeadAnalytics = expressAsyncHandler(
         $group: {
           _id: null,
           totalLeads: { $sum: 1 }, // Count total leads
-          openLeads: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.OPEN] }, 1, 0] } }, // Count OPEN leads
+          leftOverLeads: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.LEFT_OVER] }, 1, 0] } }, // Count OPEN leads
           didNotPickLeads: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.DID_NOT_PICK] }, 1, 0] } }, // Count OPEN leads
-          interestedLeads: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.INTERESTED] }, 1, 0] } }, // Count INTERESTED leads
-          notInterestedLeads: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.DEAD] }, 1, 0] } }, // Count NOT_INTERESTED leads,
-          neutralLeads: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.NO_CLARITY] }, 1, 0] } }
+          activeLeads: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.ACTIVE] }, 1, 0] } }, // Count INTERESTED leads
+          notInterestedLeads: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.NOT_INTERESTED] }, 1, 0] } }, // Count NOT_INTERESTED leads,
+          neutralLeads: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.NEUTRAL] }, 1, 0] } }
         }
       }
     ]);
 
     return formatResponse(res, 200, 'Lead analytics fetched successfully', true, {
       totalLeads: analytics[0]?.totalLeads ?? 0,
-      openLeads: analytics[0]?.openLeads ?? 0,
+      leftOverLeads: analytics[0]?.leftOverLeads ?? 0,
       didNotPickLeads: analytics[0]?.didNotPickLeads ?? 0,
-      interestedLeads: analytics[0]?.interestedLeads ?? 0,
+      activeLeads: analytics[0]?.activeLeads ?? 0,
       notInterestedLeads: analytics[0]?.notInterestedLeads ?? 0,
       neutralLeads: analytics[0]?.neutralLeads ?? 0
     });
@@ -128,15 +128,15 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
 
     let leadTypeModifiedDate = existingLead.leadTypeModifiedDate;
 
-    let existingRemark = normaliseText(existingLead.remarks);
-    let leadRequestDataRemark = normaliseText(leadRequestData.remarks);
+    let existingRemark = existingLead.remarks?.length;
+    let leadRequestDataRemark = leadRequestData.remarks?.length;
 
     let existingFollowUpCount = existingLead.leadsFollowUpCount;
     let leadRequestDataFollowUpCount = leadRequestData.leadsFollowUpCount;
 
     const isRemarkChanged = existingRemark !== leadRequestDataRemark;
     const isFollowUpCountChanged = existingFollowUpCount !== leadRequestDataFollowUpCount;
-    
+
     if (isRemarkChanged && !isFollowUpCountChanged) {
       leadRequestData.leadsFollowUpCount = existingLead.leadsFollowUpCount + 1;
     }
@@ -159,12 +159,10 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
     const updatedFollowUpCount = updatedData?.leadsFollowUpCount || 0;
 
 
-    if(updatedFollowUpCount  > existingFollowUpCount)
-    {
+    if (updatedFollowUpCount > existingFollowUpCount) {
       logFollowUpChange(existingLead._id, currentLoggedInUser, Actions.INCREAMENT)
     }
-    else if(updatedFollowUpCount < existingFollowUpCount)
-    {
+    else if (updatedFollowUpCount < existingFollowUpCount) {
       logFollowUpChange(existingLead._id, currentLoggedInUser, Actions.DECREAMENT)
     }
 
@@ -191,12 +189,88 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
 });
 
 
-export const logFollowUpChange = (leadId: any, userId : any, action : Actions) => {
+export const logFollowUpChange = (leadId: any, userId: any, action: Actions) => {
   MarketingFollowUpModel.create({
     currentLoggedInUser: userId,
     leadId,
     action
   })
-  .then(() => console.log(`Follow-up ${action.toLowerCase()} logged for lead ${leadId} by ${userId}.`))
-  .catch(err => console.error(`Error for lead ${leadId} by ${userId}. Error logging follow-up ${action.toLowerCase()}:`, err));
+    .then(() => console.log(`Follow-up ${action.toLowerCase()} logged for lead ${leadId} by ${userId}.`))
+    .catch(err => console.error(`Error for lead ${leadId} by ${userId}. Error logging follow-up ${action.toLowerCase()}:`, err));
 };
+
+
+export const exportData = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const user = await User.findById(req.data?.id);
+  const marketingSheet = user?.marketingSheet;
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet(marketingSheet?.[0]?.name ?? 'Leads');
+
+  // Define headers
+  worksheet.columns = [
+    { header: 'Date', key: 'date', width: 15 },
+    { header: 'Source', key: 'source', width: 20 },
+    { header: 'School Name', key: 'schoolName', width: 20 },
+    { header: 'Name', key: 'name', width: 20 },
+    { header: 'Phone Number', key: 'phoneNumber', width: 15 },
+    { header: 'Alt Phone Number', key: 'altPhoneNumber', width: 15 },
+    { header: 'Email', key: 'email', width: 25 },
+    { header: 'Gender', key: 'gender', width: 10 },
+    { header: 'Area', key: 'area', width: 20 },
+    { header: 'City', key: 'city', width: 20 },
+    { header: 'Course', key: 'course', width: 20 },
+    { header: 'Assigned To', key: 'assignedTo', width: 30 },
+    { header: 'Lead Type', key: 'leadType', width: 15 },
+    { header: 'Remarks', key: 'remarks', width: 30 },
+    { header: 'Lead Type Modified Date', key: 'leadTypeModifiedDate', width: 20 },
+    { header: 'Next Due Date', key: 'nextDueDate', width: 20 },
+    { header: 'Foot Fall', key: 'footFall', width: 10 },
+    { header: 'Final Conversion', key: 'finalConversion', width: 20 },
+    { header: 'Leads Follow Up Count', key: 'leadsFollowUpCount', width: 10 },
+    { header: 'Yellow Leads Follow Up Count', key: 'yellowLeadsFollowUpCount', width: 10 },
+  ];
+
+  const leads = await LeadMaster.find({
+    assignedTo: { $in: [req.data?.id] }
+  }).populate({
+    path: 'assignedTo',
+    select: 'firstName lastName'
+  });
+
+  leads.forEach(lead => {
+    worksheet.addRow({
+      date: lead.date ? convertToDDMMYYYY(lead.date) : '',
+      source: lead.source || '',
+      schoolName: lead.schoolName || '',
+      name: lead.name || '',
+      phoneNumber: lead.phoneNumber || '',
+      altPhoneNumber: lead.altPhoneNumber || '',
+      email: lead.email || '',
+      gender: lead.gender || '',
+      area: lead.area || '',
+      city: lead.city || '',
+      course: lead.course || '',
+      assignedTo: Array.isArray(lead.assignedTo)
+        ? lead.assignedTo
+          .map((user: any) => `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim())
+          .join(', ')
+        : '',
+      leadType: lead.leadType || '',
+      remarks: Array.isArray(lead.remarks) ? lead.remarks.join('\n') : '',
+      leadTypeModifiedDate: lead.leadTypeModifiedDate ? convertToDDMMYYYY(lead.leadTypeModifiedDate) : '',
+      nextDueDate: lead.nextDueDate ? convertToDDMMYYYY(lead.nextDueDate) : '',
+      footFall: lead.footFall ? 'Yes' : 'No',
+      finalConversion: lead.finalConversion || '',
+      leadsFollowUpCount: lead.leadsFollowUpCount || 0,
+      yellowLeadsFollowUpCount: lead.yellowLeadsFollowUpCount || 0
+    });
+  });
+
+  // Set headers for Excel download
+  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  res.setHeader('Content-Disposition', 'attachment; filename=leads.xlsx');
+
+  // ✅ Write the Excel file to response
+  await workbook.xlsx.write(res);
+  res.end(); // ✅ Must end the response
+});

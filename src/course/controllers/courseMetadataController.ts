@@ -4,6 +4,7 @@ import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest
 import { formatResponse } from "../../utils/formatResponse";
 import { CourseMetaData } from "../models/courseMetadata";
 import createHttpError from "http-errors";
+import { Student } from "../../student/models/student";
 
 export const createCourse = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const course = await CourseMetaData.create(req.body);
@@ -24,6 +25,7 @@ export const getCourseMetadataByCourseCode = expressAsyncHandler(async (req: Aut
     }
     return formatResponse(res, 200, 'Course metadata fetched successfully', true, courseMetadata);
 });
+
 
 export const getAdmissoinDocumentListByCourseCode = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { courseCode } = req.params;

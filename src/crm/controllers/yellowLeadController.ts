@@ -14,6 +14,7 @@ import { updateOnlyOneValueInDropDown } from '../../utilityModules/dropdown/drop
 import { normaliseText } from '../validators/formators';
 import { getCurrentLoggedInUser } from '../../auth/utils/getCurrentLoggedInUser';
 import { logFollowUpChange } from './crmController';
+// import { logFollowUpChange } from './crmController';
 
 export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const updateData: IYellowLeadUpdate = req.body;
@@ -51,8 +52,8 @@ export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedReq
     throw createHttpError(400, 'Final conversion can not be no footfall if campus visit is yes.');
   }
 
-  let existingRemark = normaliseText(existingLead.remarks);
-  let yellowLeadRequestDataRemark = normaliseText(updateData.remarks);
+  let existingRemark = existingLead?.remarks?.length;
+  let yellowLeadRequestDataRemark = updateData.remarks?.length;
 
   let existingFollowUpCount = existingLead.yellowLeadsFollowUpCount;
   let yellowLeadRequestDataFollowUpCount = updateData.yellowLeadsFollowUpCount;
@@ -108,7 +109,7 @@ export const getFilteredYellowLeads = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const { query, search, page, limit, sort } = parseFilter(req);
 
-    query.leadType = LeadType.INTERESTED;
+    query.leadType = LeadType.ACTIVE;
 
     if (search.trim()) {
       query.$and = [
@@ -141,7 +142,7 @@ export const getFilteredYellowLeads = expressAsyncHandler(
 export const getYellowLeadsAnalytics = expressAsyncHandler(async (req: Request, res: Response) => {
   const { query } = parseFilter(req);
 
-  query.leadType = LeadType.INTERESTED;
+  query.leadType = LeadType.ACTIVE;
 
   const analytics = await LeadMaster.aggregate([
     { $match: query },

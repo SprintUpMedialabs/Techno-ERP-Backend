@@ -5,32 +5,32 @@ import { editFeeBreakUp, fetchFeeInformationByStudentId, fetchFeeUpdatesHistory,
 
 export const studentFeeRoute = express.Router();
 
-studentFeeRoute.post("/active-dues", 
-    authenticate, 
-    authorize([UserRoles.BASIC_USER]), 
+studentFeeRoute.post("/active-dues",
+    authenticate,
+    authorize([UserRoles.BASIC_USER]),
     getStudentDues
 );
 
-studentFeeRoute.get("/fee-information/:id", 
-    authenticate, 
-    authorize([UserRoles.BASIC_USER]), 
+studentFeeRoute.get("/fee-information/:id",
+    authenticate,
+    authorize([UserRoles.BASIC_USER]),
     fetchFeeInformationByStudentId
 );
 
-studentFeeRoute.post("/record-payment", 
-    authenticate, 
-    authorize([UserRoles.BASIC_USER]), 
+studentFeeRoute.post("/record-payment",
+    authenticate,
+    authorize([UserRoles.BASIC_USER]),
     recordPayment
 );
 
-studentFeeRoute.post("/fee-update-history", 
-    authenticate, 
-    authorize([UserRoles.BASIC_USER]), 
+studentFeeRoute.post("/fee-update-history",
+    authenticate,
+    authorize([UserRoles.BASIC_USER]),
     fetchFeeUpdatesHistory
 );
 
-studentFeeRoute.put("/fee-breakup", 
-    authenticate, 
-    authorize([UserRoles.BASIC_USER]), 
+studentFeeRoute.put("/fee-breakup",
+    authenticate,
+    authorize([UserRoles.BASIC_USER]),
     editFeeBreakUp
 );
