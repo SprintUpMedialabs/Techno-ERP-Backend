@@ -109,3 +109,15 @@ export const fetchInstructors = expressAsyncHandler(async (req: AuthenticatedReq
     console.log("Filtered Instructors are : ", filteredInstructors);
     return formatResponse(res, 200, 'Instructors fetched successfully', true, filteredInstructors);
 })
+
+
+export const getHODInformationUsingDepartmentID = async (departmentMetaDataID : string ) => {
+    const department = await DepartmentMetaData.findById(departmentMetaDataID);
+    const hodInfo = await User.findById(department?.departmentHODId);
+
+    return { 
+        departmentName : department?.departmentName,
+        departmentHODName : hodInfo!.firstName + " " + hodInfo!.lastName,
+        departmentHODEmail : hodInfo!.email
+    }
+}   

@@ -9,6 +9,9 @@ import mongoose from "mongoose";
 import logger from "../../config/logger";
 import createHttpError from "http-errors";
 import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
+import { FeeStatus } from "../../config/constants";
+import { getHODInformationUsingDepartmentID } from "./departmentMetaDataController";
+import { retryMechanism } from "../../config/retryMechanism";
 
 
 export const courseFeeDues = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
@@ -22,31 +25,47 @@ export const courseFeeDues = expressAsyncHandler(async (req: AuthenticatedReques
             ? `${currentYear}-${currentYear + 1}`
             : `${currentYear - 1}-${currentYear}`;
 
-            // DTODO: populate hod info here only
-    const courseList = await CourseMetaData.find({}, { courseCode: 1, courseName: 1, courseDuration: 1 });
+    const courseList = await CourseMetaData.find({}, { courseCode: 1, courseName: 1, courseDuration: 1, departmentMetaDataId : 1 });
 
-    const session = await mongoose.startSession();
-    session.startTransaction();
 
-    try {
+    // let testCounter = 0; 
+
+    await retryMechanism(async (session) => {
+
+        // testCounter++;
+        // if (testCounter <= 5) {
+        //     console.log("Test counter : ", testCounter);
+        //     throw createHttpError(400, "Failure occurred in course pipeline, contact developer");
+        // }
+
         for (const course of courseList) {
-            const { courseCode, courseName, courseDuration } = course;
-            const today = new Date();
-            console.log(today.getFullYear(), today.getMonth(), today.getDate());
+            const { courseCode, courseName, courseDuration, departmentMetaDataId } = course;
             const date = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
-            console.log(date)
-            const courseDetails: CourseDues = { courseCode, courseName, academicYear, dues: [], date };
+
+            const { departmentHODName, departmentHODEmail } =
+                await getHODInformationUsingDepartmentID(departmentMetaDataId.toString());
+
+            const courseDetails: CourseDues = {
+                courseCode,
+                courseName,
+                academicYear,
+                dues: [],
+                date,
+                departmentHODName,
+                departmentHODEmail
+            };
 
             for (let i = 1; i <= courseDuration; i++) {
                 const courseYear = courseYears[i];
-                const semNumbers = [i* 2 - 1, i * 2];
+                const semNumbers = [i * 2 - 1, i * 2];
 
                 const resultArray = await Student.aggregate([
                     {
                         $match: {
                             courseCode,
                             currentAcademicYear: academicYear,
-                            currentSemester: { $in: semNumbers }
+                            currentSemester: { $in: semNumbers },
+                            feeStatus: { $ne: FeeStatus.PAID }
                         }
                     },
                     {
@@ -60,7 +79,6 @@ export const courseFeeDues = expressAsyncHandler(async (req: AuthenticatedReques
                                                 as: 'sem',
                                                 cond: {
                                                     $and: [
-                                                        // DTODO: fee ststus check
                                                         { $ne: ['$$sem.fees.dueDate', null] },
                                                         { $ifNull: ['$$sem.fees.dueDate', false] }
                                                     ]
@@ -86,7 +104,7 @@ export const courseFeeDues = expressAsyncHandler(async (req: AuthenticatedReques
                             dueStudentCount: { $sum: 1 }
                         }
                     }
-                ]);
+                ]).session(session);
 
                 const { totalDue = 0, dueStudentCount = 0 } = resultArray[0] ?? {};
                 courseDetails.dues.push({ courseYear, totalDue, dueStudentCount });
@@ -94,14 +112,7 @@ export const courseFeeDues = expressAsyncHandler(async (req: AuthenticatedReques
 
             await CourseDues.create([courseDetails], { session });
         }
-        await session.commitTransaction();
-        session.endSession();
-    } catch (error: any) {
-        logger.error(error);
-        await session?.abortTransaction();
-        session?.endSession();
-        throw createHttpError(500, error);
-    }
+    }, 'Course Dues Pipeline Failure', "All retry limits expired for the course dues creation");
 
     return formatResponse(res, 200, 'course dues recorded successfully', true);
 });
