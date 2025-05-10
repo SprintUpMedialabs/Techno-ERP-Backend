@@ -89,6 +89,10 @@ exports.courseModelSchema = new mongoose_1.Schema({
             default: [],
         },
     },
+    departmentMetaDataId: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: constants_1.COLLECTION_NAMES.DEPARTMENT_META_DATA
+    }
 }, { timestamps: true });
 const transformDates = (_, ret) => {
     delete ret.createdAt;

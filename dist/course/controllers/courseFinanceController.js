@@ -18,12 +18,12 @@ const courseMetadata_1 = require("../models/courseMetadata");
 const student_1 = require("../../student/models/student");
 const courseDues_1 = require("../models/courseDues");
 const formatResponse_1 = require("../../utils/formatResponse");
-const mongoose_1 = __importDefault(require("mongoose"));
-const logger_1 = __importDefault(require("../../config/logger"));
 const http_errors_1 = __importDefault(require("http-errors"));
 const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
+const constants_1 = require("../../config/constants");
+const departmentMetaDataController_1 = require("./departmentMetaDataController");
+const retryMechanism_1 = require("../../config/retryMechanism");
 exports.courseFeeDues = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
     const today = new Date();
     const currentYear = today.getFullYear();
     const currentMonth = today.getMonth();
@@ -31,18 +31,29 @@ exports.courseFeeDues = (0, express_async_handler_1.default)((req, res) => __awa
     const academicYear = currentMonth >= 6
         ? `${currentYear}-${currentYear + 1}`
         : `${currentYear - 1}-${currentYear}`;
-    // DTODO: populate hod info here only
-    const courseList = yield courseMetadata_1.CourseMetaData.find({}, { courseCode: 1, courseName: 1, courseDuration: 1 });
-    const session = yield mongoose_1.default.startSession();
-    session.startTransaction();
-    try {
+    const courseList = yield courseMetadata_1.CourseMetaData.find({}, { courseCode: 1, courseName: 1, courseDuration: 1, departmentMetaDataId: 1 });
+    let testCounter = 0;
+    yield (0, retryMechanism_1.retryMechanism)((session) => __awaiter(void 0, void 0, void 0, function* () {
+        var _a;
+        // UNCOMMENT BELOW LINES TO TEST
+        testCounter++;
+        if (testCounter <= 5) {
+            console.log("Test counter : ", testCounter);
+            throw (0, http_errors_1.default)(400, "Failure occurred in course pipeline, contact developer");
+        }
         for (const course of courseList) {
-            const { courseCode, courseName, courseDuration } = course;
-            const today = new Date();
-            console.log(today.getFullYear(), today.getMonth(), today.getDate());
+            const { courseCode, courseName, courseDuration, departmentMetaDataId } = course;
             const date = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
-            console.log(date);
-            const courseDetails = { courseCode, courseName, academicYear, dues: [], date };
+            const { departmentHODName, departmentHODEmail } = yield (0, departmentMetaDataController_1.getHODInformationUsingDepartmentID)(departmentMetaDataId.toString());
+            const courseDetails = {
+                courseCode,
+                courseName,
+                academicYear,
+                dues: [],
+                date,
+                departmentHODName,
+                departmentHODEmail
+            };
             for (let i = 1; i <= courseDuration; i++) {
                 const courseYear = courseYears[i];
                 const semNumbers = [i * 2 - 1, i * 2];
@@ -51,7 +62,8 @@ exports.courseFeeDues = (0, express_async_handler_1.default)((req, res) => __awa
                         $match: {
                             courseCode,
                             currentAcademicYear: academicYear,
-                            currentSemester: { $in: semNumbers }
+                            currentSemester: { $in: semNumbers },
+                            feeStatus: { $ne: constants_1.FeeStatus.PAID }
                         }
                     },
                     {
@@ -65,7 +77,6 @@ exports.courseFeeDues = (0, express_async_handler_1.default)((req, res) => __awa
                                                 as: 'sem',
                                                 cond: {
                                                     $and: [
-                                                        // DTODO: fee ststus check
                                                         { $ne: ['$$sem.fees.dueDate', null] },
                                                         { $ifNull: ['$$sem.fees.dueDate', false] }
                                                     ]
@@ -91,21 +102,13 @@ exports.courseFeeDues = (0, express_async_handler_1.default)((req, res) => __awa
                             dueStudentCount: { $sum: 1 }
                         }
                     }
-                ]);
+                ]).session(session);
                 const { totalDue = 0, dueStudentCount = 0 } = (_a = resultArray[0]) !== null && _a !== void 0 ? _a : {};
                 courseDetails.dues.push({ courseYear, totalDue, dueStudentCount });
             }
             yield courseDues_1.CourseDues.create([courseDetails], { session });
         }
-        yield session.commitTransaction();
-        session.endSession();
-    }
-    catch (error) {
-        logger_1.default.error(error);
-        yield (session === null || session === void 0 ? void 0 : session.abortTransaction());
-        session === null || session === void 0 ? void 0 : session.endSession();
-        throw (0, http_errors_1.default)(500, error);
-    }
+    }), 'Course Dues Pipeline Failure', "All retry limits expired for the course dues creation");
     return (0, formatResponse_1.formatResponse)(res, 200, 'course dues recorded successfully', true);
 }));
 exports.getCourseDuesByDate = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {

@@ -48,6 +48,8 @@ const CourseDuesSchema = new mongoose_1.Schema({
             dueStudentCount: { type: Number, default: 0 }
         }
     ],
-    date: { type: Date }
+    date: { type: Date },
+    departmentHODName: { type: String },
+    departmentHODEmail: { type: String }
 });
 exports.CourseDues = mongoose_1.default.model(constants_1.COLLECTION_NAMES.COURSE_DUES, CourseDuesSchema);
