@@ -12,7 +12,9 @@ export interface CourseDues {
     courseName: string;
     academicYear: string;
     dues: DuesEntry[];
-    date: Date
+    date: Date,
+    departmentHODName : string;
+    departmentHODEmail : string
 }
 export interface CourseDuesDocument extends CourseDues, Document { }
 
@@ -27,7 +29,9 @@ const CourseDuesSchema: Schema = new Schema({
             dueStudentCount: { type: Number, default: 0 }
         }
     ],
-    date: { type: Date }
+    date: { type: Date },
+    departmentHODName : { type : String},
+    departmentHODEmail : { type : String}
 });
 
 export const CourseDues = mongoose.model<CourseDuesDocument>(COLLECTION_NAMES.COURSE_DUES, CourseDuesSchema);
