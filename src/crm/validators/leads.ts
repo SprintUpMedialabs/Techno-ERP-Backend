@@ -9,6 +9,7 @@ export const leadMasterSchema = z.object({
   source: z.string().default('Other'),
   schoolName: z.string().optional(),
   name: z.string().optional(),
+  degree: z.string().optional(),
   phoneNumber: contactNumberSchema.optional(),
   altPhoneNumber: contactNumberSchema.optional(),
   email: z.string().email('Invalid Email Format').optional(),

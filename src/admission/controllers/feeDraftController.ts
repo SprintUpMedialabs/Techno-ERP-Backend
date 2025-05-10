@@ -118,7 +118,6 @@ export const updateFeeDraft = expressAsyncHandler(functionLevelLogger(async (req
     throw createHttpError(500, 'Semester-wise fee structure not found for the course');
   }
 
-  // DTODO: remove telecaller and counsellor from updatedData
   const { counsellor, telecaller, ...feeRelatedData } = validation.data;
   const updateData: any = {
     ...feeRelatedData,

@@ -1,17 +1,14 @@
-import expressAsyncHandler from "express-async-handler";
-import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
-import { CourseMetaData } from "../models/courseMetadata";
 import { Response } from "express";
-import { Student } from "../../student/models/student";
-import { CourseDues } from "../models/courseDues";
-import { formatResponse } from "../../utils/formatResponse";
-import mongoose from "mongoose";
-import logger from "../../config/logger";
+import expressAsyncHandler from "express-async-handler";
 import createHttpError from "http-errors";
-import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
+import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
 import { FeeStatus } from "../../config/constants";
-import { getHODInformationUsingDepartmentID } from "./departmentMetaDataController";
 import { retryMechanism } from "../../config/retryMechanism";
+import { Student } from "../../student/models/student";
+import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
+import { formatResponse } from "../../utils/formatResponse";
+import { CourseDues } from "../models/courseDues";
+import { CourseMetaData } from "../models/courseMetadata";
 
 
 export const courseFeeDues = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
@@ -25,26 +22,30 @@ export const courseFeeDues = expressAsyncHandler(async (req: AuthenticatedReques
             ? `${currentYear}-${currentYear + 1}`
             : `${currentYear - 1}-${currentYear}`;
 
-    const courseList = await CourseMetaData.find({}, { courseCode: 1, courseName: 1, courseDuration: 1, departmentMetaDataId : 1 });
+    const courseList: any = await CourseMetaData.find(
+        {},
+        { courseCode: 1, courseName: 1, courseDuration: 1, departmentMetaDataId: 1 }
+    ).populate({
+        path: 'departmentMetaDataId',
+        select: 'departmentName departmentHODId',
+        populate: {
+            path: 'departmentHODId',
+            select: 'firstName lastName email'
+        }
+    });
 
-
-    let testCounter = 0;
 
     await retryMechanism(async (session) => {
 
-        // UNCOMMENT BELOW LINES TO TEST
-        testCounter++;
-        if (testCounter <= 5) {
-            console.log("Test counter : ", testCounter);
-            throw createHttpError(400, "Failure occurred in course pipeline, contact developer");
-        }
-
         for (const course of courseList) {
-            const { courseCode, courseName, courseDuration, departmentMetaDataId } = course;
+            const { courseCode, courseName, courseDuration } = course;
             const date = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
 
-            const { departmentHODName, departmentHODEmail } =
-                await getHODInformationUsingDepartmentID(departmentMetaDataId.toString());
+            const department = course.departmentMetaDataId;
+            const hod = department?.departmentHODId;
+
+            const departmentHODName = hod ? `${hod.firstName} ${hod.lastName}` : '';
+            const departmentHODEmail = hod?.email;
 
             const courseDetails: CourseDues = {
                 courseCode,
@@ -123,7 +124,7 @@ export const getCourseDuesByDate = expressAsyncHandler(async (req: Authenticated
     const { date } = req.query;
 
     if (!date || typeof date !== "string") {
-        throw createHttpError(400,"Date is required in dd/mm/yyyy format");
+        throw createHttpError(400, "Date is required in dd/mm/yyyy format");
     }
 
     const targetDate = convertToMongoDate(date);
