@@ -19,7 +19,7 @@ const leadSchema = new Schema<ILeadMasterDocument>(
     source: {
       type: String,
     },
-    schoolName:{
+    schoolName: {
       type: String,
     },
     // Accepts only alphabets (both uppercase and lowercase) and spaces
@@ -67,6 +67,7 @@ const leadSchema = new Schema<ILeadMasterDocument>(
     assignedTo: {
       type: [Schema.Types.ObjectId],
       default: [],
+      ref: COLLECTION_NAMES.USER
     },
 
     // Must be one of the predefined lead types; defaults to "ORANGE"
@@ -76,10 +77,13 @@ const leadSchema = new Schema<ILeadMasterDocument>(
         values: Object.values(LeadType),
         message: 'Invalid lead type'
       },
-      default: LeadType.OPEN
+      default: LeadType.LEFT_OVER
     },
 
-    remarks: { type: String },
+    remarks: {
+      type: [String],
+      default: [],
+    },    
     leadTypeModifiedDate: { type: Date },
 
     nextDueDate: {

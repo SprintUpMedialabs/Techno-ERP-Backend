@@ -13,7 +13,7 @@ import { safeAxiosPost } from '../../api/safeAxios';
 import { updateOnlyOneValueInDropDown } from '../../utilityModules/dropdown/dropDownMetadataController';
 import { normaliseText } from '../validators/formators';
 import { getCurrentLoggedInUser } from '../../auth/utils/getCurrentLoggedInUser';
-import { logFollowUpChange } from './crmController';
+// import { logFollowUpChange } from './crmController';
 
 export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const updateData: IYellowLeadUpdate = req.body;
@@ -51,37 +51,37 @@ export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedReq
     throw createHttpError(400, 'Final conversion can not be no footfall if campus visit is yes.');
   }
 
-  let existingRemark = normaliseText(existingLead.remarks);
-  let yellowLeadRequestDataRemark = normaliseText(updateData.remarks);
+  // let existingRemark = normaliseText(existingLead.remarks);
+  // let yellowLeadRequestDataRemark = normaliseText(updateData.remarks);
 
   let existingFollowUpCount = existingLead.yellowLeadsFollowUpCount;
   let yellowLeadRequestDataFollowUpCount = updateData.yellowLeadsFollowUpCount;
 
-  const isRemarkChanged = existingRemark !== yellowLeadRequestDataRemark;
+  // const isRemarkChanged = existingRemark !== yellowLeadRequestDataRemark;
   const isFollowUpCountChanged = existingFollowUpCount !== yellowLeadRequestDataFollowUpCount;
   
-  if (isRemarkChanged && !isFollowUpCountChanged) {
-    updateData.yellowLeadsFollowUpCount = existingLead.yellowLeadsFollowUpCount + 1;
-  }
+  // if (isRemarkChanged && !isFollowUpCountChanged) {
+  //   updateData.yellowLeadsFollowUpCount = existingLead.yellowLeadsFollowUpCount + 1;
+  // }
 
   const updatedYellowLead = await LeadMaster.findByIdAndUpdate(updateData._id, updateData, {
     new: true,
     runValidators: true
   });
 
-  const currentLoggedInUser = getCurrentLoggedInUser(req);
+  // const currentLoggedInUser = getCurrentLoggedInUser(req);
 
-  const updatedFollowUpCount = updatedYellowLead?.yellowLeadsFollowUpCount || 0;
+  // const updatedFollowUpCount = updatedYellowLead?.yellowLeadsFollowUpCount || 0;
 
 
-  if(updatedFollowUpCount  > existingFollowUpCount)
-  {
-    logFollowUpChange(existingLead._id, currentLoggedInUser, Actions.INCREAMENT)
-  }
-  else if(updatedFollowUpCount < existingFollowUpCount)
-  {
-    logFollowUpChange(existingLead._id, currentLoggedInUser, Actions.DECREAMENT)
-  }
+  // if(updatedFollowUpCount  > existingFollowUpCount)
+  // {
+  //   logFollowUpChange(existingLead._id, currentLoggedInUser, Actions.INCREAMENT)
+  // }
+  // else if(updatedFollowUpCount < existingFollowUpCount)
+  // {
+  //   logFollowUpChange(existingLead._id, currentLoggedInUser, Actions.DECREAMENT)
+  // }
 
   
   updateOnlyOneValueInDropDown(DropDownType.FIX_MARKETING_CITY, updatedYellowLead?.city);
@@ -108,7 +108,7 @@ export const getFilteredYellowLeads = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const { query, search, page, limit, sort } = parseFilter(req);
 
-    query.leadType = LeadType.INTERESTED;
+    query.leadType = LeadType.ACTIVE;
 
     if (search.trim()) {
       query.$and = [
@@ -141,7 +141,7 @@ export const getFilteredYellowLeads = expressAsyncHandler(
 export const getYellowLeadsAnalytics = expressAsyncHandler(async (req: Request, res: Response) => {
   const { query } = parseFilter(req);
 
-  query.leadType = LeadType.INTERESTED;
+  query.leadType = LeadType.ACTIVE;
 
   const analytics = await LeadMaster.aggregate([
     { $match: query },

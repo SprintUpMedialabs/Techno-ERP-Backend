@@ -8,9 +8,7 @@ export const leadMasterSchema = z.object({
   date: z.date(),
   source: z.string().default('Other'),
   schoolName: z.string().optional(),
-  name: z.string()
-    .regex(/^[A-Za-z\s]+$/, 'Name can only contain alphabets and spaces')
-    .optional(),
+  name: z.string().optional(),
   phoneNumber: contactNumberSchema.optional(),
   altPhoneNumber: contactNumberSchema.optional(),
   email: z.string().email('Invalid Email Format').optional(),
@@ -19,12 +17,12 @@ export const leadMasterSchema = z.object({
   city: z.string().optional().default('Other'),
   course: z.string().optional(),
   assignedTo: objectIdSchema.array(),
-  leadType: z.nativeEnum(LeadType).default(LeadType.OPEN),
+  leadType: z.nativeEnum(LeadType).default(LeadType.LEFT_OVER),
   leadTypeModifiedDate: z.date().optional(),
   nextDueDate: z.date().optional(),
   footFall: z.boolean().optional(),   //This is referring to Campus Visit
   finalConversion: z.nativeEnum(FinalConversionType).optional().default(FinalConversionType.NO_FOOTFALL),
-  remarks: z.string().optional(),
+  remarks: z.array(z.string().nonempty("Remark can't be empty")).optional(),
   leadsFollowUpCount: z.number().optional().default(0),
   yellowLeadsFollowUpCount: z.number().optional().default(0)
 })
@@ -57,7 +55,10 @@ export const leadSheetSchema = z.object({
   course: z.string().optional().transform(val => val?.toUpperCase()),
   area: z.string().optional().transform(toTitleCase),
   leadType: z.string().transform(formatAndValidateLeadType),
-  remarks: z.string().optional(),
+  remarks: z
+    .string()
+    .transform(val => val ? [val] : [])
+    .optional(),
   schoolName: z.string().optional().transform(toTitleCase),
 });
 

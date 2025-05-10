@@ -38,7 +38,7 @@ export const formatAndValidateLeadType = (val?: string): LeadType => {
     const formatted = val?.trim().toUpperCase();
     return (formatted && leadTypeValues.includes(formatted as LeadType))
         ? formatted as LeadType
-        : LeadType.OPEN;
+        : LeadType.LEFT_OVER;
 };
 
 export const extractLast10Digits = (number: string | undefined): string => {
