@@ -14,15 +14,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getCourseDuesByDate = exports.courseFeeDues = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
-const courseMetadata_1 = require("../models/courseMetadata");
-const student_1 = require("../../student/models/student");
-const courseDues_1 = require("../models/courseDues");
-const formatResponse_1 = require("../../utils/formatResponse");
 const http_errors_1 = __importDefault(require("http-errors"));
-const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
 const constants_1 = require("../../config/constants");
-const departmentMetaDataController_1 = require("./departmentMetaDataController");
 const retryMechanism_1 = require("../../config/retryMechanism");
+const student_1 = require("../../student/models/student");
+const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
+const formatResponse_1 = require("../../utils/formatResponse");
+const courseDues_1 = require("../models/courseDues");
+const courseMetadata_1 = require("../models/courseMetadata");
 exports.courseFeeDues = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const today = new Date();
     const currentYear = today.getFullYear();
@@ -31,20 +30,23 @@ exports.courseFeeDues = (0, express_async_handler_1.default)((req, res) => __awa
     const academicYear = currentMonth >= 6
         ? `${currentYear}-${currentYear + 1}`
         : `${currentYear - 1}-${currentYear}`;
-    const courseList = yield courseMetadata_1.CourseMetaData.find({}, { courseCode: 1, courseName: 1, courseDuration: 1, departmentMetaDataId: 1 });
-    let testCounter = 0;
+    const courseList = yield courseMetadata_1.CourseMetaData.find({}, { courseCode: 1, courseName: 1, courseDuration: 1, departmentMetaDataId: 1 }).populate({
+        path: 'departmentMetaDataId',
+        select: 'departmentName departmentHODId',
+        populate: {
+            path: 'departmentHODId',
+            select: 'firstName lastName email'
+        }
+    });
     yield (0, retryMechanism_1.retryMechanism)((session) => __awaiter(void 0, void 0, void 0, function* () {
         var _a;
-        // UNCOMMENT BELOW LINES TO TEST
-        testCounter++;
-        if (testCounter <= 5) {
-            console.log("Test counter : ", testCounter);
-            throw (0, http_errors_1.default)(400, "Failure occurred in course pipeline, contact developer");
-        }
         for (const course of courseList) {
-            const { courseCode, courseName, courseDuration, departmentMetaDataId } = course;
+            const { courseCode, courseName, courseDuration } = course;
             const date = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
-            const { departmentHODName, departmentHODEmail } = yield (0, departmentMetaDataController_1.getHODInformationUsingDepartmentID)(departmentMetaDataId.toString());
+            const department = course.departmentMetaDataId;
+            const hod = department === null || department === void 0 ? void 0 : department.departmentHODId;
+            const departmentHODName = hod ? `${hod.firstName} ${hod.lastName}` : '';
+            const departmentHODEmail = hod === null || hod === void 0 ? void 0 : hod.email;
             const courseDetails = {
                 courseCode,
                 courseName,

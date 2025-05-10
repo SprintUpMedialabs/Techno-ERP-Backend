@@ -95,6 +95,9 @@ const leadSchema = new mongoose_1.Schema({
     course: {
         type: String,
     },
+    degree: {
+        type: String,
+    },
     // Required field with a custom validation error message
     assignedTo: {
         type: [mongoose_1.Schema.Types.ObjectId],

@@ -110,7 +110,6 @@ exports.updateFeeDraft = (0, express_async_handler_1.default)((0, functionLevelL
     if (!semWiseFee) {
         throw (0, http_errors_1.default)(500, 'Semester-wise fee structure not found for the course');
     }
-    // DTODO: remove telecaller and counsellor from updatedData
     const _c = validation.data, { counsellor, telecaller } = _c, feeRelatedData = __rest(_c, ["counsellor", "telecaller"]);
     const updateData = Object.assign(Object.assign({}, feeRelatedData), { otherFees: ((_a = feeRelatedData.otherFees) === null || _a === void 0 ? void 0 : _a.map(fee => {
             var _a, _b, _c, _d;

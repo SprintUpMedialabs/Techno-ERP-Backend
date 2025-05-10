@@ -156,7 +156,6 @@ exports.enquiryDraftSchema = new mongoose_1.Schema({
         default: [],
         required: false
     },
-    // DTODO: here we have id and other 2 value [so type should be according to that]
     counsellor: {
         type: [mongoose_1.Schema.Types.Mixed], // Allows ObjectId or String
         validate: {
@@ -181,8 +180,6 @@ exports.enquiryDraftSchema = new mongoose_1.Schema({
     physicalDocumentNote: {
         type: [physicalDocumentNoteSchema_1.physicalDocumentNoteSchema]
     },
-    // DTODO: here we have id and other 2 value [so type should be according to that]
-    // this change need to be done in other models [studentFeesDraft, studentFees, enquiry]
     telecaller: {
         type: [mongoose_1.Schema.Types.Mixed], // Allows ObjectId or String
         validate: {

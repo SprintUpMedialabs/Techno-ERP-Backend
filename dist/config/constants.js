@@ -320,7 +320,6 @@ var FeeStatus;
 (function (FeeStatus) {
     FeeStatus["DUE"] = "DUE";
     FeeStatus["PAID"] = "PAID";
-    FeeStatus["NOT_PROVIDED"] = "NOT_PROVIDED";
 })(FeeStatus || (exports.FeeStatus = FeeStatus = {}));
 var Schedule;
 (function (Schedule) {

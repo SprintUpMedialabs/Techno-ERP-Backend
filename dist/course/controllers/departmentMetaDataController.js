@@ -59,15 +59,7 @@ exports.updateDepartmentMetaData = (0, express_async_handler_1.default)((req, re
     return (0, formatResponse_1.formatResponse)(res, 200, 'Department Meta Data updated successfully', true, updatedDepartmentMetaData);
 }));
 exports.getDepartmentMetaData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    // DTODO (DONE) : send only active department HOD 
-    const currentYear = new Date().getFullYear();
-    const departments = yield department_1.DepartmentMetaData.find({
-        $or: [
-            { endingYear: { $exists: false } }, //If ending year is not present at all, this will consider it as the active dept
-            { endingYear: null }, //Field present but null value is there
-            { endingYear: { $gt: currentYear } } //Field present but has value greater than current year which means its a active dept
-        ]
-    });
+    const departments = yield department_1.DepartmentMetaData.find();
     const formattedDepartments = departments.map(dept => {
         const _a = dept.toObject(), { _id } = _a, deptInfo = __rest(_a, ["_id"]);
         return Object.assign({ departmentMetaDataId: _id }, deptInfo);
