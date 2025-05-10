@@ -28,15 +28,16 @@ export const courseFeeDues = expressAsyncHandler(async (req: AuthenticatedReques
     const courseList = await CourseMetaData.find({}, { courseCode: 1, courseName: 1, courseDuration: 1, departmentMetaDataId : 1 });
 
 
-    // let testCounter = 0; 
+    let testCounter = 0;
 
     await retryMechanism(async (session) => {
 
-        // testCounter++;
-        // if (testCounter <= 5) {
-        //     console.log("Test counter : ", testCounter);
-        //     throw createHttpError(400, "Failure occurred in course pipeline, contact developer");
-        // }
+        // UNCOMMENT BELOW LINES TO TEST
+        testCounter++;
+        if (testCounter <= 5) {
+            console.log("Test counter : ", testCounter);
+            throw createHttpError(400, "Failure occurred in course pipeline, contact developer");
+        }
 
         for (const course of courseList) {
             const { courseCode, courseName, courseDuration, departmentMetaDataId } = course;

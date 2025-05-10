@@ -16,6 +16,8 @@ export async function retryMechanism ( handler : (session : mongoose.ClientSessi
         catch (error : any) {
             await session.abortTransaction();
             session.endSession();
+            await sendEmail(DEVELOPER_EMAIL, `Attempt ${attempt} : ` + emailSubject, error.message);
+
             if(attempt == maxRetries){
                 await sendEmail(DEVELOPER_EMAIL, emailSubject, emailMessage);
                 throw createHttpError(400, error.message);
