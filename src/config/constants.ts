@@ -336,8 +336,7 @@ export enum CourseYears {
 
 export enum FeeStatus {
   DUE = "DUE",
-  PAID = "PAID",
-  NOT_PROVIDED = "NOT_PROVIDED"
+  PAID = "PAID"
 }
 
 export enum Schedule {

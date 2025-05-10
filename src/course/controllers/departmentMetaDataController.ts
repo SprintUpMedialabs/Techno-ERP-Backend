@@ -7,13 +7,13 @@ import { DepartmentMetaData } from "../models/department";
 import { formatResponse } from "../../utils/formatResponse";
 import { User } from "../../auth/models/user";
 
-export const createDepartmentMetaData = expressAsyncHandler(async (req : AuthenticatedRequest, res : Response)=>{
-    const departmentMetaData : IDepartmentMetaDataSchema = req.body;
+export const createDepartmentMetaData = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const departmentMetaData: IDepartmentMetaDataSchema = req.body;
     const validation = departmentMetaDataSchema.safeParse(departmentMetaData);
 
-    const existingDepartment = await DepartmentMetaData.findOne({ departmentName : validation.data?.departmentName });
-    
-    if(!validation.success)
+    const existingDepartment = await DepartmentMetaData.findOne({ departmentName: validation.data?.departmentName });
+
+    if (!validation.success)
         throw createHttpError(400, validation.error.errors[0]);
 
     let department;
@@ -32,11 +32,11 @@ export const createDepartmentMetaData = expressAsyncHandler(async (req : Authent
 });
 
 
-export const updateDepartmentMetaData = expressAsyncHandler(async (req : AuthenticatedRequest, res : Response)=>{
-    const departmentMetaData : IUpdateDepartmentMetaDataSchema = req.body;
+export const updateDepartmentMetaData = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const departmentMetaData: IUpdateDepartmentMetaDataSchema = req.body;
     const validation = departmentMetaDataUpdateSchema.safeParse(departmentMetaData);
 
-    if(!validation.success)
+    if (!validation.success)
         throw createHttpError(400, validation.error.errors[0]);
 
     const { departmentMetaDataID, ...latestData } = validation.data;
@@ -44,10 +44,10 @@ export const updateDepartmentMetaData = expressAsyncHandler(async (req : Authent
     const updatedDepartmentMetaData = await DepartmentMetaData.findByIdAndUpdate(
         departmentMetaDataID,
         { $set: latestData },
-        { new: true, runValidators : true } 
+        { new: true, runValidators: true }
     );
 
-    if(!updatedDepartmentMetaData){
+    if (!updatedDepartmentMetaData) {
         throw createHttpError(404, 'Department Meta Data not found');
     }
 
@@ -55,17 +55,8 @@ export const updateDepartmentMetaData = expressAsyncHandler(async (req : Authent
 });
 
 
-export const getDepartmentMetaData = expressAsyncHandler(async (req : AuthenticatedRequest, res : Response) => {
-    // DTODO (DONE) : send only active department HOD 
-    const currentYear = new Date().getFullYear();
-
-    const departments = await DepartmentMetaData.find({
-        $or: [
-            { endingYear: { $exists: false } }, //If ending year is not present at all, this will consider it as the active dept
-            { endingYear: null },               //Field present but null value is there
-            { endingYear: { $gt: currentYear } }    //Field present but has value greater than current year which means its a active dept
-        ]
-    });
+export const getDepartmentMetaData = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const departments = await DepartmentMetaData.find();
 
     const formattedDepartments = departments.map(dept => {
         const { _id, ...deptInfo } = dept.toObject();
@@ -80,7 +71,7 @@ export const getDepartmentMetaData = expressAsyncHandler(async (req : Authentica
 
 
 export const fetchInstructors = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const { departmentName } = req.body; 
+    const { departmentName } = req.body;
     const department = await DepartmentMetaData.findOne({ departmentName });
 
     if (!department) {
@@ -93,8 +84,8 @@ export const fetchInstructors = expressAsyncHandler(async (req: AuthenticatedReq
         instructorIds.map(async (instructorId) => {
             const instructor = await User.findById(instructorId).select('_id firstName lastName email');
 
-            if (!instructor) 
-                return null; 
+            if (!instructor)
+                return null;
 
             return {
                 _id: instructor._id,
@@ -111,13 +102,13 @@ export const fetchInstructors = expressAsyncHandler(async (req: AuthenticatedReq
 })
 
 
-export const getHODInformationUsingDepartmentID = async (departmentMetaDataID : string ) => {
+export const getHODInformationUsingDepartmentID = async (departmentMetaDataID: string) => {
     const department = await DepartmentMetaData.findById(departmentMetaDataID);
     const hodInfo = await User.findById(department?.departmentHODId);
 
-    return { 
-        departmentName : department?.departmentName,
-        departmentHODName : hodInfo!.firstName + " " + hodInfo!.lastName,
-        departmentHODEmail : hodInfo!.email
+    return {
+        departmentName: department?.departmentName,
+        departmentHODName: hodInfo!.firstName + " " + hodInfo!.lastName,
+        departmentHODEmail: hodInfo!.email
     }
-}   
+}

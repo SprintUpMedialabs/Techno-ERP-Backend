@@ -62,6 +62,9 @@ const leadSchema = new Schema<ILeadMasterDocument>(
     course: {
       type: String,
     },
+    degree: {
+      type: String,
+    },
 
     // Required field with a custom validation error message
     assignedTo: {

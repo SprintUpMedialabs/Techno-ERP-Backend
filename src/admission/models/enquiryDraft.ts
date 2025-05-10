@@ -124,7 +124,6 @@ export const enquiryDraftSchema = new Schema<IEnquiryDraftDocument>(
             default: [],
             required: false
         },
-        // DTODO: here we have id and other 2 value [so type should be according to that]
         counsellor: {
             type: [Schema.Types.Mixed], // Allows ObjectId or String
             validate: {
@@ -151,8 +150,6 @@ export const enquiryDraftSchema = new Schema<IEnquiryDraftDocument>(
         physicalDocumentNote: {
             type: [physicalDocumentNoteSchema]
         },
-        // DTODO: here we have id and other 2 value [so type should be according to that]
-        // this change need to be done in other models [studentFeesDraft, studentFees, enquiry]
         telecaller: {
             type: [Schema.Types.Mixed], // Allows ObjectId or String
             validate: {
