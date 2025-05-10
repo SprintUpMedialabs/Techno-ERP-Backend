@@ -23,7 +23,7 @@ export const leadMasterSchema = z.object({
   nextDueDate: z.date().optional(),
   footFall: z.boolean().optional(),   //This is referring to Campus Visit
   finalConversion: z.nativeEnum(FinalConversionType).optional().default(FinalConversionType.NO_FOOTFALL),
-  remarks: z.array(z.string().nonempty("Remark can't be empty")).optional(),
+  remarks: z.array(z.string().optional()).default([]),
   leadsFollowUpCount: z.number().optional().default(0),
   yellowLeadsFollowUpCount: z.number().optional().default(0)
 })
