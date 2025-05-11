@@ -73,7 +73,6 @@ export const StudentBaseInfoSchema = z.object({
         return convertToMongoDate(date) as Date;
     }),
     category: z.nativeEnum(Category),
-    course: z.nativeEnum(Course),
     reference: z.nativeEnum(AdmissionReference),
 
     aadharNumber: z.string().regex(/^\d{12}$/, 'Aadhar Number must be exactly 12 digits').optional(),
@@ -191,6 +190,8 @@ export const updateStudentDetailsRequestSchema = z.object({
 
     academicDetails: academicDetailsArraySchema.optional(),
     entranceExamDetails: entranceExamDetailSchema.optional(),
+
+    reference: z.nativeEnum(AdmissionReference),
 }).strict();
 
 

@@ -107,14 +107,6 @@ const StudentBaseInfoSchema = new Schema<IStudentBasicInfoDocument>({
         },
         required: true
     },
-    course: {
-        type: String,
-        // enum: {
-        //     values: Object.values(Course),
-        //     message: 'Invalid Course value'
-        // },
-        required: true
-    },
     reference: {
         type: String,
         enum: {
