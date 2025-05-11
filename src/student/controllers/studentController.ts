@@ -13,7 +13,7 @@ import { formatResponse } from "../../utils/formatResponse";
 import { Student } from "../models/student";
 import { IAttendanceSchema, ICreateStudentSchema, IExamSchema, updateStudentDetailsRequestSchema } from "../validators/studentSchema";
 
-export const createStudent = async (id : any, studentData: ICreateStudentSchema) => {
+export const createStudent = async (id: any, studentData: ICreateStudentSchema) => {
   const { courseCode, feeId, dateOfAdmission } = studentData;
 
   const studentBaseInformation = {
@@ -101,7 +101,7 @@ export const createStudent = async (id : any, studentData: ICreateStudentSchema)
     }
     const { amountForTransaction, ...fees } = createSemesterFee(id, i, feesCourse);
 
-    if(semesterNumber === 1)
+    if (semesterNumber === 1)
       transactionAmount = amountForTransaction;
 
     semesterArray.push({
@@ -117,10 +117,10 @@ export const createStudent = async (id : any, studentData: ICreateStudentSchema)
 
   const allSemestersSettled = semesterArray.every(
     (sem: any) => {
-        if (!sem.fees?.dueDate) 
-            return true;
-        return (sem.fees?.paidAmount || 0) >= (sem.fees?.totalFinalFee || 0)
-  });
+      if (!sem.fees?.dueDate)
+        return true;
+      return (sem.fees?.paidAmount || 0) >= (sem.fees?.totalFinalFee || 0)
+    });
 
   const feeStatus = allSemestersSettled ? FeeStatus.PAID : FeeStatus.DUE;
 
@@ -135,15 +135,15 @@ export const createStudent = async (id : any, studentData: ICreateStudentSchema)
     currentAcademicYear: currentAcademicYear,
     totalSemester: totalSemesters,
     semester: semesterArray,
-    feeStatus : feeStatus,
-    collegeName : studentData.collegeName,
-    transactionAmount : transactionAmount
+    feeStatus: feeStatus,
+    collegeName: studentData.collegeName,
+    transactionAmount: transactionAmount
   }
 
   return student;
 }
 
-const createSemesterFee = (id : any, semesterNumber: number, feesCourse: any): any => {
+const createSemesterFee = (id: any, semesterNumber: number, feesCourse: any): any => {
   const otherFees = feesCourse.otherFees || [];
   const semWiseFees = feesCourse.semWiseFees || [];
 
@@ -184,8 +184,8 @@ const createSemesterFee = (id : any, semesterNumber: number, feesCourse: any): a
 
   const createFeeUpdateHistory = (amount: number) => ({
     updatedAt: new Date(),
-    extraAmount : amount,
-    updatedBy : id,
+    extraAmount: amount,
+    updatedBy: id,
     updatedFee: amount,
   });
 
@@ -200,8 +200,8 @@ const createSemesterFee = (id : any, semesterNumber: number, feesCourse: any): a
     let paidAmount = 0;
 
     const feeUpdateHistory = [];
-   
-    
+
+
     if (feeDetail) {
       if (semesterNumber % 2 === 0) {
         if (
@@ -215,7 +215,7 @@ const createSemesterFee = (id : any, semesterNumber: number, feesCourse: any): a
           actualFee = 0;
           finalFee = 0;
           paidAmount = 0;
-        } 
+        }
         else {
           actualFee = feeDetail.feeAmount;
           finalFee = feeDetail.finalFee;
@@ -226,9 +226,9 @@ const createSemesterFee = (id : any, semesterNumber: number, feesCourse: any): a
       else {
         actualFee = feeDetail.feeAmount;
         finalFee = feeDetail.finalFee;
-        if(semesterNumber !== 1)
+        if (semesterNumber !== 1)
           paidAmount = 0;
-        else{
+        else {
           paidAmount = feeDetail.feesDepositedTOA || 0;
           amountForTransaction = amountForTransaction + (feeDetail.feesDepositedTOA || 0);
         }
@@ -247,11 +247,11 @@ const createSemesterFee = (id : any, semesterNumber: number, feesCourse: any): a
     };
   });
 
-  
+
   const semFeeInfo = semWiseFees[semesterNumber - 1] || null;
 
   if (semFeeInfo) {
-    amountForTransaction = semesterNumber == 1 ? ( amountForTransaction + semFeeInfo.feesPaid || 0 ) : 0;
+    amountForTransaction = semesterNumber == 1 ? (amountForTransaction + semFeeInfo.feesPaid || 0) : 0;
     details.push({
       type: FinanceFeeType.SEMESTERFEE,
       schedule: FinanceFeeSchedule[FinanceFeeType.SEMESTERFEE] ?? "YEARLY",
@@ -260,10 +260,10 @@ const createSemesterFee = (id : any, semesterNumber: number, feesCourse: any): a
       paidAmount: semesterNumber == 1 ? getFeeDetail("SEM1FEE").feesDepositedTOA || 0 : 0,
       remark: "",
       feeUpdateHistory: [{
-        updatedAt : new Date(),
-        extraAmount : semFeeInfo.finalFee || 0,
-        updatedFee : semFeeInfo.finalFee || 0,
-        updatedBy : id
+        updatedAt: new Date(),
+        extraAmount: semFeeInfo.finalFee || 0,
+        updatedFee: semFeeInfo.finalFee || 0,
+        updatedBy: id
       }]
     });
   }
@@ -276,7 +276,7 @@ const createSemesterFee = (id : any, semesterNumber: number, feesCourse: any): a
     dueDate: semesterNumber == 1 ? new Date() : undefined,
     paidAmount: totalPaidAmount,
     totalFinalFee: totalFinalFee,
-    amountForTransaction : amountForTransaction
+    amountForTransaction: amountForTransaction
   };
 };
 
@@ -351,12 +351,13 @@ export const updateStudentDataById = expressAsyncHandler(async (req: Authenticat
   }
 
   const { id, ...studentDetails } = validation.data;
-
-  await Student.findByIdAndUpdate(
+  console.log("Student Details : ", studentDetails);
+  const data = await Student.findByIdAndUpdate(
     id,
-    { $set: studentDetails },
-    { new: false, runValidators: true }
+    { $set: { studentInfo: studentDetails } },
+    { runValidators: true }
   );
+  console.log("Data : ", data);
 
   // Refetch and populate to return same structure as getStudentDataById
   const updatedStudent = await Student.findById(id)
