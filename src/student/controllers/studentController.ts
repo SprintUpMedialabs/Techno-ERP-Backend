@@ -1,18 +1,17 @@
+import { Response } from "express";
+import expressAsyncHandler from "express-async-handler";
+import createHttpError from "http-errors";
 import mongoose from "mongoose";
 import { StudentFeesModel } from "../../admission/models/studentFees";
+import { updateStudentPhysicalDocumentRequestSchema } from "../../admission/validators/physicalDocumentNoteSchema";
+import { User } from "../../auth/models/user";
+import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
 import { FeeStatus, FinanceFeeSchedule, FinanceFeeType } from "../../config/constants";
 import { Course } from "../../course/models/course";
 import { getCurrentAcademicYear } from "../../course/utils/getCurrentAcademicYear";
-import { IFeeSchema } from "../validators/feeSchema";
-import { IAttendanceSchema, ICreateStudentSchema, IExamSchema, updateStudentDetailsRequestSchema } from "../validators/studentSchema";
-import expressAsyncHandler from "express-async-handler";
-import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
-import { response, Response } from "express";
-import { Student } from "../models/student";
-import createHttpError from "http-errors";
 import { formatResponse } from "../../utils/formatResponse";
-import { User } from "../../auth/models/user";
-import { updateStudentPhysicalDocumentRequestSchema } from "../../admission/validators/physicalDocumentNoteSchema";
+import { Student } from "../models/student";
+import { IAttendanceSchema, ICreateStudentSchema, IExamSchema, updateStudentDetailsRequestSchema } from "../validators/studentSchema";
 
 export const createStudent = async (id : any, studentData: ICreateStudentSchema) => {
   const { courseCode, feeId, dateOfAdmission } = studentData;
@@ -102,7 +101,6 @@ export const createStudent = async (id : any, studentData: ICreateStudentSchema)
     }
     const { amountForTransaction, ...fees } = createSemesterFee(id, i, feesCourse);
 
-    // console.log( `Fees are ${semesterNumber}: `, fees);
     if(semesterNumber === 1)
       transactionAmount = amountForTransaction;
 
@@ -146,7 +144,6 @@ export const createStudent = async (id : any, studentData: ICreateStudentSchema)
 }
 
 const createSemesterFee = (id : any, semesterNumber: number, feesCourse: any): any => {
-  // console.log("Creating the fees for semester : ", semesterNumber);
   const otherFees = feesCourse.otherFees || [];
   const semWiseFees = feesCourse.semWiseFees || [];
 
@@ -218,18 +215,12 @@ const createSemesterFee = (id : any, semesterNumber: number, feesCourse: any): a
           actualFee = 0;
           finalFee = 0;
           paidAmount = 0;
-          // console.log(`Actual fee for ${semesterNumber} for feeType ${type} is : ${actualFee}`);
-          // console.log(`Final fee for ${semesterNumber} for feeType ${type} is : ${finalFee}`);
-          // console.log(`Paid Amount fee for ${semesterNumber} for feeType ${type} is : ${paidAmount}`);
         } 
         else {
           actualFee = feeDetail.feeAmount;
           finalFee = feeDetail.finalFee;
           // paidAmount = feeDetail.feesDepositedTOA || 0;
           paidAmount = 0;
-          // console.log(`Actual fee for ${semesterNumber} for feeType ${type} is : ${actualFee}`);
-          // console.log(`Final fee for ${semesterNumber} for feeType ${type} is : ${finalFee}`);
-          // console.log(`Paid Amount fee for ${semesterNumber} for feeType ${type} is : ${paidAmount}`);
         }
       }
       else {
@@ -240,11 +231,7 @@ const createSemesterFee = (id : any, semesterNumber: number, feesCourse: any): a
         else{
           paidAmount = feeDetail.feesDepositedTOA || 0;
           amountForTransaction = amountForTransaction + (feeDetail.feesDepositedTOA || 0);
-          // console.log(`Adding ${feeDetail.feesDepositedTOA || 0} for ${type}`);
         }
-        // console.log(`Actual fee for ${semesterNumber} for feeType ${type} is : ${actualFee}`);
-        // console.log(`Final fee for ${semesterNumber} for feeType ${type} is : ${finalFee}`);
-        // console.log(`Paid Amount fee for ${semesterNumber} for feeType ${type} is : ${paidAmount}`);
       }
       feeUpdateHistory.push(createFeeUpdateHistory(finalFee));
     }
@@ -263,11 +250,8 @@ const createSemesterFee = (id : any, semesterNumber: number, feesCourse: any): a
   
   const semFeeInfo = semWiseFees[semesterNumber - 1] || null;
 
-  // console.log(`Sem fees info for semester number ${semesterNumber} : ${semFeeInfo}`);
-
   if (semFeeInfo) {
     amountForTransaction = semesterNumber == 1 ? ( amountForTransaction + semFeeInfo.feesPaid || 0 ) : 0;
-    // console.log("Amount : ", amountForTransaction);
     details.push({
       type: FinanceFeeType.SEMESTERFEE,
       schedule: FinanceFeeSchedule[FinanceFeeType.SEMESTERFEE] ?? "YEARLY",
@@ -346,7 +330,7 @@ export const getStudentDataById = expressAsyncHandler(async (req: AuthenticatedR
     throw createHttpError(400, 'Invalid student ID');
   }
 
-  const student: any = await Student.findById(id)
+  const student = await Student.findById(id)
     .populate({ path: 'departmentMetaDataId', select: 'departmentName' })
     .lean();
 
@@ -354,49 +338,7 @@ export const getStudentDataById = expressAsyncHandler(async (req: AuthenticatedR
     throw createHttpError(404, 'Student not found');
   }
 
-  const { departmentMetaDataId, ...rest } = student;
-
-  const course = await Course.findById(student.courseId).lean();
-  if (!course) {
-    throw createHttpError(404, 'Course does not exist');
-  }
-
-  // Update student.semester with subject details and instructors
-  for (let i = 0; i < student.semester.length; i++) {
-    const studentSem = student.semester[i];
-    const courseSem = course.semester![i];
-
-    if (!courseSem) continue;
-
-    for (let j = 0; j < studentSem.subjects.length; j++) {
-      const studentSubject = studentSem.subjects[j];
-      const matchedCourseSubject = courseSem.subjects.find(courseSub =>
-        (courseSub as any)._id.toString() === studentSubject.subjectId.toString()
-      );
-
-      if (matchedCourseSubject) {
-        studentSubject.subjectName = matchedCourseSubject.subjectName;
-        studentSubject.subjectCode = matchedCourseSubject.subjectCode;
-
-        // Populate instructor names
-        const instructorList = [];
-        for (const instructorId of matchedCourseSubject.instructor) {
-          const instructor = await User.findById(instructorId).lean();
-          if (instructor) {
-            instructorList.push(`${instructor.firstName} ${instructor.lastName}`);
-          }
-        }
-        studentSubject.instructor = instructorList;
-      }
-    }
-  }
-
-  const responseData = {
-    ...rest,
-    semester: student.semester,
-    departmentName: departmentMetaDataId?.departmentName ?? null
-  };
-
+  const responseData = await buildStudentResponseData(student);
   return formatResponse(res, 200, 'ok', true, responseData);
 });
 
@@ -407,22 +349,28 @@ export const updateStudentDataById = expressAsyncHandler(async (req: Authenticat
   if (!validation.success) {
     throw createHttpError(400, validation.error.errors[0]);
   }
+
   const { id, ...studentDetails } = validation.data;
 
-  const updatedStudent = await Student.findByIdAndUpdate(
+  await Student.findByIdAndUpdate(
     id,
     { $set: studentDetails },
-    {
-      new: true,
-      runValidators: true,
-    }
+    { new: false, runValidators: true }
   );
+
+  // Refetch and populate to return same structure as getStudentDataById
+  const updatedStudent = await Student.findById(id)
+    .populate({ path: 'departmentMetaDataId', select: 'departmentName' })
+    .lean();
 
   if (!updatedStudent) {
     throw createHttpError(404, 'Student not found');
   }
-  return formatResponse(res, 200, 'Student details updated successfully', true, updatedStudent);
+
+  const responseData = await buildStudentResponseData(updatedStudent);
+  return formatResponse(res, 200, 'Student details updated successfully', true, responseData);
 });
+
 
 export const updateStudentPhysicalDocumentById = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const validation = updateStudentPhysicalDocumentRequestSchema.safeParse(req.body);
@@ -445,6 +393,49 @@ export const updateStudentPhysicalDocumentById = expressAsyncHandler(async (req:
   if (!updatedStudent) {
     throw createHttpError(404, 'Student not found');
   }
-
-  return formatResponse(res, 200, 'Student details updated successfully', true, updatedStudent);
+  const responseData = await buildStudentResponseData(updatedStudent);
+  return formatResponse(res, 200, 'Student details updated successfully', true, responseData);
 });
+
+
+const buildStudentResponseData = async (student: any) => {
+  const { departmentMetaDataId, ...rest } = student;
+
+  const course = await Course.findById(student.courseId).lean();
+  if (!course) {
+    throw createHttpError(404, 'Course does not exist');
+  }
+
+  for (let i = 0; i < student.semester.length; i++) {
+    const studentSem = student.semester[i];
+    const courseSem = course.semester![i];
+    if (!courseSem) continue;
+
+    for (let j = 0; j < studentSem.subjects.length; j++) {
+      const studentSubject = studentSem.subjects[j];
+      const matchedCourseSubject = courseSem.subjects.find(courseSub =>
+        (courseSub as any)._id.toString() === studentSubject.subjectId.toString()
+      );
+
+      if (matchedCourseSubject) {
+        studentSubject.subjectName = matchedCourseSubject.subjectName;
+        studentSubject.subjectCode = matchedCourseSubject.subjectCode;
+
+        const instructorList = [];
+        for (const instructorId of matchedCourseSubject.instructor) {
+          const instructor = await User.findById(instructorId).lean();
+          if (instructor) {
+            instructorList.push(`${instructor.firstName} ${instructor.lastName}`);
+          }
+        }
+        studentSubject.instructor = instructorList;
+      }
+    }
+  }
+
+  return {
+    ...rest,
+    semester: student.semester,
+    departmentName: departmentMetaDataId?.departmentName ?? null
+  };
+};
