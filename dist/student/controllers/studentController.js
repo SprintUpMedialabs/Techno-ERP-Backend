@@ -330,8 +330,12 @@ exports.updateStudentDataById = (0, express_async_handler_1.default)((req, res) 
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }
     const _a = validation.data, { id } = _a, studentDetails = __rest(_a, ["id"]);
+    const updateFields = {};
+    for (const [key, value] of Object.entries(studentDetails)) {
+        updateFields[`studentInfo.${key}`] = value;
+    }
     console.log("Student Details : ", studentDetails);
-    const data = yield student_1.Student.findByIdAndUpdate(id, { $set: { studentInfo: studentDetails } }, { runValidators: true });
+    const data = yield student_1.Student.findByIdAndUpdate(id, { $set: updateFields }, { runValidators: true });
     console.log("Data : ", data);
     // Refetch and populate to return same structure as getStudentDataById
     const updatedStudent = yield student_1.Student.findById(id)
