@@ -68,7 +68,6 @@ const allowedOrigins = process.env.NODE_ENV === 'production'
     : '*'; // Allow all origins in DEV ENV
 const corsOptions = {
     origin: (origin, callback) => {
-        console.log("Origin : ", allowedOrigins);
         if (!origin || allowedOrigins === '*' || allowedOrigins.includes(origin)) {
             callback(null, true);
         }
