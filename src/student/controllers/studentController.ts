@@ -22,11 +22,8 @@ export const createStudent = async (id: any, studentData: ICreateStudentSchema) 
     ...studentData
   };
 
-  console.log("Student INformation is : ", studentBaseInformation);
-
   const course = await Course.findOne({ courseCode: courseCode, startingYear: dateOfAdmission.getFullYear() });
 
-  console.log("Course is : ", course);
   const feesCourse = await StudentFeesModel.findOne({ _id: feeId });
 
   const semSubjectIds = await Course.aggregate([
@@ -193,9 +190,7 @@ const createSemesterFee = (id: any, semesterNumber: number, feesCourse: any): an
 
   let amountForTransaction = 0;
   const details = requiredFeeTypes.map((type) => {
-    // console.log("Fee type is : ", type);
     const feeDetail = getFeeDetail(type);
-    // console.log("Fee Detail of type is : ", feeDetail);
 
     let actualFee = 0;
     let finalFee = 0;
@@ -357,13 +352,11 @@ export const updateStudentDataById = expressAsyncHandler(async (req: Authenticat
   for (const [key, value] of Object.entries(studentDetails)) {
     updateFields[`studentInfo.${key}`] = value;
   }
-  console.log("Student Details : ", studentDetails);
   const data = await Student.findByIdAndUpdate(
     id,
     { $set: updateFields },
     { runValidators: true }
   );
-  console.log("Data : ", data);
 
   // Refetch and populate to return same structure as getStudentDataById
   const updatedStudent = await Student.findById(id)
@@ -388,14 +381,30 @@ export const updateStudentPhysicalDocumentById = expressAsyncHandler(async (req:
 
   const { id, ...physicalDocumentList } = validation.data;
 
-  const updatedStudent = await Student.findByIdAndUpdate(
-    id,
-    { $set: { physicalDocumentNote: physicalDocumentList } },
-    {
-      new: true,
-      runValidators: true,
+  const isStudentExist = await Student.exists({ _id: id, 'studentInfo.physicalDocumentNote.type': physicalDocumentList.type });
+  let updatedStudent;
+  if (isStudentExist) {
+    const updateFields: any = {};
+    for (const [key, value] of Object.entries(physicalDocumentList)) {
+      updateFields[`studentInfo.physicalDocumentNote.$[elem].${key}`] = value;
     }
-  );
+
+    updatedStudent = await Student.findByIdAndUpdate(
+      id,
+      { $set: { ...updateFields } },
+      {
+        new: true,
+        runValidators: true,
+        arrayFilters: [{ 'elem.type': physicalDocumentList.type }]
+      }
+    ).populate({ path: 'departmentMetaDataId', select: 'departmentName' }).lean();
+  } else {
+    updatedStudent = await Student.findByIdAndUpdate(
+      id,
+      { $push: { 'studentInfo.physicalDocumentNote': physicalDocumentList } },
+      { new: true, runValidators: true }
+    ).populate({ path: 'departmentMetaDataId', select: 'departmentName' }).lean();
+  }
 
   if (!updatedStudent) {
     throw createHttpError(404, 'Student not found');
@@ -447,7 +456,6 @@ export const updateStudentDocumentsById = expressAsyncHandler(async (req: Authen
       req.file.buffer = null as unknown as Buffer;
     }
   }
-  console.log("File URL : ", fileUrl);
   if (dueBy) {
     finalDueBy = dueBy;
   }
@@ -499,7 +507,6 @@ export const updateStudentDocumentsById = expressAsyncHandler(async (req: Authen
 
 const buildStudentResponseData = async (student: any) => {
   const { departmentMetaDataId, ...rest } = student;
-
   const course = await Course.findById(student.courseId).lean();
   if (!course) {
     throw createHttpError(404, 'Course does not exist');
