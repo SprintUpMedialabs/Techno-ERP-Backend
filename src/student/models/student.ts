@@ -35,7 +35,6 @@ const StudentBaseInfoSchema = new Schema<IStudentBasicInfoDocument>({
         type: String,
         default: 'Not Provided'
     },
-
     studentName: {
         type: String
     },
@@ -90,7 +89,6 @@ const StudentBaseInfoSchema = new Schema<IStudentBasicInfoDocument>({
         type: String,
         enum: Object.values(BloodGroup)
     },
-
     dateOfBirth: {
         type: Date,
         required: [true, 'Date is required'],

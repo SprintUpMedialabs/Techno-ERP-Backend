@@ -90,10 +90,10 @@ export const updateEnquiryDocuments = expressAsyncHandler(functionLevelLogger(as
     _id: id,
     applicationStatus: ApplicationStatus.STEP_3
   });
+  
   if (!isEnquiryExists) {
     throw createHttpError(400, 'Enquiry not found');
   }
-
 
   if (!validation.success) {
     throw createHttpError(400, validation.error.errors[0]);
