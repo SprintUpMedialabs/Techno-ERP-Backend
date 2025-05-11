@@ -132,14 +132,6 @@ const StudentBaseInfoSchema = new mongoose_1.Schema({
         },
         required: true
     },
-    course: {
-        type: String,
-        // enum: {
-        //     values: Object.values(Course),
-        //     message: 'Invalid Course value'
-        // },
-        required: true
-    },
     reference: {
         type: String,
         enum: {
