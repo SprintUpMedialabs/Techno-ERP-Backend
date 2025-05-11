@@ -24,18 +24,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateStudentPhysicalDocumentById = exports.updateStudentDataById = exports.getStudentDataById = exports.getStudentDataBySearch = exports.createStudent = void 0;
+const express_async_handler_1 = __importDefault(require("express-async-handler"));
+const http_errors_1 = __importDefault(require("http-errors"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const studentFees_1 = require("../../admission/models/studentFees");
+const physicalDocumentNoteSchema_1 = require("../../admission/validators/physicalDocumentNoteSchema");
+const user_1 = require("../../auth/models/user");
 const constants_1 = require("../../config/constants");
 const course_1 = require("../../course/models/course");
 const getCurrentAcademicYear_1 = require("../../course/utils/getCurrentAcademicYear");
-const studentSchema_1 = require("../validators/studentSchema");
-const express_async_handler_1 = __importDefault(require("express-async-handler"));
-const student_1 = require("../models/student");
-const http_errors_1 = __importDefault(require("http-errors"));
 const formatResponse_1 = require("../../utils/formatResponse");
-const user_1 = require("../../auth/models/user");
-const physicalDocumentNoteSchema_1 = require("../../admission/validators/physicalDocumentNoteSchema");
+const student_1 = require("../models/student");
+const studentSchema_1 = require("../validators/studentSchema");
 const createStudent = (id, studentData) => __awaiter(void 0, void 0, void 0, function* () {
     const { courseCode, feeId, dateOfAdmission } = studentData;
     const studentBaseInformation = Object.assign({}, studentData);
@@ -111,7 +111,6 @@ const createStudent = (id, studentData) => __awaiter(void 0, void 0, void 0, fun
             });
         }
         const _a = createSemesterFee(id, i, feesCourse), { amountForTransaction } = _a, fees = __rest(_a, ["amountForTransaction"]);
-        // console.log( `Fees are ${semesterNumber}: `, fees);
         if (semesterNumber === 1)
             transactionAmount = amountForTransaction;
         semesterArray.push({
@@ -152,7 +151,6 @@ const createStudent = (id, studentData) => __awaiter(void 0, void 0, void 0, fun
 exports.createStudent = createStudent;
 const createSemesterFee = (id, semesterNumber, feesCourse) => {
     var _a;
-    // console.log("Creating the fees for semester : ", semesterNumber);
     const otherFees = feesCourse.otherFees || [];
     const semWiseFees = feesCourse.semWiseFees || [];
     const getFeeDetail = (type) => {
@@ -216,18 +214,12 @@ const createSemesterFee = (id, semesterNumber, feesCourse) => {
                     actualFee = 0;
                     finalFee = 0;
                     paidAmount = 0;
-                    // console.log(`Actual fee for ${semesterNumber} for feeType ${type} is : ${actualFee}`);
-                    // console.log(`Final fee for ${semesterNumber} for feeType ${type} is : ${finalFee}`);
-                    // console.log(`Paid Amount fee for ${semesterNumber} for feeType ${type} is : ${paidAmount}`);
                 }
                 else {
                     actualFee = feeDetail.feeAmount;
                     finalFee = feeDetail.finalFee;
                     // paidAmount = feeDetail.feesDepositedTOA || 0;
                     paidAmount = 0;
-                    // console.log(`Actual fee for ${semesterNumber} for feeType ${type} is : ${actualFee}`);
-                    // console.log(`Final fee for ${semesterNumber} for feeType ${type} is : ${finalFee}`);
-                    // console.log(`Paid Amount fee for ${semesterNumber} for feeType ${type} is : ${paidAmount}`);
                 }
             }
             else {
@@ -238,11 +230,7 @@ const createSemesterFee = (id, semesterNumber, feesCourse) => {
                 else {
                     paidAmount = feeDetail.feesDepositedTOA || 0;
                     amountForTransaction = amountForTransaction + (feeDetail.feesDepositedTOA || 0);
-                    // console.log(`Adding ${feeDetail.feesDepositedTOA || 0} for ${type}`);
                 }
-                // console.log(`Actual fee for ${semesterNumber} for feeType ${type} is : ${actualFee}`);
-                // console.log(`Final fee for ${semesterNumber} for feeType ${type} is : ${finalFee}`);
-                // console.log(`Paid Amount fee for ${semesterNumber} for feeType ${type} is : ${paidAmount}`);
             }
             feeUpdateHistory.push(createFeeUpdateHistory(finalFee));
         }
@@ -257,10 +245,8 @@ const createSemesterFee = (id, semesterNumber, feesCourse) => {
         };
     });
     const semFeeInfo = semWiseFees[semesterNumber - 1] || null;
-    // console.log(`Sem fees info for semester number ${semesterNumber} : ${semFeeInfo}`);
     if (semFeeInfo) {
         amountForTransaction = semesterNumber == 1 ? (amountForTransaction + semFeeInfo.feesPaid || 0) : 0;
-        // console.log("Amount : ", amountForTransaction);
         details.push({
             type: constants_1.FinanceFeeType.SEMESTERFEE,
             schedule: (_a = constants_1.FinanceFeeSchedule[constants_1.FinanceFeeType.SEMESTERFEE]) !== null && _a !== void 0 ? _a : "YEARLY",
@@ -325,7 +311,6 @@ exports.getStudentDataBySearch = (0, express_async_handler_1.default)((req, res)
     });
 }));
 exports.getStudentDataById = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
     const { id } = req.params;
     if (!mongoose_1.default.Types.ObjectId.isValid(id)) {
         throw (0, http_errors_1.default)(400, 'Invalid student ID');
@@ -336,36 +321,7 @@ exports.getStudentDataById = (0, express_async_handler_1.default)((req, res) => 
     if (!student) {
         throw (0, http_errors_1.default)(404, 'Student not found');
     }
-    const { departmentMetaDataId } = student, rest = __rest(student, ["departmentMetaDataId"]);
-    const course = yield course_1.Course.findById(student.courseId).lean();
-    if (!course) {
-        throw (0, http_errors_1.default)(404, 'Course does not exist');
-    }
-    // Update student.semester with subject details and instructors
-    for (let i = 0; i < student.semester.length; i++) {
-        const studentSem = student.semester[i];
-        const courseSem = course.semester[i];
-        if (!courseSem)
-            continue;
-        for (let j = 0; j < studentSem.subjects.length; j++) {
-            const studentSubject = studentSem.subjects[j];
-            const matchedCourseSubject = courseSem.subjects.find(courseSub => courseSub._id.toString() === studentSubject.subjectId.toString());
-            if (matchedCourseSubject) {
-                studentSubject.subjectName = matchedCourseSubject.subjectName;
-                studentSubject.subjectCode = matchedCourseSubject.subjectCode;
-                // Populate instructor names
-                const instructorList = [];
-                for (const instructorId of matchedCourseSubject.instructor) {
-                    const instructor = yield user_1.User.findById(instructorId).lean();
-                    if (instructor) {
-                        instructorList.push(`${instructor.firstName} ${instructor.lastName}`);
-                    }
-                }
-                studentSubject.instructor = instructorList;
-            }
-        }
-    }
-    const responseData = Object.assign(Object.assign({}, rest), { semester: student.semester, departmentName: (_a = departmentMetaDataId === null || departmentMetaDataId === void 0 ? void 0 : departmentMetaDataId.departmentName) !== null && _a !== void 0 ? _a : null });
+    const responseData = yield buildStudentResponseData(student);
     return (0, formatResponse_1.formatResponse)(res, 200, 'ok', true, responseData);
 }));
 exports.updateStudentDataById = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -374,14 +330,16 @@ exports.updateStudentDataById = (0, express_async_handler_1.default)((req, res) 
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }
     const _a = validation.data, { id } = _a, studentDetails = __rest(_a, ["id"]);
-    const updatedStudent = yield student_1.Student.findByIdAndUpdate(id, { $set: studentDetails }, {
-        new: true,
-        runValidators: true,
-    });
+    yield student_1.Student.findByIdAndUpdate(id, { $set: studentDetails }, { new: false, runValidators: true });
+    // Refetch and populate to return same structure as getStudentDataById
+    const updatedStudent = yield student_1.Student.findById(id)
+        .populate({ path: 'departmentMetaDataId', select: 'departmentName' })
+        .lean();
     if (!updatedStudent) {
         throw (0, http_errors_1.default)(404, 'Student not found');
     }
-    return (0, formatResponse_1.formatResponse)(res, 200, 'Student details updated successfully', true, updatedStudent);
+    const responseData = yield buildStudentResponseData(updatedStudent);
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Student details updated successfully', true, responseData);
 }));
 exports.updateStudentPhysicalDocumentById = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const validation = physicalDocumentNoteSchema_1.updateStudentPhysicalDocumentRequestSchema.safeParse(req.body);
@@ -396,5 +354,37 @@ exports.updateStudentPhysicalDocumentById = (0, express_async_handler_1.default)
     if (!updatedStudent) {
         throw (0, http_errors_1.default)(404, 'Student not found');
     }
-    return (0, formatResponse_1.formatResponse)(res, 200, 'Student details updated successfully', true, updatedStudent);
+    const responseData = yield buildStudentResponseData(updatedStudent);
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Student details updated successfully', true, responseData);
 }));
+const buildStudentResponseData = (student) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    const { departmentMetaDataId } = student, rest = __rest(student, ["departmentMetaDataId"]);
+    const course = yield course_1.Course.findById(student.courseId).lean();
+    if (!course) {
+        throw (0, http_errors_1.default)(404, 'Course does not exist');
+    }
+    for (let i = 0; i < student.semester.length; i++) {
+        const studentSem = student.semester[i];
+        const courseSem = course.semester[i];
+        if (!courseSem)
+            continue;
+        for (let j = 0; j < studentSem.subjects.length; j++) {
+            const studentSubject = studentSem.subjects[j];
+            const matchedCourseSubject = courseSem.subjects.find(courseSub => courseSub._id.toString() === studentSubject.subjectId.toString());
+            if (matchedCourseSubject) {
+                studentSubject.subjectName = matchedCourseSubject.subjectName;
+                studentSubject.subjectCode = matchedCourseSubject.subjectCode;
+                const instructorList = [];
+                for (const instructorId of matchedCourseSubject.instructor) {
+                    const instructor = yield user_1.User.findById(instructorId).lean();
+                    if (instructor) {
+                        instructorList.push(`${instructor.firstName} ${instructor.lastName}`);
+                    }
+                }
+                studentSubject.instructor = instructorList;
+            }
+        }
+    }
+    return Object.assign(Object.assign({}, rest), { semester: student.semester, departmentName: (_a = departmentMetaDataId === null || departmentMetaDataId === void 0 ? void 0 : departmentMetaDataId.departmentName) !== null && _a !== void 0 ? _a : null });
+});
