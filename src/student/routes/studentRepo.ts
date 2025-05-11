@@ -1,7 +1,8 @@
 import express from "express";
 import { authenticate, authorize } from "../../middleware/jwtAuthenticationMiddleware";
 import { UserRoles } from "../../config/constants";
-import { getStudentDataById, getStudentDataBySearch, updateStudentDataById, updateStudentPhysicalDocumentById } from "../controllers/studentController";
+import { getStudentDataById, getStudentDataBySearch, updateStudentDataById, updateStudentDocumentsById, updateStudentPhysicalDocumentById } from "../controllers/studentController";
+import upload from "../../config/multerConfig";
 
 export const studentRepoRoute = express.Router();
 
@@ -27,4 +28,11 @@ studentRepoRoute.put('/student-physical-document',
     authenticate,
     authorize([UserRoles.BASIC_USER]),
     updateStudentPhysicalDocumentById
+);
+
+studentRepoRoute.put('/document',
+    authenticate,
+    authorize([UserRoles.BASIC_USER]),
+    upload.single('document'),
+    updateStudentDocumentsById
 );

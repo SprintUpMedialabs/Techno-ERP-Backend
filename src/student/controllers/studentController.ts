@@ -6,12 +6,14 @@ import { StudentFeesModel } from "../../admission/models/studentFees";
 import { updateStudentPhysicalDocumentRequestSchema } from "../../admission/validators/physicalDocumentNoteSchema";
 import { User } from "../../auth/models/user";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
-import { FeeStatus, FinanceFeeSchedule, FinanceFeeType } from "../../config/constants";
+import { ADMISSION, DocumentType, FeeStatus, FinanceFeeSchedule, FinanceFeeType } from "../../config/constants";
 import { Course } from "../../course/models/course";
 import { getCurrentAcademicYear } from "../../course/utils/getCurrentAcademicYear";
 import { formatResponse } from "../../utils/formatResponse";
 import { Student } from "../models/student";
 import { IAttendanceSchema, ICreateStudentSchema, IExamSchema, updateStudentDetailsRequestSchema } from "../validators/studentSchema";
+import { singleDocumentSchema } from "../../admission/validators/singleDocumentSchema";
+import { uploadToS3 } from "../../config/s3Upload";
 
 export const createStudent = async (id: any, studentData: ICreateStudentSchema) => {
   const { courseCode, feeId, dateOfAdmission } = studentData;
@@ -402,6 +404,98 @@ export const updateStudentPhysicalDocumentById = expressAsyncHandler(async (req:
   return formatResponse(res, 200, 'Student details updated successfully', true, responseData);
 });
 
+export const updateStudentDocumentsById = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const { id, type, dueBy } = req.body;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw createHttpError(400, 'Invalid enquiry ID');
+  }
+  const file = req.file as Express.Multer.File | undefined;
+
+  const validation = singleDocumentSchema.safeParse({
+    id: id,
+    type: type,
+    dueBy: dueBy,
+    file: file
+  });
+
+  if (!validation.success) {
+    throw createHttpError(400, validation.error.errors[0]);
+  }
+
+  const isStudentExist = await Student.exists({ _id: id });
+  if (!isStudentExist) {
+    throw createHttpError(404, 'Student not found');
+  }
+
+  const existingDocument = await Student.findOne(
+    { _id: id, 'studentInfo.documents.type': type },
+    { 'studentInfo.documents.$': 1 }
+  );
+
+  let fileUrl;
+  let finalDueBy;
+  if (existingDocument?.studentInfo.documents) {
+    fileUrl = existingDocument?.studentInfo.documents[0]?.fileUrl;
+    finalDueBy = existingDocument?.studentInfo.documents[0]?.dueBy;
+  }
+
+
+  if (file) {
+    fileUrl = await uploadToS3(id.toString(), ADMISSION, type as DocumentType, file);
+    if (req.file) {
+      req.file.buffer = null as unknown as Buffer;
+    }
+  }
+  console.log("File URL : ", fileUrl);
+  if (dueBy) {
+    finalDueBy = dueBy;
+  }
+
+  if (existingDocument) {
+    if (!file && !dueBy) {
+      throw createHttpError(400, 'No new data provided to update');
+    }
+
+    const updateFields: any = {};
+    if (fileUrl) {
+      updateFields['studentInfo.documents.$[elem].fileUrl'] = fileUrl;
+    }
+    if (finalDueBy) {
+      updateFields['studentInfo.documents.$[elem].dueBy'] = finalDueBy;
+    }
+
+    const updatedData = await Student.findOneAndUpdate(
+      { _id: id, 'studentInfo.documents.type': type },
+      {
+        $set: {
+          ...updateFields
+        }
+      },
+      {
+        new: true,
+        runValidators: true,
+        arrayFilters: [{ 'elem.type': type }]
+      }
+    ).select('studentInfo.documents');
+
+    return formatResponse(res, 200, 'Document updated successfully', true, updatedData);
+  }
+  else {
+    const documentData: Record<string, any> = { type, fileUrl };
+    if (finalDueBy) {
+      documentData.dueBy = finalDueBy;
+    }
+    const updatedData = await Student.findByIdAndUpdate(
+      id,
+      { $push: { 'studentInfo.documents': documentData } },
+      { new: true, runValidators: true }
+    ).select('studentInfo.documents');
+
+    return formatResponse(res, 200, 'New document created successfully', true, updatedData);
+  }
+
+});
 
 const buildStudentResponseData = async (student: any) => {
   const { departmentMetaDataId, ...rest } = student;
