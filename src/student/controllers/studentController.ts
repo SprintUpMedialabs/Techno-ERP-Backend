@@ -351,10 +351,14 @@ export const updateStudentDataById = expressAsyncHandler(async (req: Authenticat
   }
 
   const { id, ...studentDetails } = validation.data;
+  const updateFields: Record<string, any> = {};
+  for (const [key, value] of Object.entries(studentDetails)) {
+    updateFields[`studentInfo.${key}`] = value;
+  }
   console.log("Student Details : ", studentDetails);
   const data = await Student.findByIdAndUpdate(
     id,
-    { $set: { studentInfo: studentDetails } },
+    { $set: updateFields },
     { runValidators: true }
   );
   console.log("Data : ", data);
