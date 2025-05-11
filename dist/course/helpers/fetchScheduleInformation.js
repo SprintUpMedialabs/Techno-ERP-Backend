@@ -160,7 +160,13 @@ const fetchScheduleInformation = (crsId, semId, subId, insId, search) => __await
                 academicYear: "$semesterDetails.academicYear",
                 subjectName: "$semesterDetails.subjects.subjectName",
                 subjectCode: "$semesterDetails.subjects.subjectCode",
-                instructorName: "$instructorDetails.firstName",
+                instructorName: {
+                    $concat: [
+                        "$instructorDetails.firstName",
+                        " ",
+                        "$instructorDetails.lastName"
+                    ]
+                },
                 departmentName: "$departmentMetaData.departmentName",
                 departmentHOD: "$departmentMetaData.departmentHOD",
                 collegeName: "$collegeName",

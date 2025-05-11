@@ -41,9 +41,7 @@ const s3Upload_1 = require("../../config/s3Upload");
 const createStudent = (id, studentData) => __awaiter(void 0, void 0, void 0, function* () {
     const { courseCode, feeId, dateOfAdmission } = studentData;
     const studentBaseInformation = Object.assign({}, studentData);
-    console.log("Student INformation is : ", studentBaseInformation);
     const course = yield course_1.Course.findOne({ courseCode: courseCode, startingYear: dateOfAdmission.getFullYear() });
-    console.log("Course is : ", course);
     const feesCourse = yield studentFees_1.StudentFeesModel.findOne({ _id: feeId });
     const semSubjectIds = yield course_1.Course.aggregate([
         {
@@ -198,9 +196,7 @@ const createSemesterFee = (id, semesterNumber, feesCourse) => {
     let amountForTransaction = 0;
     const details = requiredFeeTypes.map((type) => {
         var _a;
-        // console.log("Fee type is : ", type);
         const feeDetail = getFeeDetail(type);
-        // console.log("Fee Detail of type is : ", feeDetail);
         let actualFee = 0;
         let finalFee = 0;
         let paidAmount = 0;
@@ -336,9 +332,7 @@ exports.updateStudentDataById = (0, express_async_handler_1.default)((req, res) 
     for (const [key, value] of Object.entries(studentDetails)) {
         updateFields[`studentInfo.${key}`] = value;
     }
-    console.log("Student Details : ", studentDetails);
     const data = yield student_1.Student.findByIdAndUpdate(id, { $set: updateFields }, { runValidators: true });
-    console.log("Data : ", data);
     // Refetch and populate to return same structure as getStudentDataById
     const updatedStudent = yield student_1.Student.findById(id)
         .populate({ path: 'departmentMetaDataId', select: 'departmentName' })
@@ -355,10 +349,22 @@ exports.updateStudentPhysicalDocumentById = (0, express_async_handler_1.default)
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }
     const _a = validation.data, { id } = _a, physicalDocumentList = __rest(_a, ["id"]);
-    const updatedStudent = yield student_1.Student.findByIdAndUpdate(id, { $set: { physicalDocumentNote: physicalDocumentList } }, {
-        new: true,
-        runValidators: true,
-    });
+    const isStudentExist = yield student_1.Student.exists({ _id: id, 'studentInfo.physicalDocumentNote.type': physicalDocumentList.type });
+    let updatedStudent;
+    if (isStudentExist) {
+        const updateFields = {};
+        for (const [key, value] of Object.entries(physicalDocumentList)) {
+            updateFields[`studentInfo.physicalDocumentNote.$[elem].${key}`] = value;
+        }
+        updatedStudent = yield student_1.Student.findByIdAndUpdate(id, { $set: Object.assign({}, updateFields) }, {
+            new: true,
+            runValidators: true,
+            arrayFilters: [{ 'elem.type': physicalDocumentList.type }]
+        }).populate({ path: 'departmentMetaDataId', select: 'departmentName' }).lean();
+    }
+    else {
+        updatedStudent = yield student_1.Student.findByIdAndUpdate(id, { $push: { 'studentInfo.physicalDocumentNote': physicalDocumentList } }, { new: true, runValidators: true }).populate({ path: 'departmentMetaDataId', select: 'departmentName' }).lean();
+    }
     if (!updatedStudent) {
         throw (0, http_errors_1.default)(404, 'Student not found');
     }
@@ -398,7 +404,6 @@ exports.updateStudentDocumentsById = (0, express_async_handler_1.default)((req, 
             req.file.buffer = null;
         }
     }
-    console.log("File URL : ", fileUrl);
     if (dueBy) {
         finalDueBy = dueBy;
     }
