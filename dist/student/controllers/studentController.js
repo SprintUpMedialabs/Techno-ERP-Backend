@@ -23,7 +23,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateStudentPhysicalDocumentById = exports.updateStudentDataById = exports.getStudentDataById = exports.getStudentDataBySearch = exports.createStudent = void 0;
+exports.updateStudentDocumentsById = exports.updateStudentPhysicalDocumentById = exports.updateStudentDataById = exports.getStudentDataById = exports.getStudentDataBySearch = exports.createStudent = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const http_errors_1 = __importDefault(require("http-errors"));
 const mongoose_1 = __importDefault(require("mongoose"));
@@ -36,6 +36,8 @@ const getCurrentAcademicYear_1 = require("../../course/utils/getCurrentAcademicY
 const formatResponse_1 = require("../../utils/formatResponse");
 const student_1 = require("../models/student");
 const studentSchema_1 = require("../validators/studentSchema");
+const singleDocumentSchema_1 = require("../../admission/validators/singleDocumentSchema");
+const s3Upload_1 = require("../../config/s3Upload");
 const createStudent = (id, studentData) => __awaiter(void 0, void 0, void 0, function* () {
     const { courseCode, feeId, dateOfAdmission } = studentData;
     const studentBaseInformation = Object.assign({}, studentData);
@@ -362,6 +364,72 @@ exports.updateStudentPhysicalDocumentById = (0, express_async_handler_1.default)
     }
     const responseData = yield buildStudentResponseData(updatedStudent);
     return (0, formatResponse_1.formatResponse)(res, 200, 'Student details updated successfully', true, responseData);
+}));
+exports.updateStudentDocumentsById = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    const { id, type, dueBy } = req.body;
+    if (!mongoose_1.default.Types.ObjectId.isValid(id)) {
+        throw (0, http_errors_1.default)(400, 'Invalid enquiry ID');
+    }
+    const file = req.file;
+    const validation = singleDocumentSchema_1.singleDocumentSchema.safeParse({
+        id: id,
+        type: type,
+        dueBy: dueBy,
+        file: file
+    });
+    if (!validation.success) {
+        throw (0, http_errors_1.default)(400, validation.error.errors[0]);
+    }
+    const isStudentExist = yield student_1.Student.exists({ _id: id });
+    if (!isStudentExist) {
+        throw (0, http_errors_1.default)(404, 'Student not found');
+    }
+    const existingDocument = yield student_1.Student.findOne({ _id: id, 'studentInfo.documents.type': type }, { 'studentInfo.documents.$': 1 });
+    let fileUrl;
+    let finalDueBy;
+    if (existingDocument === null || existingDocument === void 0 ? void 0 : existingDocument.studentInfo.documents) {
+        fileUrl = (_a = existingDocument === null || existingDocument === void 0 ? void 0 : existingDocument.studentInfo.documents[0]) === null || _a === void 0 ? void 0 : _a.fileUrl;
+        finalDueBy = (_b = existingDocument === null || existingDocument === void 0 ? void 0 : existingDocument.studentInfo.documents[0]) === null || _b === void 0 ? void 0 : _b.dueBy;
+    }
+    if (file) {
+        fileUrl = yield (0, s3Upload_1.uploadToS3)(id.toString(), constants_1.ADMISSION, type, file);
+        if (req.file) {
+            req.file.buffer = null;
+        }
+    }
+    console.log("File URL : ", fileUrl);
+    if (dueBy) {
+        finalDueBy = dueBy;
+    }
+    if (existingDocument) {
+        if (!file && !dueBy) {
+            throw (0, http_errors_1.default)(400, 'No new data provided to update');
+        }
+        const updateFields = {};
+        if (fileUrl) {
+            updateFields['studentInfo.documents.$[elem].fileUrl'] = fileUrl;
+        }
+        if (finalDueBy) {
+            updateFields['studentInfo.documents.$[elem].dueBy'] = finalDueBy;
+        }
+        const updatedData = yield student_1.Student.findOneAndUpdate({ _id: id, 'studentInfo.documents.type': type }, {
+            $set: Object.assign({}, updateFields)
+        }, {
+            new: true,
+            runValidators: true,
+            arrayFilters: [{ 'elem.type': type }]
+        }).select('studentInfo.documents');
+        return (0, formatResponse_1.formatResponse)(res, 200, 'Document updated successfully', true, updatedData);
+    }
+    else {
+        const documentData = { type, fileUrl };
+        if (finalDueBy) {
+            documentData.dueBy = finalDueBy;
+        }
+        const updatedData = yield student_1.Student.findByIdAndUpdate(id, { $push: { 'studentInfo.documents': documentData } }, { new: true, runValidators: true }).select('studentInfo.documents');
+        return (0, formatResponse_1.formatResponse)(res, 200, 'New document created successfully', true, updatedData);
+    }
 }));
 const buildStudentResponseData = (student) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
