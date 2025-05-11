@@ -152,7 +152,13 @@ export const fetchScheduleInformation = async (crsId: string, semId: string, sub
                 academicYear : "$semesterDetails.academicYear",
                 subjectName: "$semesterDetails.subjects.subjectName",
                 subjectCode: "$semesterDetails.subjects.subjectCode",
-                instructorName: "$instructorDetails.firstName",
+                instructorName: {
+                    $concat: [
+                      "$instructorDetails.firstName",
+                      " ",
+                      "$instructorDetails.lastName"
+                    ]
+                  },
 
                 departmentName: "$departmentMetaData.departmentName",
                 departmentHOD: "$departmentMetaData.departmentHOD",
