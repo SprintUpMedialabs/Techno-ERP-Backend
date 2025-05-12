@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import { Course } from "../models/course";
 import { transformDates } from "../utils/transformDates";
 
-export const fetchScheduleInformation = async (crsId: string, semId: string, subId: string, insId: string, search? : string) => {
+export const fetchScheduleInformation = async (crsId: string, semId: string, subId: string, insId: string) => {
     let courseId = new mongoose.Types.ObjectId(crsId);
     let semesterId = new mongoose.Types.ObjectId(semId);
     let subjectId = new mongoose.Types.ObjectId(subId);
@@ -81,7 +81,6 @@ export const fetchScheduleInformation = async (crsId: string, semId: string, sub
                   cond: {
                     $and: [
                       { $eq: ["$$lp.instructor", instructorId] },
-                      ...(search ? [{ $regexMatch: { input: "$$lp.topicName", regex: search, options: "i" } }] : [])
                     ]
                   },
                 },
@@ -93,7 +92,6 @@ export const fetchScheduleInformation = async (crsId: string, semId: string, sub
                   cond: {
                     $and: [
                       { $eq: ["$$pp.instructor", instructorId] },
-                      ...(search ? [{ $regexMatch: { input: "$$pp.topicName", regex: search, options: "i" } }] : [])
                     ]
                   },
                 },

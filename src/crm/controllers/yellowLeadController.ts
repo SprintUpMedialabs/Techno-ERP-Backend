@@ -157,7 +157,7 @@ export const getYellowLeadsAnalytics = expressAsyncHandler(async (req: Request, 
           $sum: { $cond: [{ $eq: ['$footFall', false] }, 1, 0] }
         },
         deadLeadCount: {
-          $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.DEAD] }, 1, 0] }
+          $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.NOT_INTERESTED] }, 1, 0] }
         },
         admissions: {
           $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.CONVERTED] }, 1, 0] }

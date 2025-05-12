@@ -79,7 +79,7 @@ export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedReque
                     footFall: { $sum: { $cond: [{ $eq: ['$footFall', true] }, 1, 0] } }, // Count where campusVisit is true
                     noFootFall: { $sum: { $cond: [{ $eq: ['$footFall', false] }, 1, 0] } }, // Count where campusVisit is false
                     unconfirmed: { $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.UNCONFIRMED] }, 1, 0] } }, // Count where finalConversion is 'PENDING'
-                    dead: { $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.DEAD] }, 1, 0] } }, // Count where finalConversion is 'NOT_CONVERTED'
+                    dead: { $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.NOT_INTERESTED] }, 1, 0] } }, // Count where finalConversion is 'NOT_CONVERTED'
                     admissions: { $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.CONVERTED] }, 1, 0] } }, // Count where finalConversion is 'CONVERTED'
                 }
             }
