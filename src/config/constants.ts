@@ -41,7 +41,7 @@ export enum FinalConversionType {
   NO_FOOTFALL = 'NO_FOOTFALL',
   UNCONFIRMED = 'UNCONFIRMED',
   CONVERTED = 'CONVERTED',
-  DEAD = 'DEAD',
+  NOT_INTERESTED = 'NOT_INTERESTED'
 }
 
 
