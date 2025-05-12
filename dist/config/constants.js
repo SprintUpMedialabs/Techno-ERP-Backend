@@ -42,7 +42,7 @@ var FinalConversionType;
     FinalConversionType["NO_FOOTFALL"] = "NO_FOOTFALL";
     FinalConversionType["UNCONFIRMED"] = "UNCONFIRMED";
     FinalConversionType["CONVERTED"] = "CONVERTED";
-    FinalConversionType["DEAD"] = "DEAD";
+    FinalConversionType["NOT_INTERESTED"] = "NOT_INTERESTED";
 })(FinalConversionType || (exports.FinalConversionType = FinalConversionType = {}));
 /*
  * Admission Module Enums
