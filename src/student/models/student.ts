@@ -7,7 +7,7 @@ import { physicalDocumentNoteSchema } from "../../admission/models/physicalDocum
 import { previousCollegeDataSchema } from "../../admission/models/previousCollegeData";
 import { singleDocumentSchema } from "../../admission/models/singleDocument";
 import { AdmissionReference, AdmittedThrough, AreaType, BloodGroup, Category, COLLECTION_NAMES, CourseYears, FeeStatus, Gender, Religion, StatesOfIndia } from "../../config/constants";
-import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
+import { convertToDDMMYYYY, convertToMongoDate } from "../../utils/convertDateToFormatedDate";
 import { contactNumberSchema, emailSchema } from "../../validators/commonSchema";
 import { IAttendanceSchema, IBaseAttendanceSchema, IBaseExamSchema, IExamSchema, ISemesterSchema, IStudentBaseInfoSchema, IStudentSchema, ISubjectSchema } from "../validators/studentSchema";
 import { FeeModel } from "./fees";
@@ -353,7 +353,10 @@ StudentModel.post('findOneAndUpdate', function (error: any, doc: any, next: Func
     handleMongooseError(error, next);
 });
 
-const removeExtraInfo = (_: any, ret: any) => {
+export const removeExtraInfo = (_: any, ret: any) => {
+    if (ret.studentInfo?.dateOfBirth) {
+        ret.studentInfo.dateOfBirth = convertToDDMMYYYY(ret.studentInfo.dateOfBirth);
+      }
     delete ret.createdAt;
     delete ret.updatedAt;
     delete ret.__v;
