@@ -65,9 +65,9 @@ const StudentFeesSchema = new Schema<IStudentFeesDocument>(
         feesClearanceDate: {
             type: Date
         },
-        remarks : {
-            type : String
-        }
+        // remarks : {
+        //     type : String
+        // }
     },
     { timestamps: true }
 );

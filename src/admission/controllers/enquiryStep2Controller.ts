@@ -89,6 +89,9 @@ export const createEnquiryStep2 = expressAsyncHandler(functionLevelLogger(async 
     if (data.reference != null) {
       enquiryUpdatePayload.reference = data.reference;
     }
+    if(data.remarks!=null){
+      enquiryUpdatePayload.remarks = data.remarks
+    }
 
     await Enquiry.findByIdAndUpdate(
       data.enquiryId,
