@@ -210,25 +210,25 @@ export const exportData = expressAsyncHandler(async (req: AuthenticatedRequest, 
   // Define headers
   worksheet.columns = [
     { header: 'Date', key: 'date', width: 15 },
-    { header: 'Source', key: 'source', width: 20 },
-    { header: 'School Name', key: 'schoolName', width: 20 },
     { header: 'Name', key: 'name', width: 20 },
     { header: 'Phone Number', key: 'phoneNumber', width: 15 },
     { header: 'Alt Phone Number', key: 'altPhoneNumber', width: 15 },
     { header: 'Email', key: 'email', width: 25 },
-    { header: 'Gender', key: 'gender', width: 10 },
-    { header: 'Area', key: 'area', width: 20 },
-    { header: 'City', key: 'city', width: 20 },
     { header: 'Course', key: 'course', width: 20 },
-    { header: 'Assigned To', key: 'assignedTo', width: 30 },
     { header: 'Lead Type', key: 'leadType', width: 15 },
     { header: 'Remarks', key: 'remarks', width: 30 },
+    { header: 'Area', key: 'area', width: 20 },
+    { header: 'City', key: 'city', width: 20 },
+    { header: 'Final Conversion', key: 'finalConversion', width: 20 },
+    { header: 'Gender', key: 'gender', width: 10 },
+    { header: 'School Name', key: 'schoolName', width: 20 },
     { header: 'Lead Type Modified Date', key: 'leadTypeModifiedDate', width: 20 },
     { header: 'Next Due Date', key: 'nextDueDate', width: 20 },
     { header: 'Foot Fall', key: 'footFall', width: 10 },
-    { header: 'Final Conversion', key: 'finalConversion', width: 20 },
     { header: 'Follow Up Count', key: 'followUpCount', width: 10 },
+    { header: 'Assigned To', key: 'assignedTo', width: 30 },
   ];
+  
 
   const leads = await LeadMaster.find({
     assignedTo: { $in: [req.data?.id] }
