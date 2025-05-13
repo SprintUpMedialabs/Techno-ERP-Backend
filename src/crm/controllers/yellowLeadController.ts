@@ -1,20 +1,18 @@
 import { Request, Response } from 'express';
 import expressAsyncHandler from 'express-async-handler';
 import createHttpError from 'http-errors';
-import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
-import { Actions, DropDownType, FinalConversionType, LeadType, RequestAction } from '../../config/constants';
-import { parseFilter } from '../helpers/parseFilter';
-import { formatResponse } from '../../utils/formatResponse';
-import { LeadMaster } from '../models/lead';
-import { IYellowLeadUpdate, yellowLeadUpdateSchema } from '../validators/leads';
 import axiosInstance from '../../api/axiosInstance';
 import { Endpoints } from '../../api/endPoints';
 import { safeAxiosPost } from '../../api/safeAxios';
-import { updateOnlyOneValueInDropDown } from '../../utilityModules/dropdown/dropDownMetadataController';
-import { normaliseText } from '../validators/formators';
 import { getCurrentLoggedInUser } from '../../auth/utils/getCurrentLoggedInUser';
+import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
+import { Actions, DropDownType, FinalConversionType, LeadType, RequestAction } from '../../config/constants';
+import { updateOnlyOneValueInDropDown } from '../../utilityModules/dropdown/dropDownMetadataController';
+import { formatResponse } from '../../utils/formatResponse';
+import { parseFilter } from '../helpers/parseFilter';
+import { LeadMaster } from '../models/lead';
+import { IYellowLeadUpdate, yellowLeadUpdateSchema } from '../validators/leads';
 import { logFollowUpChange } from './crmController';
-// import { logFollowUpChange } from './crmController';
 
 export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const updateData: IYellowLeadUpdate = req.body;
@@ -55,14 +53,14 @@ export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedReq
   let existingRemark = existingLead?.remarks?.length;
   let yellowLeadRequestDataRemark = updateData.remarks?.length;
 
-  let existingFollowUpCount = existingLead.yellowLeadsFollowUpCount;
-  let yellowLeadRequestDataFollowUpCount = updateData.yellowLeadsFollowUpCount;
+  let existingFollowUpCount = existingLead.followUpCount;  
+  let yellowLeadRequestDataFollowUpCount = updateData.followUpCount;
 
   const isRemarkChanged = existingRemark !== yellowLeadRequestDataRemark;
   const isFollowUpCountChanged = existingFollowUpCount !== yellowLeadRequestDataFollowUpCount;
   
   if (isRemarkChanged && !isFollowUpCountChanged) {
-    updateData.yellowLeadsFollowUpCount = existingLead.yellowLeadsFollowUpCount + 1;
+    updateData.followUpCount = existingLead.followUpCount + 1;
   }
 
   const updatedYellowLead = await LeadMaster.findByIdAndUpdate(updateData._id, updateData, {
@@ -72,7 +70,7 @@ export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedReq
 
   const currentLoggedInUser = getCurrentLoggedInUser(req);
 
-  const updatedFollowUpCount = updatedYellowLead?.yellowLeadsFollowUpCount || 0;
+  const updatedFollowUpCount = updatedYellowLead?.followUpCount ?? 0;
 
 
   if(updatedFollowUpCount  > existingFollowUpCount)
@@ -113,7 +111,7 @@ export const getFilteredYellowLeads = expressAsyncHandler(
 
     if (search.trim()) {
       query.$and = [
-        ...(query.$and || []), // Preserve existing AND conditions if any
+        ...(query.$and ?? []), // Preserve existing AND conditions if any
         {
           $or: [
             { name: { $regex: search, $options: 'i' } }, // Case-insensitive search
