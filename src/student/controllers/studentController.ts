@@ -285,23 +285,15 @@ export const getStudentDataBySearch = expressAsyncHandler(async (req: Authentica
 
   const matchStage: Record<string, any> = {};
 
-  if (courseCode) 
+  if (courseCode){
     matchStage.courseCode = courseCode;
+  }
 
-  if (academicYear && courseYear) {
-    matchStage.semester = {
-      $elemMatch: {
-        courseYear,
-        academicYear,
-      },
-    };
-  } else if (academicYear) {
-    matchStage.semester = {
-      $elemMatch: {
-        academicYear,
-      },
-    };
-  } else if (courseYear) {
+  if(academicYear){
+    matchStage.currentAcademicYear = academicYear
+  }
+  
+  if (courseYear) {
     matchStage.semester = {
       $elemMatch: {
         courseYear,
@@ -331,25 +323,6 @@ export const getStudentDataBySearch = expressAsyncHandler(async (req: Authentica
           courseCode: 1,
           currentAcademicYear: 1,
           currentSemester: 1,
-          semesterNumber: {
-            $let: {
-              vars: {
-                matchedSemester: {
-                  $filter: {
-                    input: '$semester',
-                    as: 'sem',
-                    cond: {
-                      $and: [
-                        academicYear ? { $eq: ['$$sem.academicYear', academicYear] } : {},
-                        courseYear ? { $eq: ['$$sem.courseYear', courseYear] } : {},
-                      ].filter(Boolean),
-                    },
-                  },
-                },
-              },
-              in: { $arrayElemAt: ['$$matchedSemester.semesterNumber', 0] },
-            },
-          },
         },
       }
     ]),
