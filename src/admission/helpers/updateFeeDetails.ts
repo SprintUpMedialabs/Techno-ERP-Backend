@@ -4,6 +4,7 @@ import { fetchCourseFeeByCourse, fetchOtherFees } from "../../fees/courseAndOthe
 import { Enquiry } from "../models/enquiry";
 import { StudentFeesModel } from "../models/studentFees";
 import { feesUpdateSchema, IFeesUpdateSchema } from "../validators/studentFees";
+import { enquiryStatusUpdateSchema } from "../validators/enquiryStatusUpdateSchema";
 
 export const updateFeeDetails = async (applicationStatusList: ApplicationStatus[], studentFeesData: IFeesUpdateSchema) => {
   const validation = feesUpdateSchema.safeParse(studentFeesData);
@@ -68,6 +69,10 @@ export const updateFeeDetails = async (applicationStatusList: ApplicationStatus[
 
   if (validation.data.reference != null) {
     enquiryUpdatePayload.reference = validation.data.reference;
+  }
+
+  if(validation.data.remarks !=null){
+    enquiryUpdatePayload.remarks = validation.data.remarks;
   }
 
   if (Object.keys(enquiryUpdatePayload).length > 0) {

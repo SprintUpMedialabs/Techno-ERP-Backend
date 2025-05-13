@@ -74,6 +74,9 @@ export const createFeeDraft = expressAsyncHandler(functionLevelLogger(async (req
       enquiryDataUpdate.reference = data.reference;
     }
 
+    if(data.remarks != null)
+      enquiryDataUpdate.remarks = data.remarks;
+
     await Enquiry.findByIdAndUpdate(
       data.enquiryId,
       { $set: enquiryDataUpdate },
@@ -154,7 +157,10 @@ export const updateFeeDraft = expressAsyncHandler(functionLevelLogger(async (req
     if (data.reference != null) {
       enquiryData.reference = data.reference;
     }
-    await Enquiry.findByIdAndUpdate(
+    if(validation.data.remarks != null){
+      enquiryData.remarks = validation.data.remarks;
+    }
+      await Enquiry.findByIdAndUpdate(
       data.enquiryId,
       { $set: enquiryData },
       { session }
