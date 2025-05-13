@@ -26,15 +26,13 @@ exports.leadMasterSchema = zod_1.z.object({
     footFall: zod_1.z.boolean().optional(), //This is referring to Campus Visit
     finalConversion: zod_1.z.nativeEnum(constants_1.FinalConversionType).optional().default(constants_1.FinalConversionType.NO_FOOTFALL),
     remarks: zod_1.z.array(zod_1.z.string().optional()).default([]),
-    leadsFollowUpCount: zod_1.z.number().optional().default(0),
-    yellowLeadsFollowUpCount: zod_1.z.number().optional().default(0)
+    followUpCount: zod_1.z.number().optional().default(0),
 });
 exports.leadSchema = exports.leadMasterSchema.omit({
     finalConversion: true,
     footFall: true,
-    yellowLeadsFollowUpCount: true
 }).strict();
-exports.yellowLeadSchema = exports.leadMasterSchema.omit({ leadType: true, leadsFollowUpCount: true, leadTypeModifiedDate: true }).strict();
+exports.yellowLeadSchema = exports.leadMasterSchema.omit({ leadType: true, leadTypeModifiedDate: true }).strict();
 exports.leadRequestSchema = exports.leadSchema.extend({
     date: commonSchema_1.requestDateSchema,
     nextDueDate: commonSchema_1.requestDateSchema.optional()

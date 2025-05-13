@@ -31,6 +31,7 @@ const marketingFollowUp_1 = require("../models/marketingFollowUp");
 const exceljs_1 = __importDefault(require("exceljs"));
 const leads_1 = require("../validators/leads");
 const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
+const moment_timezone_1 = __importDefault(require("moment-timezone"));
 exports.uploadData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const user = yield user_1.User.findById((_a = req.data) === null || _a === void 0 ? void 0 : _a.id);
@@ -106,7 +107,7 @@ exports.getAllLeadAnalytics = (0, express_async_handler_1.default)((req, res) =>
     });
 }));
 exports.updateData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c;
+    var _a, _b, _c, _d;
     const leadRequestData = req.body;
     const validation = leads_1.updateLeadRequestSchema.safeParse(leadRequestData);
     if (!validation.success) {
@@ -124,12 +125,12 @@ exports.updateData = (0, express_async_handler_1.default)((req, res) => __awaite
         let leadTypeModifiedDate = existingLead.leadTypeModifiedDate;
         let existingRemark = (_a = existingLead.remarks) === null || _a === void 0 ? void 0 : _a.length;
         let leadRequestDataRemark = (_b = leadRequestData.remarks) === null || _b === void 0 ? void 0 : _b.length;
-        let existingFollowUpCount = existingLead.leadsFollowUpCount;
-        let leadRequestDataFollowUpCount = leadRequestData.leadsFollowUpCount;
+        let existingFollowUpCount = existingLead.followUpCount;
+        let leadRequestDataFollowUpCount = leadRequestData.followUpCount;
         const isRemarkChanged = existingRemark !== leadRequestDataRemark;
         const isFollowUpCountChanged = existingFollowUpCount !== leadRequestDataFollowUpCount;
         if (isRemarkChanged && !isFollowUpCountChanged) {
-            leadRequestData.leadsFollowUpCount = existingLead.leadsFollowUpCount + 1;
+            leadRequestData.followUpCount = existingLead.followUpCount + 1;
         }
         if (leadRequestData.leadType && existingLead.leadType != leadRequestData.leadType) {
             leadTypeModifiedDate = new Date();
@@ -139,7 +140,7 @@ exports.updateData = (0, express_async_handler_1.default)((req, res) => __awaite
             runValidators: true
         });
         const currentLoggedInUser = (0, getCurrentLoggedInUser_1.getCurrentLoggedInUser)(req);
-        const updatedFollowUpCount = (updatedData === null || updatedData === void 0 ? void 0 : updatedData.leadsFollowUpCount) || 0;
+        const updatedFollowUpCount = (_c = updatedData === null || updatedData === void 0 ? void 0 : updatedData.followUpCount) !== null && _c !== void 0 ? _c : 0;
         if (updatedFollowUpCount > existingFollowUpCount) {
             (0, exports.logFollowUpChange)(existingLead._id, currentLoggedInUser, constants_1.Actions.INCREAMENT);
         }
@@ -154,7 +155,7 @@ exports.updateData = (0, express_async_handler_1.default)((req, res) => __awaite
             documentId: updatedData === null || updatedData === void 0 ? void 0 : updatedData._id,
             action: constants_1.RequestAction.POST,
             payload: updatedData,
-            performedBy: (_c = req.data) === null || _c === void 0 ? void 0 : _c.id,
+            performedBy: (_d = req.data) === null || _d === void 0 ? void 0 : _d.id,
             restEndpoint: '/api/edit/crm',
         });
         return (0, formatResponse_1.formatResponse)(res, 200, 'Data Updated Successfully!', true, updatedData);
@@ -174,7 +175,7 @@ const logFollowUpChange = (leadId, userId, action) => {
 };
 exports.logFollowUpChange = logFollowUpChange;
 exports.exportData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e, _f;
     const user = yield user_1.User.findById((_a = req.data) === null || _a === void 0 ? void 0 : _a.id);
     const marketingSheet = user === null || user === void 0 ? void 0 : user.marketingSheet;
     const workbook = new exceljs_1.default.Workbook();
@@ -199,8 +200,7 @@ exports.exportData = (0, express_async_handler_1.default)((req, res) => __awaite
         { header: 'Next Due Date', key: 'nextDueDate', width: 20 },
         { header: 'Foot Fall', key: 'footFall', width: 10 },
         { header: 'Final Conversion', key: 'finalConversion', width: 20 },
-        { header: 'Leads Follow Up Count', key: 'leadsFollowUpCount', width: 10 },
-        { header: 'Yellow Leads Follow Up Count', key: 'yellowLeadsFollowUpCount', width: 10 },
+        { header: 'Follow Up Count', key: 'followUpCount', width: 10 },
     ];
     const leads = yield lead_1.LeadMaster.find({
         assignedTo: { $in: [(_d = req.data) === null || _d === void 0 ? void 0 : _d.id] }
@@ -211,34 +211,33 @@ exports.exportData = (0, express_async_handler_1.default)((req, res) => __awaite
     leads.forEach(lead => {
         worksheet.addRow({
             date: lead.date ? (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(lead.date) : '',
-            source: lead.source || '',
-            schoolName: lead.schoolName || '',
             name: lead.name || '',
             phoneNumber: lead.phoneNumber || '',
             altPhoneNumber: lead.altPhoneNumber || '',
             email: lead.email || '',
-            gender: lead.gender || '',
+            course: lead.course || '',
+            leadType: lead.leadType || '',
+            remarks: Array.isArray(lead.remarks) ? lead.remarks.join('\n') : '',
             area: lead.area || '',
             city: lead.city || '',
-            course: lead.course || '',
+            finalConversion: lead.finalConversion || '',
+            gender: lead.gender || '',
+            schoolName: lead.schoolName || '',
+            leadTypeModifiedDate: lead.leadTypeModifiedDate ? (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(lead.leadTypeModifiedDate) : '',
+            nextDueDate: lead.nextDueDate ? (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(lead.nextDueDate) : '',
+            footFall: lead.footFall ? 'Yes' : 'No',
+            followUpCount: lead.followUpCount || 0,
             assignedTo: Array.isArray(lead.assignedTo)
                 ? lead.assignedTo
                     .map((user) => { var _a, _b; return `${(_a = user.firstName) !== null && _a !== void 0 ? _a : ''} ${(_b = user.lastName) !== null && _b !== void 0 ? _b : ''}`.trim(); })
                     .join(', ')
                 : '',
-            leadType: lead.leadType || '',
-            remarks: Array.isArray(lead.remarks) ? lead.remarks.join('\n') : '',
-            leadTypeModifiedDate: lead.leadTypeModifiedDate ? (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(lead.leadTypeModifiedDate) : '',
-            nextDueDate: lead.nextDueDate ? (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(lead.nextDueDate) : '',
-            footFall: lead.footFall ? 'Yes' : 'No',
-            finalConversion: lead.finalConversion || '',
-            leadsFollowUpCount: lead.leadsFollowUpCount || 0,
-            yellowLeadsFollowUpCount: lead.yellowLeadsFollowUpCount || 0
+            // source: lead.source || '',
         });
     });
-    // Set headers for Excel download
+    const formattedDate = (0, moment_timezone_1.default)().tz('Asia/Kolkata').format('DD-MM-YY');
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', 'attachment; filename=leads.xlsx');
+    res.setHeader('Content-Disposition', `attachment; filename=${(_e = user === null || user === void 0 ? void 0 : user.firstName) !== null && _e !== void 0 ? _e : ''} ${(_f = user === null || user === void 0 ? void 0 : user.lastName) !== null && _f !== void 0 ? _f : ''} - ${formattedDate}.xlsx`);
     // ✅ Write the Excel file to response
     yield workbook.xlsx.write(res);
     res.end(); // ✅ Must end the response

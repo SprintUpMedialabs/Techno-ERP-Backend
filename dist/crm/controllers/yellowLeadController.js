@@ -15,20 +15,19 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getYellowLeadsAnalytics = exports.getFilteredYellowLeads = exports.updateYellowLead = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const http_errors_1 = __importDefault(require("http-errors"));
-const constants_1 = require("../../config/constants");
-const parseFilter_1 = require("../helpers/parseFilter");
-const formatResponse_1 = require("../../utils/formatResponse");
-const lead_1 = require("../models/lead");
-const leads_1 = require("../validators/leads");
 const axiosInstance_1 = __importDefault(require("../../api/axiosInstance"));
 const endPoints_1 = require("../../api/endPoints");
 const safeAxios_1 = require("../../api/safeAxios");
-const dropDownMetadataController_1 = require("../../utilityModules/dropdown/dropDownMetadataController");
 const getCurrentLoggedInUser_1 = require("../../auth/utils/getCurrentLoggedInUser");
+const constants_1 = require("../../config/constants");
+const dropDownMetadataController_1 = require("../../utilityModules/dropdown/dropDownMetadataController");
+const formatResponse_1 = require("../../utils/formatResponse");
+const parseFilter_1 = require("../helpers/parseFilter");
+const lead_1 = require("../models/lead");
+const leads_1 = require("../validators/leads");
 const crmController_1 = require("./crmController");
-// import { logFollowUpChange } from './crmController';
 exports.updateYellowLead = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e;
     const updateData = req.body;
     const validation = leads_1.yellowLeadUpdateSchema.safeParse(updateData);
     if (!validation.success) {
@@ -60,19 +59,19 @@ exports.updateYellowLead = (0, express_async_handler_1.default)((req, res) => __
     }
     let existingRemark = (_b = existingLead === null || existingLead === void 0 ? void 0 : existingLead.remarks) === null || _b === void 0 ? void 0 : _b.length;
     let yellowLeadRequestDataRemark = (_c = updateData.remarks) === null || _c === void 0 ? void 0 : _c.length;
-    let existingFollowUpCount = existingLead.yellowLeadsFollowUpCount;
-    let yellowLeadRequestDataFollowUpCount = updateData.yellowLeadsFollowUpCount;
+    let existingFollowUpCount = existingLead.followUpCount;
+    let yellowLeadRequestDataFollowUpCount = updateData.followUpCount;
     const isRemarkChanged = existingRemark !== yellowLeadRequestDataRemark;
     const isFollowUpCountChanged = existingFollowUpCount !== yellowLeadRequestDataFollowUpCount;
     if (isRemarkChanged && !isFollowUpCountChanged) {
-        updateData.yellowLeadsFollowUpCount = existingLead.yellowLeadsFollowUpCount + 1;
+        updateData.followUpCount = existingLead.followUpCount + 1;
     }
     const updatedYellowLead = yield lead_1.LeadMaster.findByIdAndUpdate(updateData._id, updateData, {
         new: true,
         runValidators: true
     });
     const currentLoggedInUser = (0, getCurrentLoggedInUser_1.getCurrentLoggedInUser)(req);
-    const updatedFollowUpCount = (updatedYellowLead === null || updatedYellowLead === void 0 ? void 0 : updatedYellowLead.yellowLeadsFollowUpCount) || 0;
+    const updatedFollowUpCount = (_d = updatedYellowLead === null || updatedYellowLead === void 0 ? void 0 : updatedYellowLead.followUpCount) !== null && _d !== void 0 ? _d : 0;
     if (updatedFollowUpCount > existingFollowUpCount) {
         (0, crmController_1.logFollowUpChange)(existingLead._id, currentLoggedInUser, constants_1.Actions.INCREAMENT);
     }
@@ -90,17 +89,18 @@ exports.updateYellowLead = (0, express_async_handler_1.default)((req, res) => __
         documentId: updatedYellowLead === null || updatedYellowLead === void 0 ? void 0 : updatedYellowLead._id,
         action: constants_1.RequestAction.POST,
         payload: updatedYellowLead,
-        performedBy: (_d = req.data) === null || _d === void 0 ? void 0 : _d.id,
+        performedBy: (_e = req.data) === null || _e === void 0 ? void 0 : _e.id,
         restEndpoint: '/api/update-yellow-lead',
     });
     return (0, formatResponse_1.formatResponse)(res, 200, 'Yellow lead updated successfully', true, updatedYellowLead);
 }));
 exports.getFilteredYellowLeads = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     const { query, search, page, limit, sort } = (0, parseFilter_1.parseFilter)(req);
     query.leadType = constants_1.LeadType.ACTIVE;
     if (search.trim()) {
         query.$and = [
-            ...(query.$and || []), // Preserve existing AND conditions if any
+            ...((_a = query.$and) !== null && _a !== void 0 ? _a : []), // Preserve existing AND conditions if any
             {
                 $or: [
                     { name: { $regex: search, $options: 'i' } }, // Case-insensitive search
