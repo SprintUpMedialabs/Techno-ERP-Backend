@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Course, FinalConversionType, Gender, LeadType } from '../../config/constants';
+import { FinalConversionType, Gender, LeadType } from '../../config/constants';
 import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import { contactNumberSchema, objectIdSchema, requestDateSchema } from '../../validators/commonSchema';
 import { extractLast10Digits, formatAndValidateLeadType, formatDate, splitEmails, toTitleCase } from './formators';
@@ -24,17 +24,15 @@ export const leadMasterSchema = z.object({
   footFall: z.boolean().optional(),   //This is referring to Campus Visit
   finalConversion: z.nativeEnum(FinalConversionType).optional().default(FinalConversionType.NO_FOOTFALL),
   remarks: z.array(z.string().optional()).default([]),
-  leadsFollowUpCount: z.number().optional().default(0),
-  yellowLeadsFollowUpCount: z.number().optional().default(0)
+  followUpCount: z.number().optional().default(0),
 })
 
 export const leadSchema = leadMasterSchema.omit({
   finalConversion: true,
   footFall: true,
-  yellowLeadsFollowUpCount: true
 }).strict();
 
-export const yellowLeadSchema = leadMasterSchema.omit({ leadType: true, leadsFollowUpCount: true, leadTypeModifiedDate: true }).strict();
+export const yellowLeadSchema = leadMasterSchema.omit({ leadType: true, leadTypeModifiedDate: true }).strict();
 
 export const leadRequestSchema = leadSchema.extend({
   date: requestDateSchema,
@@ -89,5 +87,3 @@ export type IUpdateLeadRequestSchema = z.infer<typeof updateLeadRequestSchema>;
 export type ILeadRequest = z.infer<typeof leadRequestSchema>;
 export type IYellowLeadUpdate = z.infer<typeof yellowLeadUpdateSchema>;
 export type ISheetLeadRequest = z.infer<typeof leadSheetSchema>;
-
-
