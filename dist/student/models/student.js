@@ -36,7 +36,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Student = void 0;
+exports.Student = exports.removeExtraInfo = void 0;
 const http_errors_1 = __importDefault(require("http-errors"));
 const mongoose_1 = __importStar(require("mongoose"));
 const academicDetail_1 = require("../../admission/models/academicDetail");
@@ -371,11 +371,16 @@ StudentModel.post('findOneAndUpdate', function (error, doc, next) {
     handleMongooseError(error, next);
 });
 const removeExtraInfo = (_, ret) => {
+    var _a;
+    if ((_a = ret.studentInfo) === null || _a === void 0 ? void 0 : _a.dateOfBirth) {
+        ret.studentInfo.dateOfBirth = (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(ret.studentInfo.dateOfBirth);
+    }
     delete ret.createdAt;
     delete ret.updatedAt;
     delete ret.__v;
     return ret;
 };
-StudentModel.set('toJSON', { transform: removeExtraInfo });
-StudentModel.set('toObject', { transform: removeExtraInfo });
+exports.removeExtraInfo = removeExtraInfo;
+StudentModel.set('toJSON', { transform: exports.removeExtraInfo });
+StudentModel.set('toObject', { transform: exports.removeExtraInfo });
 exports.Student = mongoose_1.default.model(constants_1.COLLECTION_NAMES.STUDENT, StudentModel);

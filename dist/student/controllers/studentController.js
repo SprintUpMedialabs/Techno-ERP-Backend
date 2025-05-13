@@ -273,13 +273,40 @@ const createSemesterFee = (id, semesterNumber, feesCourse) => {
 exports.getStudentDataBySearch = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const page = parseInt(req.body.page) || 1;
     const limit = parseInt(req.body.limit) || 10;
+    const { academicYear, courseCode, courseYear } = req.body;
+    const matchStage = {};
+    if (courseCode)
+        matchStage.courseCode = courseCode;
+    if (academicYear && courseYear) {
+        matchStage.semester = {
+            $elemMatch: {
+                courseYear,
+                academicYear,
+            },
+        };
+    }
+    else if (academicYear) {
+        matchStage.semester = {
+            $elemMatch: {
+                academicYear,
+            },
+        };
+    }
+    else if (courseYear) {
+        matchStage.semester = {
+            $elemMatch: {
+                courseYear,
+            },
+        };
+    }
     if (page < 1 || limit < 1) {
         throw (0, http_errors_1.default)(400, 'Page and limit must be positive integers');
     }
+    // console.log("Match stage : ", matchStage);
     const skip = (page - 1) * limit;
-    // Fetch students with pagination
     const [students, total] = yield Promise.all([
         student_1.Student.aggregate([
+            { $match: matchStage },
             { $skip: skip },
             { $limit: limit },
             {
@@ -290,14 +317,33 @@ exports.getStudentDataBySearch = (0, express_async_handler_1.default)((req, res)
                     fatherName: '$studentInfo.fatherName',
                     fatherPhoneNumber: '$studentInfo.fatherPhoneNumber',
                     courseName: 1,
+                    courseCode: 1,
                     currentAcademicYear: 1,
                     currentSemester: 1,
+                    semesterNumber: {
+                        $let: {
+                            vars: {
+                                matchedSemester: {
+                                    $filter: {
+                                        input: '$semester',
+                                        as: 'sem',
+                                        cond: {
+                                            $and: [
+                                                academicYear ? { $eq: ['$$sem.academicYear', academicYear] } : {},
+                                                courseYear ? { $eq: ['$$sem.courseYear', courseYear] } : {},
+                                            ].filter(Boolean),
+                                        },
+                                    },
+                                },
+                            },
+                            in: { $arrayElemAt: ['$$matchedSemester.semesterNumber', 0] },
+                        },
+                    },
                 },
-            },
+            }
         ]),
-        student_1.Student.countDocuments()
+        student_1.Student.countDocuments(matchStage),
     ]);
-    // Send response
     return (0, formatResponse_1.formatResponse)(res, 200, 'Students information fetched successfully', true, {
         students,
         pagination: {
@@ -320,7 +366,8 @@ exports.getStudentDataById = (0, express_async_handler_1.default)((req, res) => 
         throw (0, http_errors_1.default)(404, 'Student not found');
     }
     const responseData = yield buildStudentResponseData(student);
-    return (0, formatResponse_1.formatResponse)(res, 200, 'ok', true, responseData);
+    const cleanedData = (0, student_1.removeExtraInfo)(null, responseData);
+    return (0, formatResponse_1.formatResponse)(res, 200, 'ok', true, cleanedData);
 }));
 exports.updateStudentDataById = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const validation = studentSchema_1.updateStudentDetailsRequestSchema.safeParse(req.body);
@@ -439,7 +486,7 @@ exports.updateStudentDocumentsById = (0, express_async_handler_1.default)((req, 
 const buildStudentResponseData = (student) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const { departmentMetaDataId } = student, rest = __rest(student, ["departmentMetaDataId"]);
-    const course = yield course_1.Course.findById(student.courseId).lean();
+    const course = yield course_1.Course.findById(student.courseId);
     if (!course) {
         throw (0, http_errors_1.default)(404, 'Course does not exist');
     }
