@@ -302,7 +302,6 @@ exports.getStudentDataBySearch = (0, express_async_handler_1.default)((req, res)
     if (page < 1 || limit < 1) {
         throw (0, http_errors_1.default)(400, 'Page and limit must be positive integers');
     }
-    // console.log("Match stage : ", matchStage);
     const skip = (page - 1) * limit;
     const [students, total] = yield Promise.all([
         student_1.Student.aggregate([
@@ -370,20 +369,20 @@ exports.getStudentDataById = (0, express_async_handler_1.default)((req, res) => 
     return (0, formatResponse_1.formatResponse)(res, 200, 'ok', true, cleanedData);
 }));
 exports.updateStudentDataById = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     const validation = studentSchema_1.updateStudentDetailsRequestSchema.safeParse(req.body);
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }
-    const _a = validation.data, { id } = _a, studentDetails = __rest(_a, ["id"]);
+    const _b = validation.data, { id } = _b, studentDetails = __rest(_b, ["id"]);
     const updateFields = {};
     for (const [key, value] of Object.entries(studentDetails)) {
         updateFields[`studentInfo.${key}`] = value;
     }
     const data = yield student_1.Student.findByIdAndUpdate(id, { $set: updateFields }, { runValidators: true });
     // Refetch and populate to return same structure as getStudentDataById
-    const updatedStudent = yield student_1.Student.findById(id)
-        .populate({ path: 'departmentMetaDataId', select: 'departmentName' })
-        .lean();
+    const updatedStudent = (_a = (yield student_1.Student.findById(id)
+        .populate({ path: 'departmentMetaDataId', select: 'departmentName' }))) === null || _a === void 0 ? void 0 : _a.toObject();
     if (!updatedStudent) {
         throw (0, http_errors_1.default)(404, 'Student not found');
     }
@@ -391,11 +390,12 @@ exports.updateStudentDataById = (0, express_async_handler_1.default)((req, res) 
     return (0, formatResponse_1.formatResponse)(res, 200, 'Student details updated successfully', true, responseData);
 }));
 exports.updateStudentPhysicalDocumentById = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
     const validation = physicalDocumentNoteSchema_1.updateStudentPhysicalDocumentRequestSchema.safeParse(req.body);
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }
-    const _a = validation.data, { id } = _a, physicalDocumentList = __rest(_a, ["id"]);
+    const _c = validation.data, { id } = _c, physicalDocumentList = __rest(_c, ["id"]);
     const isStudentExist = yield student_1.Student.exists({ _id: id, 'studentInfo.physicalDocumentNote.type': physicalDocumentList.type });
     let updatedStudent;
     if (isStudentExist) {
@@ -403,14 +403,14 @@ exports.updateStudentPhysicalDocumentById = (0, express_async_handler_1.default)
         for (const [key, value] of Object.entries(physicalDocumentList)) {
             updateFields[`studentInfo.physicalDocumentNote.$[elem].${key}`] = value;
         }
-        updatedStudent = yield student_1.Student.findByIdAndUpdate(id, { $set: Object.assign({}, updateFields) }, {
+        updatedStudent = (_a = (yield student_1.Student.findByIdAndUpdate(id, { $set: Object.assign({}, updateFields) }, {
             new: true,
             runValidators: true,
             arrayFilters: [{ 'elem.type': physicalDocumentList.type }]
-        }).populate({ path: 'departmentMetaDataId', select: 'departmentName' }).lean();
+        }).populate({ path: 'departmentMetaDataId', select: 'departmentName' }))) === null || _a === void 0 ? void 0 : _a.toObject();
     }
     else {
-        updatedStudent = yield student_1.Student.findByIdAndUpdate(id, { $push: { 'studentInfo.physicalDocumentNote': physicalDocumentList } }, { new: true, runValidators: true }).populate({ path: 'departmentMetaDataId', select: 'departmentName' }).lean();
+        updatedStudent = (_b = (yield student_1.Student.findByIdAndUpdate(id, { $push: { 'studentInfo.physicalDocumentNote': physicalDocumentList } }, { new: true, runValidators: true }).populate({ path: 'departmentMetaDataId', select: 'departmentName' }))) === null || _b === void 0 ? void 0 : _b.toObject();
     }
     if (!updatedStudent) {
         throw (0, http_errors_1.default)(404, 'Student not found');
