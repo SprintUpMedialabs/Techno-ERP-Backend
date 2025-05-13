@@ -209,26 +209,25 @@ export const exportData = expressAsyncHandler(async (req: AuthenticatedRequest, 
 
   // Define headers
   worksheet.columns = [
-    { header: 'Date', key: 'date', width: 15 },
-    { header: 'Name', key: 'name', width: 20 },
-    { header: 'Phone Number', key: 'phoneNumber', width: 15 },
-    { header: 'Alt Phone Number', key: 'altPhoneNumber', width: 15 },
-    { header: 'Email', key: 'email', width: 25 },
-    { header: 'Course', key: 'course', width: 20 },
-    { header: 'Lead Type', key: 'leadType', width: 15 },
-    { header: 'Remarks', key: 'remarks', width: 30 },
-    { header: 'Area', key: 'area', width: 20 },
-    { header: 'City', key: 'city', width: 20 },
-    { header: 'Final Conversion', key: 'finalConversion', width: 20 },
-    { header: 'Gender', key: 'gender', width: 10 },
-    { header: 'School Name', key: 'schoolName', width: 20 },
-    { header: 'Lead Type Modified Date', key: 'leadTypeModifiedDate', width: 20 },
-    { header: 'Next Due Date', key: 'nextDueDate', width: 20 },
-    { header: 'Foot Fall', key: 'footFall', width: 10 },
-    { header: 'Follow Up Count', key: 'followUpCount', width: 10 },
-    { header: 'Assigned To', key: 'assignedTo', width: 30 },
+    { header: 'Date', key: 'date' },
+    { header: 'Name', key: 'name' },
+    { header: 'Phone Number', key: 'phoneNumber' },
+    { header: 'Alt Phone Number', key: 'altPhoneNumber' },
+    { header: 'Email', key: 'email' },
+    { header: 'Course', key: 'course' },
+    { header: 'Lead Type', key: 'leadType' },
+    { header: 'Remarks', key: 'remarks' },
+    { header: 'Area', key: 'area' },
+    { header: 'City', key: 'city' },
+    { header: 'Final Conversion', key: 'finalConversion' },
+    { header: 'Gender', key: 'gender' },
+    { header: 'School Name', key: 'schoolName' },
+    { header: 'Lead Type Modified Date', key: 'leadTypeModifiedDate' },
+    { header: 'Next Due Date', key: 'nextDueDate' },
+    { header: 'Foot Fall', key: 'footFall' },
+    { header: 'Follow Up Count', key: 'followUpCount' },
+    { header: 'Assigned To', key: 'assignedTo' },
   ];
-  
 
   const leads = await LeadMaster.find({
     assignedTo: { $in: [req.data?.id] }
@@ -264,12 +263,22 @@ export const exportData = expressAsyncHandler(async (req: AuthenticatedRequest, 
       // source: lead.source || '',
     });
   });
+
+  worksheet.columns.forEach(column => {
+    let maxLength = 10;
+    column.eachCell?.({ includeEmpty: true }, cell => {
+      const cellValue = cell.text ?? '';
+      maxLength = Math.max(maxLength, cellValue.length);
+    });
+    column.width = maxLength + 2;
+  });
+
   const formattedDate = moment().tz('Asia/Kolkata').format('DD-MM-YY');
 
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
   res.setHeader(
     'Content-Disposition',
-    `attachment; filename=${user?.firstName ?? ''} ${user?.lastName ?? ''} - ${formattedDate}.xlsx`
+    `attachment; filename="${user?.firstName ?? ''} ${user?.lastName ?? ''} - ${formattedDate}.xlsx"`
   );
 
   // ✅ Write the Excel file to response
