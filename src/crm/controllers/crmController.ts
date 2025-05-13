@@ -7,7 +7,7 @@ import { safeAxiosPost } from '../../api/safeAxios';
 import { User } from '../../auth/models/user';
 import { getCurrentLoggedInUser } from '../../auth/utils/getCurrentLoggedInUser';
 import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
-import { Actions, DropDownType, LeadType, RequestAction } from '../../config/constants';
+import { Actions, DropDownType, LeadType, RequestAction, UserRoles } from '../../config/constants';
 import { updateOnlyOneValueInDropDown } from '../../utilityModules/dropdown/dropDownMetadataController';
 import { formatResponse } from '../../utils/formatResponse';
 import { readFromGoogleSheet } from '../helpers/googleSheetOperations';
@@ -202,13 +202,18 @@ export const logFollowUpChange = (leadId: any, userId: any, action: Actions) => 
 
 
 export const exportData = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  
+  const roles = req.data?.roles || [];
   const user = await User.findById(req.data?.id);
+
+  const isAdminOrLead = roles.includes(UserRoles.ADMIN) || roles.includes(UserRoles.LEAD_MARKETING);
+
   const marketingSheet = user?.marketingSheet;
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet(marketingSheet?.[0]?.name ?? 'Leads');
 
   // Define headers
-  worksheet.columns = [
+  const baseColumns = [
     { header: 'Date', key: 'date' },
     { header: 'Name', key: 'name' },
     { header: 'Phone Number', key: 'phoneNumber' },
@@ -226,9 +231,13 @@ export const exportData = expressAsyncHandler(async (req: AuthenticatedRequest, 
     { header: 'Next Due Date', key: 'nextDueDate' },
     { header: 'Foot Fall', key: 'footFall' },
     { header: 'Follow Up Count', key: 'followUpCount' },
-    { header: 'Assigned To', key: 'assignedTo' },
   ];
 
+  if (isAdminOrLead) {
+    baseColumns.push({ header: 'Assigned To', key: 'assignedTo' });
+  }
+
+  worksheet.columns = baseColumns;
   const leads = await LeadMaster.find({
     assignedTo: { $in: [req.data?.id] }
   }).populate({
@@ -237,7 +246,7 @@ export const exportData = expressAsyncHandler(async (req: AuthenticatedRequest, 
   });
 
   leads.forEach(lead => {
-    worksheet.addRow({
+    const rowData: any = {
       date: lead.date ? convertToDDMMYYYY(lead.date) : '',
       name: lead.name || '',
       phoneNumber: lead.phoneNumber || '',
@@ -255,13 +264,17 @@ export const exportData = expressAsyncHandler(async (req: AuthenticatedRequest, 
       nextDueDate: lead.nextDueDate ? convertToDDMMYYYY(lead.nextDueDate) : '',
       footFall: lead.footFall ? 'Yes' : 'No',
       followUpCount: lead.followUpCount || 0,
-      assignedTo: Array.isArray(lead.assignedTo)
-        ? lead.assignedTo
-          .map((user: any) => `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim())
-          .join(', ')
-        : '',
-      // source: lead.source || '',
-    });
+    };
+
+    if (isAdminOrLead) {
+      rowData.assignedTo = Array.isArray(lead.assignedTo)
+        ? lead.assignedTo.map((user: any) =>
+            `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim()
+          ).join(', ')
+        : '';
+    }
+
+    worksheet.addRow(rowData);
   });
 
   worksheet.columns.forEach(column => {
