@@ -30,13 +30,15 @@ export const getEnquiryData = expressAsyncHandler(functionLevelLogger(async (req
     ]
   };
 
-  // Validate applicationStatus
   if (applicationStatus) {
     const validStatuses = Object.values(ApplicationStatus);
-    if (!validStatuses.includes(applicationStatus)) {
-      throw createHttpError(400, 'Invalid application status');
+    //Ensure its an array
+    const statuses = Array.isArray(applicationStatus) ? applicationStatus : [applicationStatus];
+    const isValid = statuses.every(status => validStatuses.includes(status));
+    if (!isValid) {
+      throw createHttpError(400, 'One or more invalid application statuses');
     }
-    filter.applicationStatus = applicationStatus;
+    filter.applicationStatus = { $in: statuses };
   }
 
   const enquiries = await Enquiry.find(filter)
