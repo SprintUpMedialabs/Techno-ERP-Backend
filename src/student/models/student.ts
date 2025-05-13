@@ -356,7 +356,21 @@ StudentModel.post('findOneAndUpdate', function (error: any, doc: any, next: Func
 export const removeExtraInfo = (_: any, ret: any) => {
     if (ret.studentInfo?.dateOfBirth) {
         ret.studentInfo.dateOfBirth = convertToDDMMYYYY(ret.studentInfo.dateOfBirth);
-      }
+    }
+
+    if (Array.isArray(ret.studentInfo?.documents)) {
+        ret.studentInfo.documents = ret.studentInfo.documents.map((doc: any) => ({
+            ...doc,
+            dueBy: doc.dueBy ? convertToDDMMYYYY(doc.dueBy) : doc.dueBy,
+        }));
+    }
+
+    if (Array.isArray(ret.studentInfo?.physicalDocumentNote)) {
+        ret.studentInfo.physicalDocumentNote = ret.studentInfo.physicalDocumentNote.map((note: any) => ({
+            ...note,
+            dueBy: note.dueBy ? convertToDDMMYYYY(note.dueBy) : note.dueBy,
+        }));
+    }
     delete ret.createdAt;
     delete ret.updatedAt;
     delete ret.__v;
