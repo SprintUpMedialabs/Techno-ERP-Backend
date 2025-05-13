@@ -313,8 +313,6 @@ export const getStudentDataBySearch = expressAsyncHandler(async (req: Authentica
     throw createHttpError(400, 'Page and limit must be positive integers');
   }
 
-  // console.log("Match stage : ", matchStage);
-
   const skip = (page - 1) * limit;
 
   const [students, total] = await Promise.all([
@@ -409,9 +407,9 @@ export const updateStudentDataById = expressAsyncHandler(async (req: Authenticat
   );
 
   // Refetch and populate to return same structure as getStudentDataById
-  const updatedStudent = await Student.findById(id)
-    .populate({ path: 'departmentMetaDataId', select: 'departmentName' })
-    .lean();
+  const updatedStudent = (await Student.findById(id)
+    .populate({ path: 'departmentMetaDataId', select: 'departmentName' }))
+    ?.toObject();
 
   if (!updatedStudent) {
     throw createHttpError(404, 'Student not found');
@@ -439,7 +437,7 @@ export const updateStudentPhysicalDocumentById = expressAsyncHandler(async (req:
       updateFields[`studentInfo.physicalDocumentNote.$[elem].${key}`] = value;
     }
 
-    updatedStudent = await Student.findByIdAndUpdate(
+    updatedStudent = (await Student.findByIdAndUpdate(
       id,
       { $set: { ...updateFields } },
       {
@@ -447,13 +445,13 @@ export const updateStudentPhysicalDocumentById = expressAsyncHandler(async (req:
         runValidators: true,
         arrayFilters: [{ 'elem.type': physicalDocumentList.type }]
       }
-    ).populate({ path: 'departmentMetaDataId', select: 'departmentName' }).lean();
+    ).populate({ path: 'departmentMetaDataId', select: 'departmentName' }))?.toObject();
   } else {
-    updatedStudent = await Student.findByIdAndUpdate(
+    updatedStudent = (await Student.findByIdAndUpdate(
       id,
       { $push: { 'studentInfo.physicalDocumentNote': physicalDocumentList } },
       { new: true, runValidators: true }
-    ).populate({ path: 'departmentMetaDataId', select: 'departmentName' }).lean();
+    ).populate({ path: 'departmentMetaDataId', select: 'departmentName' }))?.toObject();
   }
 
   if (!updatedStudent) {
