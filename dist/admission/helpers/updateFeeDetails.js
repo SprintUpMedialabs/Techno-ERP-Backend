@@ -65,6 +65,9 @@ const updateFeeDetails = (applicationStatusList, studentFeesData) => __awaiter(v
     if (validation.data.reference != null) {
         enquiryUpdatePayload.reference = validation.data.reference;
     }
+    if (validation.data.remarks != null) {
+        enquiryUpdatePayload.remarks = validation.data.remarks;
+    }
     if (Object.keys(enquiryUpdatePayload).length > 0) {
         yield enquiry_1.Enquiry.findByIdAndUpdate(enquiry._id, {
             $set: enquiryUpdatePayload
