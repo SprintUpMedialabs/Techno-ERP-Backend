@@ -371,9 +371,15 @@ StudentModel.post('findOneAndUpdate', function (error, doc, next) {
     handleMongooseError(error, next);
 });
 const removeExtraInfo = (_, ret) => {
-    var _a;
+    var _a, _b, _c;
     if ((_a = ret.studentInfo) === null || _a === void 0 ? void 0 : _a.dateOfBirth) {
         ret.studentInfo.dateOfBirth = (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(ret.studentInfo.dateOfBirth);
+    }
+    if (Array.isArray((_b = ret.studentInfo) === null || _b === void 0 ? void 0 : _b.documents)) {
+        ret.studentInfo.documents = ret.studentInfo.documents.map((doc) => (Object.assign(Object.assign({}, doc), { dueBy: doc.dueBy ? (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(doc.dueBy) : doc.dueBy })));
+    }
+    if (Array.isArray((_c = ret.studentInfo) === null || _c === void 0 ? void 0 : _c.physicalDocumentNote)) {
+        ret.studentInfo.physicalDocumentNote = ret.studentInfo.physicalDocumentNote.map((note) => (Object.assign(Object.assign({}, note), { dueBy: note.dueBy ? (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(note.dueBy) : note.dueBy })));
     }
     delete ret.createdAt;
     delete ret.updatedAt;
