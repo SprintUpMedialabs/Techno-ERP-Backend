@@ -10,7 +10,7 @@ import { ADMISSION, DocumentType, FeeStatus, FinanceFeeSchedule, FinanceFeeType 
 import { Course } from "../../course/models/course";
 import { getCurrentAcademicYear } from "../../course/utils/getCurrentAcademicYear";
 import { formatResponse } from "../../utils/formatResponse";
-import { Student } from "../models/student";
+import { removeExtraInfo, Student } from "../models/student";
 import { IAttendanceSchema, ICreateStudentSchema, IExamSchema, updateStudentDetailsRequestSchema } from "../validators/studentSchema";
 import { singleDocumentSchema } from "../../admission/validators/singleDocumentSchema";
 import { uploadToS3 } from "../../config/s3Upload";
@@ -281,15 +281,45 @@ export const getStudentDataBySearch = expressAsyncHandler(async (req: Authentica
   const page = parseInt(req.body.page) || 1;
   const limit = parseInt(req.body.limit) || 10;
 
+  const { academicYear, courseCode, courseYear } = req.body;
+
+  const matchStage: Record<string, any> = {};
+
+  if (courseCode) 
+    matchStage.courseCode = courseCode;
+
+  if (academicYear && courseYear) {
+    matchStage.semester = {
+      $elemMatch: {
+        courseYear,
+        academicYear,
+      },
+    };
+  } else if (academicYear) {
+    matchStage.semester = {
+      $elemMatch: {
+        academicYear,
+      },
+    };
+  } else if (courseYear) {
+    matchStage.semester = {
+      $elemMatch: {
+        courseYear,
+      },
+    };
+  }
+
   if (page < 1 || limit < 1) {
     throw createHttpError(400, 'Page and limit must be positive integers');
   }
 
+  // console.log("Match stage : ", matchStage);
+
   const skip = (page - 1) * limit;
 
-  // Fetch students with pagination
   const [students, total] = await Promise.all([
     Student.aggregate([
+      { $match: matchStage },
       { $skip: skip },
       { $limit: limit },
       {
@@ -300,15 +330,34 @@ export const getStudentDataBySearch = expressAsyncHandler(async (req: Authentica
           fatherName: '$studentInfo.fatherName',
           fatherPhoneNumber: '$studentInfo.fatherPhoneNumber',
           courseName: 1,
+          courseCode: 1,
           currentAcademicYear: 1,
           currentSemester: 1,
+          semesterNumber: {
+            $let: {
+              vars: {
+                matchedSemester: {
+                  $filter: {
+                    input: '$semester',
+                    as: 'sem',
+                    cond: {
+                      $and: [
+                        academicYear ? { $eq: ['$$sem.academicYear', academicYear] } : {},
+                        courseYear ? { $eq: ['$$sem.courseYear', courseYear] } : {},
+                      ].filter(Boolean),
+                    },
+                  },
+                },
+              },
+              in: { $arrayElemAt: ['$$matchedSemester.semesterNumber', 0] },
+            },
+          },
         },
-      },
+      }
     ]),
-    Student.countDocuments()
+    Student.countDocuments(matchStage),
   ]);
 
-  // Send response
   return formatResponse(res, 200, 'Students information fetched successfully', true, {
     students,
     pagination: {
@@ -336,7 +385,8 @@ export const getStudentDataById = expressAsyncHandler(async (req: AuthenticatedR
   }
 
   const responseData = await buildStudentResponseData(student);
-  return formatResponse(res, 200, 'ok', true, responseData);
+  const cleanedData = removeExtraInfo(null, responseData);
+  return formatResponse(res, 200, 'ok', true, cleanedData);
 });
 
 
@@ -507,7 +557,7 @@ export const updateStudentDocumentsById = expressAsyncHandler(async (req: Authen
 
 const buildStudentResponseData = async (student: any) => {
   const { departmentMetaDataId, ...rest } = student;
-  const course = await Course.findById(student.courseId).lean();
+  const course = await Course.findById(student.courseId);
   if (!course) {
     throw createHttpError(404, 'Course does not exist');
   }
