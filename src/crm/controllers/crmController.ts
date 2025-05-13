@@ -19,6 +19,7 @@ import { normaliseText } from '../validators/formators';
 import ExcelJS from 'exceljs';
 import { IUpdateLeadRequestSchema, updateLeadRequestSchema } from '../validators/leads';
 import { convertToDDMMYYYY } from '../../utils/convertDateToFormatedDate';
+import moment from 'moment-timezone';
 
 export const uploadData = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const user = await User.findById(req.data?.id);
@@ -131,14 +132,14 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
     let existingRemark = existingLead.remarks?.length;
     let leadRequestDataRemark = leadRequestData.remarks?.length;
 
-    let existingFollowUpCount = existingLead.leadsFollowUpCount;
-    let leadRequestDataFollowUpCount = leadRequestData.leadsFollowUpCount;
+    let existingFollowUpCount = existingLead.followUpCount;
+    let leadRequestDataFollowUpCount = leadRequestData.followUpCount;
 
     const isRemarkChanged = existingRemark !== leadRequestDataRemark;
     const isFollowUpCountChanged = existingFollowUpCount !== leadRequestDataFollowUpCount;
 
     if (isRemarkChanged && !isFollowUpCountChanged) {
-      leadRequestData.leadsFollowUpCount = existingLead.leadsFollowUpCount + 1;
+      leadRequestData.followUpCount = existingLead.followUpCount + 1;
     }
 
     if (leadRequestData.leadType && existingLead.leadType != leadRequestData.leadType) {
@@ -156,7 +157,7 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
 
     const currentLoggedInUser = getCurrentLoggedInUser(req);
 
-    const updatedFollowUpCount = updatedData?.leadsFollowUpCount || 0;
+    const updatedFollowUpCount = updatedData?.followUpCount ?? 0;
 
 
     if (updatedFollowUpCount > existingFollowUpCount) {
@@ -226,8 +227,7 @@ export const exportData = expressAsyncHandler(async (req: AuthenticatedRequest, 
     { header: 'Next Due Date', key: 'nextDueDate', width: 20 },
     { header: 'Foot Fall', key: 'footFall', width: 10 },
     { header: 'Final Conversion', key: 'finalConversion', width: 20 },
-    { header: 'Leads Follow Up Count', key: 'leadsFollowUpCount', width: 10 },
-    { header: 'Yellow Leads Follow Up Count', key: 'yellowLeadsFollowUpCount', width: 10 },
+    { header: 'Follow Up Count', key: 'followUpCount', width: 10 },
   ];
 
   const leads = await LeadMaster.find({
@@ -240,35 +240,37 @@ export const exportData = expressAsyncHandler(async (req: AuthenticatedRequest, 
   leads.forEach(lead => {
     worksheet.addRow({
       date: lead.date ? convertToDDMMYYYY(lead.date) : '',
-      source: lead.source || '',
-      schoolName: lead.schoolName || '',
       name: lead.name || '',
       phoneNumber: lead.phoneNumber || '',
       altPhoneNumber: lead.altPhoneNumber || '',
       email: lead.email || '',
-      gender: lead.gender || '',
+      course: lead.course || '',
+      leadType: lead.leadType || '',
+      remarks: Array.isArray(lead.remarks) ? lead.remarks.join('\n') : '',
       area: lead.area || '',
       city: lead.city || '',
-      course: lead.course || '',
+      finalConversion: lead.finalConversion || '',
+      gender: lead.gender || '',
+      schoolName: lead.schoolName || '',
+      leadTypeModifiedDate: lead.leadTypeModifiedDate ? convertToDDMMYYYY(lead.leadTypeModifiedDate) : '',
+      nextDueDate: lead.nextDueDate ? convertToDDMMYYYY(lead.nextDueDate) : '',
+      footFall: lead.footFall ? 'Yes' : 'No',
+      followUpCount: lead.followUpCount || 0,
       assignedTo: Array.isArray(lead.assignedTo)
         ? lead.assignedTo
           .map((user: any) => `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim())
           .join(', ')
         : '',
-      leadType: lead.leadType || '',
-      remarks: Array.isArray(lead.remarks) ? lead.remarks.join('\n') : '',
-      leadTypeModifiedDate: lead.leadTypeModifiedDate ? convertToDDMMYYYY(lead.leadTypeModifiedDate) : '',
-      nextDueDate: lead.nextDueDate ? convertToDDMMYYYY(lead.nextDueDate) : '',
-      footFall: lead.footFall ? 'Yes' : 'No',
-      finalConversion: lead.finalConversion || '',
-      leadsFollowUpCount: lead.leadsFollowUpCount || 0,
-      yellowLeadsFollowUpCount: lead.yellowLeadsFollowUpCount || 0
+      // source: lead.source || '',
     });
   });
+  const formattedDate = moment().tz('Asia/Kolkata').format('DD-MM-YY');
 
-  // Set headers for Excel download
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-  res.setHeader('Content-Disposition', 'attachment; filename=leads.xlsx');
+  res.setHeader(
+    'Content-Disposition',
+    `attachment; filename=${user?.firstName ?? ''} ${user?.lastName ?? ''} - ${formattedDate}.xlsx`
+  );
 
   // ✅ Write the Excel file to response
   await workbook.xlsx.write(res);
