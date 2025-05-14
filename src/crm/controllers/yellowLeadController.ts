@@ -42,10 +42,10 @@ export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedReq
 
   // If the campus visit is no, then the final conversion can not be changed.
   if ((updateData.footFall ?? existingLead.footFall) === false) {
-    const allowedConversions = [FinalConversionType.NOT_INTERESTED, FinalConversionType.UNCONFIRMED];
-    if (updateData.finalConversion &&!allowedConversions.includes(updateData.finalConversion)) {
-      throw createHttpError(400, 'If campus visit is no, final conversion must be either DEAD or UNCONFIRMED.');
-    } 
+    const allowedConversions = [FinalConversionType.NOT_INTERESTED, FinalConversionType.NO_FOOTFALL];
+    if (updateData.finalConversion && !allowedConversions.includes(updateData.finalConversion)) {
+      throw createHttpError(400, 'If campus visit is no, final conversion must be either No Footfall or Not Interested.');
+    }
   } else if (updateData.finalConversion === FinalConversionType.NO_FOOTFALL) {
     // if footfall is yes, then final conversion can not be no footfall.
     throw createHttpError(400, 'Final conversion can not be no footfall if campus visit is yes.');
@@ -54,12 +54,12 @@ export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedReq
   let existingRemark = existingLead?.remarks?.length;
   let yellowLeadRequestDataRemark = updateData.remarks?.length;
 
-  let existingFollowUpCount = existingLead.followUpCount;  
+  let existingFollowUpCount = existingLead.followUpCount;
   let yellowLeadRequestDataFollowUpCount = updateData.followUpCount;
 
   const isRemarkChanged = existingRemark !== yellowLeadRequestDataRemark;
   const isFollowUpCountChanged = existingFollowUpCount !== yellowLeadRequestDataFollowUpCount;
-  
+
   if (isRemarkChanged && !isFollowUpCountChanged) {
     updateData.followUpCount = existingLead.followUpCount + 1;
   }
@@ -74,16 +74,14 @@ export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedReq
   const updatedFollowUpCount = updatedYellowLead?.followUpCount ?? 0;
 
 
-  if(updatedFollowUpCount  > existingFollowUpCount)
-  {
+  if (updatedFollowUpCount > existingFollowUpCount) {
     logFollowUpChange(existingLead._id, currentLoggedInUser, Actions.INCREAMENT)
   }
-  else if(updatedFollowUpCount < existingFollowUpCount)
-  {
+  else if (updatedFollowUpCount < existingFollowUpCount) {
     logFollowUpChange(existingLead._id, currentLoggedInUser, Actions.DECREAMENT)
   }
 
-  
+
   updateOnlyOneValueInDropDown(DropDownType.FIX_MARKETING_CITY, updatedYellowLead?.city);
   updateOnlyOneValueInDropDown(DropDownType.MARKETING_CITY, updatedYellowLead?.city);
   updateOnlyOneValueInDropDown(DropDownType.FIX_MARKETING_COURSE_CODE, updatedYellowLead?.course);
