@@ -23,7 +23,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.fetchInstructors = exports.getDepartmentMetaData = exports.updateDepartmentMetaData = exports.createDepartmentMetaData = void 0;
+exports.getHODInformationUsingDepartmentID = exports.fetchInstructors = exports.getDepartmentMetaData = exports.updateDepartmentMetaData = exports.createDepartmentMetaData = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const departmentSchema_1 = require("../validators/departmentSchema");
 const http_errors_1 = __importDefault(require("http-errors"));
@@ -31,12 +31,19 @@ const department_1 = require("../models/department");
 const formatResponse_1 = require("../../utils/formatResponse");
 const user_1 = require("../../auth/models/user");
 exports.createDepartmentMetaData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     const departmentMetaData = req.body;
     const validation = departmentSchema_1.departmentMetaDataSchema.safeParse(departmentMetaData);
+    const existingDepartment = yield department_1.DepartmentMetaData.findOne({ departmentName: (_a = validation.data) === null || _a === void 0 ? void 0 : _a.departmentName });
     if (!validation.success)
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
-    // DTODO (ICEBOXED) : Do we want to keep check here : Check is there any existing course with incoming course name, set ending year there and then create new one.
-    const department = yield department_1.DepartmentMetaData.create(validation.data);
+    let department;
+    if (existingDepartment) {
+        department = yield department_1.DepartmentMetaData.findByIdAndUpdate(existingDepartment._id, validation.data, { new: true, runValidators: true });
+    }
+    else {
+        department = yield department_1.DepartmentMetaData.create(validation.data);
+    }
     return (0, formatResponse_1.formatResponse)(res, 201, 'Department Meta Data added successfully', true, department);
 }));
 exports.updateDepartmentMetaData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -52,15 +59,7 @@ exports.updateDepartmentMetaData = (0, express_async_handler_1.default)((req, re
     return (0, formatResponse_1.formatResponse)(res, 200, 'Department Meta Data updated successfully', true, updatedDepartmentMetaData);
 }));
 exports.getDepartmentMetaData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    // DTODO (DONE) : send only active department HOD 
-    const currentYear = new Date().getFullYear();
-    const departments = yield department_1.DepartmentMetaData.find({
-        $or: [
-            { endingYear: { $exists: false } }, //If ending year is not present at all, this will consider it as the active dept
-            { endingYear: null }, //Field present but null value is there
-            { endingYear: { $gt: currentYear } } //Field present but has value greater than current year which means its a active dept
-        ]
-    });
+    const departments = yield department_1.DepartmentMetaData.find();
     const formattedDepartments = departments.map(dept => {
         const _a = dept.toObject(), { _id } = _a, deptInfo = __rest(_a, ["_id"]);
         return Object.assign({ departmentMetaDataId: _id }, deptInfo);
@@ -89,3 +88,13 @@ exports.fetchInstructors = (0, express_async_handler_1.default)((req, res) => __
     console.log("Filtered Instructors are : ", filteredInstructors);
     return (0, formatResponse_1.formatResponse)(res, 200, 'Instructors fetched successfully', true, filteredInstructors);
 }));
+const getHODInformationUsingDepartmentID = (departmentMetaDataID) => __awaiter(void 0, void 0, void 0, function* () {
+    const department = yield department_1.DepartmentMetaData.findById(departmentMetaDataID);
+    const hodInfo = yield user_1.User.findById(department === null || department === void 0 ? void 0 : department.departmentHODId);
+    return {
+        departmentName: department === null || department === void 0 ? void 0 : department.departmentName,
+        departmentHODName: hodInfo.firstName + " " + hodInfo.lastName,
+        departmentHODEmail: hodInfo.email
+    };
+});
+exports.getHODInformationUsingDepartmentID = getHODInformationUsingDepartmentID;

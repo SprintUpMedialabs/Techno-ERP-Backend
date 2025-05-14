@@ -46,6 +46,7 @@ const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDa
 const courseModelSchema = new mongoose_1.Schema({
     courseName: { type: String, required: true },
     courseCode: { type: String, required: true },
+    courseFullName: { type: String, required: true },
     collegeName: { type: String, required: true },
     departmentMetaDataId: {
         type: mongoose_1.Schema.Types.ObjectId,
@@ -83,6 +84,7 @@ courseModelSchema.post('save', function (error, doc, next) {
 courseModelSchema.post('findOneAndUpdate', function (error, doc, next) {
     handleMongooseError(error, next);
 });
+// DTODO: do you think that we will get this actualDate and plannedDate in the response?
 const transformDates = (_, ret) => {
     ['actualDate', 'plannedDate'].forEach((key) => {
         if (ret[key]) {

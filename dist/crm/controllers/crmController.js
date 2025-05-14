@@ -12,21 +12,26 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateData = exports.getAllLeadAnalytics = exports.getFilteredLeadData = exports.uploadData = void 0;
+exports.exportData = exports.logFollowUpChange = exports.updateData = exports.getAllLeadAnalytics = exports.getFilteredLeadData = exports.uploadData = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const http_errors_1 = __importDefault(require("http-errors"));
 const axiosInstance_1 = __importDefault(require("../../api/axiosInstance"));
 const endPoints_1 = require("../../api/endPoints");
 const safeAxios_1 = require("../../api/safeAxios");
+const user_1 = require("../../auth/models/user");
+const getCurrentLoggedInUser_1 = require("../../auth/utils/getCurrentLoggedInUser");
 const constants_1 = require("../../config/constants");
+const dropDownMetadataController_1 = require("../../utilityModules/dropdown/dropDownMetadataController");
 const formatResponse_1 = require("../../utils/formatResponse");
 const googleSheetOperations_1 = require("../helpers/googleSheetOperations");
 const parseFilter_1 = require("../helpers/parseFilter");
 const updateAndSaveToDb_1 = require("../helpers/updateAndSaveToDb");
 const lead_1 = require("../models/lead");
+const marketingFollowUp_1 = require("../models/marketingFollowUp");
+const exceljs_1 = __importDefault(require("exceljs"));
 const leads_1 = require("../validators/leads");
-const dropDownMetadataController_1 = require("../../utilityModules/dropdown/dropDownMetadataController");
-const user_1 = require("../../auth/models/user");
+const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
+const moment_timezone_1 = __importDefault(require("moment-timezone"));
 exports.uploadData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const user = yield user_1.User.findById((_a = req.data) === null || _a === void 0 ? void 0 : _a.id);
@@ -34,7 +39,6 @@ exports.uploadData = (0, express_async_handler_1.default)((req, res) => __awaite
     if (marketingSheet && marketingSheet.length > 0) {
         for (const sheet of marketingSheet) {
             const latestData = yield (0, googleSheetOperations_1.readFromGoogleSheet)(sheet.id, sheet.name);
-            console.log('we are here');
             if (latestData) {
                 yield (0, updateAndSaveToDb_1.saveDataToDb)(latestData.rowData, latestData.lastSavedIndex, sheet.id, sheet.name, latestData.requiredColumnHeaders);
             }
@@ -85,30 +89,31 @@ exports.getAllLeadAnalytics = (0, express_async_handler_1.default)((req, res) =>
             $group: {
                 _id: null,
                 totalLeads: { $sum: 1 }, // Count total leads
-                openLeads: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.OPEN] }, 1, 0] } }, // Count OPEN leads
+                leftOverLeads: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.LEFT_OVER] }, 1, 0] } }, // Count OPEN leads
                 didNotPickLeads: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.DID_NOT_PICK] }, 1, 0] } }, // Count OPEN leads
-                interestedLeads: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.INTERESTED] }, 1, 0] } }, // Count INTERESTED leads
-                notInterestedLeads: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.DEAD] }, 1, 0] } }, // Count NOT_INTERESTED leads,
-                neutralLeads: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.NO_CLARITY] }, 1, 0] } }
+                activeLeads: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.ACTIVE] }, 1, 0] } }, // Count INTERESTED leads
+                notInterestedLeads: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.NOT_INTERESTED] }, 1, 0] } }, // Count NOT_INTERESTED leads,
+                neutralLeads: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.NEUTRAL] }, 1, 0] } }
             }
         }
     ]);
     return (0, formatResponse_1.formatResponse)(res, 200, 'Lead analytics fetched successfully', true, {
         totalLeads: (_b = (_a = analytics[0]) === null || _a === void 0 ? void 0 : _a.totalLeads) !== null && _b !== void 0 ? _b : 0,
-        openLeads: (_d = (_c = analytics[0]) === null || _c === void 0 ? void 0 : _c.openLeads) !== null && _d !== void 0 ? _d : 0,
+        leftOverLeads: (_d = (_c = analytics[0]) === null || _c === void 0 ? void 0 : _c.leftOverLeads) !== null && _d !== void 0 ? _d : 0,
         didNotPickLeads: (_f = (_e = analytics[0]) === null || _e === void 0 ? void 0 : _e.didNotPickLeads) !== null && _f !== void 0 ? _f : 0,
-        interestedLeads: (_h = (_g = analytics[0]) === null || _g === void 0 ? void 0 : _g.interestedLeads) !== null && _h !== void 0 ? _h : 0,
+        activeLeads: (_h = (_g = analytics[0]) === null || _g === void 0 ? void 0 : _g.activeLeads) !== null && _h !== void 0 ? _h : 0,
         notInterestedLeads: (_k = (_j = analytics[0]) === null || _j === void 0 ? void 0 : _j.notInterestedLeads) !== null && _k !== void 0 ? _k : 0,
         neutralLeads: (_m = (_l = analytics[0]) === null || _l === void 0 ? void 0 : _l.neutralLeads) !== null && _m !== void 0 ? _m : 0
     });
 }));
 exports.updateData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _a, _b, _c, _d;
     const leadRequestData = req.body;
     const validation = leads_1.updateLeadRequestSchema.safeParse(leadRequestData);
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }
+    console.log("Validation error : ", validation.error);
     const existingLead = yield lead_1.LeadMaster.findById(leadRequestData._id);
     if (existingLead) {
         // if (existingLead.leadType === LeadType.INTERESTED) {
@@ -118,6 +123,15 @@ exports.updateData = (0, express_async_handler_1.default)((req, res) => __awaite
         //   );
         // }
         let leadTypeModifiedDate = existingLead.leadTypeModifiedDate;
+        let existingRemark = (_a = existingLead.remarks) === null || _a === void 0 ? void 0 : _a.length;
+        let leadRequestDataRemark = (_b = leadRequestData.remarks) === null || _b === void 0 ? void 0 : _b.length;
+        let existingFollowUpCount = existingLead.followUpCount;
+        let leadRequestDataFollowUpCount = leadRequestData.followUpCount;
+        const isRemarkChanged = existingRemark !== leadRequestDataRemark;
+        const isFollowUpCountChanged = existingFollowUpCount !== leadRequestDataFollowUpCount;
+        if (isRemarkChanged && !isFollowUpCountChanged) {
+            leadRequestData.followUpCount = existingLead.followUpCount + 1;
+        }
         if (leadRequestData.leadType && existingLead.leadType != leadRequestData.leadType) {
             leadTypeModifiedDate = new Date();
         }
@@ -125,6 +139,14 @@ exports.updateData = (0, express_async_handler_1.default)((req, res) => __awaite
             new: true,
             runValidators: true
         });
+        const currentLoggedInUser = (0, getCurrentLoggedInUser_1.getCurrentLoggedInUser)(req);
+        const updatedFollowUpCount = (_c = updatedData === null || updatedData === void 0 ? void 0 : updatedData.followUpCount) !== null && _c !== void 0 ? _c : 0;
+        if (updatedFollowUpCount > existingFollowUpCount) {
+            (0, exports.logFollowUpChange)(existingLead._id, currentLoggedInUser, constants_1.Actions.INCREAMENT);
+        }
+        else if (updatedFollowUpCount < existingFollowUpCount) {
+            (0, exports.logFollowUpChange)(existingLead._id, currentLoggedInUser, constants_1.Actions.DECREAMENT);
+        }
         (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.FIX_MARKETING_CITY, updatedData === null || updatedData === void 0 ? void 0 : updatedData.city);
         (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.MARKETING_CITY, updatedData === null || updatedData === void 0 ? void 0 : updatedData.city);
         (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.FIX_MARKETING_COURSE_CODE, updatedData === null || updatedData === void 0 ? void 0 : updatedData.course);
@@ -133,7 +155,7 @@ exports.updateData = (0, express_async_handler_1.default)((req, res) => __awaite
             documentId: updatedData === null || updatedData === void 0 ? void 0 : updatedData._id,
             action: constants_1.RequestAction.POST,
             payload: updatedData,
-            performedBy: (_a = req.data) === null || _a === void 0 ? void 0 : _a.id,
+            performedBy: (_d = req.data) === null || _d === void 0 ? void 0 : _d.id,
             restEndpoint: '/api/edit/crm',
         });
         return (0, formatResponse_1.formatResponse)(res, 200, 'Data Updated Successfully!', true, updatedData);
@@ -141,4 +163,96 @@ exports.updateData = (0, express_async_handler_1.default)((req, res) => __awaite
     else {
         throw (0, http_errors_1.default)(404, 'Lead does not found with the given ID.');
     }
+}));
+const logFollowUpChange = (leadId, userId, action) => {
+    marketingFollowUp_1.MarketingFollowUpModel.create({
+        currentLoggedInUser: userId,
+        leadId,
+        action
+    })
+        .then(() => console.log(`Follow-up ${action.toLowerCase()} logged for lead ${leadId} by ${userId}.`))
+        .catch(err => console.error(`Error for lead ${leadId} by ${userId}. Error logging follow-up ${action.toLowerCase()}:`, err));
+};
+exports.logFollowUpChange = logFollowUpChange;
+exports.exportData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c, _d, _e, _f, _g;
+    const roles = ((_a = req.data) === null || _a === void 0 ? void 0 : _a.roles) || [];
+    const user = yield user_1.User.findById((_b = req.data) === null || _b === void 0 ? void 0 : _b.id);
+    const isAdminOrLead = roles.includes(constants_1.UserRoles.ADMIN) || roles.includes(constants_1.UserRoles.LEAD_MARKETING);
+    const marketingSheet = user === null || user === void 0 ? void 0 : user.marketingSheet;
+    const workbook = new exceljs_1.default.Workbook();
+    const worksheet = workbook.addWorksheet((_d = (_c = marketingSheet === null || marketingSheet === void 0 ? void 0 : marketingSheet[0]) === null || _c === void 0 ? void 0 : _c.name) !== null && _d !== void 0 ? _d : 'Leads');
+    // Define headers
+    const baseColumns = [
+        { header: 'Date', key: 'date' },
+        { header: 'Name', key: 'name' },
+        { header: 'Phone Number', key: 'phoneNumber' },
+        { header: 'Alt Phone Number', key: 'altPhoneNumber' },
+        { header: 'Email', key: 'email' },
+        { header: 'Course', key: 'course' },
+        { header: 'Lead Type', key: 'leadType' },
+        { header: 'Remarks', key: 'remarks' },
+        { header: 'Area', key: 'area' },
+        { header: 'City', key: 'city' },
+        { header: 'Final Conversion', key: 'finalConversion' },
+        { header: 'Gender', key: 'gender' },
+        { header: 'School Name', key: 'schoolName' },
+        { header: 'Lead Type Modified Date', key: 'leadTypeModifiedDate' },
+        { header: 'Next Due Date', key: 'nextDueDate' },
+        { header: 'Foot Fall', key: 'footFall' },
+        { header: 'Follow Up Count', key: 'followUpCount' },
+    ];
+    if (isAdminOrLead) {
+        baseColumns.push({ header: 'Assigned To', key: 'assignedTo' });
+    }
+    worksheet.columns = baseColumns;
+    const leads = yield lead_1.LeadMaster.find({
+        assignedTo: { $in: [(_e = req.data) === null || _e === void 0 ? void 0 : _e.id] }
+    }).populate({
+        path: 'assignedTo',
+        select: 'firstName lastName'
+    });
+    leads.forEach(lead => {
+        const rowData = {
+            date: lead.date ? (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(lead.date) : '',
+            name: lead.name || '',
+            phoneNumber: lead.phoneNumber || '',
+            altPhoneNumber: lead.altPhoneNumber || '',
+            email: lead.email || '',
+            course: lead.course || '',
+            leadType: lead.leadType || '',
+            remarks: Array.isArray(lead.remarks) ? lead.remarks.join('\n') : '',
+            area: lead.area || '',
+            city: lead.city || '',
+            finalConversion: lead.finalConversion || '',
+            gender: lead.gender || '',
+            schoolName: lead.schoolName || '',
+            leadTypeModifiedDate: lead.leadTypeModifiedDate ? (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(lead.leadTypeModifiedDate) : '',
+            nextDueDate: lead.nextDueDate ? (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(lead.nextDueDate) : '',
+            footFall: lead.footFall ? 'Yes' : 'No',
+            followUpCount: lead.followUpCount || 0,
+        };
+        if (isAdminOrLead) {
+            rowData.assignedTo = Array.isArray(lead.assignedTo)
+                ? lead.assignedTo.map((user) => { var _a, _b; return `${(_a = user.firstName) !== null && _a !== void 0 ? _a : ''} ${(_b = user.lastName) !== null && _b !== void 0 ? _b : ''}`.trim(); }).join(', ')
+                : '';
+        }
+        worksheet.addRow(rowData);
+    });
+    worksheet.columns.forEach(column => {
+        var _a;
+        let maxLength = 10;
+        (_a = column.eachCell) === null || _a === void 0 ? void 0 : _a.call(column, { includeEmpty: true }, cell => {
+            var _a;
+            const cellValue = (_a = cell.text) !== null && _a !== void 0 ? _a : '';
+            maxLength = Math.max(maxLength, cellValue.length);
+        });
+        column.width = maxLength + 2;
+    });
+    const formattedDate = (0, moment_timezone_1.default)().tz('Asia/Kolkata').format('DD-MM-YY');
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${(_f = user === null || user === void 0 ? void 0 : user.firstName) !== null && _f !== void 0 ? _f : ''} ${(_g = user === null || user === void 0 ? void 0 : user.lastName) !== null && _g !== void 0 ? _g : ''} - ${formattedDate}.xlsx"`);
+    // ✅ Write the Excel file to response
+    yield workbook.xlsx.write(res);
+    res.end(); // ✅ Must end the response
 }));

@@ -57,7 +57,6 @@ exports.uploadAdditionalResources = (0, express_async_handler_1.default)((req, r
     if (file) {
         fileUrl = yield (0, s3Upload_1.uploadToS3)(courseId, semesterId, subjectId, constants_1.CourseMaterialType.GENERAL, file);
     }
-    console.log(fileUrl);
     if (req.file) {
         req.file.buffer = null;
     }
@@ -83,15 +82,12 @@ exports.uploadAdditionalResources = (0, express_async_handler_1.default)((req, r
 }));
 const uploadPlanDocument = (crsId, semId, subId, insId, planId, planType, file) => __awaiter(void 0, void 0, void 0, function* () {
     const config = planType === constants_1.CourseMaterialType.LPLAN ? planConfigMap.lecture : planConfigMap.practical;
-    console.log(config);
-    console.log(crsId, semId, subId, planId, insId, file);
     if (!crsId && !semId && !subId && !planId && !insId && !file)
         throw (0, http_errors_1.default)(400, 'Invalid information to upload file. Please reverify!');
     let fileUrl;
     if (file) {
         fileUrl = yield (0, s3Upload_1.uploadToS3)(crsId, semId, subId, planType, file);
     }
-    console.log(fileUrl);
     let courseId = new mongoose_1.default.Types.ObjectId(crsId);
     let semesterId = new mongoose_1.default.Types.ObjectId(semId);
     let subjectId = new mongoose_1.default.Types.ObjectId(subId);

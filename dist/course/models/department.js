@@ -46,24 +46,18 @@ exports.departmentModelSchema = new mongoose_1.Schema({
         type: String,
         required: [true, 'Department Name is required'],
     },
+    departmentHODId: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: constants_1.COLLECTION_NAMES.USER
+    },
     departmentHOD: {
         type: String,
         required: [true, 'Department HOD Name is required'],
     },
-    startingYear: {
-        type: Number,
-        required: [true, 'Starting year is required'],
-        validate: {
-            validator: (val) => /^\d{4}$/.test(val.toString()),
-            message: 'Year must be a valid 4 digit number!',
-        },
-    },
-    // There is no need to validate here as it will be taken care of by ZOD Schema.
-    endingYear: {
-        type: Number,
-    },
     instructors: {
         type: [mongoose_1.Schema.Types.ObjectId],
+        ref: constants_1.COLLECTION_NAMES.USER,
+        default: []
     }
 }, { timestamps: true });
 const handleMongooseError = (error, next) => {

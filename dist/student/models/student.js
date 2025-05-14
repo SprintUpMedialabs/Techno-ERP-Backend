@@ -36,7 +36,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Student = void 0;
+exports.Student = exports.removeExtraInfo = void 0;
 const http_errors_1 = __importDefault(require("http-errors"));
 const mongoose_1 = __importStar(require("mongoose"));
 const academicDetail_1 = require("../../admission/models/academicDetail");
@@ -130,14 +130,6 @@ const StudentBaseInfoSchema = new mongoose_1.Schema({
             values: Object.values(constants_1.Category),
             message: 'Invalid Category value'
         },
-        required: true
-    },
-    course: {
-        type: String,
-        // enum: {
-        //     values: Object.values(Course),
-        //     message: 'Invalid Course value'
-        // },
         required: true
     },
     reference: {
@@ -346,7 +338,7 @@ const StudentModel = new mongoose_1.Schema({
     feeStatus: {
         type: String,
         enum: Object.values(constants_1.FeeStatus),
-        default: constants_1.FeeStatus.NOT_PROVIDED
+        default: constants_1.FeeStatus.DUE
     },
     extraBalance: {
         type: Number,
@@ -379,11 +371,22 @@ StudentModel.post('findOneAndUpdate', function (error, doc, next) {
     handleMongooseError(error, next);
 });
 const removeExtraInfo = (_, ret) => {
+    var _a, _b, _c;
+    if ((_a = ret.studentInfo) === null || _a === void 0 ? void 0 : _a.dateOfBirth) {
+        ret.studentInfo.dateOfBirth = (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(ret.studentInfo.dateOfBirth);
+    }
+    if (Array.isArray((_b = ret.studentInfo) === null || _b === void 0 ? void 0 : _b.documents)) {
+        ret.studentInfo.documents = ret.studentInfo.documents.map((doc) => (Object.assign(Object.assign({}, doc), { dueBy: doc.dueBy ? (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(doc.dueBy) : doc.dueBy })));
+    }
+    if (Array.isArray((_c = ret.studentInfo) === null || _c === void 0 ? void 0 : _c.physicalDocumentNote)) {
+        ret.studentInfo.physicalDocumentNote = ret.studentInfo.physicalDocumentNote.map((note) => (Object.assign(Object.assign({}, note), { dueBy: note.dueBy ? (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(note.dueBy) : note.dueBy })));
+    }
     delete ret.createdAt;
     delete ret.updatedAt;
     delete ret.__v;
     return ret;
 };
-StudentModel.set('toJSON', { transform: removeExtraInfo });
-StudentModel.set('toObject', { transform: removeExtraInfo });
+exports.removeExtraInfo = removeExtraInfo;
+StudentModel.set('toJSON', { transform: exports.removeExtraInfo });
+StudentModel.set('toObject', { transform: exports.removeExtraInfo });
 exports.Student = mongoose_1.default.model(constants_1.COLLECTION_NAMES.STUDENT, StudentModel);

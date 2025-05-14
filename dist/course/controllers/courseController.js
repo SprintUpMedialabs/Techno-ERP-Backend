@@ -33,7 +33,6 @@ exports.createCourse = (0, express_async_handler_1.default)((req, res) => __awai
         subjects: [],
     }));
     yield course_1.Course.create(Object.assign(Object.assign({}, courseData), { semester: semester }));
-    // const courseInformation = await getCourseInformation("", getCurrentAcademicYear());
     return (0, formatResponse_1.formatResponse)(res, 201, 'Course created successfully', true, null);
 }));
 exports.updateCourse = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -56,7 +55,6 @@ exports.updateCourse = (0, express_async_handler_1.default)((req, res) => __awai
     if (updateResult.modifiedCount === 0) {
         throw (0, http_errors_1.default)(404, 'Course not found or no changes made');
     }
-    // const responsePayload = getCourseInformation("", getCurrentAcademicYear());
     return (0, formatResponse_1.formatResponse)(res, 200, 'Course updated successfully', true, null);
 }));
 exports.searchCourses = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -65,7 +63,7 @@ exports.searchCourses = (0, express_async_handler_1.default)((req, res) => __awa
     return (0, formatResponse_1.formatResponse)(res, 200, 'Courses fetched successfully', true, courseInformation);
 }));
 const getCourseInformation = (search_1, academicYear_1, ...args_1) => __awaiter(void 0, [search_1, academicYear_1, ...args_1], void 0, function* (search, academicYear, page = 1, limit = 10) {
-    var _a, _b, _c;
+    var _a, _b, _c, _d, _e;
     const skip = (page - 1) * limit;
     const pipeline = [
         {
@@ -133,8 +131,8 @@ const getCourseInformation = (search_1, academicYear_1, ...args_1) => __awaiter(
         }
     ];
     const result = yield course_1.Course.aggregate(pipeline);
-    const courseInformation = ((_a = result[0]) === null || _a === void 0 ? void 0 : _a.paginatedResults) || [];
-    const totalItems = ((_c = (_b = result[0]) === null || _b === void 0 ? void 0 : _b.totalCount[0]) === null || _c === void 0 ? void 0 : _c.count) || 0;
+    const courseInformation = (_b = (_a = result[0]) === null || _a === void 0 ? void 0 : _a.paginatedResults) !== null && _b !== void 0 ? _b : [];
+    const totalItems = (_e = (_d = (_c = result[0]) === null || _c === void 0 ? void 0 : _c.totalCount[0]) === null || _d === void 0 ? void 0 : _d.count) !== null && _e !== void 0 ? _e : 0;
     const totalPages = Math.ceil(totalItems / limit);
     return {
         courseInformation,

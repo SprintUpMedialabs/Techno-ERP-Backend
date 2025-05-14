@@ -22,9 +22,9 @@ exports.createCourse = (0, express_async_handler_1.default)((req, res) => __awai
     return (0, formatResponse_1.formatResponse)(res, 200, 'Course Created Succesffully', true, course);
 }));
 exports.getCourseCodes = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const courseList = yield courseMetadata_1.CourseMetaData.find().select('courseCode');
-    const courseCodes = courseList.map(course => course.courseCode);
-    return (0, formatResponse_1.formatResponse)(res, 200, 'Course Codes fetched successfully.', true, courseCodes);
+    const courseList = yield courseMetadata_1.CourseMetaData.find().select('courseCode courseName');
+    const courseCodeList = courseList.map(course => ({ courseCode: course.courseCode, courseName: course.courseName }));
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Course Codes fetched successfully.', true, courseCodeList);
 }));
 exports.getCourseMetadataByCourseCode = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { courseCode } = req.params;

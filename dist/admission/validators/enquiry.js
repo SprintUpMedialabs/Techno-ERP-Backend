@@ -60,6 +60,7 @@ exports.enquiryStep1UpdateRequestSchema = exports.enquiryStep1RequestSchema.exte
 }).strict();
 exports.enquiryStep3UpdateRequestSchema = exports.enquirySchema.omit({ documents: true, studentFee: true }).extend({
     id: commonSchema_1.objectIdSchema,
+    physicalDocumentNote: zod_1.z.array(physicalDocumentNoteSchema_1.physicalDocumentNoteRequestSchema).optional()
 }).strict();
 exports.enquiryDraftStep3Schema = exports.enquiryStep3UpdateRequestSchema
     .extend({
