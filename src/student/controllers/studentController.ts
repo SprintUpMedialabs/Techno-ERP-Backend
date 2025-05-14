@@ -281,7 +281,7 @@ export const getStudentDataBySearch = expressAsyncHandler(async (req: Authentica
   const page = parseInt(req.body.page) || 1;
   const limit = parseInt(req.body.limit) || 10;
 
-  const { academicYear, courseCode, courseYear } = req.body;
+  const { academicYear, courseCode, courseYear, search } = req.body;
 
   const matchStage: Record<string, any> = {};
 
@@ -299,6 +299,14 @@ export const getStudentDataBySearch = expressAsyncHandler(async (req: Authentica
         courseYear,
       },
     };
+  }
+
+  if (search) {
+    matchStage.$or = [
+      { 'studentInfo.universityId': { $regex: search, $options: 'i' } },
+      { 'studentInfo.studentPhoneNumber': { $regex: search, $options: 'i' } },
+      { 'studentInfo.studentName': { $regex: search, $options: 'i' } }
+    ];
   }
 
   if (page < 1 || limit < 1) {
