@@ -40,7 +40,8 @@ exports.getStudentDues = (0, express_async_handler_1.default)((req, res) => __aw
             {
                 $or: [
                     { 'studentInfo.studentName': { $regex: search, $options: 'i' } },
-                    { 'studentInfo.studentId': { $regex: search, $options: 'i' } }
+                    { 'studentInfo.studentId': { $regex: search, $options: 'i' } },
+                    { 'studentInfo.studentPhoneNumber': { $regex: search, $options: 'i' } }
                 ]
             }
         ];
@@ -139,6 +140,7 @@ exports.fetchFeeInformationByStudentId = (0, express_async_handler_1.default)((r
                 feeStatus: 1,
                 departmentInfo: 1,
                 extraBalance: 1,
+                currentSemester: 1,
                 semesterNumber: "$semester.semesterNumber",
                 academicYear: "$semester.academicYear",
                 finalFee: "$semester.fees.totalFinalFee",
@@ -164,6 +166,7 @@ exports.fetchFeeInformationByStudentId = (0, express_async_handler_1.default)((r
                 studentInfo: { $first: "$studentInfo" },
                 courseName: { $first: "$courseName" },
                 feeStatus: { $first: "$feeStatus" },
+                currentSemester: { $first: "$currentSemester" },
                 extraBalance: { $first: "$extraBalance" },
                 departmentInfo: { $first: "$departmentInfo" },
                 semesterWiseFeeInformation: {
@@ -248,11 +251,12 @@ exports.fetchFeeInformationByStudentId = (0, express_async_handler_1.default)((r
                 studentID: "$studentInfo.universityId",
                 fatherName: "$studentInfo.fatherName",
                 feeStatus: 1,
+                currentSemester: 1,
                 HOD: "$departmentInfo.departmentHOD",
                 course: "$courseName",
                 semesterWiseFeeInformation: 1,
                 semesterBreakUp: 1,
-                extraBalance: 1
+                extraBalance: 1,
             }
         }
     ];

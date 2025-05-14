@@ -273,7 +273,7 @@ const createSemesterFee = (id, semesterNumber, feesCourse) => {
 exports.getStudentDataBySearch = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const page = parseInt(req.body.page) || 1;
     const limit = parseInt(req.body.limit) || 10;
-    const { academicYear, courseCode, courseYear } = req.body;
+    const { academicYear, courseCode, courseYear, search } = req.body;
     const matchStage = {};
     if (courseCode) {
         matchStage.courseCode = courseCode;
@@ -287,6 +287,13 @@ exports.getStudentDataBySearch = (0, express_async_handler_1.default)((req, res)
                 courseYear,
             },
         };
+    }
+    if (search) {
+        matchStage.$or = [
+            { 'studentInfo.universityId': { $regex: search, $options: 'i' } },
+            { 'studentInfo.studentPhoneNumber': { $regex: search, $options: 'i' } },
+            { 'studentInfo.studentName': { $regex: search, $options: 'i' } }
+        ];
     }
     if (page < 1 || limit < 1) {
         throw (0, http_errors_1.default)(400, 'Page and limit must be positive integers');

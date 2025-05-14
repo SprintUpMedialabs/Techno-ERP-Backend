@@ -40,7 +40,7 @@ var LeadType;
 var FinalConversionType;
 (function (FinalConversionType) {
     FinalConversionType["NO_FOOTFALL"] = "NO_FOOTFALL";
-    FinalConversionType["UNCONFIRMED"] = "UNCONFIRMED";
+    FinalConversionType["NEUTRAL"] = "NEUTRAL";
     FinalConversionType["CONVERTED"] = "CONVERTED";
     FinalConversionType["NOT_INTERESTED"] = "NOT_INTERESTED";
 })(FinalConversionType || (exports.FinalConversionType = FinalConversionType = {}));

@@ -41,7 +41,7 @@ exports.updateYellowLead = (0, express_async_handler_1.default)((req, res) => __
     const isCampusVisitChangedToNo = updateData.footFall === false && existingLead.footFall !== false;
     // If the campus visit is changed to yes, then the final conversion is set to unconfirmed
     if (isCampusVisitChangedToYes) {
-        updateData.finalConversion = constants_1.FinalConversionType.UNCONFIRMED;
+        updateData.finalConversion = constants_1.FinalConversionType.NEUTRAL;
     }
     // If the campus visit is changed to no, then the final conversion can not be changed.
     if (isCampusVisitChangedToNo) {
@@ -144,7 +144,7 @@ exports.getYellowLeadsAnalytics = (0, express_async_handler_1.default)((req, res
                     $sum: { $cond: [{ $eq: ['$finalConversion', constants_1.FinalConversionType.CONVERTED] }, 1, 0] }
                 },
                 unconfirmed: {
-                    $sum: { $cond: [{ $eq: ['$finalConversion', constants_1.FinalConversionType.UNCONFIRMED] }, 1, 0] }
+                    $sum: { $cond: [{ $eq: ['$finalConversion', constants_1.FinalConversionType.NEUTRAL] }, 1, 0] }
                 }
             }
         },
