@@ -42,9 +42,10 @@ export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedReq
 
   // If the campus visit is no, then the final conversion can not be changed.
   if ((updateData.footFall ?? existingLead.footFall) === false) {
-    if (updateData.finalConversion && updateData.finalConversion !== FinalConversionType.NO_FOOTFALL) {
-      throw createHttpError(400, 'Final conversion can not be changed if campus visit is no.');
-    }
+    const allowedConversions = [FinalConversionType.NOT_INTERESTED, FinalConversionType.UNCONFIRMED];
+    if (updateData.finalConversion &&!allowedConversions.includes(updateData.finalConversion)) {
+      throw createHttpError(400, 'If campus visit is no, final conversion must be either DEAD or UNCONFIRMED.');
+    } 
   } else if (updateData.finalConversion === FinalConversionType.NO_FOOTFALL) {
     // if footfall is yes, then final conversion can not be no footfall.
     throw createHttpError(400, 'Final conversion can not be no footfall if campus visit is yes.');

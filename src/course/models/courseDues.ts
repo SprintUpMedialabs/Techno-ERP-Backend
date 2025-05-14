@@ -8,6 +8,7 @@ interface DuesEntry {
     dueStudentCount: number;
 }
 export interface CourseDues {
+    collegeName : string;
     courseCode: string;
     courseName: string;
     academicYear: string;
@@ -19,6 +20,7 @@ export interface CourseDues {
 export interface CourseDuesDocument extends CourseDues, Document { }
 
 const CourseDuesSchema: Schema = new Schema({
+    collegeName : { type : String, required : true},
     courseCode: { type: String, required: true },
     courseName: { type: String, required: true },
     academicYear: { type: String, required: true },

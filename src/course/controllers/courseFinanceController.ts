@@ -2,7 +2,7 @@ import { Response } from "express";
 import expressAsyncHandler from "express-async-handler";
 import createHttpError from "http-errors";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
-import { FeeStatus } from "../../config/constants";
+import { FeeStatus, FormNoPrefixes } from "../../config/constants";
 import { retryMechanism } from "../../config/retryMechanism";
 import { Student } from "../../student/models/student";
 import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
@@ -24,7 +24,7 @@ export const courseFeeDues = expressAsyncHandler(async (req: AuthenticatedReques
 
     const courseList: any = await CourseMetaData.find(
         {},
-        { courseCode: 1, courseName: 1, courseDuration: 1, departmentMetaDataId: 1 }
+        { courseCode: 1, courseName: 1, courseDuration: 1, departmentMetaDataId: 1, collegeName: 1 }
     ).populate({
         path: 'departmentMetaDataId',
         select: 'departmentName departmentHODId',
@@ -38,7 +38,7 @@ export const courseFeeDues = expressAsyncHandler(async (req: AuthenticatedReques
     await retryMechanism(async (session) => {
 
         for (const course of courseList) {
-            const { courseCode, courseName, courseDuration } = course;
+            const { courseCode, courseName, courseDuration, collegeName } = course;
             const date = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
 
             const department = course.departmentMetaDataId;
@@ -48,6 +48,7 @@ export const courseFeeDues = expressAsyncHandler(async (req: AuthenticatedReques
             const departmentHODEmail = hod?.email;
 
             const courseDetails: CourseDues = {
+                collegeName,
                 courseCode,
                 courseName,
                 academicYear,
@@ -121,16 +122,22 @@ export const courseFeeDues = expressAsyncHandler(async (req: AuthenticatedReques
 
 
 export const getCourseDuesByDate = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const { date } = req.query;
+    const { date, collegeName } = req.body;
 
     if (!date || typeof date !== "string") {
         throw createHttpError(400, "Date is required in dd/mm/yyyy format");
     }
 
+
+    const collegeFilter = (collegeName === "ALL")
+        ? { collegeName: { $in: [FormNoPrefixes.TCL, FormNoPrefixes.TIHS, FormNoPrefixes.TIMS] } }
+        : { collegeName };
+
+
     const targetDate = convertToMongoDate(date);
     console.log(targetDate)
 
-    const dues = await CourseDues.find({ date: targetDate });
+    const dues = await CourseDues.find({ date: targetDate, ...collegeFilter });
 
     return formatResponse(res, 200, "Course dues fetched", true, dues);
 });

@@ -45,7 +45,7 @@ courseRoute.post('/dues',
     courseFeeDues
 );
 
-courseRoute.get('/dues',
+courseRoute.post('/fetch-dues',
     authenticate,
     authorize([UserRoles.BASIC_USER]),
     getCourseDuesByDate
