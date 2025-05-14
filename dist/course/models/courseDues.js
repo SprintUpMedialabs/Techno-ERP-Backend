@@ -38,6 +38,7 @@ exports.CourseDues = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 const constants_1 = require("../../config/constants");
 const CourseDuesSchema = new mongoose_1.Schema({
+    collegeName: { type: String, required: true },
     courseCode: { type: String, required: true },
     courseName: { type: String, required: true },
     academicYear: { type: String, required: true },

@@ -175,13 +175,15 @@ const logFollowUpChange = (leadId, userId, action) => {
 };
 exports.logFollowUpChange = logFollowUpChange;
 exports.exportData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d, _e, _f;
-    const user = yield user_1.User.findById((_a = req.data) === null || _a === void 0 ? void 0 : _a.id);
+    var _a, _b, _c, _d, _e, _f, _g;
+    const roles = ((_a = req.data) === null || _a === void 0 ? void 0 : _a.roles) || [];
+    const user = yield user_1.User.findById((_b = req.data) === null || _b === void 0 ? void 0 : _b.id);
+    const isAdminOrLead = roles.includes(constants_1.UserRoles.ADMIN) || roles.includes(constants_1.UserRoles.LEAD_MARKETING);
     const marketingSheet = user === null || user === void 0 ? void 0 : user.marketingSheet;
     const workbook = new exceljs_1.default.Workbook();
-    const worksheet = workbook.addWorksheet((_c = (_b = marketingSheet === null || marketingSheet === void 0 ? void 0 : marketingSheet[0]) === null || _b === void 0 ? void 0 : _b.name) !== null && _c !== void 0 ? _c : 'Leads');
+    const worksheet = workbook.addWorksheet((_d = (_c = marketingSheet === null || marketingSheet === void 0 ? void 0 : marketingSheet[0]) === null || _c === void 0 ? void 0 : _c.name) !== null && _d !== void 0 ? _d : 'Leads');
     // Define headers
-    worksheet.columns = [
+    const baseColumns = [
         { header: 'Date', key: 'date' },
         { header: 'Name', key: 'name' },
         { header: 'Phone Number', key: 'phoneNumber' },
@@ -199,16 +201,19 @@ exports.exportData = (0, express_async_handler_1.default)((req, res) => __awaite
         { header: 'Next Due Date', key: 'nextDueDate' },
         { header: 'Foot Fall', key: 'footFall' },
         { header: 'Follow Up Count', key: 'followUpCount' },
-        { header: 'Assigned To', key: 'assignedTo' },
     ];
+    if (isAdminOrLead) {
+        baseColumns.push({ header: 'Assigned To', key: 'assignedTo' });
+    }
+    worksheet.columns = baseColumns;
     const leads = yield lead_1.LeadMaster.find({
-        assignedTo: { $in: [(_d = req.data) === null || _d === void 0 ? void 0 : _d.id] }
+        assignedTo: { $in: [(_e = req.data) === null || _e === void 0 ? void 0 : _e.id] }
     }).populate({
         path: 'assignedTo',
         select: 'firstName lastName'
     });
     leads.forEach(lead => {
-        worksheet.addRow({
+        const rowData = {
             date: lead.date ? (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(lead.date) : '',
             name: lead.name || '',
             phoneNumber: lead.phoneNumber || '',
@@ -226,13 +231,13 @@ exports.exportData = (0, express_async_handler_1.default)((req, res) => __awaite
             nextDueDate: lead.nextDueDate ? (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(lead.nextDueDate) : '',
             footFall: lead.footFall ? 'Yes' : 'No',
             followUpCount: lead.followUpCount || 0,
-            assignedTo: Array.isArray(lead.assignedTo)
-                ? lead.assignedTo
-                    .map((user) => { var _a, _b; return `${(_a = user.firstName) !== null && _a !== void 0 ? _a : ''} ${(_b = user.lastName) !== null && _b !== void 0 ? _b : ''}`.trim(); })
-                    .join(', ')
-                : '',
-            // source: lead.source || '',
-        });
+        };
+        if (isAdminOrLead) {
+            rowData.assignedTo = Array.isArray(lead.assignedTo)
+                ? lead.assignedTo.map((user) => { var _a, _b; return `${(_a = user.firstName) !== null && _a !== void 0 ? _a : ''} ${(_b = user.lastName) !== null && _b !== void 0 ? _b : ''}`.trim(); }).join(', ')
+                : '';
+        }
+        worksheet.addRow(rowData);
     });
     worksheet.columns.forEach(column => {
         var _a;
@@ -246,7 +251,7 @@ exports.exportData = (0, express_async_handler_1.default)((req, res) => __awaite
     });
     const formattedDate = (0, moment_timezone_1.default)().tz('Asia/Kolkata').format('DD-MM-YY');
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', `attachment; filename="${(_e = user === null || user === void 0 ? void 0 : user.firstName) !== null && _e !== void 0 ? _e : ''} ${(_f = user === null || user === void 0 ? void 0 : user.lastName) !== null && _f !== void 0 ? _f : ''} - ${formattedDate}.xlsx"`);
+    res.setHeader('Content-Disposition', `attachment; filename="${(_f = user === null || user === void 0 ? void 0 : user.firstName) !== null && _f !== void 0 ? _f : ''} ${(_g = user === null || user === void 0 ? void 0 : user.lastName) !== null && _g !== void 0 ? _g : ''} - ${formattedDate}.xlsx"`);
     // ✅ Write the Excel file to response
     yield workbook.xlsx.write(res);
     res.end(); // ✅ Must end the response

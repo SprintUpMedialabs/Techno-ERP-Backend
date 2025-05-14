@@ -275,24 +275,13 @@ exports.getStudentDataBySearch = (0, express_async_handler_1.default)((req, res)
     const limit = parseInt(req.body.limit) || 10;
     const { academicYear, courseCode, courseYear } = req.body;
     const matchStage = {};
-    if (courseCode)
+    if (courseCode) {
         matchStage.courseCode = courseCode;
-    if (academicYear && courseYear) {
-        matchStage.semester = {
-            $elemMatch: {
-                courseYear,
-                academicYear,
-            },
-        };
     }
-    else if (academicYear) {
-        matchStage.semester = {
-            $elemMatch: {
-                academicYear,
-            },
-        };
+    if (academicYear) {
+        matchStage.currentAcademicYear = academicYear;
     }
-    else if (courseYear) {
+    if (courseYear) {
         matchStage.semester = {
             $elemMatch: {
                 courseYear,
@@ -319,25 +308,6 @@ exports.getStudentDataBySearch = (0, express_async_handler_1.default)((req, res)
                     courseCode: 1,
                     currentAcademicYear: 1,
                     currentSemester: 1,
-                    semesterNumber: {
-                        $let: {
-                            vars: {
-                                matchedSemester: {
-                                    $filter: {
-                                        input: '$semester',
-                                        as: 'sem',
-                                        cond: {
-                                            $and: [
-                                                academicYear ? { $eq: ['$$sem.academicYear', academicYear] } : {},
-                                                courseYear ? { $eq: ['$$sem.courseYear', courseYear] } : {},
-                                            ].filter(Boolean),
-                                        },
-                                    },
-                                },
-                            },
-                            in: { $arrayElemAt: ['$$matchedSemester.semesterNumber', 0] },
-                        },
-                    },
                 },
             }
         ]),

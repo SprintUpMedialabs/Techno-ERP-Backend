@@ -30,7 +30,7 @@ exports.courseFeeDues = (0, express_async_handler_1.default)((req, res) => __awa
     const academicYear = currentMonth >= 6
         ? `${currentYear}-${currentYear + 1}`
         : `${currentYear - 1}-${currentYear}`;
-    const courseList = yield courseMetadata_1.CourseMetaData.find({}, { courseCode: 1, courseName: 1, courseDuration: 1, departmentMetaDataId: 1 }).populate({
+    const courseList = yield courseMetadata_1.CourseMetaData.find({}, { courseCode: 1, courseName: 1, courseDuration: 1, departmentMetaDataId: 1, collegeName: 1 }).populate({
         path: 'departmentMetaDataId',
         select: 'departmentName departmentHODId',
         populate: {
@@ -41,13 +41,14 @@ exports.courseFeeDues = (0, express_async_handler_1.default)((req, res) => __awa
     yield (0, retryMechanism_1.retryMechanism)((session) => __awaiter(void 0, void 0, void 0, function* () {
         var _a;
         for (const course of courseList) {
-            const { courseCode, courseName, courseDuration } = course;
+            const { courseCode, courseName, courseDuration, collegeName } = course;
             const date = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
             const department = course.departmentMetaDataId;
             const hod = department === null || department === void 0 ? void 0 : department.departmentHODId;
             const departmentHODName = hod ? `${hod.firstName} ${hod.lastName}` : '';
             const departmentHODEmail = hod === null || hod === void 0 ? void 0 : hod.email;
             const courseDetails = {
+                collegeName,
                 courseCode,
                 courseName,
                 academicYear,
@@ -114,12 +115,15 @@ exports.courseFeeDues = (0, express_async_handler_1.default)((req, res) => __awa
     return (0, formatResponse_1.formatResponse)(res, 200, 'course dues recorded successfully', true);
 }));
 exports.getCourseDuesByDate = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { date } = req.query;
+    const { date, collegeName } = req.body;
     if (!date || typeof date !== "string") {
         throw (0, http_errors_1.default)(400, "Date is required in dd/mm/yyyy format");
     }
+    const collegeFilter = (collegeName === "ALL")
+        ? { collegeName: { $in: [constants_1.FormNoPrefixes.TCL, constants_1.FormNoPrefixes.TIHS, constants_1.FormNoPrefixes.TIMS] } }
+        : { collegeName };
     const targetDate = (0, convertDateToFormatedDate_1.convertToMongoDate)(date);
     console.log(targetDate);
-    const dues = yield courseDues_1.CourseDues.find({ date: targetDate });
+    const dues = yield courseDues_1.CourseDues.find(Object.assign({ date: targetDate }, collegeFilter));
     return (0, formatResponse_1.formatResponse)(res, 200, "Course dues fetched", true, dues);
 }));

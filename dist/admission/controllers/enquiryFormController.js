@@ -47,13 +47,15 @@ exports.getEnquiryData = (0, express_async_handler_1.default)((0, functionLevelL
             { studentPhoneNumber: { $regex: search, $options: 'i' } }
         ]
     };
-    // Validate applicationStatus
     if (applicationStatus) {
         const validStatuses = Object.values(constants_1.ApplicationStatus);
-        if (!validStatuses.includes(applicationStatus)) {
-            throw (0, http_errors_1.default)(400, 'Invalid application status');
+        //Ensure its an array
+        const statuses = Array.isArray(applicationStatus) ? applicationStatus : [applicationStatus];
+        const isValid = statuses.every(status => validStatuses.includes(status));
+        if (!isValid) {
+            throw (0, http_errors_1.default)(400, 'One or more invalid application statuses');
         }
-        filter.applicationStatus = applicationStatus;
+        filter.applicationStatus = { $in: statuses };
     }
     const enquiries = yield enquiry_1.Enquiry.find(filter)
         .select({

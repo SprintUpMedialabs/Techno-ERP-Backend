@@ -17,5 +17,5 @@ exports.courseRoute.post('/course-details', jwtAuthenticationMiddleware_1.authen
 exports.courseRoute.get('/unique-courses', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER]), courseController_1.fetchAllUniqueCourses);
 exports.courseRoute.post('/course-id', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER]), courseController_1.fetchCourseId);
 exports.courseRoute.post('/dues', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER]), courseFinanceController_1.courseFeeDues);
-exports.courseRoute.get('/dues', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER]), courseFinanceController_1.getCourseDuesByDate);
+exports.courseRoute.post('/fetch-dues', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER]), courseFinanceController_1.getCourseDuesByDate);
 exports.courseRoute.use('/subject', subjectRoute_1.subjectRoute);
