@@ -221,8 +221,6 @@ export const fetchSubjectInformationUsingFilters = expressAsyncHandler(async (re
   let { courseCode, semester, academicYear = getCurrentAcademicYear(), search, page = 1, limit = 10 } = req.body;
   semester = parseInt(semester);
 
-  const skip = (page - 1) * limit;
-
   const pipeline: any[] = [
     ...(courseCode ? [{ $match: { courseCode } }] : []),
 
@@ -298,7 +296,13 @@ export const fetchSubjectInformationUsingFilters = expressAsyncHandler(async (re
         departmentMetaDataId: "$departmentMetaDataId",
         subjectName: "$semesterDetails.subjects.subjectName",
         subjectCode: "$semesterDetails.subjects.subjectCode",
-        instructor: "$instructorDetails.firstName",
+        instructor: {
+          $concat: [
+            "$instructorDetails.firstName",
+            " ",
+            "$instructorDetails.lastName"
+          ]
+        },
         courseName: "$courseName",
         courseCode: "$courseCode",
         courseYear: "$courseYear",
@@ -313,10 +317,8 @@ export const fetchSubjectInformationUsingFilters = expressAsyncHandler(async (re
 });
 
 export const fetchSubjectInformation = async (crsId: string, semId: string, search: string, page: number = 1, limit: number = 10) => {
-  console.log("Course ID : ", crsId);
   let courseId = new mongoose.Types.ObjectId(crsId);
   let semesterId = new mongoose.Types.ObjectId(semId);
-  const skip = (page - 1) * limit;
   
   const pipeline = [
     { $match: { _id: courseId } },
@@ -438,7 +440,13 @@ export const fetchSubjectInformation = async (crsId: string, semId: string, sear
           subjectId: "$filteredSubjects._id",
           subjectName: "$filteredSubjects.subjectName",
           subjectCode: "$filteredSubjects.subjectCode",
-          instructorName: "$instructorDetails.firstName",
+          instructorName: {
+            $concat: [
+              "$instructorDetails.firstName",
+              " ",
+              "$instructorDetails.lastName"
+            ]
+          },
           instructorId: "$instructorDetails._id",
           numberOfLectures: {
             $cond: [
@@ -513,8 +521,6 @@ export const fetchSubjectInformation = async (crsId: string, semId: string, sear
   
 
   let subjectInfo = await Course.aggregate(pipeline);
-  console.log("fetching subject details : ");
-  console.log(subjectInfo[0]);
 
   subjectInfo[0].subjectDetails =  subjectInfo[0].subjectDetails.filter(
     (sub : any) => sub.subjectCode && sub.subjectName && sub.subjectCode !== "" && sub.subjectName !== ""

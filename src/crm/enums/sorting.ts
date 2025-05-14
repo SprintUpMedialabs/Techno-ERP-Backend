@@ -2,8 +2,7 @@ export const enum SortableFields {
   DATE = 'date',
   NEXT_DUE_DATE = 'nextDueDate',
   LTC_DATE = 'startLTCDate',
-  LEADS_FOLLOUP_COUNT = 'leadsFollowUpCount',
-  YELLOW_LEADS_FOLLOWUP_COUNT = 'yellowLeadsFollowUpCount'
+  FOLLOWUP_COUNT = 'followUpCount'
 }
 
 export const enum OrderBy {

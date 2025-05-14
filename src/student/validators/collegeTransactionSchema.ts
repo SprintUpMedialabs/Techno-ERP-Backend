@@ -10,7 +10,7 @@ export const CollegeTransactionSchema = z.object({
     amount : z.number(),
     txnType : z.nativeEnum(TransactionTypes),
     remark : z.string().optional(),
-    actionedBy : objectIdSchema
+    actionedBy : objectIdSchema.optional()
 })
 
 export const CreateCollegeTransactionSchema = CollegeTransactionSchema;

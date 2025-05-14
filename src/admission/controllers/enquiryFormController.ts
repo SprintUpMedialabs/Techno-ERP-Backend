@@ -3,7 +3,7 @@ import expressAsyncHandler from 'express-async-handler';
 import createHttpError from 'http-errors';
 import mongoose from 'mongoose';
 import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
-import { ApplicationStatus, Course, FormNoPrefixes, TGI } from '../../config/constants';
+import { ApplicationStatus, Course, FeeActions, FormNoPrefixes, TGI, TransactionTypes } from '../../config/constants';
 import { functionLevelLogger } from '../../config/functionLevelLogging';
 import { createStudent } from '../../student/controllers/studentController';
 import { Student } from '../../student/models/student';
@@ -13,7 +13,8 @@ import { objectIdSchema } from '../../validators/commonSchema';
 import { Enquiry } from '../models/enquiry';
 import { EnquiryDraft } from '../models/enquiryDraft';
 import { EnquiryApplicationId } from '../models/enquiryIdMetaDataSchema';
-import { enquiryStatusUpdateSchema, IEnquiryStatusUpdateSchema } from '../validators/enquiryStatusUpdateSchema';
+import { CollegeTransaction, CollegeTransactionModel } from '../../student/models/collegeTransactionHistory';
+import { getCurrentLoggedInUser } from '../../auth/utils/getCurrentLoggedInUser';
 
 
 export const getEnquiryData = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
@@ -29,13 +30,15 @@ export const getEnquiryData = expressAsyncHandler(functionLevelLogger(async (req
     ]
   };
 
-  // Validate applicationStatus
   if (applicationStatus) {
     const validStatuses = Object.values(ApplicationStatus);
-    if (!validStatuses.includes(applicationStatus)) {
-      throw createHttpError(400, 'Invalid application status');
+    //Ensure its an array
+    const statuses = Array.isArray(applicationStatus) ? applicationStatus : [applicationStatus];
+    const isValid = statuses.every(status => validStatuses.includes(status));
+    if (!isValid) {
+      throw createHttpError(400, 'One or more invalid application statuses');
     }
-    filter.applicationStatus = applicationStatus;
+    filter.applicationStatus = { $in: statuses };
   }
 
   const enquiries = await Enquiry.find(filter)
@@ -118,7 +121,7 @@ export const getEnquiryById = expressAsyncHandler(functionLevelLogger(async (req
 
 
 export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
-  const { id } = req.body;
+  const { id, transactionType } = req.body;
 
   const validation = objectIdSchema.safeParse(id);
 
@@ -184,7 +187,8 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
       ...enquiryData,
       "courseCode": approvedEnquiry?.course,
       "feeId": approvedEnquiry?.studentFee,
-      "dateOfAdmission": approvedEnquiry?.dateOfAdmission
+      "dateOfAdmission": approvedEnquiry?.dateOfAdmission,
+      "collegeName" : getCollegeNameFromFormNo(enquiryData?.formNo)
     }
 
 
@@ -192,34 +196,50 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
 
     const studentValidation = CreateStudentSchema.safeParse(studentData);
 
+    console.log("create student schema : ", studentValidation.data);
+
     console.log("Student Validation Errors : ", studentValidation.error);
 
     if (!studentValidation.success)
       throw createHttpError(400, studentValidation.error.errors[0]);
-
 
     // const student = await Student.create([{
     //   _id: enquiry._id,
     //   ...studentValidation.data,
     // }], { session });
 
-    const student = await createStudent(studentValidation.data);
+    const { transactionAmount, ...student } = await createStudent(req.data?.id, studentValidation.data);
     const studentCreateValidation = StudentSchema.safeParse(student);
 
-    console.log("Student create validation errors : ", studentCreateValidation.error);
+    console.log("Student to be created : ", student);
 
-    if (!studentCreateValidation.success)
+    console.log("Student create validation errors : ", studentCreateValidation.error);
+    console.log(studentCreateValidation.data);
+    if (!studentCreateValidation.success) {
       throw createHttpError(400, studentCreateValidation.error.errors[0]);
+    }
+
+    console.log("Transaction Amount : ", transactionAmount);
+
+    const createTransaction = await CollegeTransaction.create([{
+      studentId: enquiry._id,
+      dateTime: new Date(),
+      feeAction: FeeActions.DEPOSIT,
+      amount: transactionAmount,
+      txnType: transactionType ?? TransactionTypes.CASH,
+      actionedBy: req?.data?.id
+    }], { session });
 
     const createdStudent = await Student.create([{
       _id: enquiry._id,
       ...studentCreateValidation.data,
+      transactionHistory: [createTransaction[0]._id]
     }], { session });
 
     await session.commitTransaction();
     session.endSession();
 
-    return formatResponse(res, 200, 'Student created successfully with this information', true, createdStudent);
+    return formatResponse(res, 200, 'Student created successfully with this information', true, null);
   }
   catch (error) {
     await session.abortTransaction();
@@ -260,6 +280,17 @@ const getCollegeName = (course: Course): FormNoPrefixes => {
   if (course === Course.LLB) return FormNoPrefixes.TCL;
   return FormNoPrefixes.TIHS;
 };
+
+const getCollegeNameFromFormNo = (formNo : string | undefined) => {
+  if(!formNo)
+    return;
+  if(formNo.startsWith(FormNoPrefixes.TCL))
+    return FormNoPrefixes.TCL;
+  else if(formNo.startsWith(FormNoPrefixes.TIHS))
+    return FormNoPrefixes.TIHS;
+  else if(formNo.startsWith(FormNoPrefixes.TIMS))
+    return FormNoPrefixes.TIMS
+}
 
 
 const getAffiliation = (course: Course) => {

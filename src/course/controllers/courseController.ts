@@ -28,8 +28,6 @@ export const createCourse = expressAsyncHandler(async (req: AuthenticatedRequest
         semester: semester
     });
 
-    // const courseInformation = await getCourseInformation("", getCurrentAcademicYear());
-
     return formatResponse(res, 201, 'Course created successfully', true, null);
 });
 
@@ -64,8 +62,6 @@ export const updateCourse = expressAsyncHandler(async (req: AuthenticatedRequest
     if (updateResult.modifiedCount === 0) {
         throw createHttpError(404, 'Course not found or no changes made');
     }
-
-    // const responsePayload = getCourseInformation("", getCurrentAcademicYear());
 
     return formatResponse(res, 200, 'Course updated successfully', true, null);
 })
@@ -150,8 +146,8 @@ export const getCourseInformation = async (search: string, academicYear: string,
 
     const result = await Course.aggregate(pipeline);
 
-    const courseInformation = result[0]?.paginatedResults || [];
-    const totalItems = result[0]?.totalCount[0]?.count || 0;
+    const courseInformation = result[0]?.paginatedResults ?? [];
+    const totalItems = result[0]?.totalCount[0]?.count ?? 0;
     const totalPages = Math.ceil(totalItems / limit);
 
     return {

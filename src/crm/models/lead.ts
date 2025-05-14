@@ -1,9 +1,9 @@
 import createHttpError from 'http-errors';
+import moment from 'moment-timezone';
 import mongoose, { Document, Schema } from 'mongoose';
-import { COLLECTION_NAMES, Course, FinalConversionType, Gender, LeadType, Locations } from '../../config/constants';
+import { COLLECTION_NAMES, FinalConversionType, Gender, LeadType } from '../../config/constants';
 import { convertToDDMMYYYY, convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import { ILeadMaster } from '../validators/leads';
-import moment from 'moment-timezone';
 
 export interface ILeadMasterDocument extends ILeadMaster, Document { }
 
@@ -19,7 +19,7 @@ const leadSchema = new Schema<ILeadMasterDocument>(
     source: {
       type: String,
     },
-    schoolName:{
+    schoolName: {
       type: String,
     },
     // Accepts only alphabets (both uppercase and lowercase) and spaces
@@ -62,11 +62,15 @@ const leadSchema = new Schema<ILeadMasterDocument>(
     course: {
       type: String,
     },
+    degree: {
+      type: String,
+    },
 
     // Required field with a custom validation error message
     assignedTo: {
       type: [Schema.Types.ObjectId],
       default: [],
+      ref: COLLECTION_NAMES.USER
     },
 
     // Must be one of the predefined lead types; defaults to "ORANGE"
@@ -76,10 +80,13 @@ const leadSchema = new Schema<ILeadMasterDocument>(
         values: Object.values(LeadType),
         message: 'Invalid lead type'
       },
-      default: LeadType.OPEN
+      default: LeadType.LEFT_OVER
     },
 
-    remarks: { type: String },
+    remarks: {
+      type: [String],
+      default: [],
+    },    
     leadTypeModifiedDate: { type: Date },
 
     nextDueDate: {
@@ -93,15 +100,10 @@ const leadSchema = new Schema<ILeadMasterDocument>(
       type: String, enum: Object.values(FinalConversionType),
       default: FinalConversionType.NO_FOOTFALL
     },
-
-    leadsFollowUpCount: {
+    followUpCount: {
       type: Number,
       default: 0
     },
-    yellowLeadsFollowUpCount: {
-      type: Number,
-      default: 0
-    }
   },
   { timestamps: true }
 );
@@ -133,8 +135,8 @@ leadSchema.post('findOneAndUpdate', function (error: any, doc: any, next: Functi
 });
 
 const transformDates = (_: any, ret: any) => {
-  ['leadTypeModifiedDate', 'nextDueDate', 'date'].forEach((key) => {
-    if (key == 'leadTypeModifiedDate') {
+  ['leadTypeModifiedDate', 'nextDueDate', 'date', 'updatedAt'].forEach((key) => {
+    if (key == 'updatedAt') {
       if (ret[key]) {
         ret[key] = moment(ret[key]).tz('Asia/Kolkata').format('DD/MM/YYYY | HH:mm');
       }
@@ -143,7 +145,6 @@ const transformDates = (_: any, ret: any) => {
     }
   });
   delete ret.createdAt;
-  delete ret.updatedAt;
   delete ret.__v;
   return ret;
 };

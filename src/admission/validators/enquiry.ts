@@ -11,7 +11,7 @@ import { academicDetailsArraySchema, academicDetailSchema } from './academicDeta
 import { previousCollegeDataSchema } from './previousCollegeDataSchema';
 import { singleDocumentSchema } from './singleDocumentSchema';
 import { entranceExamDetailSchema } from './entranceExamDetailSchema';
-import { physicalDocumentNoteSchema } from './physicalDocumentNoteSchema';
+import { physicalDocumentNoteRequestSchema, physicalDocumentNoteSchema } from './physicalDocumentNoteSchema';
 
 
 export const enquirySchema = z.object({
@@ -96,6 +96,7 @@ export const enquiryStep1UpdateRequestSchema = enquiryStep1RequestSchema.extend(
 
 export const enquiryStep3UpdateRequestSchema = enquirySchema.omit({ documents: true, studentFee: true }).extend({
   id: objectIdSchema,
+  physicalDocumentNote: z.array(physicalDocumentNoteRequestSchema).optional()
 }).strict();
 
 

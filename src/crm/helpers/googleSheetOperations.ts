@@ -22,7 +22,8 @@ export const readFromGoogleSheet = async (MARKETING_SHEET_ID: string, MARKETING_
   const lastSavedIndex = spreadSheetMetaData.lastIdxMarketingSheet;
 
   logger.info(`Last saved index from DB: ${lastSavedIndex}`);
-
+  console.log( MARKETING_SHEET_ID)
+  console.log(MARKETING_SHEET_PAGE_NAME)
   const sheetMeta = await sheetInstance.spreadsheets.get({
     spreadsheetId: MARKETING_SHEET_ID
   });
@@ -50,9 +51,14 @@ export const readFromGoogleSheet = async (MARKETING_SHEET_ID: string, MARKETING_
     range: `${MARKETING_SHEET_PAGE_NAME}!A1:Z1`
   });
   const columnHeaders = headerResponse.data.values?.[0] || [];
+
+  const lowerCaseColumnHeaders = columnHeaders.map(header => header.toLowerCase());
+
   const requiredColumnHeaderWithIndex: { [key: string]: number } = {};
+
   Object.values(MarketingsheetHeaders).forEach((header) => {
-    requiredColumnHeaderWithIndex[header] = columnHeaders.indexOf(header);
+    const index = lowerCaseColumnHeaders.indexOf(header.toLowerCase());
+    requiredColumnHeaderWithIndex[header] = index;
   });
 
   const newLastReadIndex = lastSavedIndex + rowData.length;

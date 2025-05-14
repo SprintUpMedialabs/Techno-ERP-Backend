@@ -1,15 +1,13 @@
 import mongoose from "mongoose";
 import { Course } from "../models/course";
-import { convertToDDMMYYYY } from "../../utils/convertDateToFormatedDate";
 import { transformDates } from "../utils/transformDates";
 
-export const fetchScheduleInformation = async (crsId: string, semId: string, subId: string, insId: string, search? : string) => {
+export const fetchScheduleInformation = async (crsId: string, semId: string, subId: string, insId: string) => {
     let courseId = new mongoose.Types.ObjectId(crsId);
     let semesterId = new mongoose.Types.ObjectId(semId);
     let subjectId = new mongoose.Types.ObjectId(subId);
     let instructorId = new mongoose.Types.ObjectId(insId);
-    console.log(search);
-    console.log(courseId, semesterId, subjectId, instructorId);
+    
     const pipeline = [
         {
             $match: {
@@ -83,7 +81,6 @@ export const fetchScheduleInformation = async (crsId: string, semId: string, sub
                   cond: {
                     $and: [
                       { $eq: ["$$lp.instructor", instructorId] },
-                      ...(search ? [{ $regexMatch: { input: "$$lp.topicName", regex: search, options: "i" } }] : [])
                     ]
                   },
                 },
@@ -95,7 +92,6 @@ export const fetchScheduleInformation = async (crsId: string, semId: string, sub
                   cond: {
                     $and: [
                       { $eq: ["$$pp.instructor", instructorId] },
-                      ...(search ? [{ $regexMatch: { input: "$$pp.topicName", regex: search, options: "i" } }] : [])
                     ]
                   },
                 },
@@ -154,7 +150,13 @@ export const fetchScheduleInformation = async (crsId: string, semId: string, sub
                 academicYear : "$semesterDetails.academicYear",
                 subjectName: "$semesterDetails.subjects.subjectName",
                 subjectCode: "$semesterDetails.subjects.subjectCode",
-                instructorName: "$instructorDetails.firstName",
+                instructorName: {
+                    $concat: [
+                      "$instructorDetails.firstName",
+                      " ",
+                      "$instructorDetails.lastName"
+                    ]
+                  },
 
                 departmentName: "$departmentMetaData.departmentName",
                 departmentHOD: "$departmentMetaData.departmentHOD",
@@ -170,7 +172,6 @@ export const fetchScheduleInformation = async (crsId: string, semId: string, sub
     ];
 
     let subjectDetails = await Course.aggregate(pipeline);
-    // console.log(typeof subjectDetails);
     let payload = subjectDetails[0];
     payload = transformDates(payload);
     return payload;

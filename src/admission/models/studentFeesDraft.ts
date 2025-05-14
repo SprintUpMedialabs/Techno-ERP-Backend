@@ -26,9 +26,9 @@ const StudentFeesDraftSchema = new Schema<IStudentFeesDocument>(
       type: Date,
       required: false
     },
-    remarks: {
-      type: String
-    }
+    // remarks: {
+    //   type: String
+    // }
   },
   { timestamps: true }
 );

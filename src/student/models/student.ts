@@ -7,7 +7,7 @@ import { physicalDocumentNoteSchema } from "../../admission/models/physicalDocum
 import { previousCollegeDataSchema } from "../../admission/models/previousCollegeData";
 import { singleDocumentSchema } from "../../admission/models/singleDocument";
 import { AdmissionReference, AdmittedThrough, AreaType, BloodGroup, Category, COLLECTION_NAMES, CourseYears, FeeStatus, Gender, Religion, StatesOfIndia } from "../../config/constants";
-import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
+import { convertToDDMMYYYY, convertToMongoDate } from "../../utils/convertDateToFormatedDate";
 import { contactNumberSchema, emailSchema } from "../../validators/commonSchema";
 import { IAttendanceSchema, IBaseAttendanceSchema, IBaseExamSchema, IExamSchema, ISemesterSchema, IStudentBaseInfoSchema, IStudentSchema, ISubjectSchema } from "../validators/studentSchema";
 import { FeeModel } from "./fees";
@@ -35,7 +35,6 @@ const StudentBaseInfoSchema = new Schema<IStudentBasicInfoDocument>({
         type: String,
         default: 'Not Provided'
     },
-
     studentName: {
         type: String
     },
@@ -90,7 +89,6 @@ const StudentBaseInfoSchema = new Schema<IStudentBasicInfoDocument>({
         type: String,
         enum: Object.values(BloodGroup)
     },
-
     dateOfBirth: {
         type: Date,
         required: [true, 'Date is required'],
@@ -105,14 +103,6 @@ const StudentBaseInfoSchema = new Schema<IStudentBasicInfoDocument>({
             values: Object.values(Category),
             message: 'Invalid Category value'
         },
-        required: true
-    },
-    course: {
-        type: String,
-        // enum: {
-        //     values: Object.values(Course),
-        //     message: 'Invalid Course value'
-        // },
         required: true
     },
     reference: {
@@ -329,7 +319,7 @@ const StudentModel = new Schema<IStudentDocument>({
     feeStatus: {
         type: String,
         enum: Object.values(FeeStatus),
-        default: FeeStatus.NOT_PROVIDED
+        default: FeeStatus.DUE
     },
     extraBalance: {
         type: Number,
@@ -363,7 +353,24 @@ StudentModel.post('findOneAndUpdate', function (error: any, doc: any, next: Func
     handleMongooseError(error, next);
 });
 
-const removeExtraInfo = (_: any, ret: any) => {
+export const removeExtraInfo = (_: any, ret: any) => {
+    if (ret.studentInfo?.dateOfBirth) {
+        ret.studentInfo.dateOfBirth = convertToDDMMYYYY(ret.studentInfo.dateOfBirth);
+    }
+
+    if (Array.isArray(ret.studentInfo?.documents)) {
+        ret.studentInfo.documents = ret.studentInfo.documents.map((doc: any) => ({
+            ...doc,
+            dueBy: doc.dueBy ? convertToDDMMYYYY(doc.dueBy) : doc.dueBy,
+        }));
+    }
+
+    if (Array.isArray(ret.studentInfo?.physicalDocumentNote)) {
+        ret.studentInfo.physicalDocumentNote = ret.studentInfo.physicalDocumentNote.map((note: any) => ({
+            ...note,
+            dueBy: note.dueBy ? convertToDDMMYYYY(note.dueBy) : note.dueBy,
+        }));
+    }
     delete ret.createdAt;
     delete ret.updatedAt;
     delete ret.__v;

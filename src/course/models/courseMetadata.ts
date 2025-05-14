@@ -1,5 +1,6 @@
 import { Schema, model, Document } from 'mongoose';
 import { COLLECTION_NAMES } from '../../config/constants';
+import { objectIdSchema } from '../../validators/commonSchema';
 
 export enum CourseType {
   UG = 'UG',
@@ -37,6 +38,7 @@ export interface ICourseMetaDataSchema {
   totalSemesters: number;
   documentType: string[];
   fee: IFeeSchema;
+  departmentMetaDataId : Schema.Types.ObjectId
 }
 
 export interface ICourseMetaDataDocument extends ICourseMetaDataSchema, Document { }
@@ -120,6 +122,10 @@ export const courseModelSchema = new Schema<ICourseMetaDataDocument>(
         default: [],
       },
     },
+    departmentMetaDataId : {
+      type : Schema.Types.ObjectId,
+      ref : COLLECTION_NAMES.DEPARTMENT_META_DATA
+    }
   },
   { timestamps: true }
 );

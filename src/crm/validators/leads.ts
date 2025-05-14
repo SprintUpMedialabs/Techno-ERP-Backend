@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Course, FinalConversionType, Gender, LeadType } from '../../config/constants';
+import { FinalConversionType, Gender, LeadType } from '../../config/constants';
 import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import { contactNumberSchema, objectIdSchema, requestDateSchema } from '../../validators/commonSchema';
 import { extractLast10Digits, formatAndValidateLeadType, formatDate, splitEmails, toTitleCase } from './formators';
@@ -8,9 +8,8 @@ export const leadMasterSchema = z.object({
   date: z.date(),
   source: z.string().default('Other'),
   schoolName: z.string().optional(),
-  name: z.string()
-    .regex(/^[A-Za-z\s]+$/, 'Name can only contain alphabets and spaces')
-    .optional(),
+  name: z.string().optional(),
+  degree: z.string().optional(),
   phoneNumber: contactNumberSchema.optional(),
   altPhoneNumber: contactNumberSchema.optional(),
   email: z.string().email('Invalid Email Format').optional(),
@@ -19,23 +18,21 @@ export const leadMasterSchema = z.object({
   city: z.string().optional().default('Other'),
   course: z.string().optional(),
   assignedTo: objectIdSchema.array(),
-  leadType: z.nativeEnum(LeadType).default(LeadType.OPEN),
+  leadType: z.nativeEnum(LeadType).default(LeadType.LEFT_OVER),
   leadTypeModifiedDate: z.date().optional(),
   nextDueDate: z.date().optional(),
   footFall: z.boolean().optional(),   //This is referring to Campus Visit
   finalConversion: z.nativeEnum(FinalConversionType).optional().default(FinalConversionType.NO_FOOTFALL),
-  remarks: z.string().optional(),
-  leadsFollowUpCount: z.number().optional().default(0),
-  yellowLeadsFollowUpCount: z.number().optional().default(0)
+  remarks: z.array(z.string().optional()).default([]),
+  followUpCount: z.number().optional().default(0),
 })
 
 export const leadSchema = leadMasterSchema.omit({
   finalConversion: true,
   footFall: true,
-  yellowLeadsFollowUpCount: true
 }).strict();
 
-export const yellowLeadSchema = leadMasterSchema.omit({ leadType: true, leadsFollowUpCount: true, leadTypeModifiedDate: true }).strict();
+export const yellowLeadSchema = leadMasterSchema.omit({ leadType: true, leadTypeModifiedDate: true }).strict();
 
 export const leadRequestSchema = leadSchema.extend({
   date: requestDateSchema,
@@ -57,7 +54,10 @@ export const leadSheetSchema = z.object({
   course: z.string().optional().transform(val => val?.toUpperCase()),
   area: z.string().optional().transform(toTitleCase),
   leadType: z.string().transform(formatAndValidateLeadType),
-  remarks: z.string().optional(),
+  remarks: z
+    .string()
+    .transform(val => val ? [val] : [])
+    .optional(),
   schoolName: z.string().optional().transform(toTitleCase),
 });
 
@@ -87,5 +87,3 @@ export type IUpdateLeadRequestSchema = z.infer<typeof updateLeadRequestSchema>;
 export type ILeadRequest = z.infer<typeof leadRequestSchema>;
 export type IYellowLeadUpdate = z.infer<typeof yellowLeadUpdateSchema>;
 export type ISheetLeadRequest = z.infer<typeof leadSheetSchema>;
-
-
