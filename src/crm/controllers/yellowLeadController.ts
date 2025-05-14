@@ -32,7 +32,7 @@ export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedReq
 
   // If the campus visit is changed to yes, then the final conversion is set to unconfirmed
   if (isCampusVisitChangedToYes) {
-    updateData.finalConversion = FinalConversionType.UNCONFIRMED;
+    updateData.finalConversion = FinalConversionType.NEUTRAL;
   }
 
   // If the campus visit is changed to no, then the final conversion can not be changed.
@@ -160,7 +160,7 @@ export const getYellowLeadsAnalytics = expressAsyncHandler(async (req: Request, 
           $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.CONVERTED] }, 1, 0] }
         },
         unconfirmed: {
-          $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.UNCONFIRMED] }, 1, 0] }
+          $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.NEUTRAL] }, 1, 0] }
         }
       }
     },
