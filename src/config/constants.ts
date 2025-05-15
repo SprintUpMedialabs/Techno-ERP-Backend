@@ -40,7 +40,7 @@ export enum LeadType {
 export enum FinalConversionType {
   NO_FOOTFALL = 'NO_FOOTFALL',
   NEUTRAL = 'NEUTRAL',
-  CONVERTED = 'CONVERTED',
+  ADMISSION = 'ADMISSION',
   NOT_INTERESTED = 'NOT_INTERESTED'
 }
 
