@@ -280,6 +280,10 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
     formNo: {
       type: String,
     },
+    isFeeApplicable : {
+      type : Boolean,
+      default : false
+    }
   },
 
   { timestamps: true }
