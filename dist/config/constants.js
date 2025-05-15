@@ -41,7 +41,7 @@ var FinalConversionType;
 (function (FinalConversionType) {
     FinalConversionType["NO_FOOTFALL"] = "NO_FOOTFALL";
     FinalConversionType["NEUTRAL"] = "NEUTRAL";
-    FinalConversionType["CONVERTED"] = "CONVERTED";
+    FinalConversionType["ADMISSION"] = "ADMISSION";
     FinalConversionType["NOT_INTERESTED"] = "NOT_INTERESTED";
 })(FinalConversionType || (exports.FinalConversionType = FinalConversionType = {}));
 /*
