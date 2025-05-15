@@ -23,7 +23,8 @@ const studentFeesSchema = zod_1.z.object({
     otherFees: zod_1.z.array(exports.otherFeesSchema).optional(),
     semWiseFees: zod_1.z.array(exports.singleSemSchema),
     feesClearanceDate: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)),
-    remarks: zod_1.z.string().optional()
+    remarks: zod_1.z.string().optional(),
+    isFeeApplicable: zod_1.z.boolean().default(false).optional()
 });
 exports.feesRequestSchema = studentFeesSchema.extend({
     otherFees: zod_1.z.array(otherFeesSchemaWithoutFeeAmount),

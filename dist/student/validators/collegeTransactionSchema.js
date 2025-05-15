@@ -12,6 +12,8 @@ exports.CollegeTransactionSchema = zod_1.z.object({
     amount: zod_1.z.number(),
     txnType: zod_1.z.nativeEnum(constants_1.TransactionTypes),
     remark: zod_1.z.string().optional(),
-    actionedBy: commonSchema_1.objectIdSchema.optional()
+    actionedBy: commonSchema_1.objectIdSchema.optional(),
+    courseName: zod_1.z.string().optional(),
+    courseCode: zod_1.z.string().optional()
 });
 exports.CreateCollegeTransactionSchema = exports.CollegeTransactionSchema;

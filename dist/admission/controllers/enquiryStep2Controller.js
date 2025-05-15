@@ -95,6 +95,9 @@ exports.createEnquiryStep2 = (0, express_async_handler_1.default)((0, functionLe
         if (data.remarks != null) {
             enquiryUpdatePayload.remarks = data.remarks;
         }
+        if (data.isFeeApplicable != null) {
+            enquiryUpdatePayload.isFeeApplicable = data.isFeeApplicable;
+        }
         yield enquiry_1.Enquiry.findByIdAndUpdate(data.enquiryId, { $set: enquiryUpdatePayload }, { new: true, session });
         if (enquiry === null || enquiry === void 0 ? void 0 : enquiry.studentFeeDraft) {
             yield studentFeesDraft_1.StudentFeesDraftModel.findByIdAndDelete(enquiry.studentFeeDraft, { session });

@@ -84,6 +84,14 @@ exports.CollegeTransactionModel = new mongoose_1.Schema({
     actionedBy: {
         type: mongoose_1.Schema.Types.ObjectId,
         ref: constants_1.COLLECTION_NAMES.USER
+    },
+    courseName: {
+        type: String,
+        required: true
+    },
+    courseCode: {
+        type: String,
+        required: true
     }
 }, { timestamps: true });
 exports.CollegeTransactionModel.pre("save", function (next) {
