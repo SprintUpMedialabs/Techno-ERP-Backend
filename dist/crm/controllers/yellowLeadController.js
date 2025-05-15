@@ -143,7 +143,7 @@ exports.getYellowLeadsAnalytics = (0, express_async_handler_1.default)((req, res
                 admissions: {
                     $sum: { $cond: [{ $eq: ['$finalConversion', constants_1.FinalConversionType.CONVERTED] }, 1, 0] }
                 },
-                unconfirmed: {
+                neutral: {
                     $sum: { $cond: [{ $eq: ['$finalConversion', constants_1.FinalConversionType.NEUTRAL] }, 1, 0] }
                 }
             }
@@ -156,7 +156,7 @@ exports.getYellowLeadsAnalytics = (0, express_async_handler_1.default)((req, res
                 activeYellowLeadsCount: 1,
                 deadLeadCount: 1,
                 admissions: 1,
-                unconfirmed: 1
+                neutral: 1
             }
         }
     ]);
@@ -168,7 +168,7 @@ exports.getYellowLeadsAnalytics = (0, express_async_handler_1.default)((req, res
             activeYellowLeadsCount: 0,
             deadLeadCount: 0,
             admissions: 0,
-            unconfirmed: 0
+            neutral: 0
         };
     return (0, formatResponse_1.formatResponse)(res, 200, 'Yellow leads analytics fetched successfully', true, result);
 }));
