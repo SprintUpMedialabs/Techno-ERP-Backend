@@ -141,7 +141,7 @@ exports.getYellowLeadsAnalytics = (0, express_async_handler_1.default)((req, res
                     $sum: { $cond: [{ $eq: ['$finalConversion', constants_1.FinalConversionType.NOT_INTERESTED] }, 1, 0] }
                 },
                 admissions: {
-                    $sum: { $cond: [{ $eq: ['$finalConversion', constants_1.FinalConversionType.CONVERTED] }, 1, 0] }
+                    $sum: { $cond: [{ $eq: ['$finalConversion', constants_1.FinalConversionType.ADMISSION] }, 1, 0] }
                 },
                 neutral: {
                     $sum: { $cond: [{ $eq: ['$finalConversion', constants_1.FinalConversionType.NEUTRAL] }, 1, 0] }
