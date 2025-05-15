@@ -159,7 +159,7 @@ export const getYellowLeadsAnalytics = expressAsyncHandler(async (req: Request, 
         admissions: {
           $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.CONVERTED] }, 1, 0] }
         },
-        unconfirmed: {
+        neutral: {
           $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.NEUTRAL] }, 1, 0] }
         }
       }
@@ -172,7 +172,7 @@ export const getYellowLeadsAnalytics = expressAsyncHandler(async (req: Request, 
         activeYellowLeadsCount: 1,
         deadLeadCount: 1,
         admissions: 1,
-        unconfirmed: 1
+        neutral: 1
       }
     }
   ]);
@@ -186,7 +186,7 @@ export const getYellowLeadsAnalytics = expressAsyncHandler(async (req: Request, 
         activeYellowLeadsCount: 0,
         deadLeadCount: 0,
         admissions: 0,
-        unconfirmed: 0
+        neutral: 0
       };
 
   return formatResponse(res, 200, 'Yellow leads analytics fetched successfully', true, result);
