@@ -50,6 +50,9 @@ export const CollegeTransactionModel = new Schema<ICollegeTransactionDocument>({
     courseCode: {
         type: String,
         required: true
+    },
+    courseYear : {
+        type : String
     }
 }, { timestamps: true });
 

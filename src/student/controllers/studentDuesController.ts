@@ -11,6 +11,7 @@ import { CreateCollegeTransactionSchema, ICreateCollegeTransactionSchema } from 
 import { CollegeTransaction } from "../models/collegeTransactionHistory";
 import { EditFeeBreakUpSchema, FetchFeeHistorySchema, IEditFeeBreakUpSchema, IFetchFeeHistorySchema } from "../validators/feeSchema";
 import { getCurrentLoggedInUser } from "../../auth/utils/getCurrentLoggedInUser";
+import { getCourseYearFromSemNumber } from "../../utils/getCourseYearFromSemNumber";
 
 type FeeDetailInterface = {
     _id: string;
@@ -318,7 +319,8 @@ export const recordPayment = expressAsyncHandler(async (req: AuthenticatedReques
             dateTime: new Date(),
             actionedBy: currentLoggedInUser,
             courseCode : student.courseCode,
-            courseName : student.courseName
+            courseName : student.courseName,
+            courseYear : getCourseYearFromSemNumber(student.currentSemester)
         }], { session });
 
         console.log("Transaction created : ", transaction);

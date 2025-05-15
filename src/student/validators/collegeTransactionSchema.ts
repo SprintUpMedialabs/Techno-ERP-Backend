@@ -12,7 +12,8 @@ export const CollegeTransactionSchema = z.object({
     remark : z.string().optional(),
     actionedBy : objectIdSchema.optional(),
     courseName : z.string().optional(),
-    courseCode : z.string().optional()
+    courseCode : z.string().optional(),
+    courseYear : z.string().optional()
 })
 
 export const CreateCollegeTransactionSchema = CollegeTransactionSchema;

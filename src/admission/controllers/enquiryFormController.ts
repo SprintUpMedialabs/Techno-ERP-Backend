@@ -15,6 +15,7 @@ import { EnquiryDraft } from '../models/enquiryDraft';
 import { EnquiryApplicationId } from '../models/enquiryIdMetaDataSchema';
 import { CollegeTransaction, CollegeTransactionModel } from '../../student/models/collegeTransactionHistory';
 import { getCurrentLoggedInUser } from '../../auth/utils/getCurrentLoggedInUser';
+import { getCourseYearFromSemNumber } from '../../utils/getCourseYearFromSemNumber';
 
 
 export const getEnquiryData = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
@@ -239,7 +240,8 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
     await CollegeTransaction.findByIdAndUpdate(enquiry._id, {
       $set : {
         courseCode : student.courseCode,
-        courseName : student.courseName
+        courseName : student.courseName,
+        courseYear : getCourseYearFromSemNumber(student.currentSemester)
       }
     })
 
