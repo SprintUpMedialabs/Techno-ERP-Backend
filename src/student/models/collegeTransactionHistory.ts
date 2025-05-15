@@ -42,6 +42,14 @@ export const CollegeTransactionModel = new Schema<ICollegeTransactionDocument>({
     actionedBy : {
         type : Schema.Types.ObjectId,
         ref : COLLECTION_NAMES.USER
+    },
+    courseName: {
+        type: String,
+        required: true
+    },
+    courseCode: {
+        type: String,
+        required: true
     }
 }, { timestamps: true });
 

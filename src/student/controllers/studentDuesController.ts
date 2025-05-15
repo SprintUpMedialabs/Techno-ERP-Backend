@@ -45,7 +45,8 @@ export const getStudentDues = expressAsyncHandler(async (req: AuthenticatedReque
             {
                 $or: [
                     { 'studentInfo.studentName': { $regex: search, $options: 'i' } },
-                    { 'studentInfo.studentId': { $regex: search, $options: 'i' } }
+                    { 'studentInfo.studentId': { $regex: search, $options: 'i' } },
+                    { 'studentInfo.studentPhoneNumber': { $regex: search, $options: 'i' } }
                 ]
             }
         ];
@@ -155,6 +156,7 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
                 feeStatus: 1,
                 departmentInfo: 1,
                 extraBalance: 1,
+                currentSemester : 1,
                 semesterNumber: "$semester.semesterNumber",
                 academicYear: "$semester.academicYear",
                 finalFee: "$semester.fees.totalFinalFee",
@@ -180,6 +182,7 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
                 studentInfo: { $first: "$studentInfo" },
                 courseName: { $first: "$courseName" },
                 feeStatus: { $first: "$feeStatus" },
+                currentSemester : { $first : "$currentSemester"},
                 extraBalance: { $first: "$extraBalance" },
                 departmentInfo: { $first: "$departmentInfo" },
                 semesterWiseFeeInformation: {
@@ -264,11 +267,12 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
                 studentID: "$studentInfo.universityId",
                 fatherName: "$studentInfo.fatherName",
                 feeStatus: 1,
+                currentSemester : 1,
                 HOD: "$departmentInfo.departmentHOD",
                 course: "$courseName",
                 semesterWiseFeeInformation: 1,
                 semesterBreakUp: 1,
-                extraBalance: 1
+                extraBalance: 1,
             }
         }
     ];
@@ -312,7 +316,9 @@ export const recordPayment = expressAsyncHandler(async (req: AuthenticatedReques
             feeAction: validation.data.feeAction,
             remark: validation.data.remark || "",
             dateTime: new Date(),
-            actionedBy: currentLoggedInUser
+            actionedBy: currentLoggedInUser,
+            courseCode : student.courseCode,
+            courseName : student.courseName
         }], { session });
 
         console.log("Transaction created : ", transaction);

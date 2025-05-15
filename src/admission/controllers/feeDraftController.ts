@@ -77,6 +77,9 @@ export const createFeeDraft = expressAsyncHandler(functionLevelLogger(async (req
     if(data.remarks != null)
       enquiryDataUpdate.remarks = data.remarks;
 
+    if(data.isFeeApplicable != null)
+      enquiryDataUpdate.isFeeApplicable = data.isFeeApplicable;
+
     await Enquiry.findByIdAndUpdate(
       data.enquiryId,
       { $set: enquiryDataUpdate },
@@ -160,6 +163,11 @@ export const updateFeeDraft = expressAsyncHandler(functionLevelLogger(async (req
     if(validation.data.remarks != null){
       enquiryData.remarks = validation.data.remarks;
     }
+
+    if(validation.data.isFeeApplicable != null){
+      enquiryData.isFeeApplicable = validation.data.isFeeApplicable;
+    }
+    
       await Enquiry.findByIdAndUpdate(
       data.enquiryId,
       { $set: enquiryData },

@@ -236,6 +236,13 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
       transactionHistory: [createTransaction[0]._id]
     }], { session });
 
+    await CollegeTransaction.findByIdAndUpdate(enquiry._id, {
+      $set : {
+        courseCode : student.courseCode,
+        courseName : student.courseName
+      }
+    })
+
     await session.commitTransaction();
     session.endSession();
 

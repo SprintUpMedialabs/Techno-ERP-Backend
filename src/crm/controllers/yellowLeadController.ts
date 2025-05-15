@@ -32,7 +32,7 @@ export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedReq
 
   // If the campus visit is changed to yes, then the final conversion is set to unconfirmed
   if (isCampusVisitChangedToYes) {
-    updateData.finalConversion = FinalConversionType.UNCONFIRMED;
+    updateData.finalConversion = FinalConversionType.NEUTRAL;
   }
 
   // If the campus visit is changed to no, then the final conversion can not be changed.
@@ -159,8 +159,8 @@ export const getYellowLeadsAnalytics = expressAsyncHandler(async (req: Request, 
         admissions: {
           $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.CONVERTED] }, 1, 0] }
         },
-        unconfirmed: {
-          $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.UNCONFIRMED] }, 1, 0] }
+        neutral: {
+          $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.NEUTRAL] }, 1, 0] }
         }
       }
     },
@@ -172,7 +172,7 @@ export const getYellowLeadsAnalytics = expressAsyncHandler(async (req: Request, 
         activeYellowLeadsCount: 1,
         deadLeadCount: 1,
         admissions: 1,
-        unconfirmed: 1
+        neutral: 1
       }
     }
   ]);
@@ -186,7 +186,7 @@ export const getYellowLeadsAnalytics = expressAsyncHandler(async (req: Request, 
         activeYellowLeadsCount: 0,
         deadLeadCount: 0,
         admissions: 0,
-        unconfirmed: 0
+        neutral: 0
       };
 
   return formatResponse(res, 200, 'Yellow leads analytics fetched successfully', true, result);

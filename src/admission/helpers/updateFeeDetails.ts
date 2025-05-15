@@ -75,6 +75,10 @@ export const updateFeeDetails = async (applicationStatusList: ApplicationStatus[
     enquiryUpdatePayload.remarks = validation.data.remarks;
   }
 
+  if(validation.data.isFeeApplicable !=null){
+    enquiryUpdatePayload.remarks = validation.data.isFeeApplicable;
+  }
+
   if (Object.keys(enquiryUpdatePayload).length > 0) {
     await Enquiry.findByIdAndUpdate(enquiry._id, {
       $set: enquiryUpdatePayload
