@@ -81,6 +81,8 @@ exports.createFeeDraft = (0, express_async_handler_1.default)((0, functionLevelL
         }
         if (data.remarks != null)
             enquiryDataUpdate.remarks = data.remarks;
+        if (data.isFeeApplicable != null)
+            enquiryDataUpdate.isFeeApplicable = data.isFeeApplicable;
         yield enquiry_1.Enquiry.findByIdAndUpdate(data.enquiryId, { $set: enquiryDataUpdate }, { session });
         yield session.commitTransaction();
         session.endSession();
@@ -137,6 +139,9 @@ exports.updateFeeDraft = (0, express_async_handler_1.default)((0, functionLevelL
         }
         if (validation.data.remarks != null) {
             enquiryData.remarks = validation.data.remarks;
+        }
+        if (validation.data.isFeeApplicable != null) {
+            enquiryData.isFeeApplicable = validation.data.isFeeApplicable;
         }
         yield enquiry_1.Enquiry.findByIdAndUpdate(data.enquiryId, { $set: enquiryData }, { session });
         yield session.commitTransaction();

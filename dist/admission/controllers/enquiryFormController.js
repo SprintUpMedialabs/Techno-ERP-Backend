@@ -174,6 +174,12 @@ exports.approveEnquiry = (0, express_async_handler_1.default)((0, functionLevelL
                 actionedBy: (_b = req === null || req === void 0 ? void 0 : req.data) === null || _b === void 0 ? void 0 : _b.id
             }], { session });
         const createdStudent = yield student_1.Student.create([Object.assign(Object.assign({ _id: enquiry._id }, studentCreateValidation.data), { transactionHistory: [createTransaction[0]._id] })], { session });
+        yield collegeTransactionHistory_1.CollegeTransaction.findByIdAndUpdate(enquiry._id, {
+            $set: {
+                courseCode: student.courseCode,
+                courseName: student.courseName
+            }
+        });
         yield session.commitTransaction();
         session.endSession();
         return (0, formatResponse_1.formatResponse)(res, 200, 'Student created successfully with this information', true, null);

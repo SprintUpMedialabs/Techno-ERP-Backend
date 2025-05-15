@@ -290,7 +290,9 @@ exports.recordPayment = (0, express_async_handler_1.default)((req, res) => __awa
                 feeAction: validation.data.feeAction,
                 remark: validation.data.remark || "",
                 dateTime: new Date(),
-                actionedBy: currentLoggedInUser
+                actionedBy: currentLoggedInUser,
+                courseCode: student.courseCode,
+                courseName: student.courseName
             }], { session });
         console.log("Transaction created : ", transaction);
         console.log(transaction[0]._id);
