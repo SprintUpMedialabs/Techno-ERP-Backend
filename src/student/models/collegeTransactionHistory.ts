@@ -1,10 +1,8 @@
-import mongoose, { Schema } from "mongoose";
-import { COLLECTION_NAMES, FeeActions, TransactionTypes } from "../../config/constants";
-import { ICollegeTransactionSchema } from "../validators/collegeTransactionSchema";
-import { Document } from "mongoose";
-import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
 import createHttpError from "http-errors";
+import mongoose, { Document, Schema } from "mongoose";
+import { COLLECTION_NAMES, FeeActions, TransactionTypes } from "../../config/constants";
 import { TechnoMetaData } from "../../config/models/TechnoMetaData";
+import { ICollegeTransactionSchema } from "../validators/collegeTransactionSchema";
 
 export interface ICollegeTransactionDocument extends ICollegeTransactionSchema, Document { }
 
