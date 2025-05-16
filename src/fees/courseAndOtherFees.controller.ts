@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
 import createHttpError from 'http-errors';
 import { CourseAndOtherFeesModel } from './courseAndOtherFees.model';
-import { Course } from '../config/constants';
+import { Course, FeeType } from '../config/constants';
 import expressAsyncHandler from 'express-async-handler';
-import { CourseMetaData } from '../course/models/courseMetadata';
+import { CourseMetaData, IFeeItem } from '../course/models/courseMetadata';
 import { formatResponse } from '../utils/formatResponse';
 
 export const createFeesStructure = async (req: Request, res: Response) => {
@@ -62,15 +62,20 @@ export const getOtherFees = async (req: Request, res: Response) => {
 
 export const fetchCourseFeeByCourse = async (courseCode: String) => {
     const record = await CourseMetaData.findOne({
-        'courseCode': courseCode
+        'courseCode': courseCode,
+        'fee.semWiseFee.type' : FeeType.EDUCATION
     });
 
     if (!record) 
         return null;
 
     const courseFee = record.fee.semWiseFee;
-    // console.log("Course Fee : ", courseFee);
-    return courseFee || null;
+    let feeAmt : any[] = []
+    courseFee.forEach((fee) => {
+        if(fee.type == FeeType.EDUCATION)
+            feeAmt = fee.fees;
+    })
+    return feeAmt || null;
 };
 
 export const fetchOtherFees = async (courseCode : String) => {
@@ -81,12 +86,23 @@ export const fetchOtherFees = async (courseCode : String) => {
 
     if (!record) 
         return null;
-    // console.log("Record is : ", record);
-    // console.log("Fees : ", record.fee);
+
+    const courseFee = record.fee.semWiseFee;
+    let feeAmt : any[] = []
+
+    courseFee.forEach((fee) => {
+        if(fee.type == FeeType.BOOKBANK)
+            feeAmt = fee.fees;
+    })
+    
+    const bookBankAmt : IFeeItem = {
+        type: "Book Bank",
+        amount: feeAmt[0]
+    }
 
     const yearlyFee = record.fee.yearlyFee || [];
     const oneTimeFee = record.fee.oneTime || [];
-    const otherFees = [...yearlyFee, ...oneTimeFee];
+    const otherFees = [...yearlyFee, ...oneTimeFee, bookBankAmt];
     // console.log("Other fees : ", otherFees);
 
     return otherFees;
