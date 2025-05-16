@@ -45,11 +45,9 @@ export const CollegeTransactionModel = new Schema<ICollegeTransactionDocument>({
     },
     courseName: {
         type: String,
-        required: true
     },
     courseCode: {
         type: String,
-        required: true
     },
     courseYear : {
         type : String
