@@ -301,7 +301,8 @@ export enum COLLECTION_NAMES {
   TECHNO_META_DATA = "TechnoMetaData",
   MARKETING_FOLLOW_UP_RAW_DATA = "MarketingFollowUpData",
   MARKETING_ANALYTICS = "MarketingAnalytics",
-  COURSE_DUES = 'CourseDues'
+  COURSE_DUES = 'CourseDues',
+  COLLEGE_META_DATA = "CollegeMetaData"
 }
 
 

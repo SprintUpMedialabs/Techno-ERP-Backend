@@ -10,6 +10,7 @@ import { crmRoute } from './crm/routes/crmRoute';
 import feesRouter from './fees/courseAndOtherFees.routes';
 import { studentRoute } from './student/routes';
 import { dropDownRoute } from './utilityModules/dropdown/dropDownRoute';
+import { downloadRoute } from './common/route';
 
 export const apiRouter = express.Router();
 
@@ -77,3 +78,5 @@ apiRouter.use('/test', testRoute);
  */
 apiRouter.use('/student', studentRoute);
 
+
+apiRouter.use('/download-reciept', downloadRoute);
