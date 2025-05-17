@@ -39,7 +39,7 @@ export const courseFeeDues = expressAsyncHandler(async (_: AuthenticatedRequest,
 
         for (const course of courseList) {
             const { courseCode, courseName, courseDuration, collegeName } = course;
-            const date = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
+            const date = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()-1));
 
             const department = course.departmentMetaDataId;
             const hod = department?.departmentHODId;
