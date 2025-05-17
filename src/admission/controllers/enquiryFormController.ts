@@ -6,18 +6,17 @@ import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest
 import { ApplicationStatus, Course, FeeActions, FormNoPrefixes, TGI, TransactionTypes } from '../../config/constants';
 import { functionLevelLogger } from '../../config/functionLevelLogging';
 import { createStudent } from '../../student/controllers/studentController';
+import { CollegeTransaction } from '../../student/models/collegeTransactionHistory';
 import { Student } from '../../student/models/student';
+import { toRoman } from '../../student/utils/getRomanSemNumber';
 import { CreateStudentSchema, StudentSchema } from '../../student/validators/studentSchema';
 import { formatResponse } from '../../utils/formatResponse';
+import { getCourseYearFromSemNumber } from '../../utils/getCourseYearFromSemNumber';
 import { objectIdSchema } from '../../validators/commonSchema';
 import { Enquiry } from '../models/enquiry';
 import { EnquiryDraft } from '../models/enquiryDraft';
 import { EnquiryApplicationId } from '../models/enquiryIdMetaDataSchema';
-import { CollegeTransaction, CollegeTransactionModel } from '../../student/models/collegeTransactionHistory';
-import { getCurrentLoggedInUser } from '../../auth/utils/getCurrentLoggedInUser';
 import { StudentFeesModel } from '../models/studentFees';
-import { getCurrentAcademicYear } from '../../course/utils/getCurrentAcademicYear';
-import { toRoman } from '../../student/utils/getRomanSemNumber';
 
 
 export const getEnquiryData = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
@@ -256,10 +255,13 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
       transactionHistory: [createTransaction[0]._id]
     }], { session });
 
+    console.log("Created student is : ", createdStudent);
+
     await CollegeTransaction.findByIdAndUpdate(enquiry._id, {
       $set : {
         courseCode : student.courseCode,
-        courseName : student.courseName
+        courseName : student.courseName,
+        courseYear : getCourseYearFromSemNumber(student.currentSemester)
       }
     })
 
