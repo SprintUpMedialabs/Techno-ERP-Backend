@@ -9,7 +9,8 @@ export enum UserRoles {
   COUNSELOR = 'COUNSELOR',
   REGISTAR = 'REGISTAR',
   HOD = 'HOD',
-  INSTRUCTOR = 'INSTRUCTOR'
+  INSTRUCTOR = 'INSTRUCTOR',
+  SYSTEM_ADMIN = 'SYSTEM_ADMIN'
 }
 
 export enum Gender {
@@ -303,6 +304,7 @@ export enum COLLECTION_NAMES {
   MARKETING_FOLLOW_UP_RAW_DATA = "MarketingFollowUpData",
   MARKETING_ANALYTICS = "MarketingAnalytics",
   COURSE_DUES = 'CourseDues',
+  COLLEGE_META_DATA = "CollegeMetaData",
   FINANCE_ANALYTICS = "FinanceAnalytics"
 }
 

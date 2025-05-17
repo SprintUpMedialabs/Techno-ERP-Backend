@@ -13,6 +13,10 @@ export const CollegeTransactionSchema = z.object({
     actionedBy : objectIdSchema.optional(),
     courseName : z.string().optional(),
     courseCode : z.string().optional(),
+    transactionSettlementHistory : z.array(z.object({
+        name : z.string(),
+        amount : z.number()
+    })).optional(),
     courseYear : z.string().optional()
 })
 

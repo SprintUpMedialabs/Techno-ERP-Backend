@@ -1,12 +1,19 @@
-import mongoose, { Schema } from "mongoose";
-import { COLLECTION_NAMES, FeeActions, TransactionTypes } from "../../config/constants";
-import { ICollegeTransactionSchema } from "../validators/collegeTransactionSchema";
-import { Document } from "mongoose";
-import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
 import createHttpError from "http-errors";
+import mongoose, { Document, Schema } from "mongoose";
+import { COLLECTION_NAMES, FeeActions, TransactionTypes } from "../../config/constants";
 import { TechnoMetaData } from "../../config/models/TechnoMetaData";
+import { ICollegeTransactionSchema } from "../validators/collegeTransactionSchema";
 
 export interface ICollegeTransactionDocument extends ICollegeTransactionSchema, Document { }
+
+export const TransactionSettlementHistory = new Schema({
+    name : {
+        type : String
+    },
+    amount : {
+        type : Number
+    }
+}, { _id : false });
 
 export const CollegeTransactionModel = new Schema<ICollegeTransactionDocument>({
     studentId: {
@@ -48,6 +55,11 @@ export const CollegeTransactionModel = new Schema<ICollegeTransactionDocument>({
     },
     courseCode: {
         type: String,
+        required: true
+    },
+    transactionSettlementHistory : {
+        type : [TransactionSettlementHistory],
+        default : []
     },
     courseYear : {
         type : String

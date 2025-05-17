@@ -1,21 +1,25 @@
+import { Response } from "express";
 import expressAsyncHandler from "express-async-handler";
+import createHttpError from "http-errors";
+import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
 import { CourseYears } from "../../config/constants";
 import { retryMechanism } from "../../config/retryMechanism";
 import { CourseMetaData } from "../../course/models/courseMetadata";
+import { convertToDDMMYYYY, convertToMongoDate } from "../../utils/convertDateToFormatedDate";
 import { formatResponse } from "../../utils/formatResponse";
+import { getDatesOfMonth } from "../../utils/getDatesOfMonth";
+import { getPastSevenDates } from "../../utils/getPastSevenDates";
 import { getPreviousDayDateTime } from "../../utils/previousDayDateTime";
 import { CollegeTransaction } from "../models/collegeTransactionHistory";
 import { CourseWiseDetails, CourseWiseInformation, FinanceAnalytics } from "../models/financeAnalytics";
 import { Student } from "../models/student";
-import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
-import { Response } from "express";
-import createHttpError from "http-errors";
-import { convertToDDMMYYYY, convertToMongoDate } from "../../utils/convertDateToFormatedDate";
-import { startOfDay, subDays, formatISO } from "date-fns";
-import { getPastSevenDates } from "../../utils/getPastSevenDates";
-import { getDatesOfMonth } from "../../utils/getDatesOfMonth";
 
-export const createFinanceAnalytics = expressAsyncHandler(async (req : AuthenticatedRequest, res : Response) => {
+/*
+  academicYear : 2024-2025
+  course 
+*/
+
+export const createFinanceAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const today = new Date();
   const currentYear = today.getFullYear();
   const currentMonth = today.getMonth();
@@ -56,7 +60,7 @@ export const createFinanceAnalytics = expressAsyncHandler(async (req : Authentic
 
   await retryMechanism(async (session) => {
     for (const course of courseList) {
-      const { courseCode, courseName, courseDuration } = course;
+      const { courseCode, courseDuration } = course;
 
       const departmentName = course.departmentName;
 
@@ -101,6 +105,19 @@ export const createFinanceAnalytics = expressAsyncHandler(async (req : Authentic
               }
             }
           },
+          /*
+            3rd:
+            actual fee: 5000
+            paid : 5000
+            4th 
+            actual fee: 5000
+            paid : 4000
+            5th
+            actual fee: 5000
+            paid : 4000
+            6th:
+            dueDate Null:
+          */
           { $unwind: "$semesters" },
           {
             $group: {
@@ -132,7 +149,7 @@ export const createFinanceAnalytics = expressAsyncHandler(async (req : Authentic
           }
         ]).session(session);
 
-        const totalCollectionCourseYearWise = collectionResult[0]?.totalCollection || 0;
+        const totalCollectionCourseYearWise = collectionResult[0]?.totalCollection ?? 0;
 
         courseYearDetail.totalCollection = totalCollectionCourseYearWise;
         courseYearDetail.totalExpectedRevenue = totalExpectedRevenueCourseYearWise;
@@ -169,110 +186,111 @@ export const createFinanceAnalytics = expressAsyncHandler(async (req : Authentic
 });
 
 
-export const fetchDayWiseAnalytics = expressAsyncHandler(async (req : AuthenticatedRequest, res : Response)=>{
-    const { date } = req.body;
+export const fetchDayWiseAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const { date } = req.body;
 
-    if(!date)
-      throw createHttpError("Please enter the date to fetch analytics!");
+  if (!date)
+    throw createHttpError("Please enter the date to fetch analytics!");
 
-    const analyticsForDate = await FinanceAnalytics.findOne({
-      date: convertToMongoDate(date),
+  const analyticsForDate = await FinanceAnalytics.findOne({
+    date: convertToMongoDate(date),
+  });
+
+  const pastDates = getPastSevenDates(date);
+
+  // console.log("Past 7 days dates are : ", pastDates);
+
+  const pastSevenDocs = await FinanceAnalytics.find({
+    date: { $in: pastDates },
+  }).sort({ date: 1 });
+
+  // console.log("Past 7 days docs : ", pastSevenDocs);
+  const pastSevenDayDocs: { date: string; dailyCollection: number; }[] = [];
+  pastSevenDocs.forEach(daywiseDoc => {
+    pastSevenDayDocs.push({
+      date: convertToDDMMYYYY(daywiseDoc.date),
+      dailyCollection: daywiseDoc.totalCollection
+    })
+  });
+
+  const courseWiseData = analyticsForDate?.courseWise || [];
+
+  const courseWiseInformation: {
+    courseCode: string,
+    details: { courseYear: CourseYears; totalCollection: number }[]
+  }[] = [];
+
+  courseWiseData.forEach((courseWise: { details: any; courseCode: any; }) => {
+    const detailsArray = courseWise.details.map((det: { courseYear: CourseYears; totalCollection: number }) => ({
+      courseYear: det.courseYear,
+      totalCollection: det.totalCollection
+    }));
+
+    courseWiseInformation.push({
+      courseCode: courseWise.courseCode,
+      details: detailsArray
     });
+  });
 
-    const pastDates = getPastSevenDates(date);
-
-    // console.log("Past 7 days dates are : ", pastDates);
-
-    const pastSevenDocs = await FinanceAnalytics.find({
-      date: { $in: pastDates },
-    }).sort({ date: 1 });
-
-    // console.log("Past 7 days docs : ", pastSevenDocs);
-    const pastSevenDayDocs: { date: string; dailyCollection: number; }[] = [];
-    pastSevenDocs.forEach(daywiseDoc => {
-      pastSevenDayDocs.push({
-        date : convertToDDMMYYYY(daywiseDoc.date),
-        dailyCollection : daywiseDoc.totalCollection
-      })
-    });
-
-    const courseWiseData = analyticsForDate?.courseWise || [];
-
-    const courseWiseInformation: {
-      courseCode: string,
-      details: { courseYear: CourseYears; totalCollection: number }[]
-    }[] = [];
-    
-    courseWiseData.forEach((courseWise: { details: any; courseCode: any; }) => {
-      const detailsArray = courseWise.details.map((det: { courseYear: CourseYears; totalCollection: number }) => ({
-        courseYear: det.courseYear,
-        totalCollection: det.totalCollection
-      }));
-    
-      courseWiseInformation.push({
-        courseCode: courseWise.courseCode,
-        details: detailsArray
-      });
-    }); 
-
-    return formatResponse(res, 200, "Fetch day wise trend information successfully",true,{
-      totalCollection : analyticsForDate?.totalCollection || 0,
-      pastSevenDays : pastSevenDayDocs,
-      courseWiseInformation : courseWiseInformation
-    });
+  return formatResponse(res, 200, "Fetch day wise trend information successfully", true, {
+    totalCollection: analyticsForDate?.totalCollection || 0,
+    pastSevenDays: pastSevenDayDocs,
+    courseWiseInformation: courseWiseInformation
+  });
 
 })
 
 
-export const fetchMonthWiseAnalytics = expressAsyncHandler(async (req : AuthenticatedRequest, res : Response) => {
-    const { monthNumber } = req.body;
+export const fetchMonthWiseAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const { monthNumber } = req.body;
 
-    const datesOfMonth = getDatesOfMonth(monthNumber);
+  const datesOfMonth = getDatesOfMonth(monthNumber);
 
-    // console.log("Dates of Month are : ", datesOfMonth);
+  // console.log("Dates of Month are : ", datesOfMonth);
 
-    let data = await FinanceAnalytics.find({
-      date: { $in: datesOfMonth },
-    }).sort({ date: 1 });
+  let data = await FinanceAnalytics.find({
+    date: { $in: datesOfMonth },
+  }).sort({ date: 1 });
 
-    let totalCollection = 0;
+  let totalCollection = 0;
 
-    const monthWiseData: { date: string; totalCollection: number; }[] = [];
-    const courseWiseObj: Record<string, Record<string, number>> = {};
+  const monthWiseData: { date: string; totalCollection: number; }[] = [];
+  const courseWiseObj: Record<string, Record<string, number>> = {};
 
-    data.forEach((record) => {
-      totalCollection = record.totalCollection;
-      monthWiseData.push({
-        date : convertToDDMMYYYY(record.date),
-        totalCollection : record.totalCollection
-      })
-      record.courseWise.forEach((course) => {
-        const courseCode = course.courseCode;
-        if (!courseWiseObj[courseCode]) {
-          courseWiseObj[courseCode] = {};
-        }
-        course.details.forEach((detail) => {
-          const year = detail.courseYear;
-          courseWiseObj[courseCode][year] = (courseWiseObj[courseCode][year] || 0) + detail.totalCollection;
-        });
+  data.forEach((record) => {
+    totalCollection += record.totalCollection;
+    monthWiseData.push({
+      date: convertToDDMMYYYY(record.date),
+      totalCollection: record.totalCollection
+    });
+
+    record.courseWise.forEach((course) => {
+      const courseCode = course.courseCode;
+      if (!courseWiseObj[courseCode]) {
+        courseWiseObj[courseCode] = {};
+      }
+      course.details.forEach((detail) => {
+        const year = detail.courseYear;
+        courseWiseObj[courseCode][year] = (courseWiseObj[courseCode][year] || 0) + detail.totalCollection;
       });
     });
-  
-    const courseWiseCollection = Object.entries(courseWiseObj).map(([courseCode, yearObj]) => ({
-      courseCode,
-      details: Object.entries(yearObj).map(([courseYear, totalCollection]) => ({
-        courseYear,
-        totalCollection
-      }))
-    }));
+  });
 
-    // console.log("Total Collection : ", totalCollection);
-    // console.log("Month wise data : ", monthWiseData);
-    // console.log("Course wise collection : ", courseWiseCollection);
-    return formatResponse(res, 200, "Monthwise analytics fetched successfully", true, {
-      totalCollection : totalCollection,
-      monthWiseData : monthWiseData,
-      courseWiseCollection : courseWiseCollection
-    });
+  const courseWiseCollection = Object.entries(courseWiseObj).map(([courseCode, yearObj]) => ({
+    courseCode,
+    details: Object.entries(yearObj).map(([courseYear, totalCollection]) => ({
+      courseYear,
+      totalCollection
+    }))
+  }));
+
+  // console.log("Total Collection : ", totalCollection);
+  // console.log("Month wise data : ", monthWiseData);
+  // console.log("Course wise collection : ", courseWiseCollection);
+  return formatResponse(res, 200, "Monthwise analytics fetched successfully", true, {
+    totalCollection: totalCollection,
+    monthWiseData: monthWiseData,
+    courseWiseCollection: courseWiseCollection
+  });
 
 })
