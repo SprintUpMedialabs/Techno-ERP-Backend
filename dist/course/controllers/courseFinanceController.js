@@ -22,7 +22,7 @@ const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDa
 const formatResponse_1 = require("../../utils/formatResponse");
 const courseDues_1 = require("../models/courseDues");
 const courseMetadata_1 = require("../models/courseMetadata");
-exports.courseFeeDues = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.courseFeeDues = (0, express_async_handler_1.default)((_, res) => __awaiter(void 0, void 0, void 0, function* () {
     const today = new Date();
     const currentYear = today.getFullYear();
     const currentMonth = today.getMonth();
@@ -42,7 +42,7 @@ exports.courseFeeDues = (0, express_async_handler_1.default)((req, res) => __awa
         var _a;
         for (const course of courseList) {
             const { courseCode, courseName, courseDuration, collegeName } = course;
-            const date = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
+            const date = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate() - 1));
             const department = course.departmentMetaDataId;
             const hod = department === null || department === void 0 ? void 0 : department.departmentHODId;
             const departmentHODName = hod ? `${hod.firstName} ${hod.lastName}` : '';

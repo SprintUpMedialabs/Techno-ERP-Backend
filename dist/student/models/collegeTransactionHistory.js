@@ -45,11 +45,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CollegeTransaction = exports.CollegeTransactionModel = void 0;
+exports.CollegeTransaction = exports.CollegeTransactionModel = exports.TransactionSettlementHistory = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 const constants_1 = require("../../config/constants");
 const http_errors_1 = __importDefault(require("http-errors"));
 const TechnoMetaData_1 = require("../../config/models/TechnoMetaData");
+exports.TransactionSettlementHistory = new mongoose_1.Schema({
+    name: {
+        type: String
+    },
+    amount: {
+        type: Number
+    }
+}, { _id: false });
 exports.CollegeTransactionModel = new mongoose_1.Schema({
     studentId: {
         type: String,
@@ -92,6 +100,10 @@ exports.CollegeTransactionModel = new mongoose_1.Schema({
     courseCode: {
         type: String,
         required: true
+    },
+    transactionSettlementHistory: {
+        type: [exports.TransactionSettlementHistory],
+        default: []
     }
 }, { timestamps: true });
 exports.CollegeTransactionModel.pre("save", function (next) {
