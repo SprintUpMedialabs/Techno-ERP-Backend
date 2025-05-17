@@ -9,7 +9,8 @@ export enum UserRoles {
   COUNSELOR = 'COUNSELOR',
   REGISTAR = 'REGISTAR',
   HOD = 'HOD',
-  INSTRUCTOR = 'INSTRUCTOR'
+  INSTRUCTOR = 'INSTRUCTOR',
+  SYSTEM_ADMIN = 'SYSTEM_ADMIN'
 }
 
 export enum Gender {

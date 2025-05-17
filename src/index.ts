@@ -1,15 +1,15 @@
-import express from 'express';
+import cookieParser from 'cookie-parser';
+import cors from 'cors';
 import dotenv from 'dotenv';
-import logger from './config/logger';
+import express from 'express';
 import morgan from 'morgan';
+import path from 'path';
+import connectToDatabase, { initializeDB } from './config/database';
+import logger from './config/logger';
+import { validateEnvVariables } from './config/validateEnv';
 import { errorHandler } from './middleware/error';
 import { apiRouter } from './route';
 import { PORT } from './secrets';
-import cookieParser from 'cookie-parser';
-import connectToDatabase, { initializeDB } from './config/database';
-import { validateEnvVariables } from './config/validateEnv';
-import cors from 'cors';
-import path from 'path';
 
 const app = express();
 
@@ -57,6 +57,8 @@ connectToDatabase();
 initializeDB();
 
 app.use('/api', apiRouter);
+
+
 
 app.use(
   morgan(':method :url :status :response-time ms', {
