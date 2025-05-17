@@ -475,6 +475,10 @@ export const settleFees = async (student: any, amount: number) => {
     if (amount > 0) {
         //Add to existing extrabalance.
         student.extraBalance = (student.extraBalance || 0) + amount;
+        transactionSettlementHistory.push({
+            name : "Extra balance amount",
+            amount : amount
+        });
         // console.log(`Extra amount ₹${amount} added to student's extra balance.`);
     }
 
