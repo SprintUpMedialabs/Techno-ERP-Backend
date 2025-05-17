@@ -38,7 +38,7 @@ export const createFeeDraft = expressAsyncHandler(functionLevelLogger(async (req
   if (!semWiseFee) {
     throw createHttpError(500, 'Semester-wise fee structure not found for the course');
   }
-  
+
   const { counsellor, telecaller, ...feeRelatedData } = validation.data;
   const feeData = {
     ...feeRelatedData,
@@ -66,9 +66,23 @@ export const createFeeDraft = expressAsyncHandler(functionLevelLogger(async (req
     const feesDraftList = await StudentFeesDraftModel.create([feeData], { session });
     const feesDraft = feesDraftList[0];
 
+    const enquiryDataUpdate: any = {
+      studentFeeDraft: feesDraft._id, counsellor, telecaller
+    }
+
+    if (data.reference != null) {
+      enquiryDataUpdate.reference = data.reference;
+    }
+
+    if(data.remarks != null)
+      enquiryDataUpdate.remarks = data.remarks;
+
+    if(data.isFeeApplicable != null)
+      enquiryDataUpdate.isFeeApplicable = data.isFeeApplicable;
+
     await Enquiry.findByIdAndUpdate(
       data.enquiryId,
-      { $set: { studentFeeDraft: feesDraft._id, counsellor, telecaller } },
+      { $set: enquiryDataUpdate },
       { session }
     );
     await session.commitTransaction();
@@ -110,15 +124,14 @@ export const updateFeeDraft = expressAsyncHandler(functionLevelLogger(async (req
     throw createHttpError(500, 'Semester-wise fee structure not found for the course');
   }
 
-  // DTODO: remove telecaller and counsellor from updatedData
   const { counsellor, telecaller, ...feeRelatedData } = validation.data;
   const updateData: any = {
     ...feeRelatedData,
     otherFees: feeRelatedData.otherFees?.map(fee => {
       let feeAmount = fee.feeAmount;
 
-        // feeAmount = otherFees?.find(otherFee => otherFee.type === fee.type)?.amount ?? 0;
-        feeAmount = otherFees?.find(otherFee => otherFee.type === fee.type)?.amount ?? 0;
+      // feeAmount = otherFees?.find(otherFee => otherFee.type === fee.type)?.amount ?? 0;
+      feeAmount = otherFees?.find(otherFee => otherFee.type === fee.type)?.amount ?? 0;
 
       return {
         ...fee,
@@ -143,9 +156,21 @@ export const updateFeeDraft = expressAsyncHandler(functionLevelLogger(async (req
       { $set: updateData },
       { new: true, runValidators: true, session }
     );
-    await Enquiry.findByIdAndUpdate(
+    const enquiryData: any = { counsellor, telecaller };
+    if (data.reference != null) {
+      enquiryData.reference = data.reference;
+    }
+    if(validation.data.remarks != null){
+      enquiryData.remarks = validation.data.remarks;
+    }
+
+    if(validation.data.isFeeApplicable != null){
+      enquiryData.isFeeApplicable = validation.data.isFeeApplicable;
+    }
+    
+      await Enquiry.findByIdAndUpdate(
       data.enquiryId,
-      { $set: { counsellor, telecaller } },
+      { $set: enquiryData },
       { session }
     );
     await session.commitTransaction();

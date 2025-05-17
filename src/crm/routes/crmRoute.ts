@@ -2,6 +2,7 @@ import express from 'express';
 import { UserRoles } from '../../config/constants';
 import { authenticate, authorize } from '../../middleware/jwtAuthenticationMiddleware';
 import {
+  exportData,
   getAllLeadAnalytics,
   getFilteredLeadData,
   updateData,
@@ -13,6 +14,7 @@ import {
   updateYellowLead
 } from '../controllers/yellowLeadController';
 import { adminAnalytics } from '../controllers/adminController';
+import { createMarketingAnalytics, getCallAnalytics } from '../controllers/marketingAnalyticsController';
 
 export const crmRoute = express.Router();
 
@@ -21,6 +23,13 @@ crmRoute.post(
   authenticate,
   authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING]),
   uploadData
+);
+
+crmRoute.get(
+  '/export-data',
+  authenticate,
+  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING]),
+  exportData
 );
 
 crmRoute.put(
@@ -72,4 +81,18 @@ crmRoute.post('/admin/analytics',
   authenticate, 
   authorize([UserRoles.ADMIN]), 
   adminAnalytics
+);
+
+
+crmRoute.get('/marketing-analytics', 
+  authenticate, 
+  authorize([UserRoles.ADMIN]), 
+  createMarketingAnalytics
+);
+
+
+crmRoute.get('/call-analytics', 
+  authenticate, 
+  authorize([UserRoles.ADMIN]), 
+  getCallAnalytics
 );

@@ -56,8 +56,6 @@ export const uploadAdditionalResources = expressAsyncHandler(async (req: Authent
         fileUrl = await uploadToS3(courseId, semesterId, subjectId, CourseMaterialType.GENERAL, file);
     }
 
-    console.log(fileUrl);
-
     if (req.file) {
         req.file.buffer = null as unknown as Buffer;
     }
@@ -94,9 +92,7 @@ export const uploadAdditionalResources = expressAsyncHandler(async (req: Authent
 export const uploadPlanDocument = async (crsId: string, semId: string, subId: string, insId: string, planId: string, planType: CourseMaterialType, file: Express.Multer.File | undefined) => {
 
     const config = planType === CourseMaterialType.LPLAN ? planConfigMap.lecture : planConfigMap.practical;
-    console.log(config);
-
-    console.log(crsId, semId, subId, planId, insId, file);
+    
     if (!crsId && !semId && !subId && !planId && !insId && !file)
         throw createHttpError(400, 'Invalid information to upload file. Please reverify!');
 
@@ -105,8 +101,6 @@ export const uploadPlanDocument = async (crsId: string, semId: string, subId: st
     if (file) {
         fileUrl = await uploadToS3(crsId, semId, subId, planType, file);
     }
-
-    console.log(fileUrl);
 
     let courseId = new mongoose.Types.ObjectId(crsId);
     let semesterId = new mongoose.Types.ObjectId(semId);
@@ -119,11 +113,11 @@ export const uploadPlanDocument = async (crsId: string, semId: string, subId: st
             _id: courseId,
             [`semester._id`]: semesterId,
             [`semester.subjects._id`]: subjectId,
-            [`semester.subjects.schedule.${config!.mongoPlanPath}._id`]: coursePlanId,
+            [`semester.subjects.schedule.${config.mongoPlanPath}._id`]: coursePlanId,
         },
         {
             $push: {
-                [`semester.$[sem].subjects.$[subj].schedule.${config!.mongoPlanPath}.$[${config!.planKey}].documents`]: fileUrl,
+                [`semester.$[sem].subjects.$[subj].schedule.${config.mongoPlanPath}.$[${config.planKey}].documents`]: fileUrl,
             },
         },
         {
@@ -131,7 +125,7 @@ export const uploadPlanDocument = async (crsId: string, semId: string, subId: st
             arrayFilters: [
                 { "sem._id": semesterId },
                 { "subj._id": subjectId },
-                { [`${config!.planKey}._id`]: coursePlanId },
+                { [`${config.planKey}._id`]: coursePlanId },
             ],
         }
     );
@@ -144,7 +138,7 @@ export const uploadPlanDocument = async (crsId: string, semId: string, subId: st
     const responsePayload = await fetchScheduleInformation(crsId, semId, subId, insId);
 
     return {
-        message: config!.successMessage,
+        message: config.successMessage,
         payload: responsePayload
     }
 };

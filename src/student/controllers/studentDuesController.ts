@@ -1,7 +1,7 @@
 import expressAsyncHandler from "express-async-handler";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
 import { Response } from "express";
-import { FeeActions, FeeStatus, FinanceFeeSchedule, FinanceFeeType } from "../../config/constants";
+import { COLLECTION_NAMES, FeeActions, FeeStatus, FinanceFeeSchedule, FinanceFeeType } from "../../config/constants";
 import { Student } from "../models/student";
 import { formatResponse } from "../../utils/formatResponse";
 import mongoose from "mongoose";
@@ -10,8 +10,11 @@ import createHttpError from "http-errors";
 import { CreateCollegeTransactionSchema, ICreateCollegeTransactionSchema } from "../validators/collegeTransactionSchema";
 import { CollegeTransaction } from "../models/collegeTransactionHistory";
 import { EditFeeBreakUpSchema, FetchFeeHistorySchema, IEditFeeBreakUpSchema, IFetchFeeHistorySchema } from "../validators/feeSchema";
+import { getCurrentLoggedInUser } from "../../auth/utils/getCurrentLoggedInUser";
+import { getCourseYrFromSemNum } from "../../course/utils/getAcaYrFromStartYrSemNum";
+import { toRoman } from "../utils/getRomanSemNumber";
 
-type FeeDetail = {
+type FeeDetailInterface = {
     _id: string;
     type: FinanceFeeType;
     schedule: FinanceFeeSchedule;
@@ -20,19 +23,23 @@ type FeeDetail = {
     paidAmount: number;
     remark: string;
     feeUpdateHistory: {
-      updatedAt: Date;
-      updatedFee: number;
+        updatedAt: Date;
+        updatedFee: number;
     }[];
 };
 
-  
+
 export const getStudentDues = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const { page, limit, search, academicYear } = req.body;
+    const { page, limit, search, academicYear, courseCode, courseYear } = req.body;
 
     const filterStage: any = {
         feeStatus: FeeStatus.DUE,
-        currentAcademicYear: academicYear
+        currentAcademicYear: academicYear,
     };
+
+    if (courseCode) {
+        filterStage.courseCode = courseCode;
+    }
 
     if (search?.trim()) {
         filterStage.$and = [
@@ -40,7 +47,22 @@ export const getStudentDues = expressAsyncHandler(async (req: AuthenticatedReque
             {
                 $or: [
                     { 'studentInfo.studentName': { $regex: search, $options: 'i' } },
-                    { 'studentInfo.studentId': { $regex: search, $options: 'i' } }
+                    { 'studentInfo.studentId': { $regex: search, $options: 'i' } },
+                    { 'studentInfo.studentPhoneNumber': { $regex: search, $options: 'i' } }
+                ]
+            }
+        ];
+    }
+    if (courseYear) {
+        const year = Number(courseYear);
+        const semesters = [(year * 2) - 1, year * 2];
+
+        // If $and already exists, push into it; else create $and
+        filterStage.$and = [
+            ...(filterStage.$and ?? []),
+            {
+                $or: [
+                    { currentSemester: { $in: semesters } }
                 ]
             }
         ];
@@ -60,7 +82,29 @@ export const getStudentDues = expressAsyncHandler(async (req: AuthenticatedReque
                 fatherName: '$studentInfo.fatherName',
                 fatherPhoneNumber: '$studentInfo.fatherPhoneNumber',
                 currentSemester: 1,
-                courseYear: { $ceil: { $divide: ['$currentSemester', 2] } }
+                courseYear: { $ceil: { $divide: ['$currentSemester', 2] } },
+                totalDueAmount: {
+                    $sum: {
+                        $map: {
+                            input: {
+                                $filter: {
+                                    input: '$semester',
+                                    as: 'sem',
+                                    cond: {
+                                        $and: [
+                                            { $ne: ['$$sem.fees.dueDate', null] },
+                                            { $ifNull: ['$$sem.fees.dueDate', false] }
+                                        ]
+                                    }
+                                }
+                            },
+                            as: 'filteredSem',
+                            in: {
+                                $subtract: ['$$filteredSem.fees.totalFinalFee', '$$filteredSem.fees.paidAmount']
+                            }
+                        }
+                    }
+                }
             }
         }
     ]);
@@ -113,6 +157,8 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
                 courseName: 1,
                 feeStatus: 1,
                 departmentInfo: 1,
+                extraBalance: 1,
+                currentSemester: 1,
                 semesterNumber: "$semester.semesterNumber",
                 academicYear: "$semester.academicYear",
                 finalFee: "$semester.fees.totalFinalFee",
@@ -122,7 +168,7 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
                 feeSchedule: "$semester.fees.details.schedule",
                 feePaid: "$semester.fees.details.paidAmount",
                 semesterBreakup: {
-                    _id : "$semester.semesterId",
+                    _id: "$semester.semesterId",
                     id: "$semester.fees.details._id",
                     semesterNumber: "$semester.semesterNumber",
                     feeCategory: "$semester.fees.details.type",
@@ -138,6 +184,8 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
                 studentInfo: { $first: "$studentInfo" },
                 courseName: { $first: "$courseName" },
                 feeStatus: { $first: "$feeStatus" },
+                currentSemester: { $first: "$currentSemester" },
+                extraBalance: { $first: "$extraBalance" },
                 departmentInfo: { $first: "$departmentInfo" },
                 semesterWiseFeeInformation: {
                     $push: {
@@ -176,7 +224,7 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
                         as: "semBKP",
                         in: {
                             semesterNumber: "$$semBKP.semesterNumber",
-                            semesterId : "$$semBKP._id",
+                            semesterId: "$$semBKP._id",
                             details: {
                                 $map: {
                                     input: "$$semBKP.feeCategory",
@@ -221,10 +269,12 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
                 studentID: "$studentInfo.universityId",
                 fatherName: "$studentInfo.fatherName",
                 feeStatus: 1,
+                currentSemester: 1,
                 HOD: "$departmentInfo.departmentHOD",
                 course: "$courseName",
                 semesterWiseFeeInformation: 1,
                 semesterBreakUp: 1,
+                extraBalance: 1,
             }
         }
     ];
@@ -241,11 +291,11 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
 export const recordPayment = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const paymentInfo: ICreateCollegeTransactionSchema = req.body;
 
-    // console.log("Payment Info is : ", paymentInfo);
+    console.log("Payment Info is : ", paymentInfo);
 
     const validation = CreateCollegeTransactionSchema.safeParse(paymentInfo);
 
-    // console.log("Payment Info validation error is : ", validation.error);
+    console.log("Payment Info validation error is : ", validation.error);
     if (!validation.success)
         throw createHttpError(400, validation.error.errors[0]);
 
@@ -254,10 +304,12 @@ export const recordPayment = expressAsyncHandler(async (req: AuthenticatedReques
 
     try {
         let student = await Student.findById(validation.data.studentId).session(session);
-        // console.log("Student is : ", student);
+        console.log("Student is : ", student);
         if (!student) {
             throw createHttpError(404, "Student not found");
         }
+
+        const currentLoggedInUser = getCurrentLoggedInUser(req);
 
         const transaction = await CollegeTransaction.create([{
             studentId: paymentInfo.studentId.toString(),
@@ -266,18 +318,38 @@ export const recordPayment = expressAsyncHandler(async (req: AuthenticatedReques
             feeAction: validation.data.feeAction,
             remark: validation.data.remark || "",
             dateTime: new Date(),
-            actionedBy: validation.data.actionedBy
+            actionedBy: currentLoggedInUser,
+            courseCode: student.courseCode,
+            courseName: student.courseName
         }], { session });
 
-        // console.log("Transaction created : ", transaction);
-        // console.log(transaction[0]._id);
+        console.log("Transaction created : ", transaction);
+        console.log(transaction[0]._id);
 
+        const transactionSettlementHistory = [];
         if (validation.data.feeAction === FeeActions.REFUND) {
             if ((student.extraBalance || 0) < validation.data.amount) {
                 throw createHttpError(400, "Insufficient extra balance for refund");
             }
 
             student.extraBalance -= validation.data.amount;
+            transactionSettlementHistory.push({
+                name: "Refund issued from extra balance",
+                amount: validation.data.amount
+            });
+
+            const updatedTransaction = await CollegeTransaction.findByIdAndUpdate(
+                transaction[0]._id,
+                {
+                    $set: {
+                        transactionSettlementHistory: transactionSettlementHistory
+                    }
+                },
+                {
+                    new: true,
+                    session
+                }
+            );
 
             const finalStudent = await Student.findByIdAndUpdate(
                 validation.data.studentId,
@@ -298,10 +370,23 @@ export const recordPayment = expressAsyncHandler(async (req: AuthenticatedReques
             return formatResponse(res, 200, "Refund processed successfully", true, finalStudent);
         }
 
-        const { student: updatedStudent, remainingBalance } = settleFees(student, paymentInfo.amount);
+        const { student: updatedStudent, remainingBalance, transactionSettlementHistory: tsh } = await settleFees(student, paymentInfo.amount);
         student = updatedStudent;
 
         // console.log("Updated student is  : ", updatedStudent);
+
+        const updatedTransaction = await CollegeTransaction.findByIdAndUpdate(
+            transaction[0]._id,
+            {
+                $set: {
+                    transactionSettlementHistory: tsh
+                }
+            },
+            {
+                new: true,
+                session
+            }
+        );
 
         const finalStudent = await Student.findByIdAndUpdate(
             validation.data.studentId,
@@ -331,8 +416,8 @@ export const recordPayment = expressAsyncHandler(async (req: AuthenticatedReques
 });
 
 
-export const settleFees = (student: any, amount: number) => {
-
+export const settleFees = async (student: any, amount: number) => {
+    const transactionSettlementHistory = []
     if (student.feeStatus != FeeStatus.PAID) {
         console.log("Karu chu settle bhai!")
         for (const sem of student.semester) {
@@ -363,6 +448,10 @@ export const settleFees = (student: any, amount: number) => {
 
                 //Below we take minimum, because it can happen that amountToBePaid is more but the amount deposited is less.
                 const amountPaid = Math.min(remainingFee, amount);
+                transactionSettlementHistory.push({
+                    name: sem.academicYear + " - " + getCourseYrFromSemNum(sem.semesterNumber) + " Year" + " - " + toRoman(sem.semesterNumber) + " Sem" + " - " + det.type,
+                    amount: amountPaid
+                })
                 det.paidAmount += amountPaid;
                 totalPaidAmount += amountPaid;
                 amount -= amountPaid;
@@ -386,19 +475,28 @@ export const settleFees = (student: any, amount: number) => {
     if (amount > 0) {
         //Add to existing extrabalance.
         student.extraBalance = (student.extraBalance || 0) + amount;
+        transactionSettlementHistory.push({
+            name : "Extra balance amount",
+            amount : amount
+        });
         // console.log(`Extra amount ₹${amount} added to student's extra balance.`);
     }
 
     const allSemestersSettled = student.semester.every(
-        (sem: any) => (sem.fees?.paidAmount || 0) >= (sem.fees?.totalFinalFee || 0)
-    );
+        (sem: any) => {
+            if (!sem.fees?.dueDate)
+                return true;
+            return (sem.fees?.paidAmount || 0) >= (sem.fees?.totalFinalFee || 0)
+        });
+
     student.feeStatus = allSemestersSettled ? FeeStatus.PAID : FeeStatus.DUE;
 
     console.log("Final Fee Status:", student.feeStatus);
 
     return {
         student: student,
-        remainingBalance: student.extraBalance
+        remainingBalance: student.extraBalance,
+        transactionSettlementHistory: transactionSettlementHistory
     }
 };
 
@@ -409,12 +507,12 @@ export const fetchTransactionsByStudentID = async (studentId: any) => {
 
     const transactions = await CollegeTransaction.find({
         _id: { $in: transactionsId }
-    }).populate('actionedBy', 'firstName lastName email');
+    }).populate('actionedBy', 'firstName lastName');
 
     const formattedTransactions = transactions.map(txn => {
         const user = txn.actionedBy as any;
         const formattedActionedBy = user
-            ? `${user.firstName} ${user.lastName} - ${user.email}`
+            ? `${user.firstName} ${user.lastName}`
             : null;
 
         return {
@@ -468,10 +566,37 @@ export const fetchFeeUpdatesHistory = expressAsyncHandler(async (req: Authentica
                 "semester.fees.details._id": detailId
             }
         },
+        { $unwind: "$semester.fees.details.feeUpdateHistory" }, // unwind each fee update
+        {
+            $lookup: {
+                from: "users",
+                localField: "semester.fees.details.feeUpdateHistory.updatedBy",
+                foreignField: "_id",
+                as: "updatedUser"
+            }
+        },
+        {
+            $addFields: {
+                "semester.fees.details.feeUpdateHistory.updatedBy": {
+                    $concat: [
+                        { $arrayElemAt: ["$updatedUser.firstName", 0] }, " ",
+                        { $arrayElemAt: ["$updatedUser.lastName", 0] }
+                    ]
+                }
+            }
+        },
+        {
+            $group: {
+                _id: "$semester.fees.details._id",
+                feeUpdateHistory: {
+                    $push: "$semester.fees.details.feeUpdateHistory"
+                }
+            }
+        },
         {
             $project: {
                 _id: 0,
-                feeUpdateHistory: "$semester.fees.details.feeUpdateHistory"
+                feeUpdateHistory: 1
             }
         }
     ];
@@ -483,8 +608,8 @@ export const fetchFeeUpdatesHistory = expressAsyncHandler(async (req: Authentica
 });
 
 export const editFeeBreakUp = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    
-    const editFeeData : IEditFeeBreakUpSchema = req.body;
+
+    const editFeeData: IEditFeeBreakUpSchema = req.body;
     const editFeeDataValidation = EditFeeBreakUpSchema.safeParse(editFeeData);
 
     if (!editFeeDataValidation.success) {
@@ -494,17 +619,17 @@ export const editFeeBreakUp = expressAsyncHandler(async (req: AuthenticatedReque
     const { studentId, semesterId, detailId, amount: newFinalFee } = editFeeDataValidation.data;
 
     const student = await Student.findById(studentId);
-    if (!student){ 
+    if (!student) {
         throw createHttpError(404, "Student not found!")
     }
 
-    const semester = student.semester.find(s  => s.semesterId!.toString() === semesterId.toString());
-    if (!semester){ 
+    const semester = student.semester.find(s => s.semesterId!.toString() === semesterId.toString());
+    if (!semester) {
         throw createHttpError(404, "Semester not found!")
     }
 
-    const feeDetail = semester.fees.details.find(d => (d as FeeDetail)._id?.toString() === detailId.toString());
-    if (!feeDetail){
+    const feeDetail = semester.fees.details.find(d => (d as unknown as FeeDetailInterface)._id?.toString() === detailId.toString());
+    if (!feeDetail) {
         throw createHttpError(404, "Details of break up not found")
     }
 
@@ -516,7 +641,9 @@ export const editFeeBreakUp = expressAsyncHandler(async (req: AuthenticatedReque
 
     feeDetail.feeUpdateHistory.push({
         updatedAt: new Date(),
+        extraAmount: diff,
         updatedFee: newFinalFee,
+        updatedBy: new mongoose.Types.ObjectId(req.data?.id)
     });
 
     semester.fees.totalFinalFee += diff;

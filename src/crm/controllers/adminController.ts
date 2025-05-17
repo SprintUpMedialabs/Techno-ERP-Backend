@@ -57,20 +57,20 @@ export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedReque
                 $group: {
                     _id: null,
                     allLeads: { $sum: 1 }, // Count total leads
-                    reached: { $sum: { $cond: [{ $ne: ['$leadType', LeadType.OPEN] }, 1, 0] } }, // Count leads where leadType is NOT 'OPEN'
-                    notReached: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.OPEN] }, 1, 0] } }, // Count leads where leadType is 'OPEN'
+                    reached: { $sum: { $cond: [{ $ne: ['$leadType', LeadType.LEFT_OVER] }, 1, 0] } }, // Count leads where leadType is NOT 'OPEN'
+                    notReached: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.LEFT_OVER] }, 1, 0] } }, // Count leads where leadType is 'OPEN'
                     white: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.DID_NOT_PICK] }, 1, 0] } }, // Count leads where leadType is 'DID_NOT_PICK'
                     black: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.COURSE_UNAVAILABLE] }, 1, 0] } }, // Count leads where leadType is 'COURSE_UNAVAILABLE'
-                    red: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.DEAD] }, 1, 0] } }, // Count leads where leadType is 'NOT_INTERESTED'
-                    blue: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.NO_CLARITY] }, 1, 0] } }, // Count leads where leadType is 'NO_CLARITY'
-                    activeLeads: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.INTERESTED] }, 1, 0] } }, // Count leads where leadType is 'INTERESTED'
+                    red: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.NOT_INTERESTED] }, 1, 0] } }, // Count leads where leadType is 'NOT_INTERESTED'
+                    blue: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.NEUTRAL] }, 1, 0] } }, // Count leads where leadType is 'NO_CLARITY'
+                    activeLeads: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.ACTIVE] }, 1, 0] } }, // Count leads where leadType is 'INTERESTED'
                     invalidType: { $sum: { $cond: [{ $eq: ['$leadType', LeadType.INVALID] }, 1, 0] } }
                 }
             }
         ]), LeadMaster.aggregate([
             { $match: {
                 ...query,
-                leadType : LeadType.INTERESTED
+                leadType : LeadType.ACTIVE
             } }, // in query we have issue
             {
                 $group: {
@@ -78,9 +78,9 @@ export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedReque
                     // New Fields for Second Collection
                     footFall: { $sum: { $cond: [{ $eq: ['$footFall', true] }, 1, 0] } }, // Count where campusVisit is true
                     noFootFall: { $sum: { $cond: [{ $eq: ['$footFall', false] }, 1, 0] } }, // Count where campusVisit is false
-                    unconfirmed: { $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.UNCONFIRMED] }, 1, 0] } }, // Count where finalConversion is 'PENDING'
-                    dead: { $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.DEAD] }, 1, 0] } }, // Count where finalConversion is 'NOT_CONVERTED'
-                    admissions: { $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.CONVERTED] }, 1, 0] } }, // Count where finalConversion is 'CONVERTED'
+                    neutral: { $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.NEUTRAL] }, 1, 0] } }, // Count where finalConversion is 'PENDING'
+                    dead: { $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.NOT_INTERESTED] }, 1, 0] } }, // Count where finalConversion is 'NOT_CONVERTED'
+                    admissions: { $sum: { $cond: [{ $eq: ['$finalConversion', FinalConversionType.ADMISSION] }, 1, 0] } }, // Count where finalConversion is 'CONVERTED'
                 }
             }
         ])
@@ -108,3 +108,4 @@ export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedReque
             }
         });
 });
+

@@ -9,7 +9,8 @@ export enum UserRoles {
   COUNSELOR = 'COUNSELOR',
   REGISTAR = 'REGISTAR',
   HOD = 'HOD',
-  INSTRUCTOR = 'INSTRUCTOR'
+  INSTRUCTOR = 'INSTRUCTOR',
+  SYSTEM_ADMIN = 'SYSTEM_ADMIN'
 }
 
 export enum Gender {
@@ -23,30 +24,27 @@ export enum Source {
   SCHOOL = 'School'
 }
 
+// Left Over Leads
+// Not Interested
 
 export enum LeadType {
-  OPEN = 'OPEN',
-  DEAD = 'DEAD',
-  COURSE_UNAVAILABLE = 'COURSE_UNAVAILABLE',
-  NO_CLARITY = 'NO_CLARITY',
-  INTERESTED = 'INTERESTED',
+  LEFT_OVER = 'LEFT_OVER',
+  NOT_INTERESTED = 'NOT_INTERESTED',
+  ACTIVE = 'ACTIVE',
+  NEUTRAL = 'NEUTRAL',
   DID_NOT_PICK = 'DID_NOT_PICK',
+  COURSE_UNAVAILABLE = 'COURSE_UNAVAILABLE',
   INVALID = 'INVALID'
 }
 
 
 export enum FinalConversionType {
   NO_FOOTFALL = 'NO_FOOTFALL',
-  UNCONFIRMED = 'UNCONFIRMED',
-  CONVERTED = 'CONVERTED',
-  DEAD = 'DEAD',
+  NEUTRAL = 'NEUTRAL',
+  ADMISSION = 'ADMISSION',
+  NOT_INTERESTED = 'NOT_INTERESTED'
 }
 
-
-export enum Marketing_Source {
-  SCHOOL = 'School',
-  DIGITAL_MARKETING = 'Digital_Marketing'
-}
 
 /*
  * Admission Module Enums
@@ -60,17 +58,16 @@ export enum Category {
   OTHER = "Other"
 };
 
-
 export enum AdmissionReference {
-  Advertising = "Advertising",
-  BusinessAssociate = "Business Associate",
-  DigitalMarketing = "Digital Marketing",
-  DirectWalkIn = "Direct Walk-in",
-  LUNPGExternalVenue = "LU/NPG/External Venue",
-  StudentReference = "Student Reference",
-  TechnoligenceStaffCalling = "Technoligence/Staff Calling",
-  Other = "Other"
-};
+  Advertising = 'Advertising',
+  BusinessAssociate = 'Business Associate',
+  DigitalMarketing = 'Digital Marketing',
+  DirectWalkIn = 'Direct Walk-in',
+  LUNPGExternalVenue = 'LU/NPG/External Venue',
+  StudentReference = 'Student Reference',
+  TechnoligenceStaffCalling = 'Technoligence',
+  Other = 'Other'
+}
 
 export enum DropDownType {
   MARKETING_CITY = "MARKETING_CITY",
@@ -302,7 +299,11 @@ export enum COLLECTION_NAMES {
   DROP_DOWN_META_DATA = 'DropDownMetaData',
   STUDENTREPO = "StudentRepo",
   TRANSACTION_HISTORY = "TransactionHistory",
-  TECHNO_META_DATA = "TechnoMetaData"
+  TECHNO_META_DATA = "TechnoMetaData",
+  MARKETING_FOLLOW_UP_RAW_DATA = "MarketingFollowUpData",
+  MARKETING_ANALYTICS = "MarketingAnalytics",
+  COURSE_DUES = 'CourseDues',
+  COLLEGE_META_DATA = "CollegeMetaData"
 }
 
 
@@ -337,8 +338,7 @@ export enum CourseYears {
 
 export enum FeeStatus {
   DUE = "DUE",
-  PAID = "PAID",
-  NOT_PROVIDED = "NOT_PROVIDED"
+  PAID = "PAID"
 }
 
 export enum Schedule {
@@ -388,4 +388,13 @@ export enum FinanceFeeSchedule {
   EXAMFEES = "HALF_YEARLY",
   MISCELLANEOUS = "HALF_YEARLY",
   SEMESTERFEE = "HALF_YEARLY",
+}
+
+export enum Actions {
+  INCREAMENT = 'INCREAMENT',
+  DECREAMENT = 'DECREAMENT'
+}
+
+export enum MarketingAnalyticsEnum {
+  NO_OF_CALLS = "NO_OF_CALLS"
 }

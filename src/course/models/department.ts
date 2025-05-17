@@ -10,24 +10,18 @@ export const departmentModelSchema = new Schema<IDepartmentMetaDataDocument>({
       type: String,
       required: [true, 'Department Name is required'],
     },
+    departmentHODId : {
+      type : Schema.Types.ObjectId,
+      ref : COLLECTION_NAMES.USER
+    },
     departmentHOD : {
         type: String,
         required: [true, 'Department HOD Name is required'],
     },
-    startingYear: {
-        type: Number,
-        required: [true, 'Starting year is required'],
-        validate: {
-          validator: (val: number) => /^\d{4}$/.test(val.toString()),
-          message: 'Year must be a valid 4 digit number!',
-        },
-    },
-    // There is no need to validate here as it will be taken care of by ZOD Schema.
-    endingYear : {
-        type: Number,
-    },
     instructors : {
       type : [Schema.Types.ObjectId],
+      ref : COLLECTION_NAMES.USER,
+      default : []
     }
 }, { timestamps : true });
 

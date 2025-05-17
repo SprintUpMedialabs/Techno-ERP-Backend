@@ -3,6 +3,7 @@ import { authenticate, authorize } from "../../middleware/jwtAuthenticationMiddl
 import express from 'express';
 import { createCourse, fetchAllUniqueCourses, fetchCourseId, searchCourses, updateCourse } from "../controllers/courseController";
 import { subjectRoute } from "./subjectRoute";
+import { courseFeeDues, getCourseDuesByDate } from "../controllers/courseFinanceController";
 
 export const courseRoute = express.Router()
 
@@ -37,5 +38,17 @@ courseRoute.post('/course-id',
 )
 
 
+
+courseRoute.post('/dues',
+    authenticate,
+    authorize([UserRoles.SYSTEM_ADMIN]),
+    courseFeeDues
+);
+
+courseRoute.post('/fetch-dues',
+    authenticate,
+    authorize([UserRoles.BASIC_USER]),
+    getCourseDuesByDate
+);
 
 courseRoute.use('/subject', subjectRoute);

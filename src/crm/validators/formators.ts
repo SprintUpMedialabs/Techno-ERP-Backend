@@ -38,7 +38,7 @@ export const formatAndValidateLeadType = (val?: string): LeadType => {
     const formatted = val?.trim().toUpperCase();
     return (formatted && leadTypeValues.includes(formatted as LeadType))
         ? formatted as LeadType
-        : LeadType.OPEN;
+        : LeadType.LEFT_OVER;
 };
 
 export const extractLast10Digits = (number: string | undefined): string => {
@@ -58,3 +58,5 @@ export const splitEmails = (input: string): string[] => {
         .map(email => email.trim())
         .filter(email => email.length > 0);
 };
+
+export const normaliseText = (text : string | undefined) => text === undefined?  text : text.toLowerCase().replace(/[\W_]+/g, ''); 

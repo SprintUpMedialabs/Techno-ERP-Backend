@@ -6,8 +6,8 @@ import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
 import { academicDetailsArraySchema } from "../../admission/validators/academicDetailSchema";
 import { previousCollegeDataSchema } from "../../admission/validators/previousCollegeDataSchema";
 import { singleDocumentSchema } from "../../admission/validators/singleDocumentSchema";
-import { physicalDocumentNoteSchema } from "../../admission/validators/physicalDocumentNoteSchema";
 import { entranceExamDetailSchema } from "../../admission/validators/entranceExamDetailSchema";
+import { physicalDocumentNoteRequestSchema, physicalDocumentNoteSchema } from "../../admission/validators/physicalDocumentNoteSchema";
 
 export const BaseExamSchema = z.object({
     type: z.string().optional(),
@@ -73,7 +73,6 @@ export const StudentBaseInfoSchema = z.object({
         return convertToMongoDate(date) as Date;
     }),
     category: z.nativeEnum(Category),
-    course: z.nativeEnum(Course),
     reference: z.nativeEnum(AdmissionReference),
 
     aadharNumber: z.string().regex(/^\d{12}$/, 'Aadhar Number must be exactly 12 digits').optional(),
@@ -95,6 +94,7 @@ export const StudentBaseInfoSchema = z.object({
 
 export const StudentSchema = z.object({
     studentInfo: StudentBaseInfoSchema,
+    collegeName : z.string(),
     courseId: objectIdSchema,
     departmentMetaDataId: objectIdSchema,
     courseName: z.string({ required_error: "Course Name is required." }).nonempty("Course Name is required"),
@@ -114,6 +114,8 @@ export const CreateStudentSchema = z.object({
     feeId: objectIdSchema,
     dateOfAdmission: z.date(),
 
+    collegeName : z.string(),
+    
     universityId: z.string({ required_error: "University ID cannot be empty." }).nonempty("University ID is required"),
     photoNo: z.number({ required_error: "Photo Number cannot be empty." }).nonnegative("Photo Number is required"),
     formNo: z.string({ required_error: "Form No cannot be empty." }).nonempty("Form No is required"),
@@ -144,7 +146,7 @@ export const CreateStudentSchema = z.object({
 
     previousCollegeData: previousCollegeDataSchema.optional(),
     documents: z.array(singleDocumentSchema.extend({ dueBy: z.date().optional() })).optional(),
-    physicalDocumentNote: z.array(physicalDocumentNoteSchema).optional(),
+    physicalDocumentNote: z.array(physicalDocumentNoteRequestSchema).optional(),
     stateOfDomicile: z.nativeEnum(StatesOfIndia).optional(),
     areaType: z.nativeEnum(AreaType).optional(),
     nationality: z.string().optional(),
@@ -158,6 +160,7 @@ export const CreateStudentSchema = z.object({
 export const updateStudentDetailsRequestSchema = z.object({
     id: objectIdSchema,
     studentName: z.string({ required_error: "Student Name is required." }).nonempty("Student Name cannot be empty"),
+    lurnRegistrationNo: z.string().optional(),
     studentPhoneNumber: z.string().optional(),
     emailId: z.string().email('Invalid email format').optional(),
 
@@ -188,14 +191,13 @@ export const updateStudentDetailsRequestSchema = z.object({
 
     academicDetails: academicDetailsArraySchema.optional(),
     entranceExamDetails: entranceExamDetailSchema.optional(),
-}).strict();
 
-export const updateStudentPhysicalDocumentRequestSchema = physicalDocumentNoteSchema.extend({ id: objectIdSchema }).strict();
+    reference: z.nativeEnum(AdmissionReference),
+}).strict();
 
 
 export type ICreateStudentSchema = z.infer<typeof CreateStudentSchema>;
 export type IStudentSchema = z.infer<typeof StudentSchema>;
-export type IStudentBaseInformation = z.infer<typeof StudentBaseInfoSchema>;
 export type ISemesterSchema = z.infer<typeof SemesterSchema>;
 export type IAttendanceSchema = z.infer<typeof AttendanceSchema>;
 export type IExamSchema = z.infer<typeof ExamsSchema>;

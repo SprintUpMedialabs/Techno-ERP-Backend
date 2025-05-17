@@ -8,6 +8,15 @@ import { TechnoMetaData } from "../../config/models/TechnoMetaData";
 
 export interface ICollegeTransactionDocument extends ICollegeTransactionSchema, Document { }
 
+export const TransactionSettlementHistory = new Schema({
+    name : {
+        type : String
+    },
+    amount : {
+        type : Number
+    }
+}, { _id : false });
+
 export const CollegeTransactionModel = new Schema<ICollegeTransactionDocument>({
     studentId: {
         type: String,
@@ -42,6 +51,18 @@ export const CollegeTransactionModel = new Schema<ICollegeTransactionDocument>({
     actionedBy : {
         type : Schema.Types.ObjectId,
         ref : COLLECTION_NAMES.USER
+    },
+    courseName: {
+        type: String,
+        required: true
+    },
+    courseCode: {
+        type: String,
+        required: true
+    },
+    transactionSettlementHistory : {
+        type : [TransactionSettlementHistory],
+        default : []
     }
 }, { timestamps: true });
 

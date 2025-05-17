@@ -10,6 +10,7 @@ export interface ICourseDocument extends ICourseSchema, Document {};
 const courseModelSchema = new Schema<ICourseDocument>({
     courseName: { type: String, required: true },
     courseCode: { type: String, required: true },
+    courseFullName: { type: String, required: true },
     collegeName: { type: String, required: true },
     departmentMetaDataId : {
         type : Schema.Types.ObjectId,
@@ -52,6 +53,7 @@ courseModelSchema.post('findOneAndUpdate', function (error: any, doc: any, next:
     handleMongooseError(error, next);
 });
 
+// DTODO: do you think that we will get this actualDate and plannedDate in the response?
 const transformDates = (_: any, ret: any) => {
     ['actualDate', 'plannedDate'].forEach((key) => {
         if (ret[key]) {

@@ -27,6 +27,7 @@
     "@types/morgan": "^1.9.9",
     "@types/multer": "^1.4.12",
     "@types/nodemailer": "^6.4.17",
+    "@types/number-to-words": "^1.2.3",
     "@types/otp-generator": "^4.0.2",
     "prettier": "^3.5.2",
     "ts-node": "^10.9.2",
@@ -43,6 +44,7 @@
     "crypto": "^1.0.1",
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.7",
+    "exceljs": "^4.4.0",
     "express": "^4.21.2",
     "express-async-handler": "^1.2.0",
     "google-auth-library": "^9.15.1",
@@ -54,6 +56,7 @@
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.10.0",
+    "number-to-words": "^1.2.4",
     "otp-generator": "^4.0.1",
     "winston": "^3.17.0",
     "zod": "^3.24.2"
