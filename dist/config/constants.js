@@ -203,6 +203,7 @@ var FeeType;
     FeeType["STUDENTWELFARE"] = "STUDENTWELFARE";
     FeeType["BOOKBANK"] = "BOOKBANK";
     FeeType["EXAMFEES"] = "EXAMFEES";
+    FeeType["EDUCATION"] = "EDUCATION";
 })(FeeType || (exports.FeeType = FeeType = {}));
 var AdmissionMode;
 (function (AdmissionMode) {
@@ -289,6 +290,7 @@ var COLLECTION_NAMES;
     COLLECTION_NAMES["MARKETING_ANALYTICS"] = "MarketingAnalytics";
     COLLECTION_NAMES["COURSE_DUES"] = "CourseDues";
     COLLECTION_NAMES["COLLEGE_META_DATA"] = "CollegeMetaData";
+    COLLECTION_NAMES["FINANCE_ANALYTICS"] = "FinanceAnalytics";
 })(COLLECTION_NAMES || (exports.COLLECTION_NAMES = COLLECTION_NAMES = {}));
 var LectureConfirmation;
 (function (LectureConfirmation) {

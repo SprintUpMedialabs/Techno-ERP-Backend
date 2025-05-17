@@ -30,16 +30,17 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const constants_1 = require("../../config/constants");
 const functionLevelLogging_1 = require("../../config/functionLevelLogging");
 const studentController_1 = require("../../student/controllers/studentController");
+const collegeTransactionHistory_1 = require("../../student/models/collegeTransactionHistory");
 const student_1 = require("../../student/models/student");
+const getRomanSemNumber_1 = require("../../student/utils/getRomanSemNumber");
 const studentSchema_1 = require("../../student/validators/studentSchema");
 const formatResponse_1 = require("../../utils/formatResponse");
+const getCourseYearFromSemNumber_1 = require("../../utils/getCourseYearFromSemNumber");
 const commonSchema_1 = require("../../validators/commonSchema");
 const enquiry_1 = require("../models/enquiry");
 const enquiryDraft_1 = require("../models/enquiryDraft");
 const enquiryIdMetaDataSchema_1 = require("../models/enquiryIdMetaDataSchema");
-const collegeTransactionHistory_1 = require("../../student/models/collegeTransactionHistory");
 const studentFees_1 = require("../models/studentFees");
-const getRomanSemNumber_1 = require("../../student/utils/getRomanSemNumber");
 exports.getEnquiryData = (0, express_async_handler_1.default)((0, functionLevelLogging_1.functionLevelLogger)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let { search, applicationStatus } = req.body;
     search !== null && search !== void 0 ? search : (search = '');
@@ -189,10 +190,12 @@ exports.approveEnquiry = (0, express_async_handler_1.default)((0, functionLevelL
                 transactionSettlementHistory: transactionSettlementHistory
             }], { session });
         const createdStudent = yield student_1.Student.create([Object.assign(Object.assign({ _id: enquiry._id }, studentCreateValidation.data), { transactionHistory: [createTransaction[0]._id] })], { session });
+        console.log("Created student is : ", createdStudent);
         yield collegeTransactionHistory_1.CollegeTransaction.findByIdAndUpdate(enquiry._id, {
             $set: {
                 courseCode: student.courseCode,
-                courseName: student.courseName
+                courseName: student.courseName,
+                courseYear: (0, getCourseYearFromSemNumber_1.getCourseYearFromSemNumber)(student.currentSemester)
             }
         });
         yield session.commitTransaction();

@@ -18,6 +18,7 @@ const routes_2 = require("./student/routes");
 const dropDownRoute_1 = require("./utilityModules/dropdown/dropDownRoute");
 const route_1 = require("./common/route");
 const backupController_1 = require("./backup/backupController");
+const financeAnalyticsRoute_1 = require("./student/routes/financeAnalyticsRoute");
 exports.apiRouter = express_1.default.Router();
 /**
  * Contains the router for Authentication
@@ -65,3 +66,4 @@ exports.apiRouter.use('/test', testRoute_1.testRoute);
 exports.apiRouter.use('/student', routes_2.studentRoute);
 exports.apiRouter.use('/download-reciept', route_1.downloadRoute);
 exports.apiRouter.use('/backup', backupController_1.backupRoute);
+exports.apiRouter.use('/fee-analytics', financeAnalyticsRoute_1.financeAnalyticsRoute);
