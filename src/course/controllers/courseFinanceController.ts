@@ -11,7 +11,7 @@ import { CourseDues } from "../models/courseDues";
 import { CourseMetaData } from "../models/courseMetadata";
 
 
-export const courseFeeDues = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+export const courseFeeDues = expressAsyncHandler(async (_: AuthenticatedRequest, res: Response) => {
     const today = new Date();
     const currentYear = today.getFullYear();
     const currentMonth = today.getMonth();
