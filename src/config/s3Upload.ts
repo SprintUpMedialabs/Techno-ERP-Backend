@@ -1,4 +1,5 @@
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import fs from 'fs';
 import {
   AWS_ACCESS_KEY_ID,
   AWS_BUCKET_NAME,
@@ -7,6 +8,7 @@ import {
 } from '../secrets';
 
 import { DocumentType } from './constants';
+import logger from './logger';
 
 
 const s3Client = new S3Client({
@@ -48,6 +50,18 @@ export const uploadToS3 = async (folderName: string, yearSubFolderName: string, 
     return `https://${AWS_BUCKET_NAME}.s3.amazonaws.com/${objectKey}`;
   }
   catch (err) {
+    logger.error(`Error uploading file to S3: ${err}`);
     throw err;
   }
+}
+
+export const uploadBackupToS3 = async (fileName: string, fileStream: fs.ReadStream) => {
+  console.log(new Date().toISOString().split('T')[0]);
+  const uploadParams = {
+    Bucket: AWS_BUCKET_NAME,
+    Key: `mongo-backups/${new Date().toISOString().split('T')[0]}.tar.gz`,
+    Body: fileStream
+  };
+
+  await s3Client.send(new PutObjectCommand(uploadParams));
 }

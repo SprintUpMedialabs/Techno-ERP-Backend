@@ -15,6 +15,9 @@ import { EnquiryDraft } from '../models/enquiryDraft';
 import { EnquiryApplicationId } from '../models/enquiryIdMetaDataSchema';
 import { CollegeTransaction, CollegeTransactionModel } from '../../student/models/collegeTransactionHistory';
 import { getCurrentLoggedInUser } from '../../auth/utils/getCurrentLoggedInUser';
+import { StudentFeesModel } from '../models/studentFees';
+import { getCurrentAcademicYear } from '../../course/utils/getCurrentAcademicYear';
+import { toRoman } from '../../student/utils/getRomanSemNumber';
 
 
 export const getEnquiryData = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
@@ -191,6 +194,7 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
       "collegeName" : getCollegeNameFromFormNo(enquiryData?.formNo)
     }
 
+   
 
     console.log("Student Data : ", studentData);
 
@@ -219,15 +223,31 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
       throw createHttpError(400, studentCreateValidation.error.errors[0]);
     }
 
-    console.log("Transaction Amount : ", transactionAmount);
+    const feeData = await StudentFeesModel.findById(enquiry.studentFee);
+    const otherFeesData = feeData?.otherFees;
 
+    const transactionSettlementHistory: { name: string; amount: number; }[] = [];
+
+    if(otherFeesData)
+    {
+      otherFeesData.forEach(otherFees => {
+        transactionSettlementHistory.push({
+          name : student.currentAcademicYear + " - " + "First Year" + " - " + toRoman(1) + " Sem" + " - " + otherFees.type,
+          amount : otherFees.feesDepositedTOA
+        })  
+      });
+    }
+    
+    console.log("Transaction Amount : ", transactionAmount);
+    console.log("Transaction Settlement History : ", transactionSettlementHistory);
     const createTransaction = await CollegeTransaction.create([{
       studentId: enquiry._id,
       dateTime: new Date(),
       feeAction: FeeActions.DEPOSIT,
       amount: transactionAmount,
       txnType: transactionType ?? TransactionTypes.CASH,
-      actionedBy: req?.data?.id
+      actionedBy: req?.data?.id,
+      transactionSettlementHistory : transactionSettlementHistory
     }], { session });
 
     const createdStudent = await Student.create([{

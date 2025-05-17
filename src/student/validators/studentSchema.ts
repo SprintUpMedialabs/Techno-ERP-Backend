@@ -160,6 +160,7 @@ export const CreateStudentSchema = z.object({
 export const updateStudentDetailsRequestSchema = z.object({
     id: objectIdSchema,
     studentName: z.string({ required_error: "Student Name is required." }).nonempty("Student Name cannot be empty"),
+    lurnRegistrationNo: z.string().optional(),
     studentPhoneNumber: z.string().optional(),
     emailId: z.string().email('Invalid email format').optional(),
 

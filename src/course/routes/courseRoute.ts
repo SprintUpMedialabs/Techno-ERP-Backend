@@ -41,7 +41,7 @@ courseRoute.post('/course-id',
 
 courseRoute.post('/dues',
     authenticate,
-    authorize([UserRoles.BASIC_USER]),
+    authorize([UserRoles.SYSTEM_ADMIN]),
     courseFeeDues
 );
 

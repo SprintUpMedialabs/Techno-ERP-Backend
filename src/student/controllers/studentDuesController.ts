@@ -11,6 +11,8 @@ import { CreateCollegeTransactionSchema, ICreateCollegeTransactionSchema } from 
 import { CollegeTransaction } from "../models/collegeTransactionHistory";
 import { EditFeeBreakUpSchema, FetchFeeHistorySchema, IEditFeeBreakUpSchema, IFetchFeeHistorySchema } from "../validators/feeSchema";
 import { getCurrentLoggedInUser } from "../../auth/utils/getCurrentLoggedInUser";
+import { getCourseYrFromSemNum } from "../../course/utils/getAcaYrFromStartYrSemNum";
+import { toRoman } from "../utils/getRomanSemNumber";
 
 type FeeDetailInterface = {
     _id: string;
@@ -38,7 +40,7 @@ export const getStudentDues = expressAsyncHandler(async (req: AuthenticatedReque
     if (courseCode) {
         filterStage.courseCode = courseCode;
     }
-    
+
     if (search?.trim()) {
         filterStage.$and = [
             ...(filterStage.$and ?? []),
@@ -156,7 +158,7 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
                 feeStatus: 1,
                 departmentInfo: 1,
                 extraBalance: 1,
-                currentSemester : 1,
+                currentSemester: 1,
                 semesterNumber: "$semester.semesterNumber",
                 academicYear: "$semester.academicYear",
                 finalFee: "$semester.fees.totalFinalFee",
@@ -182,7 +184,7 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
                 studentInfo: { $first: "$studentInfo" },
                 courseName: { $first: "$courseName" },
                 feeStatus: { $first: "$feeStatus" },
-                currentSemester : { $first : "$currentSemester"},
+                currentSemester: { $first: "$currentSemester" },
                 extraBalance: { $first: "$extraBalance" },
                 departmentInfo: { $first: "$departmentInfo" },
                 semesterWiseFeeInformation: {
@@ -267,7 +269,7 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
                 studentID: "$studentInfo.universityId",
                 fatherName: "$studentInfo.fatherName",
                 feeStatus: 1,
-                currentSemester : 1,
+                currentSemester: 1,
                 HOD: "$departmentInfo.departmentHOD",
                 course: "$courseName",
                 semesterWiseFeeInformation: 1,
@@ -317,19 +319,37 @@ export const recordPayment = expressAsyncHandler(async (req: AuthenticatedReques
             remark: validation.data.remark || "",
             dateTime: new Date(),
             actionedBy: currentLoggedInUser,
-            courseCode : student.courseCode,
-            courseName : student.courseName
+            courseCode: student.courseCode,
+            courseName: student.courseName
         }], { session });
 
         console.log("Transaction created : ", transaction);
         console.log(transaction[0]._id);
 
+        const transactionSettlementHistory = [];
         if (validation.data.feeAction === FeeActions.REFUND) {
             if ((student.extraBalance || 0) < validation.data.amount) {
                 throw createHttpError(400, "Insufficient extra balance for refund");
             }
 
             student.extraBalance -= validation.data.amount;
+            transactionSettlementHistory.push({
+                name: "Refund issued from extra balance",
+                amount: validation.data.amount
+            });
+
+            const updatedTransaction = await CollegeTransaction.findByIdAndUpdate(
+                transaction[0]._id,
+                {
+                    $set: {
+                        transactionSettlementHistory: transactionSettlementHistory
+                    }
+                },
+                {
+                    new: true,
+                    session
+                }
+            );
 
             const finalStudent = await Student.findByIdAndUpdate(
                 validation.data.studentId,
@@ -350,10 +370,23 @@ export const recordPayment = expressAsyncHandler(async (req: AuthenticatedReques
             return formatResponse(res, 200, "Refund processed successfully", true, finalStudent);
         }
 
-        const { student: updatedStudent, remainingBalance } = settleFees(student, paymentInfo.amount);
+        const { student: updatedStudent, remainingBalance, transactionSettlementHistory: tsh } = await settleFees(student, paymentInfo.amount);
         student = updatedStudent;
 
         // console.log("Updated student is  : ", updatedStudent);
+
+        const updatedTransaction = await CollegeTransaction.findByIdAndUpdate(
+            transaction[0]._id,
+            {
+                $set: {
+                    transactionSettlementHistory: tsh
+                }
+            },
+            {
+                new: true,
+                session
+            }
+        );
 
         const finalStudent = await Student.findByIdAndUpdate(
             validation.data.studentId,
@@ -383,8 +416,8 @@ export const recordPayment = expressAsyncHandler(async (req: AuthenticatedReques
 });
 
 
-export const settleFees = (student: any, amount: number) => {
-
+export const settleFees = async (student: any, amount: number) => {
+    const transactionSettlementHistory = []
     if (student.feeStatus != FeeStatus.PAID) {
         console.log("Karu chu settle bhai!")
         for (const sem of student.semester) {
@@ -415,6 +448,10 @@ export const settleFees = (student: any, amount: number) => {
 
                 //Below we take minimum, because it can happen that amountToBePaid is more but the amount deposited is less.
                 const amountPaid = Math.min(remainingFee, amount);
+                transactionSettlementHistory.push({
+                    name: sem.academicYear + " - " + getCourseYrFromSemNum(sem.semesterNumber) + " Year" + " - " + toRoman(sem.semesterNumber) + " Sem" + " - " + det.type,
+                    amount: amountPaid
+                })
                 det.paidAmount += amountPaid;
                 totalPaidAmount += amountPaid;
                 amount -= amountPaid;
@@ -438,6 +475,10 @@ export const settleFees = (student: any, amount: number) => {
     if (amount > 0) {
         //Add to existing extrabalance.
         student.extraBalance = (student.extraBalance || 0) + amount;
+        transactionSettlementHistory.push({
+            name : "Extra balance amount",
+            amount : amount
+        });
         // console.log(`Extra amount ₹${amount} added to student's extra balance.`);
     }
 
@@ -454,7 +495,8 @@ export const settleFees = (student: any, amount: number) => {
 
     return {
         student: student,
-        remainingBalance: student.extraBalance
+        remainingBalance: student.extraBalance,
+        transactionSettlementHistory: transactionSettlementHistory
     }
 };
 
