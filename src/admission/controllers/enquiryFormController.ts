@@ -239,6 +239,10 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
 
     console.log("Created student is : ", createdStudent);
 
+    console.log("STudent is : ", student);
+    console.log("Couse COde : ", student.courseCode);
+    console.log("COurse Name  : ", student.courseName)
+
     await CollegeTransaction.findByIdAndUpdate(enquiry._id, {
       $set : {
         courseCode : student.courseCode,
