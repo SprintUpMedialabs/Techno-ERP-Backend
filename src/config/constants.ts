@@ -211,7 +211,8 @@ export enum FeeType {
   UNIFORM = "UNIFORM",
   STUDENTWELFARE = "STUDENTWELFARE",
   BOOKBANK = "BOOKBANK",
-  EXAMFEES = "EXAMFEES"
+  EXAMFEES = "EXAMFEES",
+  EDUCATION = "EDUCATION"
 }
 
 export enum AdmissionMode {
@@ -303,7 +304,8 @@ export enum COLLECTION_NAMES {
   MARKETING_FOLLOW_UP_RAW_DATA = "MarketingFollowUpData",
   MARKETING_ANALYTICS = "MarketingAnalytics",
   COURSE_DUES = 'CourseDues',
-  COLLEGE_META_DATA = "CollegeMetaData"
+  COLLEGE_META_DATA = "CollegeMetaData",
+  FINANCE_ANALYTICS = "FinanceAnalytics"
 }
 
 
@@ -398,3 +400,5 @@ export enum Actions {
 export enum MarketingAnalyticsEnum {
   NO_OF_CALLS = "NO_OF_CALLS"
 }
+
+
