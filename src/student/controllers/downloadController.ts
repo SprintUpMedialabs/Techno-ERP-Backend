@@ -7,6 +7,7 @@ import { CollegeMetaData } from "../../admission/models/collegeMetaData";
 import { convertToDDMMYYYY } from "../../utils/convertDateToFormatedDate";
 import { toWords } from 'number-to-words';
 import { formatResponse } from "../../utils/formatResponse";
+import { toTitleCase } from "../../crm/validators/formators";
 
 export const downloadTransactionSlip = expressAsyncHandler(async (req : AuthenticatedRequest, res : Response)=>{
     const { studentId, transactionId } = req.body; 
@@ -26,7 +27,7 @@ export const downloadTransactionSlip = expressAsyncHandler(async (req : Authenti
         session : student?.currentAcademicYear,
         particulars : collegeTransaction?.transactionSettlementHistory,
         remarks : collegeTransaction?.remark,
-        amountInWords : toWords(collegeTransaction?.amount!),
+        amountInWords : toTitleCase(toWords(collegeTransaction?.amount!)) + " Rupees Only",
         transactionType : collegeTransaction?.txnType
     }
     
