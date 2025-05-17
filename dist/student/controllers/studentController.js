@@ -270,6 +270,12 @@ const createSemesterFee = (id, semesterNumber, feesCourse) => {
         amountForTransaction: amountForTransaction
     };
 };
+const yearMapping = {
+    First: 1,
+    Second: 2,
+    Third: 3,
+    Fourth: 4,
+};
 exports.getStudentDataBySearch = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const page = parseInt(req.body.page) || 1;
     const limit = parseInt(req.body.limit) || 10;
@@ -282,11 +288,11 @@ exports.getStudentDataBySearch = (0, express_async_handler_1.default)((req, res)
         matchStage.currentAcademicYear = academicYear;
     }
     if (courseYear) {
-        matchStage.semester = {
-            $elemMatch: {
-                courseYear,
-            },
-        };
+        const yearNumber = yearMapping[courseYear];
+        if (yearNumber) {
+            const semRange = [yearNumber * 2 - 1, yearNumber * 2];
+            matchStage.currentSemester = { $in: semRange };
+        }
     }
     if (search) {
         matchStage.$or = [

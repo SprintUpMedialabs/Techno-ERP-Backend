@@ -24,6 +24,8 @@ const collegeTransactionSchema_1 = require("../validators/collegeTransactionSche
 const collegeTransactionHistory_1 = require("../models/collegeTransactionHistory");
 const feeSchema_1 = require("../validators/feeSchema");
 const getCurrentLoggedInUser_1 = require("../../auth/utils/getCurrentLoggedInUser");
+const getAcaYrFromStartYrSemNum_1 = require("../../course/utils/getAcaYrFromStartYrSemNum");
+const getRomanSemNumber_1 = require("../utils/getRomanSemNumber");
 exports.getStudentDues = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     const { page, limit, search, academicYear, courseCode, courseYear } = req.body;
@@ -296,11 +298,24 @@ exports.recordPayment = (0, express_async_handler_1.default)((req, res) => __awa
             }], { session });
         console.log("Transaction created : ", transaction);
         console.log(transaction[0]._id);
+        const transactionSettlementHistory = [];
         if (validation.data.feeAction === constants_1.FeeActions.REFUND) {
             if ((student.extraBalance || 0) < validation.data.amount) {
                 throw (0, http_errors_1.default)(400, "Insufficient extra balance for refund");
             }
             student.extraBalance -= validation.data.amount;
+            transactionSettlementHistory.push({
+                name: "Refund issued from extra balance",
+                amount: validation.data.amount
+            });
+            const updatedTransaction = yield collegeTransactionHistory_1.CollegeTransaction.findByIdAndUpdate(transaction[0]._id, {
+                $set: {
+                    transactionSettlementHistory: transactionSettlementHistory
+                }
+            }, {
+                new: true,
+                session
+            });
             const finalStudent = yield student_1.Student.findByIdAndUpdate(validation.data.studentId, {
                 $set: {
                     extraBalance: student.extraBalance,
@@ -313,9 +328,17 @@ exports.recordPayment = (0, express_async_handler_1.default)((req, res) => __awa
             session.endSession();
             return (0, formatResponse_1.formatResponse)(res, 200, "Refund processed successfully", true, finalStudent);
         }
-        const { student: updatedStudent, remainingBalance } = (0, exports.settleFees)(student, paymentInfo.amount);
+        const { student: updatedStudent, remainingBalance, transactionSettlementHistory: tsh } = yield (0, exports.settleFees)(student, paymentInfo.amount);
         student = updatedStudent;
         // console.log("Updated student is  : ", updatedStudent);
+        const updatedTransaction = yield collegeTransactionHistory_1.CollegeTransaction.findByIdAndUpdate(transaction[0]._id, {
+            $set: {
+                transactionSettlementHistory: tsh
+            }
+        }, {
+            new: true,
+            session
+        });
         const finalStudent = yield student_1.Student.findByIdAndUpdate(validation.data.studentId, {
             $set: {
                 semester: updatedStudent.semester,
@@ -336,7 +359,8 @@ exports.recordPayment = (0, express_async_handler_1.default)((req, res) => __awa
         throw err;
     }
 }));
-const settleFees = (student, amount) => {
+const settleFees = (student, amount) => __awaiter(void 0, void 0, void 0, function* () {
+    const transactionSettlementHistory = [];
     if (student.feeStatus != constants_1.FeeStatus.PAID) {
         console.log("Karu chu settle bhai!");
         for (const sem of student.semester) {
@@ -360,6 +384,10 @@ const settleFees = (student, amount) => {
                 const remainingFee = finalFee - paidAmount;
                 //Below we take minimum, because it can happen that amountToBePaid is more but the amount deposited is less.
                 const amountPaid = Math.min(remainingFee, amount);
+                transactionSettlementHistory.push({
+                    name: sem.academicYear + " - " + (0, getAcaYrFromStartYrSemNum_1.getCourseYrFromSemNum)(sem.semesterNumber) + " Year" + " - " + (0, getRomanSemNumber_1.toRoman)(sem.semesterNumber) + " Sem" + " - " + det.type,
+                    amount: amountPaid
+                });
                 det.paidAmount += amountPaid;
                 totalPaidAmount += amountPaid;
                 amount -= amountPaid;
@@ -378,6 +406,10 @@ const settleFees = (student, amount) => {
     if (amount > 0) {
         //Add to existing extrabalance.
         student.extraBalance = (student.extraBalance || 0) + amount;
+        transactionSettlementHistory.push({
+            name: "Extra balance amount",
+            amount: amount
+        });
         // console.log(`Extra amount ₹${amount} added to student's extra balance.`);
     }
     const allSemestersSettled = student.semester.every((sem) => {
@@ -390,9 +422,10 @@ const settleFees = (student, amount) => {
     console.log("Final Fee Status:", student.feeStatus);
     return {
         student: student,
-        remainingBalance: student.extraBalance
+        remainingBalance: student.extraBalance,
+        transactionSettlementHistory: transactionSettlementHistory
     };
-};
+});
 exports.settleFees = settleFees;
 const fetchTransactionsByStudentID = (studentId) => __awaiter(void 0, void 0, void 0, function* () {
     const student = yield student_1.Student.findById(studentId);

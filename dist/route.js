@@ -16,6 +16,8 @@ const crmRoute_1 = require("./crm/routes/crmRoute");
 const courseAndOtherFees_routes_1 = __importDefault(require("./fees/courseAndOtherFees.routes"));
 const routes_2 = require("./student/routes");
 const dropDownRoute_1 = require("./utilityModules/dropdown/dropDownRoute");
+const route_1 = require("./common/route");
+const backupController_1 = require("./backup/backupController");
 exports.apiRouter = express_1.default.Router();
 /**
  * Contains the router for Authentication
@@ -61,3 +63,5 @@ exports.apiRouter.use('/test', testRoute_1.testRoute);
  * Contains the router for Student Module
  */
 exports.apiRouter.use('/student', routes_2.studentRoute);
+exports.apiRouter.use('/download-reciept', route_1.downloadRoute);
+exports.apiRouter.use('/backup', backupController_1.backupRoute);

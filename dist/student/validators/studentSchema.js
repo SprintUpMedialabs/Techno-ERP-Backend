@@ -135,6 +135,7 @@ exports.CreateStudentSchema = zod_1.z.object({
 exports.updateStudentDetailsRequestSchema = zod_1.z.object({
     id: commonSchema_1.objectIdSchema,
     studentName: zod_1.z.string({ required_error: "Student Name is required." }).nonempty("Student Name cannot be empty"),
+    lurnRegistrationNo: zod_1.z.string().optional(),
     studentPhoneNumber: zod_1.z.string().optional(),
     emailId: zod_1.z.string().email('Invalid email format').optional(),
     fatherName: zod_1.z.string().optional(),

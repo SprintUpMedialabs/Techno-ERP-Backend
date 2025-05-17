@@ -14,6 +14,7 @@ var UserRoles;
     UserRoles["REGISTAR"] = "REGISTAR";
     UserRoles["HOD"] = "HOD";
     UserRoles["INSTRUCTOR"] = "INSTRUCTOR";
+    UserRoles["SYSTEM_ADMIN"] = "SYSTEM_ADMIN";
 })(UserRoles || (exports.UserRoles = UserRoles = {}));
 var Gender;
 (function (Gender) {
@@ -287,6 +288,7 @@ var COLLECTION_NAMES;
     COLLECTION_NAMES["MARKETING_FOLLOW_UP_RAW_DATA"] = "MarketingFollowUpData";
     COLLECTION_NAMES["MARKETING_ANALYTICS"] = "MarketingAnalytics";
     COLLECTION_NAMES["COURSE_DUES"] = "CourseDues";
+    COLLECTION_NAMES["COLLEGE_META_DATA"] = "CollegeMetaData";
 })(COLLECTION_NAMES || (exports.COLLECTION_NAMES = COLLECTION_NAMES = {}));
 var LectureConfirmation;
 (function (LectureConfirmation) {

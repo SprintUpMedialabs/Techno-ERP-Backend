@@ -38,6 +38,8 @@ const enquiry_1 = require("../models/enquiry");
 const enquiryDraft_1 = require("../models/enquiryDraft");
 const enquiryIdMetaDataSchema_1 = require("../models/enquiryIdMetaDataSchema");
 const collegeTransactionHistory_1 = require("../../student/models/collegeTransactionHistory");
+const studentFees_1 = require("../models/studentFees");
+const getRomanSemNumber_1 = require("../../student/utils/getRomanSemNumber");
 exports.getEnquiryData = (0, express_async_handler_1.default)((0, functionLevelLogging_1.functionLevelLogger)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let { search, applicationStatus } = req.body;
     search !== null && search !== void 0 ? search : (search = '');
@@ -164,14 +166,27 @@ exports.approveEnquiry = (0, express_async_handler_1.default)((0, functionLevelL
         if (!studentCreateValidation.success) {
             throw (0, http_errors_1.default)(400, studentCreateValidation.error.errors[0]);
         }
+        const feeData = yield studentFees_1.StudentFeesModel.findById(enquiry.studentFee);
+        const otherFeesData = feeData === null || feeData === void 0 ? void 0 : feeData.otherFees;
+        const transactionSettlementHistory = [];
+        if (otherFeesData) {
+            otherFeesData.forEach(otherFees => {
+                transactionSettlementHistory.push({
+                    name: student.currentAcademicYear + " - " + "First Year" + " - " + (0, getRomanSemNumber_1.toRoman)(1) + " Sem" + " - " + otherFees.type,
+                    amount: otherFees.feesDepositedTOA
+                });
+            });
+        }
         console.log("Transaction Amount : ", transactionAmount);
+        console.log("Transaction Settlement History : ", transactionSettlementHistory);
         const createTransaction = yield collegeTransactionHistory_1.CollegeTransaction.create([{
                 studentId: enquiry._id,
                 dateTime: new Date(),
                 feeAction: constants_1.FeeActions.DEPOSIT,
                 amount: transactionAmount,
                 txnType: transactionType !== null && transactionType !== void 0 ? transactionType : constants_1.TransactionTypes.CASH,
-                actionedBy: (_b = req === null || req === void 0 ? void 0 : req.data) === null || _b === void 0 ? void 0 : _b.id
+                actionedBy: (_b = req === null || req === void 0 ? void 0 : req.data) === null || _b === void 0 ? void 0 : _b.id,
+                transactionSettlementHistory: transactionSettlementHistory
             }], { session });
         const createdStudent = yield student_1.Student.create([Object.assign(Object.assign({ _id: enquiry._id }, studentCreateValidation.data), { transactionHistory: [createTransaction[0]._id] })], { session });
         yield collegeTransactionHistory_1.CollegeTransaction.findByIdAndUpdate(enquiry._id, {
