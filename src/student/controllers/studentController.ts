@@ -277,6 +277,14 @@ const createSemesterFee = (id: any, semesterNumber: number, feesCourse: any): an
   };
 };
 
+const yearMapping: Record<string, number> = {
+  First: 1,
+  Second: 2,
+  Third: 3,
+  Fourth: 4,
+};
+
+
 export const getStudentDataBySearch = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const page = parseInt(req.body.page) || 1;
   const limit = parseInt(req.body.limit) || 10;
@@ -285,21 +293,24 @@ export const getStudentDataBySearch = expressAsyncHandler(async (req: Authentica
 
   const matchStage: Record<string, any> = {};
 
-  if (courseCode){
+  if (courseCode) {
     matchStage.courseCode = courseCode;
   }
 
-  if(academicYear){
+  if (academicYear) {
     matchStage.currentAcademicYear = academicYear
   }
-  
+
   if (courseYear) {
-    matchStage.semester = {
-      $elemMatch: {
-        courseYear,
-      },
-    };
+    const yearNumber = yearMapping[courseYear];
+    if (yearNumber) {
+      const semRange = [yearNumber * 2 - 1, yearNumber * 2];
+      matchStage.currentSemester = { $in: semRange };
+    }
   }
+
+  console.log("Match Stage : ", matchStage);
+    
 
   if (search) {
     matchStage.$or = [
