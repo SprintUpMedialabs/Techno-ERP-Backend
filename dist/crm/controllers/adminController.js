@@ -53,27 +53,27 @@ exports.adminAnalytics = (0, express_async_handler_1.default)((req, res) => __aw
                 $group: {
                     _id: null,
                     allLeads: { $sum: 1 }, // Count total leads
-                    reached: { $sum: { $cond: [{ $ne: ['$leadType', constants_1.LeadType.OPEN] }, 1, 0] } }, // Count leads where leadType is NOT 'OPEN'
-                    notReached: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.OPEN] }, 1, 0] } }, // Count leads where leadType is 'OPEN'
+                    reached: { $sum: { $cond: [{ $ne: ['$leadType', constants_1.LeadType.LEFT_OVER] }, 1, 0] } }, // Count leads where leadType is NOT 'OPEN'
+                    notReached: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.LEFT_OVER] }, 1, 0] } }, // Count leads where leadType is 'OPEN'
                     white: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.DID_NOT_PICK] }, 1, 0] } }, // Count leads where leadType is 'DID_NOT_PICK'
                     black: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.COURSE_UNAVAILABLE] }, 1, 0] } }, // Count leads where leadType is 'COURSE_UNAVAILABLE'
-                    red: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.DEAD] }, 1, 0] } }, // Count leads where leadType is 'NOT_INTERESTED'
-                    blue: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.NO_CLARITY] }, 1, 0] } }, // Count leads where leadType is 'NO_CLARITY'
-                    activeLeads: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.INTERESTED] }, 1, 0] } }, // Count leads where leadType is 'INTERESTED'
+                    red: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.NOT_INTERESTED] }, 1, 0] } }, // Count leads where leadType is 'NOT_INTERESTED'
+                    blue: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.NEUTRAL] }, 1, 0] } }, // Count leads where leadType is 'NO_CLARITY'
+                    activeLeads: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.ACTIVE] }, 1, 0] } }, // Count leads where leadType is 'INTERESTED'
                     invalidType: { $sum: { $cond: [{ $eq: ['$leadType', constants_1.LeadType.INVALID] }, 1, 0] } }
                 }
             }
         ]), lead_1.LeadMaster.aggregate([
-            { $match: Object.assign(Object.assign({}, query), { leadType: constants_1.LeadType.INTERESTED }) }, // in query we have issue
+            { $match: Object.assign(Object.assign({}, query), { leadType: constants_1.LeadType.ACTIVE }) }, // in query we have issue
             {
                 $group: {
                     _id: null,
                     // New Fields for Second Collection
                     footFall: { $sum: { $cond: [{ $eq: ['$footFall', true] }, 1, 0] } }, // Count where campusVisit is true
                     noFootFall: { $sum: { $cond: [{ $eq: ['$footFall', false] }, 1, 0] } }, // Count where campusVisit is false
-                    unconfirmed: { $sum: { $cond: [{ $eq: ['$finalConversion', constants_1.FinalConversionType.UNCONFIRMED] }, 1, 0] } }, // Count where finalConversion is 'PENDING'
-                    dead: { $sum: { $cond: [{ $eq: ['$finalConversion', constants_1.FinalConversionType.DEAD] }, 1, 0] } }, // Count where finalConversion is 'NOT_CONVERTED'
-                    admissions: { $sum: { $cond: [{ $eq: ['$finalConversion', constants_1.FinalConversionType.CONVERTED] }, 1, 0] } }, // Count where finalConversion is 'CONVERTED'
+                    neutral: { $sum: { $cond: [{ $eq: ['$finalConversion', constants_1.FinalConversionType.NEUTRAL] }, 1, 0] } }, // Count where finalConversion is 'PENDING'
+                    dead: { $sum: { $cond: [{ $eq: ['$finalConversion', constants_1.FinalConversionType.NOT_INTERESTED] }, 1, 0] } }, // Count where finalConversion is 'NOT_CONVERTED'
+                    admissions: { $sum: { $cond: [{ $eq: ['$finalConversion', constants_1.FinalConversionType.ADMISSION] }, 1, 0] } }, // Count where finalConversion is 'CONVERTED'
                 }
             }
         ])

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateStudentPhysicalDocumentRequestSchema = exports.updateStudentDetailsRequestSchema = exports.CreateStudentSchema = exports.StudentSchema = exports.StudentBaseInfoSchema = exports.SemesterSchema = exports.SubjectSchema = exports.AttendanceSchema = exports.baseAttendanceSchema = exports.ExamsSchema = exports.BaseExamSchema = void 0;
+exports.updateStudentDetailsRequestSchema = exports.CreateStudentSchema = exports.StudentSchema = exports.StudentBaseInfoSchema = exports.SemesterSchema = exports.SubjectSchema = exports.AttendanceSchema = exports.baseAttendanceSchema = exports.ExamsSchema = exports.BaseExamSchema = void 0;
 const zod_1 = require("zod");
 const commonSchema_1 = require("../../validators/commonSchema");
 const constants_1 = require("../../config/constants");
@@ -9,8 +9,8 @@ const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDa
 const academicDetailSchema_1 = require("../../admission/validators/academicDetailSchema");
 const previousCollegeDataSchema_1 = require("../../admission/validators/previousCollegeDataSchema");
 const singleDocumentSchema_1 = require("../../admission/validators/singleDocumentSchema");
-const physicalDocumentNoteSchema_1 = require("../../admission/validators/physicalDocumentNoteSchema");
 const entranceExamDetailSchema_1 = require("../../admission/validators/entranceExamDetailSchema");
+const physicalDocumentNoteSchema_1 = require("../../admission/validators/physicalDocumentNoteSchema");
 exports.BaseExamSchema = zod_1.z.object({
     type: zod_1.z.string().optional(),
     marks: zod_1.z.number().optional()
@@ -65,7 +65,6 @@ exports.StudentBaseInfoSchema = zod_1.z.object({
         return (0, convertDateToFormatedDate_1.convertToMongoDate)(date);
     }),
     category: zod_1.z.nativeEnum(constants_1.Category),
-    course: zod_1.z.nativeEnum(constants_1.Course),
     reference: zod_1.z.nativeEnum(constants_1.AdmissionReference),
     aadharNumber: zod_1.z.string().regex(/^\d{12}$/, 'Aadhar Number must be exactly 12 digits').optional(),
     address: commonSchema_1.addressSchema,
@@ -83,6 +82,7 @@ exports.StudentBaseInfoSchema = zod_1.z.object({
 });
 exports.StudentSchema = zod_1.z.object({
     studentInfo: exports.StudentBaseInfoSchema,
+    collegeName: zod_1.z.string(),
     courseId: commonSchema_1.objectIdSchema,
     departmentMetaDataId: commonSchema_1.objectIdSchema,
     courseName: zod_1.z.string({ required_error: "Course Name is required." }).nonempty("Course Name is required"),
@@ -100,6 +100,7 @@ exports.CreateStudentSchema = zod_1.z.object({
     courseCode: zod_1.z.string(),
     feeId: commonSchema_1.objectIdSchema,
     dateOfAdmission: zod_1.z.date(),
+    collegeName: zod_1.z.string(),
     universityId: zod_1.z.string({ required_error: "University ID cannot be empty." }).nonempty("University ID is required"),
     photoNo: zod_1.z.number({ required_error: "Photo Number cannot be empty." }).nonnegative("Photo Number is required"),
     formNo: zod_1.z.string({ required_error: "Form No cannot be empty." }).nonempty("Form No is required"),
@@ -122,7 +123,7 @@ exports.CreateStudentSchema = zod_1.z.object({
     academicDetails: academicDetailSchema_1.academicDetailsArraySchema.optional(),
     previousCollegeData: previousCollegeDataSchema_1.previousCollegeDataSchema.optional(),
     documents: zod_1.z.array(singleDocumentSchema_1.singleDocumentSchema.extend({ dueBy: zod_1.z.date().optional() })).optional(),
-    physicalDocumentNote: zod_1.z.array(physicalDocumentNoteSchema_1.physicalDocumentNoteSchema).optional(),
+    physicalDocumentNote: zod_1.z.array(physicalDocumentNoteSchema_1.physicalDocumentNoteRequestSchema).optional(),
     stateOfDomicile: zod_1.z.nativeEnum(constants_1.StatesOfIndia).optional(),
     areaType: zod_1.z.nativeEnum(constants_1.AreaType).optional(),
     nationality: zod_1.z.string().optional(),
@@ -134,6 +135,7 @@ exports.CreateStudentSchema = zod_1.z.object({
 exports.updateStudentDetailsRequestSchema = zod_1.z.object({
     id: commonSchema_1.objectIdSchema,
     studentName: zod_1.z.string({ required_error: "Student Name is required." }).nonempty("Student Name cannot be empty"),
+    lurnRegistrationNo: zod_1.z.string().optional(),
     studentPhoneNumber: zod_1.z.string().optional(),
     emailId: zod_1.z.string().email('Invalid email format').optional(),
     fatherName: zod_1.z.string().optional(),
@@ -154,5 +156,5 @@ exports.updateStudentDetailsRequestSchema = zod_1.z.object({
     address: commonSchema_1.addressSchema,
     academicDetails: academicDetailSchema_1.academicDetailsArraySchema.optional(),
     entranceExamDetails: entranceExamDetailSchema_1.entranceExamDetailSchema.optional(),
+    reference: zod_1.z.nativeEnum(constants_1.AdmissionReference),
 }).strict();
-exports.updateStudentPhysicalDocumentRequestSchema = physicalDocumentNoteSchema_1.physicalDocumentNoteSchema.extend({ id: commonSchema_1.objectIdSchema }).strict();

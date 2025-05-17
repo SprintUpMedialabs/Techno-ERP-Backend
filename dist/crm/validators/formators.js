@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.splitEmails = exports.extractLast10Digits = exports.formatAndValidateLeadType = exports.toTitleCase = exports.formatDate = void 0;
+exports.normaliseText = exports.splitEmails = exports.extractLast10Digits = exports.formatAndValidateLeadType = exports.toTitleCase = exports.formatDate = void 0;
 const constants_1 = require("../../config/constants");
 // Utility functions
 const formatDate = (date) => {
@@ -40,7 +40,7 @@ const formatAndValidateLeadType = (val) => {
     const formatted = val === null || val === void 0 ? void 0 : val.trim().toUpperCase();
     return (formatted && leadTypeValues.includes(formatted))
         ? formatted
-        : constants_1.LeadType.OPEN;
+        : constants_1.LeadType.LEFT_OVER;
 };
 exports.formatAndValidateLeadType = formatAndValidateLeadType;
 const extractLast10Digits = (number) => {
@@ -61,3 +61,5 @@ const splitEmails = (input) => {
         .filter(email => email.length > 0);
 };
 exports.splitEmails = splitEmails;
+const normaliseText = (text) => text === undefined ? text : text.toLowerCase().replace(/[\W_]+/g, '');
+exports.normaliseText = normaliseText;

@@ -49,6 +49,7 @@ exports.enquirySchema = zod_1.z.object({
     religion: zod_1.z.nativeEnum(constants_1.Religion).optional(),
     bloodGroup: zod_1.z.nativeEnum(constants_1.BloodGroup).optional(),
     admittedBy: zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['Other'])]).optional(),
+    isFeeApplicable: zod_1.z.boolean().default(false).optional()
 });
 // Final schema for request (omitting feesDraftId and making it strict)
 exports.enquiryStep1RequestSchema = exports.enquirySchema
@@ -60,6 +61,7 @@ exports.enquiryStep1UpdateRequestSchema = exports.enquiryStep1RequestSchema.exte
 }).strict();
 exports.enquiryStep3UpdateRequestSchema = exports.enquirySchema.omit({ documents: true, studentFee: true }).extend({
     id: commonSchema_1.objectIdSchema,
+    physicalDocumentNote: zod_1.z.array(physicalDocumentNoteSchema_1.physicalDocumentNoteRequestSchema).optional()
 }).strict();
 exports.enquiryDraftStep3Schema = exports.enquiryStep3UpdateRequestSchema
     .extend({

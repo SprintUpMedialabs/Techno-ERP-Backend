@@ -24,7 +24,6 @@ const s3Client = new client_s3_1.S3Client({
         secretAccessKey: secrets_1.AWS_SECRET_ACCESS_KEY
     }
 });
-// DTODO (DONE): delete from db as well => Logic added in deleteFileUsingUrl() in scheduleController.ts
 const deleteFromS3 = (documentLink) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const url = new URL(documentLink);

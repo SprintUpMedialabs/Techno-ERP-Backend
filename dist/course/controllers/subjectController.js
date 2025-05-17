@@ -177,7 +177,6 @@ exports.deleteSubject = (0, express_async_handler_1.default)((req, res) => __awa
 exports.fetchSubjectInformationUsingFilters = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let { courseCode, semester, academicYear = (0, getCurrentAcademicYear_1.getCurrentAcademicYear)(), search, page = 1, limit = 10 } = req.body;
     semester = parseInt(semester);
-    const skip = (page - 1) * limit;
     const pipeline = [
         ...(courseCode ? [{ $match: { courseCode } }] : []),
         {
@@ -247,7 +246,13 @@ exports.fetchSubjectInformationUsingFilters = (0, express_async_handler_1.defaul
                 departmentMetaDataId: "$departmentMetaDataId",
                 subjectName: "$semesterDetails.subjects.subjectName",
                 subjectCode: "$semesterDetails.subjects.subjectCode",
-                instructor: "$instructorDetails.firstName",
+                instructor: {
+                    $concat: [
+                        "$instructorDetails.firstName",
+                        " ",
+                        "$instructorDetails.lastName"
+                    ]
+                },
                 courseName: "$courseName",
                 courseCode: "$courseCode",
                 courseYear: "$courseYear",
@@ -260,10 +265,8 @@ exports.fetchSubjectInformationUsingFilters = (0, express_async_handler_1.defaul
     return (0, formatResponse_1.formatResponse)(res, 200, 'Subject information fetched successfully with filters', true, subjectInformation);
 }));
 const fetchSubjectInformation = (crsId_1, semId_1, search_1, ...args_1) => __awaiter(void 0, [crsId_1, semId_1, search_1, ...args_1], void 0, function* (crsId, semId, search, page = 1, limit = 10) {
-    console.log("Course ID : ", crsId);
     let courseId = new mongoose_1.default.Types.ObjectId(crsId);
     let semesterId = new mongoose_1.default.Types.ObjectId(semId);
-    const skip = (page - 1) * limit;
     const pipeline = [
         { $match: { _id: courseId } },
         {
@@ -377,7 +380,13 @@ const fetchSubjectInformation = (crsId_1, semId_1, search_1, ...args_1) => __awa
                     subjectId: "$filteredSubjects._id",
                     subjectName: "$filteredSubjects.subjectName",
                     subjectCode: "$filteredSubjects.subjectCode",
-                    instructorName: "$instructorDetails.firstName",
+                    instructorName: {
+                        $concat: [
+                            "$instructorDetails.firstName",
+                            " ",
+                            "$instructorDetails.lastName"
+                        ]
+                    },
                     instructorId: "$instructorDetails._id",
                     numberOfLectures: {
                         $cond: [
@@ -448,8 +457,6 @@ const fetchSubjectInformation = (crsId_1, semId_1, search_1, ...args_1) => __awa
         },
     ];
     let subjectInfo = yield course_1.Course.aggregate(pipeline);
-    console.log("fetching subject details : ");
-    console.log(subjectInfo[0]);
     subjectInfo[0].subjectDetails = subjectInfo[0].subjectDetails.filter((sub) => sub.subjectCode && sub.subjectName && sub.subjectCode !== "" && sub.subjectName !== "");
     if (subjectInfo[0].subjectDetails === null)
         subjectInfo[0].subjectDetails = [];

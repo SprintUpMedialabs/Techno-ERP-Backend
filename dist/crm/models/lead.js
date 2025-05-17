@@ -38,10 +38,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LeadMaster = void 0;
 const http_errors_1 = __importDefault(require("http-errors"));
+const moment_timezone_1 = __importDefault(require("moment-timezone"));
 const mongoose_1 = __importStar(require("mongoose"));
 const constants_1 = require("../../config/constants");
 const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
-const moment_timezone_1 = __importDefault(require("moment-timezone"));
 const leadSchema = new mongoose_1.Schema({
     // Change format to DD/MM/YYYY and add error message
     date: {
@@ -95,10 +95,14 @@ const leadSchema = new mongoose_1.Schema({
     course: {
         type: String,
     },
+    degree: {
+        type: String,
+    },
     // Required field with a custom validation error message
     assignedTo: {
         type: [mongoose_1.Schema.Types.ObjectId],
         default: [],
+        ref: constants_1.COLLECTION_NAMES.USER
     },
     // Must be one of the predefined lead types; defaults to "ORANGE"
     leadType: {
@@ -107,9 +111,12 @@ const leadSchema = new mongoose_1.Schema({
             values: Object.values(constants_1.LeadType),
             message: 'Invalid lead type'
         },
-        default: constants_1.LeadType.OPEN
+        default: constants_1.LeadType.LEFT_OVER
     },
-    remarks: { type: String },
+    remarks: {
+        type: [String],
+        default: [],
+    },
     leadTypeModifiedDate: { type: Date },
     nextDueDate: {
         type: Date,
@@ -122,14 +129,10 @@ const leadSchema = new mongoose_1.Schema({
         type: String, enum: Object.values(constants_1.FinalConversionType),
         default: constants_1.FinalConversionType.NO_FOOTFALL
     },
-    leadsFollowUpCount: {
+    followUpCount: {
         type: Number,
         default: 0
     },
-    yellowLeadsFollowUpCount: {
-        type: Number,
-        default: 0
-    }
 }, { timestamps: true });
 leadSchema.index({ source: 1, name: 1, phoneNumber: 1 }, { unique: true, name: 'unique_lead_combo' });
 const handleMongooseError = (error, next) => {
@@ -154,8 +157,8 @@ leadSchema.post('findOneAndUpdate', function (error, doc, next) {
     handleMongooseError(error, next);
 });
 const transformDates = (_, ret) => {
-    ['leadTypeModifiedDate', 'nextDueDate', 'date'].forEach((key) => {
-        if (key == 'leadTypeModifiedDate') {
+    ['leadTypeModifiedDate', 'nextDueDate', 'date', 'updatedAt'].forEach((key) => {
+        if (key == 'updatedAt') {
             if (ret[key]) {
                 ret[key] = (0, moment_timezone_1.default)(ret[key]).tz('Asia/Kolkata').format('DD/MM/YYYY | HH:mm');
             }
@@ -165,7 +168,6 @@ const transformDates = (_, ret) => {
         }
     });
     delete ret.createdAt;
-    delete ret.updatedAt;
     delete ret.__v;
     return ret;
 };

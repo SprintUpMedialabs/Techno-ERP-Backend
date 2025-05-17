@@ -8,11 +8,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.uploadToS3 = void 0;
+exports.uploadBackupToS3 = exports.uploadToS3 = void 0;
 const client_s3_1 = require("@aws-sdk/client-s3");
 const secrets_1 = require("../secrets");
 const constants_1 = require("./constants");
+const logger_1 = __importDefault(require("./logger"));
 const s3Client = new client_s3_1.S3Client({
     region: secrets_1.AWS_REGION,
     credentials: {
@@ -44,7 +48,18 @@ const uploadToS3 = (folderName, yearSubFolderName, fileType, file) => __awaiter(
         return `https://${secrets_1.AWS_BUCKET_NAME}.s3.amazonaws.com/${objectKey}`;
     }
     catch (err) {
+        logger_1.default.error(`Error uploading file to S3: ${err}`);
         throw err;
     }
 });
 exports.uploadToS3 = uploadToS3;
+const uploadBackupToS3 = (fileName, fileStream) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log(new Date().toISOString().split('T')[0]);
+    const uploadParams = {
+        Bucket: secrets_1.AWS_BUCKET_NAME,
+        Key: `mongo-backups/${new Date().toISOString().split('T')[0]}.tar.gz`,
+        Body: fileStream
+    };
+    yield s3Client.send(new client_s3_1.PutObjectCommand(uploadParams));
+});
+exports.uploadBackupToS3 = uploadBackupToS3;

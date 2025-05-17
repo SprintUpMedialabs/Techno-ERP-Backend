@@ -311,6 +311,10 @@ exports.enquirySchema = new mongoose_1.Schema({
     formNo: {
         type: String,
     },
+    isFeeApplicable: {
+        type: Boolean,
+        default: false
+    }
 }, { timestamps: true });
 exports.enquirySchema.pre('save', function (next) {
     return __awaiter(this, void 0, void 0, function* () {

@@ -8,8 +8,15 @@ const FeeUpdateHistoryModel = new mongoose_1.Schema({
     updatedAt: {
         type: Date
     },
+    extraAmount: {
+        type: Number
+    },
     updatedFee: {
         type: Number
+    },
+    updatedBy: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: constants_1.COLLECTION_NAMES.USER
     }
 });
 const BaseFeeModel = new mongoose_1.Schema({

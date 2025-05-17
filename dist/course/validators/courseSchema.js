@@ -7,6 +7,7 @@ const commonSchema_1 = require("../../validators/commonSchema");
 exports.courseSchema = zod_1.z.object({
     courseName: zod_1.z.string({ required_error: "Course Name is required" }).nonempty("Course Name is required."),
     courseCode: zod_1.z.string({ required_error: "Course Code is required" }).nonempty("Course Code is required."),
+    courseFullName: zod_1.z.string({ required_error: "Course Full Name is required" }).nonempty("Course Full Name is required."),
     collegeName: zod_1.z.string({ required_error: "College Name is required" }).nonempty("College Name is required."),
     departmentMetaDataId: commonSchema_1.objectIdSchema,
     startingYear: zod_1.z.number()

@@ -73,7 +73,17 @@ exports.createFeeDraft = (0, express_async_handler_1.default)((0, functionLevelL
     try {
         const feesDraftList = yield studentFeesDraft_1.StudentFeesDraftModel.create([feeData], { session });
         const feesDraft = feesDraftList[0];
-        yield enquiry_1.Enquiry.findByIdAndUpdate(data.enquiryId, { $set: { studentFeeDraft: feesDraft._id, counsellor, telecaller } }, { session });
+        const enquiryDataUpdate = {
+            studentFeeDraft: feesDraft._id, counsellor, telecaller
+        };
+        if (data.reference != null) {
+            enquiryDataUpdate.reference = data.reference;
+        }
+        if (data.remarks != null)
+            enquiryDataUpdate.remarks = data.remarks;
+        if (data.isFeeApplicable != null)
+            enquiryDataUpdate.isFeeApplicable = data.isFeeApplicable;
+        yield enquiry_1.Enquiry.findByIdAndUpdate(data.enquiryId, { $set: enquiryDataUpdate }, { session });
         yield session.commitTransaction();
         session.endSession();
         return (0, formatResponse_1.formatResponse)(res, 201, 'Fees Draft created successfully', true, feesDraft);
@@ -104,7 +114,6 @@ exports.updateFeeDraft = (0, express_async_handler_1.default)((0, functionLevelL
     if (!semWiseFee) {
         throw (0, http_errors_1.default)(500, 'Semester-wise fee structure not found for the course');
     }
-    // DTODO: remove telecaller and counsellor from updatedData
     const _c = validation.data, { counsellor, telecaller } = _c, feeRelatedData = __rest(_c, ["counsellor", "telecaller"]);
     const updateData = Object.assign(Object.assign({}, feeRelatedData), { otherFees: ((_a = feeRelatedData.otherFees) === null || _a === void 0 ? void 0 : _a.map(fee => {
             var _a, _b, _c, _d;
@@ -124,7 +133,17 @@ exports.updateFeeDraft = (0, express_async_handler_1.default)((0, functionLevelL
     session.startTransaction();
     try {
         const updatedDraft = yield studentFeesDraft_1.StudentFeesDraftModel.findByIdAndUpdate(data.id, { $set: updateData }, { new: true, runValidators: true, session });
-        yield enquiry_1.Enquiry.findByIdAndUpdate(data.enquiryId, { $set: { counsellor, telecaller } }, { session });
+        const enquiryData = { counsellor, telecaller };
+        if (data.reference != null) {
+            enquiryData.reference = data.reference;
+        }
+        if (validation.data.remarks != null) {
+            enquiryData.remarks = validation.data.remarks;
+        }
+        if (validation.data.isFeeApplicable != null) {
+            enquiryData.isFeeApplicable = validation.data.isFeeApplicable;
+        }
+        yield enquiry_1.Enquiry.findByIdAndUpdate(data.enquiryId, { $set: enquiryData }, { session });
         yield session.commitTransaction();
         session.endSession();
         return (0, formatResponse_1.formatResponse)(res, 200, 'Fees Draft updated successfully', true, updatedDraft);

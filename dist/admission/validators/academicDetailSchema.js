@@ -17,8 +17,7 @@ exports.academicDetailSchema = zod_1.z.object({
         .number()
         .min(0, 'Percentage must be at least 0')
         .max(100, 'Percentage cannot exceed 100'),
-    subjects: zod_1.z
-        .array(zod_1.z.string().nonempty('Subjects cannot be empty')).optional()
+    subjects: zod_1.z.string().optional(),
 });
 // Array schema
 exports.academicDetailsArraySchema = zod_1.z.array(exports.academicDetailSchema);

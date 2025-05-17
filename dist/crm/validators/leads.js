@@ -10,9 +10,8 @@ exports.leadMasterSchema = zod_1.z.object({
     date: zod_1.z.date(),
     source: zod_1.z.string().default('Other'),
     schoolName: zod_1.z.string().optional(),
-    name: zod_1.z.string()
-        .regex(/^[A-Za-z\s]+$/, 'Name can only contain alphabets and spaces')
-        .optional(),
+    name: zod_1.z.string().optional(),
+    degree: zod_1.z.string().optional(),
     phoneNumber: commonSchema_1.contactNumberSchema.optional(),
     altPhoneNumber: commonSchema_1.contactNumberSchema.optional(),
     email: zod_1.z.string().email('Invalid Email Format').optional(),
@@ -21,21 +20,19 @@ exports.leadMasterSchema = zod_1.z.object({
     city: zod_1.z.string().optional().default('Other'),
     course: zod_1.z.string().optional(),
     assignedTo: commonSchema_1.objectIdSchema.array(),
-    leadType: zod_1.z.nativeEnum(constants_1.LeadType).default(constants_1.LeadType.OPEN),
+    leadType: zod_1.z.nativeEnum(constants_1.LeadType).default(constants_1.LeadType.LEFT_OVER),
     leadTypeModifiedDate: zod_1.z.date().optional(),
     nextDueDate: zod_1.z.date().optional(),
     footFall: zod_1.z.boolean().optional(), //This is referring to Campus Visit
     finalConversion: zod_1.z.nativeEnum(constants_1.FinalConversionType).optional().default(constants_1.FinalConversionType.NO_FOOTFALL),
-    remarks: zod_1.z.string().optional(),
-    leadsFollowUpCount: zod_1.z.number().optional().default(0),
-    yellowLeadsFollowUpCount: zod_1.z.number().optional().default(0)
+    remarks: zod_1.z.array(zod_1.z.string().optional()).default([]),
+    followUpCount: zod_1.z.number().optional().default(0),
 });
 exports.leadSchema = exports.leadMasterSchema.omit({
     finalConversion: true,
     footFall: true,
-    yellowLeadsFollowUpCount: true
 }).strict();
-exports.yellowLeadSchema = exports.leadMasterSchema.omit({ leadType: true, leadsFollowUpCount: true, leadTypeModifiedDate: true }).strict();
+exports.yellowLeadSchema = exports.leadMasterSchema.omit({ leadType: true, leadTypeModifiedDate: true }).strict();
 exports.leadRequestSchema = exports.leadSchema.extend({
     date: commonSchema_1.requestDateSchema,
     nextDueDate: commonSchema_1.requestDateSchema.optional()
@@ -54,7 +51,10 @@ exports.leadSheetSchema = zod_1.z.object({
     course: zod_1.z.string().optional().transform(val => val === null || val === void 0 ? void 0 : val.toUpperCase()),
     area: zod_1.z.string().optional().transform(formators_1.toTitleCase),
     leadType: zod_1.z.string().transform(formators_1.formatAndValidateLeadType),
-    remarks: zod_1.z.string().optional(),
+    remarks: zod_1.z
+        .string()
+        .transform(val => val ? [val] : [])
+        .optional(),
     schoolName: zod_1.z.string().optional().transform(formators_1.toTitleCase),
 });
 exports.updateLeadRequestSchema = exports.leadRequestSchema.extend({

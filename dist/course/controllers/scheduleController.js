@@ -174,7 +174,7 @@ exports.deletePlan = (0, express_async_handler_1.default)((req, res) => __awaite
 }));
 exports.getScheduleInformation = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let { courseId, semesterId, subjectId, instructorId, search, page = 1, limit = 10 } = req.body;
-    let payload = yield (0, fetchScheduleInformation_1.fetchScheduleInformation)(courseId, semesterId, subjectId, instructorId, search);
+    let payload = yield (0, fetchScheduleInformation_1.fetchScheduleInformation)(courseId, semesterId, subjectId, instructorId);
     return (0, formatResponse_1.formatResponse)(res, 200, 'Plans fetched successfully', true, payload);
 }));
 // DTODO (DONE) : delete from db as well + will need to remove duplicate entries also 
