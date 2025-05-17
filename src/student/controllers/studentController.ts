@@ -309,6 +309,9 @@ export const getStudentDataBySearch = expressAsyncHandler(async (req: Authentica
     }
   }
 
+  console.log("Match Stage : ", matchStage);
+    
+
   if (search) {
     matchStage.$or = [
       { 'studentInfo.universityId': { $regex: search, $options: 'i' } },
