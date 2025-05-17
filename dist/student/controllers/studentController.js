@@ -294,6 +294,7 @@ exports.getStudentDataBySearch = (0, express_async_handler_1.default)((req, res)
             matchStage.currentSemester = { $in: semRange };
         }
     }
+    console.log("Match Stage : ", matchStage);
     if (search) {
         matchStage.$or = [
             { 'studentInfo.universityId': { $regex: search, $options: 'i' } },

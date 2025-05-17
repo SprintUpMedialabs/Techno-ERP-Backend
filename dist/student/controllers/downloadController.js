@@ -20,6 +20,7 @@ const collegeMetaData_1 = require("../../admission/models/collegeMetaData");
 const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
 const number_to_words_1 = require("number-to-words");
 const formatResponse_1 = require("../../utils/formatResponse");
+const formators_1 = require("../../crm/validators/formators");
 exports.downloadTransactionSlip = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { studentId, transactionId } = req.body;
     const student = yield student_1.Student.findById(studentId);
@@ -38,7 +39,7 @@ exports.downloadTransactionSlip = (0, express_async_handler_1.default)((req, res
         session: student === null || student === void 0 ? void 0 : student.currentAcademicYear,
         particulars: collegeTransaction === null || collegeTransaction === void 0 ? void 0 : collegeTransaction.transactionSettlementHistory,
         remarks: collegeTransaction === null || collegeTransaction === void 0 ? void 0 : collegeTransaction.remark,
-        amountInWords: (0, number_to_words_1.toWords)(collegeTransaction === null || collegeTransaction === void 0 ? void 0 : collegeTransaction.amount),
+        amountInWords: (0, formators_1.toTitleCase)((0, number_to_words_1.toWords)(collegeTransaction === null || collegeTransaction === void 0 ? void 0 : collegeTransaction.amount)) + " Rupees Only",
         transactionType: collegeTransaction === null || collegeTransaction === void 0 ? void 0 : collegeTransaction.txnType
     };
     return (0, formatResponse_1.formatResponse)(res, 200, "Transaction Slip Data fetched successfully", true, responseObj);
