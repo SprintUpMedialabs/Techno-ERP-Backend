@@ -6,10 +6,12 @@ import { CourseMetaData } from "../../course/models/courseMetadata";
 import { CollegeMetaData } from "../models/collegeMetaData";
 import { convertToDDMMYYYY } from "../../utils/convertDateToFormatedDate";
 import { formatResponse } from "../../utils/formatResponse";
+import { Enquiry } from "../models/enquiry";
 
 export const downloadAdmissionForm = expressAsyncHandler(async (req : AuthenticatedRequest, res : Response)=>{
     const { studentId } = req.body;
     const student = await Student.findById(studentId);
+    const enquiry = await Enquiry.findById(studentId);
     const course = await CourseMetaData.findOne({ courseCode : student?.courseCode });
     const collegeMetaData = await CollegeMetaData.findOne({ collegeName : course?.collegeName })
     const responseObj = {
@@ -25,7 +27,7 @@ export const downloadAdmissionForm = expressAsyncHandler(async (req : Authentica
         fatherPhoneNumber : student?.studentInfo.fatherPhoneNumber,
         motherName : student?.studentInfo.motherName,
         motherPhoneNumber : student?.studentInfo.motherPhoneNumber,
-        admissionDate : convertToDDMMYYYY(new Date()),  //DTODO : Change with original value
+        admissionDate : convertToDDMMYYYY(enquiry?.dateOfAdmission!), //DTODO : Change with original value
         dateOfBirth : convertToDDMMYYYY(student?.studentInfo.dateOfBirth!),
         emailId : student?.studentInfo.emailId,
         gender : student?.studentInfo.gender,
@@ -41,9 +43,6 @@ export const downloadAdmissionForm = expressAsyncHandler(async (req : Authentica
         state : student?.studentInfo.address.state,
         academicDetails : student?.studentInfo.academicDetails || [],
         entranceExamDetails : student?.studentInfo.entranceExamDetails || {},
-        approvedByEmailId : "dummy@gmail.com",
-        approvedByContactNumber : "9876543210"
     };
-
     return formatResponse(res, 200, "Fetched the reciept data successfully!", true,  responseObj);
 })
