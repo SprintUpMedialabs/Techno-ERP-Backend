@@ -5,6 +5,10 @@ import { PipelineStatus } from '../config/constants';
 import logger from '../config/logger';
 import { sendEmail } from '../config/mailer';
 import { DEVELOPER_EMAIL } from '../secrets';
+import expressAsyncHandler from 'express-async-handler';
+import { Response } from 'express';
+import { AuthenticatedRequest } from '../auth/validators/authenticatedRequest';
+import { formatResponse } from '../utils/formatResponse';
 
 /**
  * 1. Create a new pipeline log and return its ID.
@@ -111,3 +115,53 @@ export const markCompleted = async (id: string): Promise<void | undefined> => {
         logger.error("Error in marking pipeline as completed : ", error);
     }
 };
+
+
+export const sendTodayPipelineSummaryEmail = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const todayIST = moment().tz('Asia/Kolkata').startOf('day').toDate();
+
+    const pipelines = await PipelineRunLog.find({ date: todayIST }).sort({ time: -1 });
+    const today = moment().tz('Asia/Kolkata').format('YYYY-MM-DD');
+
+    if (pipelines.length === 0) {
+        await sendEmail(DEVELOPER_EMAIL, `Pipeline Summary - ${today}`, 'No pipelines ran today.');
+        return;
+    }
+
+    const tableRows = pipelines.map((log) => `
+      <tr>
+        <td>${log.pipelineName}</td>
+        <td>${log.status}</td>
+        <td>${log.attemptNo}</td>
+        <td>${log.durationInSeconds ?? 0}s</td>
+        <td>${moment(log.startedAt).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss')}</td>
+        <td>
+          ${(log?.errorMessages?.length ?? 0) > 0
+            ? `<ul>${(log?.errorMessages ?? []).map((e: string) => `<li>${e}</li>`).join('')}</ul>`
+            : 'None'}
+        </td>
+      </tr>
+    `).join('');
+
+    const html = `
+      <h2>Pipeline Run Summary - ${today}</h2>
+      <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse;">
+        <thead>
+          <tr>
+            <th>Pipeline Name</th>
+            <th>Status</th>
+            <th>Attempts</th>
+            <th>Duration (seconds)</th>
+            <th>Started At</th>
+            <th>Error Messages</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${tableRows}
+        </tbody>
+      </table>
+    `;
+
+    await sendEmail(DEVELOPER_EMAIL, `Pipeline Summary - ${today}`, html);
+    return formatResponse(res, 200, "Pipeline summary email sent successfully", true);
+});
