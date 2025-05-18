@@ -1,10 +1,10 @@
 import { Request, Response } from 'express';
-import createHttpError from 'http-errors';
-import { CourseAndOtherFeesModel } from './courseAndOtherFees.model';
-import { Course, FeeType } from '../config/constants';
 import expressAsyncHandler from 'express-async-handler';
+import createHttpError from 'http-errors';
+import { FeeType } from '../config/constants';
 import { CourseMetaData, IFeeItem } from '../course/models/courseMetadata';
 import { formatResponse } from '../utils/formatResponse';
+import { CourseAndOtherFeesModel } from './courseAndOtherFees.model';
 
 export const createFeesStructure = async (req: Request, res: Response) => {
     const newDoc = await CourseAndOtherFeesModel.create(req.body);
