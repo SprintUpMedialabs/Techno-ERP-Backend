@@ -227,13 +227,14 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
 
     const transactionSettlementHistory: { name: string; amount: number; }[] = [];
 
-    if(otherFeesData)
-    {
+    if (otherFeesData) {
       otherFeesData.forEach(otherFees => {
-        transactionSettlementHistory.push({
-          name : student.currentAcademicYear + " - " + "First Year" + " - " + toRoman(1) + " Sem" + " - " + otherFees.type,
-          amount : otherFees.feesDepositedTOA
-        })  
+        if (otherFees.feesDepositedTOA !== 0) {
+          transactionSettlementHistory.push({
+            name: student.currentAcademicYear + " - " + "First Year" + " - " + toRoman(1) + " Sem" + " - " + otherFees.type,
+            amount: otherFees.feesDepositedTOA
+          });
+        }
       });
     }
     

@@ -2,7 +2,7 @@ import { Response } from "express";
 import expressAsyncHandler from "express-async-handler";
 import createHttpError from "http-errors";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
-import { CourseYears } from "../../config/constants";
+import { CourseYears, PipelineName } from "../../config/constants";
 import { retryMechanism } from "../../config/retryMechanism";
 import { CourseMetaData } from "../../course/models/courseMetadata";
 import { convertToDDMMYYYY, convertToMongoDate } from "../../utils/convertDateToFormatedDate";
@@ -13,6 +13,7 @@ import { getPreviousDayDateTime } from "../../utils/previousDayDateTime";
 import { CollegeTransaction } from "../models/collegeTransactionHistory";
 import { CourseWiseDetails, CourseWiseInformation, FinanceAnalytics } from "../models/financeAnalytics";
 import { Student } from "../models/student";
+import { createPipeline } from "../../pipline/controller";
 
 /*
   academicYear : 2024-2025
@@ -57,6 +58,9 @@ export const createFinanceAnalytics = expressAsyncHandler(async (req: Authentica
 
   let totalExpectedRevenueGlobal = 0;
   let totalCollectionGlobal = 0;
+
+  const pipelineId = await createPipeline(PipelineName.FINANCE_ANALYTICS);
+  if (!pipelineId) throw createHttpError(400, "Pipeline creation failed");
 
   await retryMechanism(async (session) => {
     for (const course of courseList) {
@@ -173,7 +177,7 @@ export const createFinanceAnalytics = expressAsyncHandler(async (req: Authentica
       totalCollectionGlobal += totalCollectionCourseWise;
       totalExpectedRevenueGlobal += totalExpectedRevenueCourseWise;
     }
-  }, 'Finance Analytics Pipeline Failure', "All retry limits expired for the finance analytics creation");
+  }, 'Finance Analytics Pipeline Failure', "All retry limits expired for the finance analytics creation", pipelineId, PipelineName.FINANCE_ANALYTICS);
 
   financeAnalyticsDetails.totalCollection = totalCollectionGlobal;
   financeAnalyticsDetails.totalExpectedRevenue = totalExpectedRevenueGlobal;
