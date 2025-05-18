@@ -412,4 +412,8 @@ export enum MarketingAnalyticsEnum {
   NO_OF_CALLS = "NO_OF_CALLS"
 }
 
-
+export enum StudentStatus{
+  NEW = "NEW",
+  UPDATED = "UPDATED",
+  OLD = "OLD"
+}
