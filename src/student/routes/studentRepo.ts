@@ -3,8 +3,15 @@ import { authenticate, authorize } from "../../middleware/jwtAuthenticationMiddl
 import { UserRoles } from "../../config/constants";
 import { getStudentDataById, getStudentDataBySearch, updateStudentDataById, updateStudentDocumentsById, updateStudentPhysicalDocumentById } from "../controllers/studentController";
 import upload from "../../config/multerConfig";
+import { exportStudentData } from "../controllers/studentDataSheetController";
 
 export const studentRepoRoute = express.Router();
+
+studentRepoRoute.get('/export-data',
+    authenticate,
+    authorize([UserRoles.BASIC_USER]),
+    exportStudentData
+);
 
 studentRepoRoute.post('/search',
     authenticate,
@@ -36,3 +43,5 @@ studentRepoRoute.put('/document',
     upload.single('document'),
     updateStudentDocumentsById
 );
+
+
