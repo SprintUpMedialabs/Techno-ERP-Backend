@@ -20,7 +20,12 @@ const collegeMetaData_1 = require("../models/collegeMetaData");
 const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
 const formatResponse_1 = require("../../utils/formatResponse");
 const enquiry_1 = require("../models/enquiry");
+const getDocument = (label, documents) => {
+    const note = documents === null || documents === void 0 ? void 0 : documents.find(p => { var _a; return (_a = p.type) === null || _a === void 0 ? void 0 : _a.toLowerCase().includes(label.toLowerCase()); });
+    return note ? (note.fileUrl ? note.fileUrl : note.dueBy) : '';
+};
 exports.downloadAdmissionForm = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     const { studentId } = req.body;
     const student = yield student_1.Student.findById(studentId);
     const enquiry = yield enquiry_1.Enquiry.findById(studentId);
@@ -55,6 +60,7 @@ exports.downloadAdmissionForm = (0, express_async_handler_1.default)((req, res) 
         state: student === null || student === void 0 ? void 0 : student.studentInfo.address.state,
         academicDetails: (student === null || student === void 0 ? void 0 : student.studentInfo.academicDetails) || [],
         entranceExamDetails: (student === null || student === void 0 ? void 0 : student.studentInfo.entranceExamDetails) || {},
+        profileImage: getDocument("Photo", (_a = student === null || student === void 0 ? void 0 : student.studentInfo.documents) !== null && _a !== void 0 ? _a : [])
     };
     return (0, formatResponse_1.formatResponse)(res, 200, "Fetched the reciept data successfully!", true, responseObj);
 }));

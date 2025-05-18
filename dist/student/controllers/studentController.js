@@ -275,6 +275,8 @@ const yearMapping = {
     Second: 2,
     Third: 3,
     Fourth: 4,
+    Fifth: 5,
+    Sixth: 6,
 };
 exports.getStudentDataBySearch = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const page = parseInt(req.body.page) || 1;

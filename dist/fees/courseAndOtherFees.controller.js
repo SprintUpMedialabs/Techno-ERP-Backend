@@ -13,12 +13,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.fetchOtherFees = exports.fetchCourseFeeByCourse = exports.getOtherFees = exports.getCourseFeeByCourseName = exports.getFeesStructureById = exports.getAllFeesStructures = exports.updateFeesStructure = exports.createFeesStructure = void 0;
-const http_errors_1 = __importDefault(require("http-errors"));
-const courseAndOtherFees_model_1 = require("./courseAndOtherFees.model");
-const constants_1 = require("../config/constants");
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
+const http_errors_1 = __importDefault(require("http-errors"));
+const constants_1 = require("../config/constants");
 const courseMetadata_1 = require("../course/models/courseMetadata");
 const formatResponse_1 = require("../utils/formatResponse");
+const courseAndOtherFees_model_1 = require("./courseAndOtherFees.model");
 const createFeesStructure = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const newDoc = yield courseAndOtherFees_model_1.CourseAndOtherFeesModel.create(req.body);
     res.status(201).json(newDoc);

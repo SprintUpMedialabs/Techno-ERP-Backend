@@ -26,6 +26,7 @@ const previousDayDateTime_1 = require("../../utils/previousDayDateTime");
 const collegeTransactionHistory_1 = require("../models/collegeTransactionHistory");
 const financeAnalytics_1 = require("../models/financeAnalytics");
 const student_1 = require("../models/student");
+const controller_1 = require("../../pipline/controller");
 /*
   academicYear : 2024-2025
   course
@@ -58,6 +59,9 @@ exports.createFinanceAnalytics = (0, express_async_handler_1.default)((req, res)
     };
     let totalExpectedRevenueGlobal = 0;
     let totalCollectionGlobal = 0;
+    const pipelineId = yield (0, controller_1.createPipeline)(constants_1.PipelineName.FINANCE_ANALYTICS);
+    if (!pipelineId)
+        throw (0, http_errors_1.default)(400, "Pipeline creation failed");
     yield (0, retryMechanism_1.retryMechanism)((session) => __awaiter(void 0, void 0, void 0, function* () {
         var _a, _b, _c;
         for (const course of courseList) {
@@ -159,7 +163,7 @@ exports.createFinanceAnalytics = (0, express_async_handler_1.default)((req, res)
             totalCollectionGlobal += totalCollectionCourseWise;
             totalExpectedRevenueGlobal += totalExpectedRevenueCourseWise;
         }
-    }), 'Finance Analytics Pipeline Failure', "All retry limits expired for the finance analytics creation");
+    }), 'Finance Analytics Pipeline Failure', "All retry limits expired for the finance analytics creation", pipelineId, constants_1.PipelineName.FINANCE_ANALYTICS);
     financeAnalyticsDetails.totalCollection = totalCollectionGlobal;
     financeAnalyticsDetails.totalExpectedRevenue = totalExpectedRevenueGlobal;
     console.log(JSON.stringify(financeAnalyticsDetails, null, 2));

@@ -26,12 +26,13 @@ let transport = nodemailer_1.default.createTransport({
     }
 });
 // TODO: we need to have some robust approach here => What changes are we expecting?
-const sendEmail = (to, subject, text) => __awaiter(void 0, void 0, void 0, function* () {
+const sendEmail = (to, subject, text, attachments) => __awaiter(void 0, void 0, void 0, function* () {
     const mailOptions = {
         from: secrets_1.NODEMAILER_SENDER_ADDRESS,
         to,
         subject,
-        html: text
+        html: text,
+        attachments
     };
     transport.sendMail(mailOptions, function (err, info) {
         if (err) {

@@ -172,10 +172,12 @@ exports.approveEnquiry = (0, express_async_handler_1.default)((0, functionLevelL
         const transactionSettlementHistory = [];
         if (otherFeesData) {
             otherFeesData.forEach(otherFees => {
-                transactionSettlementHistory.push({
-                    name: student.currentAcademicYear + " - " + "First Year" + " - " + (0, getRomanSemNumber_1.toRoman)(1) + " Sem" + " - " + otherFees.type,
-                    amount: otherFees.feesDepositedTOA
-                });
+                if (otherFees.feesDepositedTOA !== 0) {
+                    transactionSettlementHistory.push({
+                        name: student.currentAcademicYear + " - " + "First Year" + " - " + (0, getRomanSemNumber_1.toRoman)(1) + " Sem" + " - " + otherFees.type,
+                        amount: otherFees.feesDepositedTOA
+                    });
+                }
             });
         }
         console.log("Transaction Amount : ", transactionAmount);

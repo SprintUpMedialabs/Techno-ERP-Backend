@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MarketingAnalyticsEnum = exports.Actions = exports.FinanceFeeSchedule = exports.FinanceFeeType = exports.TransactionTypes = exports.FeeActions = exports.Schedule = exports.FeeStatus = exports.CourseYears = exports.CourseMaterialType = exports.RequestAction = exports.LectureConfirmation = exports.COLLECTION_NAMES = exports.PHOTO = exports.TGI = exports.ADMISSION = exports.AreaType = exports.Countries = exports.StatesOfIndia = exports.AdmissionMode = exports.FeeType = exports.Locations = exports.ModuleNames = exports.ApplicationStatus = exports.DocumentType = exports.AdmittedThrough = exports.BloodGroup = exports.Religion = exports.FormNoPrefixes = exports.EducationLevel = exports.Course = exports.PhysicalDocumentNoteStatus = exports.DropDownType = exports.AdmissionReference = exports.Category = exports.FinalConversionType = exports.LeadType = exports.Source = exports.Gender = exports.UserRoles = void 0;
+exports.StudentStatus = exports.MarketingAnalyticsEnum = exports.Actions = exports.FinanceFeeSchedule = exports.FinanceFeeType = exports.TransactionTypes = exports.FeeActions = exports.Schedule = exports.FeeStatus = exports.CourseYears = exports.CourseMaterialType = exports.RequestAction = exports.LectureConfirmation = exports.COLLECTION_NAMES = exports.PHOTO = exports.TGI = exports.ADMISSION = exports.AreaType = exports.Countries = exports.StatesOfIndia = exports.AdmissionMode = exports.FeeType = exports.Locations = exports.ModuleNames = exports.ApplicationStatus = exports.DocumentType = exports.AdmittedThrough = exports.BloodGroup = exports.Religion = exports.FormNoPrefixes = exports.EducationLevel = exports.Course = exports.PhysicalDocumentNoteStatus = exports.DropDownType = exports.AdmissionReference = exports.Category = exports.FinalConversionType = exports.LeadType = exports.Source = exports.Gender = exports.PipelineName = exports.PipelineStatus = exports.UserRoles = void 0;
 /**
  * Marketing Module Enums
 */
@@ -16,6 +16,17 @@ var UserRoles;
     UserRoles["INSTRUCTOR"] = "INSTRUCTOR";
     UserRoles["SYSTEM_ADMIN"] = "SYSTEM_ADMIN";
 })(UserRoles || (exports.UserRoles = UserRoles = {}));
+var PipelineStatus;
+(function (PipelineStatus) {
+    PipelineStatus["STARTED"] = "STARTED";
+    PipelineStatus["COMPLETED"] = "COMPLETED";
+    PipelineStatus["FAILED"] = "FAILED";
+})(PipelineStatus || (exports.PipelineStatus = PipelineStatus = {}));
+var PipelineName;
+(function (PipelineName) {
+    PipelineName["COURSE_DUES"] = "COURSE_DUES";
+    PipelineName["FINANCE_ANALYTICS"] = "FINANCE_ANALYTICS";
+})(PipelineName || (exports.PipelineName = PipelineName = {}));
 var Gender;
 (function (Gender) {
     Gender["MALE"] = "MALE";
@@ -381,3 +392,9 @@ var MarketingAnalyticsEnum;
 (function (MarketingAnalyticsEnum) {
     MarketingAnalyticsEnum["NO_OF_CALLS"] = "NO_OF_CALLS";
 })(MarketingAnalyticsEnum || (exports.MarketingAnalyticsEnum = MarketingAnalyticsEnum = {}));
+var StudentStatus;
+(function (StudentStatus) {
+    StudentStatus["NEW"] = "NEW";
+    StudentStatus["UPDATED"] = "UPDATED";
+    StudentStatus["OLD"] = "OLD";
+})(StudentStatus || (exports.StudentStatus = StudentStatus = {}));
