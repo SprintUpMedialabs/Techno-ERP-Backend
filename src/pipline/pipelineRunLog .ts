@@ -1,11 +1,6 @@
 import moment from 'moment-timezone';
 import mongoose, { Document, Schema } from 'mongoose';
-
-export enum PipelineStatus {
-    STARTED = 'STARTED',
-    COMPLETED = 'COMPLETED',
-    FAILED = 'FAILED',
-}
+import { PipelineStatus } from '../config/constants';
 
 export interface IPipelineRunLog {
     pipelineName: string;

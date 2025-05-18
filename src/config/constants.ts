@@ -13,6 +13,17 @@ export enum UserRoles {
   SYSTEM_ADMIN = 'SYSTEM_ADMIN'
 }
 
+export enum PipelineStatus {
+  STARTED = 'STARTED',
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
+}
+
+export enum PipelineName {
+  COURSE_DUES = 'COURSE_DUES',
+  FINANCE_ANALYTICS = 'FINANCE_ANALYTICS',
+}
+
 export enum Gender {
   MALE = 'MALE',
   FEMALE = 'FEMALE',
