@@ -191,6 +191,9 @@ exports.approveEnquiry = (0, express_async_handler_1.default)((0, functionLevelL
             }], { session });
         const createdStudent = yield student_1.Student.create([Object.assign(Object.assign({ _id: enquiry._id }, studentCreateValidation.data), { transactionHistory: [createTransaction[0]._id] })], { session });
         console.log("Created student is : ", createdStudent);
+        console.log("STudent is : ", student);
+        console.log("Couse COde : ", student.courseCode);
+        console.log("COurse Name  : ", student.courseName);
         yield collegeTransactionHistory_1.CollegeTransaction.findByIdAndUpdate(enquiry._id, {
             $set: {
                 courseCode: student.courseCode,

@@ -98,7 +98,6 @@ exports.CollegeTransactionModel = new mongoose_1.Schema({
     },
     courseCode: {
         type: String,
-        required: true
     },
     transactionSettlementHistory: {
         type: [exports.TransactionSettlementHistory],
