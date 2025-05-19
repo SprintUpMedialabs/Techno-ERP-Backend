@@ -23,7 +23,7 @@ financeAnalyticsRoute.post('/monthwise',
     fetchMonthWiseAnalytics
 );
 
-financeAnalyticsRoute.get('/overall',
+financeAnalyticsRoute.post('/overall',
     authenticate,
     authorize([UserRoles.BASIC_USER]),
     fetchOverallAnalytics

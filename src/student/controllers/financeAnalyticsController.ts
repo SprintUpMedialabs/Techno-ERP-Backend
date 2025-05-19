@@ -340,29 +340,35 @@ export const fetchMonthWiseAnalytics = expressAsyncHandler(async (req: Authentic
 
 
 
-export const fetchOverallAnalytics = expressAsyncHandler(async(req : AuthenticatedRequest, res : Response) => {
+export const fetchOverallAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const { courseCode } = req.body;
   const currentYear = new Date().getFullYear();
 
-  const startOfYear = new Date(currentYear, 0, 1); 
-  const today = new Date(); 
-
-  const result = await FinanceAnalytics.aggregate([
+  const startOfYear = new Date(currentYear, 0, 1);
+  const today = new Date();
+  const filterCourse = courseCode && courseCode !== "ALL";
+  const pipeline: any[] = [
     {
       $match: {
         date: { $gte: startOfYear, $lte: today }
       }
     },
+    { $unwind: "$courseWise" },
+    ...(filterCourse ? [{ $match: { "courseWise.courseCode": courseCode } }] : []),
+    { $unwind: "$courseWise.details" },
     {
       $group: {
         _id: null,
-        totalCollection: { $sum: "$totalCollection" }
+        totalCollection: { $sum: "$courseWise.details.totalCollection" }
       }
     }
-  ]);
+  ];
 
+  const result = await FinanceAnalytics.aggregate(pipeline);
   const totalCollection = result[0]?.totalCollection || 0;
+
   return formatResponse(res, 200, "Finance Analytics Fetched Successfully", true, {
-    totalExpectedRevenue : 0,
-    totalCollection : totalCollection
-  })
-})
+    totalExpectedRevenue: 0,
+    totalCollection
+  });
+});
