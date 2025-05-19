@@ -1,6 +1,6 @@
 import expressAsyncHandler from "express-async-handler";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
-import { Response } from "express";
+import { response, Response } from "express";
 import { Student } from "../models/student";
 import { CollegeTransaction } from "../models/collegeTransactionHistory";
 import { CollegeMetaData } from "../../admission/models/collegeMetaData";
@@ -11,7 +11,23 @@ import { toTitleCase } from "../../crm/validators/formators";
 
 export const downloadTransactionSlip = expressAsyncHandler(async (req : AuthenticatedRequest, res : Response)=>{
     const { studentId, transactionId } = req.body; 
+    const responseObj = await getTransactionSlipData(studentId, transactionId, false);
+    return formatResponse(res, 200, "Transaction Slip Data fetched successfully", true, responseObj);
+})
+
+export const downloadAdmissionTransactionSlip = expressAsyncHandler(async (req : AuthenticatedRequest, res : Response)=>{
+    const { studentId } = req.body;
+    const responseObj = await getTransactionSlipData(studentId, "", true);
+    console.log("Response Object : ", responseObj)
+    return formatResponse(res, 200, "Admission Transaction Slip Data fetched successfully", true, responseObj);
+})
+
+export const getTransactionSlipData = async (studentId : string, transactionId : string, isAdmissionTransactionSlip: boolean) => {
     const student = await Student.findById(studentId);
+
+    if(isAdmissionTransactionSlip)
+        transactionId = student?.transactionHistory?.at(0)?.toString() ?? '';
+
     const collegeTransaction = await CollegeTransaction.findById(transactionId);
     const collegeMetaData = await CollegeMetaData.findOne({ name : student?.collegeName })
     const responseObj = {
@@ -30,6 +46,5 @@ export const downloadTransactionSlip = expressAsyncHandler(async (req : Authenti
         amountInWords : toTitleCase(toWords(collegeTransaction?.amount!)) + " Rupees Only",
         transactionType : collegeTransaction?.txnType
     }
-    
-    return formatResponse(res, 200, "Transaction Slip Data fetched successfully", true, responseObj);
-})
+    return responseObj;
+}
