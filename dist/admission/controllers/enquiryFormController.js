@@ -60,38 +60,12 @@ exports.getEnquiryData = (0, express_async_handler_1.default)((0, functionLevelL
         }
         filter.applicationStatus = { $in: statuses };
     }
-    // const enquiries = await Enquiry.find(filter)
-    //   .select({
-    //     _id: 1,
-    //     dateOfEnquiry: 1,
-    //     studentName: 1,
-    //     studentPhoneNumber: 1,
-    //     gender: 1,
-    //     address: 1,
-    //     course: 1,
-    //     applicationStatus: 1,
-    //     fatherPhoneNumber: 1,
-    //     motherPhoneNumber: 1
-    //   })
-    // const enquiryDrafts = await EnquiryDraft.find(filter).select({
-    //   _id: 1,
-    //   dateOfEnquiry: 1,
-    //   studentName: 1,
-    //   studentPhoneNumber: 1,
-    //   gender: 1,
-    //   address: 1,
-    //   course: 1,
-    //   applicationStatus: 1,
-    //   fatherPhoneNumber: 1,
-    //   motherPhoneNumber: 1
-    // });
-    // const combinedResults = [...enquiries, ...enquiryDrafts];
     const combinedResults = yield enquiry_1.Enquiry.aggregate([
         { $match: filter },
         {
             $project: {
                 _id: 1,
-                dateOfEnquiry: 1,
+                dateOfEnquiry: { $dateToString: { format: "%d-%m-%Y", date: "$dateOfEnquiry" } },
                 studentName: 1,
                 studentPhoneNumber: 1,
                 gender: 1,
@@ -112,7 +86,7 @@ exports.getEnquiryData = (0, express_async_handler_1.default)((0, functionLevelL
                     {
                         $project: {
                             _id: 1,
-                            dateOfEnquiry: 1,
+                            dateOfEnquiry: { $dateToString: { format: "%d-%m-%Y", date: "$dateOfEnquiry" } },
                             studentName: 1,
                             studentPhoneNumber: 1,
                             gender: 1,
