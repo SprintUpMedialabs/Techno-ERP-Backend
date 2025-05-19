@@ -8,7 +8,7 @@ import { User } from "../../auth/models/user";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
 import { ADMISSION, DocumentType, FeeStatus, FinanceFeeSchedule, FinanceFeeType } from "../../config/constants";
 import { Course } from "../../course/models/course";
-import { getCurrentAcademicYear } from "../../course/utils/getCurrentAcademicYear";
+import { getCurrentAcademicYear, getCurrentAdmissionAcademicYear } from "../../course/utils/getCurrentAcademicYear";
 import { formatResponse } from "../../utils/formatResponse";
 import { removeExtraInfo, Student } from "../models/student";
 import { IAttendanceSchema, ICreateStudentSchema, IExamSchema, updateStudentDetailsRequestSchema } from "../validators/studentSchema";
@@ -75,7 +75,7 @@ export const createStudent = async (id: any, studentData: ICreateStudentSchema) 
 
   const currentSemester = 1;
 
-  const currentAcademicYear = getCurrentAcademicYear();
+  const currentAcademicYear = getCurrentAdmissionAcademicYear();
 
   const totalSemesters = course?.totalSemesters!;
   let transactionAmount = 0;

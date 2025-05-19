@@ -264,7 +264,8 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
       amount: transactionAmount,
       txnType: transactionType ?? TransactionTypes.CASH,
       actionedBy: req?.data?.id,
-      transactionSettlementHistory: transactionSettlementHistory
+      transactionSettlementHistory: transactionSettlementHistory,
+      // remark : transactionRemark
     }], { session });
 
     const createdStudent = await Student.create([{
