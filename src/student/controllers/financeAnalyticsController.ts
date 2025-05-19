@@ -372,3 +372,65 @@ export const fetchOverallAnalytics = expressAsyncHandler(async (req: Authenticat
     totalCollection
   });
 });
+
+
+
+export const fetchFinanceAggregates = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  const sevenDaysAgo = new Date(yesterday);
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+
+  const pipeline = [
+    {
+      $match: {
+        date: { $gte: sevenDaysAgo, $lte: yesterday }
+      }
+    },
+    { $unwind: "$courseWise" },
+    {
+      $group: {
+        _id: "$courseWise.courseCode",
+        totalCollection: { $sum: "$courseWise.totalCollection" },
+        totalExpectedRevenue: { $sum: "$courseWise.totalExpectedRevenue" }
+      }
+    },
+    {
+      $project: {
+        _id: 0,
+        courseCode: "$_id",
+        totalCollection: 1,
+        totalExpectedRevenue: 1,
+        remainingDues: { $subtract: ["$totalExpectedRevenue", "$totalCollection"] }
+      }
+    }
+  ];
+
+  const aggResult = await FinanceAnalytics.aggregate(pipeline);
+
+  const collection = aggResult.map(item => ({
+    courseName: item.courseCode,
+    totalCollection: item.totalCollection,
+  }));
+
+  const expectedRevenue = aggResult.map(item => ({
+    courseName: item.courseCode,
+    totalExpectedRevenue: item.totalExpectedRevenue,
+  }));
+
+  const remainingDues = aggResult.map(item => ({
+    courseName: item.courseCode,
+    remainingDues: item.remainingDues,
+  }));
+
+  return formatResponse(res, 200, "Aggregates fetched successfully", true, { aggregates:
+    {
+      collection,
+      expectedRevenue,
+      remainingDues
+    }
+  })
+
+});
