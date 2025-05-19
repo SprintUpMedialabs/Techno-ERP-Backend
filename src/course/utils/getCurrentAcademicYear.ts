@@ -11,5 +11,5 @@ export const getCurrentAdmissionAcademicYear = () => {
     const currentMonth = currentDate.getMonth();
     const currentYear = currentDate.getFullYear();
 
-    return `${(currentYear - 1).toString()}-${currentYear.toString()}`;
+    return `${currentYear.toString()}-${(currentYear + 1).toString()}`;
 }
