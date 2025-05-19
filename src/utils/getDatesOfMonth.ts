@@ -1,20 +1,17 @@
 import createHttpError from "http-errors";
 
-
-export function getDatesOfMonth(monthNumber: number) {
+export function getDatesOfMonth(monthNumber: number, year?: number): Date[] {
   if (monthNumber < 1 || monthNumber > 12) {
     throw createHttpError(400, "Invalid Month Number");
   }
 
-  const baseDate = new Date();
-  const year = baseDate.getUTCFullYear();
-
-  const daysInMonth = new Date(Date.UTC(year, monthNumber, 0)).getUTCDate();
+  const baseYear = year ?? new Date().getUTCFullYear();
+  const daysInMonth = new Date(Date.UTC(baseYear, monthNumber, 0)).getUTCDate();
 
   const datesOfMonth: Date[] = [];
 
   for (let day = 1; day <= daysInMonth; day++) {
-    const date = new Date(Date.UTC(year, monthNumber - 1, day));
+    const date = new Date(Date.UTC(baseYear, monthNumber - 1, day));
     datesOfMonth.push(date);
   }
 
