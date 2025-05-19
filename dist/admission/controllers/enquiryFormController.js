@@ -60,32 +60,76 @@ exports.getEnquiryData = (0, express_async_handler_1.default)((0, functionLevelL
         }
         filter.applicationStatus = { $in: statuses };
     }
-    const enquiries = yield enquiry_1.Enquiry.find(filter)
-        .select({
-        _id: 1,
-        dateOfEnquiry: 1,
-        studentName: 1,
-        studentPhoneNumber: 1,
-        gender: 1,
-        address: 1,
-        course: 1,
-        applicationStatus: 1,
-        fatherPhoneNumber: 1,
-        motherPhoneNumber: 1
-    });
-    const enquiryDrafts = yield enquiryDraft_1.EnquiryDraft.find(filter).select({
-        _id: 1,
-        dateOfEnquiry: 1,
-        studentName: 1,
-        studentPhoneNumber: 1,
-        gender: 1,
-        address: 1,
-        course: 1,
-        applicationStatus: 1,
-        fatherPhoneNumber: 1,
-        motherPhoneNumber: 1
-    });
-    const combinedResults = [...enquiries, ...enquiryDrafts];
+    // const enquiries = await Enquiry.find(filter)
+    //   .select({
+    //     _id: 1,
+    //     dateOfEnquiry: 1,
+    //     studentName: 1,
+    //     studentPhoneNumber: 1,
+    //     gender: 1,
+    //     address: 1,
+    //     course: 1,
+    //     applicationStatus: 1,
+    //     fatherPhoneNumber: 1,
+    //     motherPhoneNumber: 1
+    //   })
+    // const enquiryDrafts = await EnquiryDraft.find(filter).select({
+    //   _id: 1,
+    //   dateOfEnquiry: 1,
+    //   studentName: 1,
+    //   studentPhoneNumber: 1,
+    //   gender: 1,
+    //   address: 1,
+    //   course: 1,
+    //   applicationStatus: 1,
+    //   fatherPhoneNumber: 1,
+    //   motherPhoneNumber: 1
+    // });
+    // const combinedResults = [...enquiries, ...enquiryDrafts];
+    const combinedResults = yield enquiry_1.Enquiry.aggregate([
+        { $match: filter },
+        {
+            $project: {
+                _id: 1,
+                dateOfEnquiry: 1,
+                studentName: 1,
+                studentPhoneNumber: 1,
+                gender: 1,
+                address: 1,
+                course: 1,
+                applicationStatus: 1,
+                fatherPhoneNumber: 1,
+                motherPhoneNumber: 1,
+                updatedAt: 1,
+                source: { $literal: 'enquiry' }
+            }
+        },
+        {
+            $unionWith: {
+                coll: constants_1.COLLECTION_NAMES.ENQUIRY_DRAFT,
+                pipeline: [
+                    { $match: filter },
+                    {
+                        $project: {
+                            _id: 1,
+                            dateOfEnquiry: 1,
+                            studentName: 1,
+                            studentPhoneNumber: 1,
+                            gender: 1,
+                            address: 1,
+                            course: 1,
+                            applicationStatus: 1,
+                            fatherPhoneNumber: 1,
+                            motherPhoneNumber: 1,
+                            updatedAt: 1,
+                            source: { $literal: 'enquiryDraft' }
+                        }
+                    }
+                ]
+            }
+        },
+        { $sort: { updatedAt: -1 } }
+    ]);
     if (combinedResults.length > 0) {
         return (0, formatResponse_1.formatResponse)(res, 200, 'Enquiries corresponding to your search', true, combinedResults);
     }
