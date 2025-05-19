@@ -7,6 +7,6 @@ export const piplineRouter = Router();
 
 piplineRouter.get('/send-summary-email',
     authenticate,
-    authorize([UserRoles.BASIC_USER]),
+    authorize([UserRoles.SYSTEM_ADMIN]),
     sendTodayPipelineSummaryEmail
 );
