@@ -43,41 +43,12 @@ export const getEnquiryData = expressAsyncHandler(functionLevelLogger(async (req
     filter.applicationStatus = { $in: statuses };
   }
 
-  // const enquiries = await Enquiry.find(filter)
-  //   .select({
-  //     _id: 1,
-  //     dateOfEnquiry: 1,
-  //     studentName: 1,
-  //     studentPhoneNumber: 1,
-  //     gender: 1,
-  //     address: 1,
-  //     course: 1,
-  //     applicationStatus: 1,
-  //     fatherPhoneNumber: 1,
-  //     motherPhoneNumber: 1
-  //   })
-
-  // const enquiryDrafts = await EnquiryDraft.find(filter).select({
-  //   _id: 1,
-  //   dateOfEnquiry: 1,
-  //   studentName: 1,
-  //   studentPhoneNumber: 1,
-  //   gender: 1,
-  //   address: 1,
-  //   course: 1,
-  //   applicationStatus: 1,
-  //   fatherPhoneNumber: 1,
-  //   motherPhoneNumber: 1
-  // });
-
-  // const combinedResults = [...enquiries, ...enquiryDrafts];
-
   const combinedResults = await Enquiry.aggregate([
     { $match: filter },
     {
       $project: {
         _id: 1,
-        dateOfEnquiry: 1,
+        dateOfEnquiry: { $dateToString: { format: "%d-%m-%Y", date: "$dateOfEnquiry" } },
         studentName: 1,
         studentPhoneNumber: 1,
         gender: 1,
@@ -98,7 +69,7 @@ export const getEnquiryData = expressAsyncHandler(functionLevelLogger(async (req
           {
             $project: {
               _id: 1,
-              dateOfEnquiry: 1,
+              dateOfEnquiry: { $dateToString: { format: "%d-%m-%Y", date: "$dateOfEnquiry" } },
               studentName: 1,
               studentPhoneNumber: 1,
               gender: 1,
