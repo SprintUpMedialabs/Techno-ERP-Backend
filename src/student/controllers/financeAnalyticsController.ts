@@ -14,6 +14,7 @@ import { CollegeTransaction } from "../models/collegeTransactionHistory";
 import { CourseWiseDetails, CourseWiseInformation, FinanceAnalytics } from "../models/financeAnalytics";
 import { Student } from "../models/student";
 import { createPipeline } from "../../pipline/controller";
+import { format } from "morgan";
 
 /*
   academicYear : 2024-2025
@@ -89,7 +90,7 @@ export const createFinanceAnalytics = expressAsyncHandler(async (req: Authentica
           totalExpectedRevenue: 0,
           totalStudents: 0
         };
-
+        
         const revenueResult = await Student.aggregate([
           {
             $match: {
@@ -100,37 +101,70 @@ export const createFinanceAnalytics = expressAsyncHandler(async (req: Authentica
           },
           {
             $project: {
-              semesters: {
+              semesterFiltered: {
                 $filter: {
                   input: "$semester",
                   as: "sem",
-                  cond: { $in: ["$$sem.semesterNumber", semNumbers] }
+                  cond: {
+                    $and: [
+                      { $in: ["$$sem.semesterNumber", semNumbers] },
+                      { $ne: ["$$sem.dueDate", null] }
+                    ]
+                  }
+                }
+              },
+              allSemesters: "$semester"
+            }
+          },
+          { $unwind: "$semesterFiltered" },
+          {
+            $addFields: {
+              carryForwardDues: {
+                $sum: {
+                  $map: {
+                    input: {
+                      $filter: {
+                        input: "$allSemesters",
+                        as: "prevSem",
+                        cond: {
+                          $and: [
+                            { $lt: ["$$prevSem.semesterNumber", "$semesterFiltered.semesterNumber"] },
+                            { $ne: ["$$prevSem.dueDate", null] }
+                          ]
+                        }
+                      }
+                    },
+                    as: "dueSem",
+                    in: {
+                      $max: [
+                        { $subtract: ["$$dueSem.fees.totalFinalFee", { $ifNull: ["$$dueSem.fees.paidAmount", 0] }] },
+                        0
+                      ]
+                    }
+                  }
                 }
               }
             }
           },
-          /*
-            3rd:
-            actual fee: 5000
-            paid : 5000
-            4th 
-            actual fee: 5000
-            paid : 4000
-            5th
-            actual fee: 5000
-            paid : 4000
-            6th:
-            dueDate Null:
-          */
-          { $unwind: "$semesters" },
+          {
+            $project: {
+              expectedRevenue: {
+                $add: [
+                  "$semesterFiltered.fees.totalFinalFee",
+                  "$carryForwardDues"
+                ]
+              }
+            }
+          },
           {
             $group: {
               _id: null,
-              totalFinalFeeSum: { $sum: "$semesters.fees.totalFinalFee" }
+              totalExpectedRevenue: { $sum: "$expectedRevenue" }
             }
           }
         ]).session(session);
 
+        
         const totalExpectedRevenueCourseYearWise = revenueResult[0]?.totalFinalFeeSum || 0;
 
         const yesterday = getPreviousDayDateTime();
@@ -297,4 +331,32 @@ export const fetchMonthWiseAnalytics = expressAsyncHandler(async (req: Authentic
     courseWiseCollection: courseWiseCollection
   });
 
+})
+
+
+export const fetchOverallAnalytics = expressAsyncHandler(async(req : AuthenticatedRequest, res : Response) => {
+  const currentYear = new Date().getFullYear();
+
+  const startOfYear = new Date(currentYear, 0, 1); 
+  const today = new Date(); 
+
+  const result = await FinanceAnalytics.aggregate([
+    {
+      $match: {
+        date: { $gte: startOfYear, $lte: today }
+      }
+    },
+    {
+      $group: {
+        _id: null,
+        totalCollection: { $sum: "$totalCollection" }
+      }
+    }
+  ]);
+
+  const totalCollection = result[0]?.totalCollection || 0;
+  return formatResponse(res, 200, "Finance Analytics Fetched Successfully", true, {
+    totalExpectedRevenue : 0,
+    totalCollection : totalCollection
+  })
 })

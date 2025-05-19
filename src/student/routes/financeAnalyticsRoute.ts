@@ -1,7 +1,7 @@
 import express from "express";
 import { UserRoles } from "../../config/constants";
 import { authenticate, authorize } from "../../middleware/jwtAuthenticationMiddleware";
-import { createFinanceAnalytics, fetchDayWiseAnalytics, fetchMonthWiseAnalytics } from "../controllers/financeAnalyticsController";
+import { createFinanceAnalytics, fetchDayWiseAnalytics, fetchMonthWiseAnalytics, fetchOverallAnalytics } from "../controllers/financeAnalyticsController";
 
 export const financeAnalyticsRoute = express.Router()
 
@@ -21,4 +21,10 @@ financeAnalyticsRoute.post('/monthwise',
     authenticate,
     authorize([UserRoles.BASIC_USER]),
     fetchMonthWiseAnalytics
+);
+
+financeAnalyticsRoute.get('/overall',
+    authenticate,
+    authorize([UserRoles.BASIC_USER]),
+    fetchOverallAnalytics
 );
