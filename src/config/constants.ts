@@ -295,7 +295,7 @@ export enum COLLECTION_NAMES {
   USER = 'User',
   VERIFY_OTP = 'VerifyOtp',
   ENQUIRY = 'Enquiry',
-  ENQUIRY_DRAFT = 'EnquiryDraft',
+  ENQUIRY_DRAFT = 'enquirydrafts',
   ENQUIRY_ID_META_DATA = 'EnquiryIdMetaData',
   STUDENT_FEE = 'studentFee',
   STUDENT_FEE_DRAFT = 'studentFeeDraft',
