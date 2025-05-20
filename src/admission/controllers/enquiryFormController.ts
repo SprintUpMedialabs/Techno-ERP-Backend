@@ -185,7 +185,7 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
           formNo: formNo,
           photoNo: photoSerial!.lastSerialNumber,
           universityId: universityId,
-          applicationStatus: ApplicationStatus.CONFIRMED,
+          // applicationStatus: ApplicationStatus.CONFIRMED,
         },
       },
       { runValidators: true, new: true, projection: { createdAt: 0, updatedAt: 0, __v: 0 }, session }
@@ -229,7 +229,10 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
     // }], { session });
 
     const { transactionAmount, ...student } = await createStudent(req.data?.id, studentValidation.data);
+    
+    console.log("Transaction Amount is : ", transactionAmount);
     const studentCreateValidation = StudentSchema.safeParse(student);
+
 
     console.log("Student to be created : ", student);
 
@@ -264,7 +267,8 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
       amount: transactionAmount,
       txnType: transactionType ?? TransactionTypes.CASH,
       actionedBy: req?.data?.id,
-      transactionSettlementHistory: transactionSettlementHistory
+      transactionSettlementHistory: transactionSettlementHistory,
+      // remark : transactionRemark
     }], { session });
 
     const createdStudent = await Student.create([{

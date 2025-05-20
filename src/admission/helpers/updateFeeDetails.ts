@@ -36,6 +36,7 @@ export const updateFeeDetails = async (applicationStatusList: ApplicationStatus[
     throw createHttpError(500, 'Semester-wise fee structure not found for the course');
   }
 
+  const sem1FeeDepositedTOA = validation.data.otherFees?.find(fee => fee.type === 'SEM1FEE')?.feesDepositedTOA ?? 0;
 
   const feeData = {
     ...validation.data,
@@ -47,8 +48,8 @@ export const updateFeeDetails = async (applicationStatusList: ApplicationStatus[
     semWiseFees: validation.data.semWiseFees.map((semFee, index: number) => ({
       finalFee: semFee.finalFee,
       // feeAmount: (semWiseFee?.fee[index]) ?? 0
-      feeAmount: (semWiseFee[index].amount) ?? 0
-
+      feeAmount: (semWiseFee[index].amount) ?? 0,
+      feesPaid: index === 0 ? sem1FeeDepositedTOA : 0
     })),
   }
 

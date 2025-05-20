@@ -40,6 +40,9 @@ export const createFeeDraft = expressAsyncHandler(functionLevelLogger(async (req
   }
 
   const { counsellor, telecaller, ...feeRelatedData } = validation.data;
+
+  const sem1FeeDepositedTOA = feeRelatedData.otherFees?.find(fee => fee.type === 'SEM1FEE')?.feesDepositedTOA ?? 0;
+
   const feeData = {
     ...feeRelatedData,
     otherFees: feeRelatedData.otherFees?.map(fee => {
@@ -55,7 +58,8 @@ export const createFeeDraft = expressAsyncHandler(functionLevelLogger(async (req
     }) || [],
     semWiseFees: feeRelatedData.semWiseFees?.map((semFee, index) => ({
       feeAmount: semFee.feeAmount ?? semWiseFee[index].amount ?? 0,
-      finalFee: semFee.finalFee ?? 0
+      finalFee: semFee.finalFee ?? 0,
+      feesPaid: index === 0 ? sem1FeeDepositedTOA : 0
     })) || []
   };
 
