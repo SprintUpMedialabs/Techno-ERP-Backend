@@ -29,15 +29,15 @@ const http_errors_1 = __importDefault(require("http-errors"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const studentFees_1 = require("../../admission/models/studentFees");
 const physicalDocumentNoteSchema_1 = require("../../admission/validators/physicalDocumentNoteSchema");
+const singleDocumentSchema_1 = require("../../admission/validators/singleDocumentSchema");
 const user_1 = require("../../auth/models/user");
 const constants_1 = require("../../config/constants");
+const s3Upload_1 = require("../../config/s3Upload");
 const course_1 = require("../../course/models/course");
 const getCurrentAcademicYear_1 = require("../../course/utils/getCurrentAcademicYear");
 const formatResponse_1 = require("../../utils/formatResponse");
 const student_1 = require("../models/student");
 const studentSchema_1 = require("../validators/studentSchema");
-const singleDocumentSchema_1 = require("../../admission/validators/singleDocumentSchema");
-const s3Upload_1 = require("../../config/s3Upload");
 const createStudent = (id, studentData) => __awaiter(void 0, void 0, void 0, function* () {
     const { courseCode, feeId, dateOfAdmission } = studentData;
     const studentBaseInformation = Object.assign({}, studentData);

@@ -160,7 +160,7 @@ exports.approveEnquiry = (0, express_async_handler_1.default)((0, functionLevelL
                 formNo: formNo,
                 photoNo: photoSerial.lastSerialNumber,
                 universityId: universityId,
-                // applicationStatus: ApplicationStatus.CONFIRMED,
+                applicationStatus: constants_1.ApplicationStatus.CONFIRMED,
             },
         }, { runValidators: true, new: true, projection: { createdAt: 0, updatedAt: 0, __v: 0 }, session });
         // const studentValidation = studentSchema.safeParse(approvedEnquiry);
@@ -201,6 +201,7 @@ exports.approveEnquiry = (0, express_async_handler_1.default)((0, functionLevelL
         }
         console.log("Transaction Amount : ", transactionAmount);
         console.log("Transaction Settlement History : ", transactionSettlementHistory);
+        // DTODO: create student first and then create transaction so we can remove this 2 db call for create txn
         const createTransaction = yield collegeTransactionHistory_1.CollegeTransaction.create([{
                 studentId: enquiry._id,
                 dateTime: new Date(),
@@ -216,6 +217,7 @@ exports.approveEnquiry = (0, express_async_handler_1.default)((0, functionLevelL
         console.log("STudent is : ", student);
         console.log("Couse COde : ", student.courseCode);
         console.log("COurse Name  : ", student.courseName);
+        // DTODO: isme txn nahi hai 🥹🥹🥹🥹
         yield collegeTransactionHistory_1.CollegeTransaction.findByIdAndUpdate(enquiry._id, {
             $set: {
                 courseCode: student.courseCode,
