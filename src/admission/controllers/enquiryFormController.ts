@@ -3,21 +3,20 @@ import expressAsyncHandler from 'express-async-handler';
 import createHttpError from 'http-errors';
 import mongoose from 'mongoose';
 import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
-import { ApplicationStatus, Course, FeeActions, FormNoPrefixes, TGI, TransactionTypes } from '../../config/constants';
+import { ApplicationStatus, COLLECTION_NAMES, Course, FeeActions, FormNoPrefixes, TGI, TransactionTypes } from '../../config/constants';
 import { functionLevelLogger } from '../../config/functionLevelLogging';
 import { createStudent } from '../../student/controllers/studentController';
+import { CollegeTransaction } from '../../student/models/collegeTransactionHistory';
 import { Student } from '../../student/models/student';
+import { toRoman } from '../../student/utils/getRomanSemNumber';
 import { CreateStudentSchema, StudentSchema } from '../../student/validators/studentSchema';
 import { formatResponse } from '../../utils/formatResponse';
+import { getCourseYearFromSemNumber } from '../../utils/getCourseYearFromSemNumber';
 import { objectIdSchema } from '../../validators/commonSchema';
 import { Enquiry } from '../models/enquiry';
 import { EnquiryDraft } from '../models/enquiryDraft';
 import { EnquiryApplicationId } from '../models/enquiryIdMetaDataSchema';
-import { CollegeTransaction, CollegeTransactionModel } from '../../student/models/collegeTransactionHistory';
-import { getCurrentLoggedInUser } from '../../auth/utils/getCurrentLoggedInUser';
 import { StudentFeesModel } from '../models/studentFees';
-import { getCurrentAcademicYear } from '../../course/utils/getCurrentAcademicYear';
-import { toRoman } from '../../student/utils/getRomanSemNumber';
 
 
 export const getEnquiryData = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
@@ -44,34 +43,51 @@ export const getEnquiryData = expressAsyncHandler(functionLevelLogger(async (req
     filter.applicationStatus = { $in: statuses };
   }
 
-  const enquiries = await Enquiry.find(filter)
-    .select({
-      _id: 1,
-      dateOfEnquiry: 1,
-      studentName: 1,
-      studentPhoneNumber: 1,
-      gender: 1,
-      address: 1,
-      course: 1,
-      applicationStatus: 1,
-      fatherPhoneNumber: 1,
-      motherPhoneNumber: 1
-    })
+  const combinedResults = await Enquiry.aggregate([
+    { $match: filter },
+    {
+      $project: {
+        _id: 1,
+        dateOfEnquiry: { $dateToString: { format: "%d-%m-%Y", date: "$dateOfEnquiry" } },
+        studentName: 1,
+        studentPhoneNumber: 1,
+        gender: 1,
+        address: 1,
+        course: 1,
+        applicationStatus: 1,
+        fatherPhoneNumber: 1,
+        motherPhoneNumber: 1,
+        updatedAt: 1,
+        source: { $literal: 'enquiry' }
+      }
+    },
+    {
+      $unionWith: {
+        coll: COLLECTION_NAMES.ENQUIRY_DRAFT,
+        pipeline: [
+          { $match: filter },
+          {
+            $project: {
+              _id: 1,
+              dateOfEnquiry: { $dateToString: { format: "%d-%m-%Y", date: "$dateOfEnquiry" } },
+              studentName: 1,
+              studentPhoneNumber: 1,
+              gender: 1,
+              address: 1,
+              course: 1,
+              applicationStatus: 1,
+              fatherPhoneNumber: 1,
+              motherPhoneNumber: 1,
+              updatedAt: 1,
+              source: { $literal: 'enquiryDraft' }
+            }
+          }
+        ]
+      }
+    },
+    { $sort: { updatedAt: -1 } }
+  ]);
 
-  const enquiryDrafts = await EnquiryDraft.find(filter).select({
-    _id: 1,
-    dateOfEnquiry: 1,
-    studentName: 1,
-    studentPhoneNumber: 1,
-    gender: 1,
-    address: 1,
-    course: 1,
-    applicationStatus: 1,
-    fatherPhoneNumber: 1,
-    motherPhoneNumber: 1
-  });
-
-  const combinedResults = [...enquiries, ...enquiryDrafts];
 
   if (combinedResults.length > 0) {
     return formatResponse(res, 200, 'Enquiries corresponding to your search', true, combinedResults);
@@ -191,10 +207,10 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
       "courseCode": approvedEnquiry?.course,
       "feeId": approvedEnquiry?.studentFee,
       "dateOfAdmission": approvedEnquiry?.dateOfAdmission,
-      "collegeName" : getCollegeNameFromFormNo(enquiryData?.formNo)
+      "collegeName": getCollegeNameFromFormNo(enquiryData?.formNo)
     }
 
-   
+
 
     console.log("Student Data : ", studentData);
 
@@ -213,7 +229,10 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
     // }], { session });
 
     const { transactionAmount, ...student } = await createStudent(req.data?.id, studentValidation.data);
+    
+    console.log("Transaction Amount is : ", transactionAmount);
     const studentCreateValidation = StudentSchema.safeParse(student);
+
 
     console.log("Student to be created : ", student);
 
@@ -228,18 +247,21 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
 
     const transactionSettlementHistory: { name: string; amount: number; }[] = [];
 
-    if(otherFeesData)
-    {
+    if (otherFeesData) {
       otherFeesData.forEach(otherFees => {
-        transactionSettlementHistory.push({
-          name : student.currentAcademicYear + " - " + "First Year" + " - " + toRoman(1) + " Sem" + " - " + otherFees.type,
-          amount : otherFees.feesDepositedTOA
-        })  
+        if (otherFees.feesDepositedTOA !== 0) {
+          transactionSettlementHistory.push({
+            name: student.currentAcademicYear + " - " + "First Year" + " - " + toRoman(1) + " Sem" + " - " + otherFees.type,
+            amount: otherFees.feesDepositedTOA
+          });
+        }
       });
     }
-    
+
     console.log("Transaction Amount : ", transactionAmount);
     console.log("Transaction Settlement History : ", transactionSettlementHistory);
+
+    // DTODO: create student first and then create transaction so we can remove this 2 db call for create txn
     const createTransaction = await CollegeTransaction.create([{
       studentId: enquiry._id,
       dateTime: new Date(),
@@ -247,7 +269,8 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
       amount: transactionAmount,
       txnType: transactionType ?? TransactionTypes.CASH,
       actionedBy: req?.data?.id,
-      transactionSettlementHistory : transactionSettlementHistory
+      transactionSettlementHistory: transactionSettlementHistory,
+      // remark : transactionRemark
     }], { session });
 
     const createdStudent = await Student.create([{
@@ -256,10 +279,19 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
       transactionHistory: [createTransaction[0]._id]
     }], { session });
 
+    console.log("Created student is : ", createdStudent);
+
+    console.log("STudent is : ", student);
+    console.log("Couse COde : ", student.courseCode);
+    console.log("COurse Name  : ", student.courseName)
+
+    // DTODO: isme session nahi hai 🥹🥹🥹🥹
+      // but i think fine anyway this will be removed.
     await CollegeTransaction.findByIdAndUpdate(enquiry._id, {
-      $set : {
-        courseCode : student.courseCode,
-        courseName : student.courseName
+      $set: {
+        courseCode: student.courseCode,
+        courseName: student.courseName,
+        courseYear: getCourseYearFromSemNumber(student.currentSemester)
       }
     })
 
@@ -308,14 +340,14 @@ const getCollegeName = (course: Course): FormNoPrefixes => {
   return FormNoPrefixes.TIHS;
 };
 
-const getCollegeNameFromFormNo = (formNo : string | undefined) => {
-  if(!formNo)
+const getCollegeNameFromFormNo = (formNo: string | undefined) => {
+  if (!formNo)
     return;
-  if(formNo.startsWith(FormNoPrefixes.TCL))
+  if (formNo.startsWith(FormNoPrefixes.TCL))
     return FormNoPrefixes.TCL;
-  else if(formNo.startsWith(FormNoPrefixes.TIHS))
+  else if (formNo.startsWith(FormNoPrefixes.TIHS))
     return FormNoPrefixes.TIHS;
-  else if(formNo.startsWith(FormNoPrefixes.TIMS))
+  else if (formNo.startsWith(FormNoPrefixes.TIMS))
     return FormNoPrefixes.TIMS
 }
 

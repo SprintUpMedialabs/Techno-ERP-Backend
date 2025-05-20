@@ -371,8 +371,8 @@ export const removeExtraInfo = (_: any, ret: any) => {
             dueBy: note.dueBy ? convertToDDMMYYYY(note.dueBy) : note.dueBy,
         }));
     }
-    delete ret.createdAt;
-    delete ret.updatedAt;
+    // delete ret.createdAt;
+    // delete ret.updatedAt;
     delete ret.__v;
     return ret;
 };

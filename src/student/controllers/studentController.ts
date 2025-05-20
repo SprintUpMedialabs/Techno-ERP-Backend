@@ -4,16 +4,16 @@ import createHttpError from "http-errors";
 import mongoose from "mongoose";
 import { StudentFeesModel } from "../../admission/models/studentFees";
 import { updateStudentPhysicalDocumentRequestSchema } from "../../admission/validators/physicalDocumentNoteSchema";
+import { singleDocumentSchema } from "../../admission/validators/singleDocumentSchema";
 import { User } from "../../auth/models/user";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
 import { ADMISSION, DocumentType, FeeStatus, FinanceFeeSchedule, FinanceFeeType } from "../../config/constants";
+import { uploadToS3 } from "../../config/s3Upload";
 import { Course } from "../../course/models/course";
-import { getCurrentAcademicYear } from "../../course/utils/getCurrentAcademicYear";
+import { getCurrentAdmissionAcademicYear } from "../../course/utils/getCurrentAcademicYear";
 import { formatResponse } from "../../utils/formatResponse";
 import { removeExtraInfo, Student } from "../models/student";
 import { IAttendanceSchema, ICreateStudentSchema, IExamSchema, updateStudentDetailsRequestSchema } from "../validators/studentSchema";
-import { singleDocumentSchema } from "../../admission/validators/singleDocumentSchema";
-import { uploadToS3 } from "../../config/s3Upload";
 
 export const createStudent = async (id: any, studentData: ICreateStudentSchema) => {
   const { courseCode, feeId, dateOfAdmission } = studentData;
@@ -25,6 +25,8 @@ export const createStudent = async (id: any, studentData: ICreateStudentSchema) 
   const course = await Course.findOne({ courseCode: courseCode, startingYear: dateOfAdmission.getFullYear() });
 
   const feesCourse = await StudentFeesModel.findOne({ _id: feeId });
+  console.log("Fees course : ", feesCourse);
+  console.log("Semwise fee : ", feesCourse?.semWiseFees);
 
   const semSubjectIds = await Course.aggregate([
     {
@@ -75,7 +77,7 @@ export const createStudent = async (id: any, studentData: ICreateStudentSchema) 
 
   const currentSemester = 1;
 
-  const currentAcademicYear = getCurrentAcademicYear();
+  const currentAcademicYear = getCurrentAdmissionAcademicYear();
 
   const totalSemesters = course?.totalSemesters!;
   let transactionAmount = 0;
@@ -248,7 +250,10 @@ const createSemesterFee = (id: any, semesterNumber: number, feesCourse: any): an
   const semFeeInfo = semWiseFees[semesterNumber - 1] || null;
 
   if (semFeeInfo) {
-    amountForTransaction = semesterNumber == 1 ? (amountForTransaction + semFeeInfo.feesPaid || 0) : 0;
+    console.log("Init AMount for transaction : ", amountForTransaction);
+    console.log("Sem fees info : ", semFeeInfo.feesPaid);
+    amountForTransaction = semesterNumber === 1 ? (amountForTransaction + (semFeeInfo.feesPaid || 0)) : 0;
+    console.log("Final AMount for transaction : ", amountForTransaction);
     details.push({
       type: FinanceFeeType.SEMESTERFEE,
       schedule: FinanceFeeSchedule[FinanceFeeType.SEMESTERFEE] ?? "YEARLY",
@@ -282,6 +287,8 @@ const yearMapping: Record<string, number> = {
   Second: 2,
   Third: 3,
   Fourth: 4,
+  Fifth: 5,
+  Sixth: 6,
 };
 
 

@@ -58,8 +58,6 @@ initializeDB();
 
 app.use('/api', apiRouter);
 
-
-
 app.use(
   morgan(':method :url :status :response-time ms', {
     stream: {

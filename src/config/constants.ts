@@ -13,6 +13,17 @@ export enum UserRoles {
   SYSTEM_ADMIN = 'SYSTEM_ADMIN'
 }
 
+export enum PipelineStatus {
+  STARTED = 'STARTED',
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
+}
+
+export enum PipelineName {
+  COURSE_DUES = 'COURSE_DUES',
+  FINANCE_ANALYTICS = 'FINANCE_ANALYTICS',
+}
+
 export enum Gender {
   MALE = 'MALE',
   FEMALE = 'FEMALE',
@@ -211,7 +222,8 @@ export enum FeeType {
   UNIFORM = "UNIFORM",
   STUDENTWELFARE = "STUDENTWELFARE",
   BOOKBANK = "BOOKBANK",
-  EXAMFEES = "EXAMFEES"
+  EXAMFEES = "EXAMFEES",
+  EDUCATION = "EDUCATION"
 }
 
 export enum AdmissionMode {
@@ -283,7 +295,7 @@ export enum COLLECTION_NAMES {
   USER = 'User',
   VERIFY_OTP = 'VerifyOtp',
   ENQUIRY = 'Enquiry',
-  ENQUIRY_DRAFT = 'EnquiryDraft',
+  ENQUIRY_DRAFT = 'enquirydrafts',
   ENQUIRY_ID_META_DATA = 'EnquiryIdMetaData',
   STUDENT_FEE = 'studentFee',
   STUDENT_FEE_DRAFT = 'studentFeeDraft',
@@ -303,7 +315,8 @@ export enum COLLECTION_NAMES {
   MARKETING_FOLLOW_UP_RAW_DATA = "MarketingFollowUpData",
   MARKETING_ANALYTICS = "MarketingAnalytics",
   COURSE_DUES = 'CourseDues',
-  COLLEGE_META_DATA = "CollegeMetaData"
+  COLLEGE_META_DATA = "CollegeMetaData",
+  FINANCE_ANALYTICS = "FinanceAnalytics"
 }
 
 
@@ -397,4 +410,10 @@ export enum Actions {
 
 export enum MarketingAnalyticsEnum {
   NO_OF_CALLS = "NO_OF_CALLS"
+}
+
+export enum StudentStatus{
+  NEW = "NEW",
+  UPDATED = "UPDATED",
+  OLD = "OLD"
 }

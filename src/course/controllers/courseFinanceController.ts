@@ -2,13 +2,14 @@ import { Response } from "express";
 import expressAsyncHandler from "express-async-handler";
 import createHttpError from "http-errors";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
-import { FeeStatus, FormNoPrefixes } from "../../config/constants";
+import { FeeStatus, FormNoPrefixes, PipelineName } from "../../config/constants";
 import { retryMechanism } from "../../config/retryMechanism";
 import { Student } from "../../student/models/student";
 import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
 import { formatResponse } from "../../utils/formatResponse";
 import { CourseDues } from "../models/courseDues";
 import { CourseMetaData } from "../models/courseMetadata";
+import { createPipeline } from "../../pipline/controller";
 
 
 export const courseFeeDues = expressAsyncHandler(async (_: AuthenticatedRequest, res: Response) => {
@@ -33,13 +34,14 @@ export const courseFeeDues = expressAsyncHandler(async (_: AuthenticatedRequest,
             select: 'firstName lastName email'
         }
     });
-
+    const pipelineId = await createPipeline(PipelineName.COURSE_DUES);
+    if (!pipelineId) throw createHttpError(400, "Pipeline creation failed");
 
     await retryMechanism(async (session) => {
 
         for (const course of courseList) {
             const { courseCode, courseName, courseDuration, collegeName } = course;
-            const date = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()-1));
+            const date = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate() - 1));
 
             const department = course.departmentMetaDataId;
             const hod = department?.departmentHODId;
@@ -115,7 +117,7 @@ export const courseFeeDues = expressAsyncHandler(async (_: AuthenticatedRequest,
 
             await CourseDues.create([courseDetails], { session });
         }
-    }, 'Course Dues Pipeline Failure', "All retry limits expired for the course dues creation");
+    }, 'Course Dues Pipeline Failure', "All retry limits expired for the course dues creation", pipelineId, PipelineName.COURSE_DUES);
 
     return formatResponse(res, 200, 'course dues recorded successfully', true);
 });
