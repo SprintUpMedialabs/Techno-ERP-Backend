@@ -285,7 +285,8 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
     console.log("Couse COde : ", student.courseCode);
     console.log("COurse Name  : ", student.courseName)
 
-    // DTODO: isme txn nahi hai 🥹🥹🥹🥹
+    // DTODO: isme session nahi hai 🥹🥹🥹🥹
+      // but i think fine anyway this will be removed.
     await CollegeTransaction.findByIdAndUpdate(enquiry._id, {
       $set: {
         courseCode: student.courseCode,
