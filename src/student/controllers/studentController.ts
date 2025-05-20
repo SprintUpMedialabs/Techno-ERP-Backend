@@ -4,16 +4,16 @@ import createHttpError from "http-errors";
 import mongoose from "mongoose";
 import { StudentFeesModel } from "../../admission/models/studentFees";
 import { updateStudentPhysicalDocumentRequestSchema } from "../../admission/validators/physicalDocumentNoteSchema";
+import { singleDocumentSchema } from "../../admission/validators/singleDocumentSchema";
 import { User } from "../../auth/models/user";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
 import { ADMISSION, DocumentType, FeeStatus, FinanceFeeSchedule, FinanceFeeType } from "../../config/constants";
+import { uploadToS3 } from "../../config/s3Upload";
 import { Course } from "../../course/models/course";
-import { getCurrentAcademicYear, getCurrentAdmissionAcademicYear } from "../../course/utils/getCurrentAcademicYear";
+import { getCurrentAdmissionAcademicYear } from "../../course/utils/getCurrentAcademicYear";
 import { formatResponse } from "../../utils/formatResponse";
 import { removeExtraInfo, Student } from "../models/student";
 import { IAttendanceSchema, ICreateStudentSchema, IExamSchema, updateStudentDetailsRequestSchema } from "../validators/studentSchema";
-import { singleDocumentSchema } from "../../admission/validators/singleDocumentSchema";
-import { uploadToS3 } from "../../config/s3Upload";
 
 export const createStudent = async (id: any, studentData: ICreateStudentSchema) => {
   const { courseCode, feeId, dateOfAdmission } = studentData;
