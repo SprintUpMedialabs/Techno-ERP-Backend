@@ -18,6 +18,9 @@ const routes_2 = require("./student/routes");
 const dropDownRoute_1 = require("./utilityModules/dropdown/dropDownRoute");
 const route_1 = require("./common/route");
 const backupController_1 = require("./backup/backupController");
+const financeAnalyticsRoute_1 = require("./student/routes/financeAnalyticsRoute");
+const piplineRoute_1 = require("./pipline/piplineRoute");
+const studentParentRoute_1 = require("./student-parent/routes/studentParentRoute");
 exports.apiRouter = express_1.default.Router();
 /**
  * Contains the router for Authentication
@@ -63,5 +66,8 @@ exports.apiRouter.use('/test', testRoute_1.testRoute);
  * Contains the router for Student Module
  */
 exports.apiRouter.use('/student', routes_2.studentRoute);
+exports.apiRouter.use('/student-parent', studentParentRoute_1.studentParentRoute);
 exports.apiRouter.use('/download-reciept', route_1.downloadRoute);
 exports.apiRouter.use('/backup', backupController_1.backupRoute);
+exports.apiRouter.use('/fee-analytics', financeAnalyticsRoute_1.financeAnalyticsRoute);
+exports.apiRouter.use('/pipline', piplineRoute_1.piplineRouter);

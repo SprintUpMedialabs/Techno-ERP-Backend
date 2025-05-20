@@ -9,7 +9,9 @@ const jwtAuthenticationMiddleware_1 = require("../../middleware/jwtAuthenticatio
 const constants_1 = require("../../config/constants");
 const studentController_1 = require("../controllers/studentController");
 const multerConfig_1 = __importDefault(require("../../config/multerConfig"));
+const studentDataSheetController_1 = require("../controllers/studentDataSheetController");
 exports.studentRepoRoute = express_1.default.Router();
+exports.studentRepoRoute.get('/export-data', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER]), studentDataSheetController_1.exportStudentData);
 exports.studentRepoRoute.post('/search', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER]), studentController_1.getStudentDataBySearch);
 exports.studentRepoRoute.get("/:id", jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER]), studentController_1.getStudentDataById);
 exports.studentRepoRoute.put('/student-details', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER]), studentController_1.updateStudentDataById);

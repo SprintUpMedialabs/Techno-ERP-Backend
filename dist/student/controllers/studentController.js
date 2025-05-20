@@ -29,20 +29,22 @@ const http_errors_1 = __importDefault(require("http-errors"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const studentFees_1 = require("../../admission/models/studentFees");
 const physicalDocumentNoteSchema_1 = require("../../admission/validators/physicalDocumentNoteSchema");
+const singleDocumentSchema_1 = require("../../admission/validators/singleDocumentSchema");
 const user_1 = require("../../auth/models/user");
 const constants_1 = require("../../config/constants");
+const s3Upload_1 = require("../../config/s3Upload");
 const course_1 = require("../../course/models/course");
 const getCurrentAcademicYear_1 = require("../../course/utils/getCurrentAcademicYear");
 const formatResponse_1 = require("../../utils/formatResponse");
 const student_1 = require("../models/student");
 const studentSchema_1 = require("../validators/studentSchema");
-const singleDocumentSchema_1 = require("../../admission/validators/singleDocumentSchema");
-const s3Upload_1 = require("../../config/s3Upload");
 const createStudent = (id, studentData) => __awaiter(void 0, void 0, void 0, function* () {
     const { courseCode, feeId, dateOfAdmission } = studentData;
     const studentBaseInformation = Object.assign({}, studentData);
     const course = yield course_1.Course.findOne({ courseCode: courseCode, startingYear: dateOfAdmission.getFullYear() });
     const feesCourse = yield studentFees_1.StudentFeesModel.findOne({ _id: feeId });
+    console.log("Fees course : ", feesCourse);
+    console.log("Semwise fee : ", feesCourse === null || feesCourse === void 0 ? void 0 : feesCourse.semWiseFees);
     const semSubjectIds = yield course_1.Course.aggregate([
         {
             $match: {
@@ -88,7 +90,7 @@ const createStudent = (id, studentData) => __awaiter(void 0, void 0, void 0, fun
     const courseName = course === null || course === void 0 ? void 0 : course.courseName;
     const departmentMetaDataId = course === null || course === void 0 ? void 0 : course.departmentMetaDataId;
     const currentSemester = 1;
-    const currentAcademicYear = (0, getCurrentAcademicYear_1.getCurrentAcademicYear)();
+    const currentAcademicYear = (0, getCurrentAcademicYear_1.getCurrentAdmissionAcademicYear)();
     const totalSemesters = course === null || course === void 0 ? void 0 : course.totalSemesters;
     let transactionAmount = 0;
     const semSubIds = semSubjectIds[0].semester;
@@ -244,7 +246,10 @@ const createSemesterFee = (id, semesterNumber, feesCourse) => {
     });
     const semFeeInfo = semWiseFees[semesterNumber - 1] || null;
     if (semFeeInfo) {
-        amountForTransaction = semesterNumber == 1 ? (amountForTransaction + semFeeInfo.feesPaid || 0) : 0;
+        console.log("Init AMount for transaction : ", amountForTransaction);
+        console.log("Sem fees info : ", semFeeInfo.feesPaid);
+        amountForTransaction = semesterNumber === 1 ? (amountForTransaction + (semFeeInfo.feesPaid || 0)) : 0;
+        console.log("Final AMount for transaction : ", amountForTransaction);
         details.push({
             type: constants_1.FinanceFeeType.SEMESTERFEE,
             schedule: (_a = constants_1.FinanceFeeSchedule[constants_1.FinanceFeeType.SEMESTERFEE]) !== null && _a !== void 0 ? _a : "YEARLY",
@@ -275,6 +280,8 @@ const yearMapping = {
     Second: 2,
     Third: 3,
     Fourth: 4,
+    Fifth: 5,
+    Sixth: 6,
 };
 exports.getStudentDataBySearch = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const page = parseInt(req.body.page) || 1;

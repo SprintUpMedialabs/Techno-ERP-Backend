@@ -26,6 +26,7 @@ const feeSchema_1 = require("../validators/feeSchema");
 const getCurrentLoggedInUser_1 = require("../../auth/utils/getCurrentLoggedInUser");
 const getAcaYrFromStartYrSemNum_1 = require("../../course/utils/getAcaYrFromStartYrSemNum");
 const getRomanSemNumber_1 = require("../utils/getRomanSemNumber");
+const getCourseYearFromSemNumber_1 = require("../../utils/getCourseYearFromSemNumber");
 exports.getStudentDues = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     const { page, limit, search, academicYear, courseCode, courseYear } = req.body;
@@ -294,7 +295,8 @@ exports.recordPayment = (0, express_async_handler_1.default)((req, res) => __awa
                 dateTime: new Date(),
                 actionedBy: currentLoggedInUser,
                 courseCode: student.courseCode,
-                courseName: student.courseName
+                courseName: student.courseName,
+                courseYear: (0, getCourseYearFromSemNumber_1.getCourseYearFromSemNumber)(student.currentSemester)
             }], { session });
         console.log("Transaction created : ", transaction);
         console.log(transaction[0]._id);

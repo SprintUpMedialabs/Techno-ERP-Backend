@@ -12,6 +12,8 @@ const convertToMongoDate = (dateString) => {
 };
 exports.convertToMongoDate = convertToMongoDate;
 const convertToDDMMYYYY = (dateObj) => {
+    if (!dateObj)
+        return "";
     if (typeof dateObj === 'string') {
         dateObj = new Date(dateObj);
     }
