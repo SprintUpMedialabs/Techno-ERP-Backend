@@ -19,7 +19,7 @@ const enquiry_1 = require("../models/enquiry");
 const studentFees_1 = require("../models/studentFees");
 const studentFees_2 = require("../validators/studentFees");
 const updateFeeDetails = (applicationStatusList, studentFeesData) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
+    var _a, _b, _c, _d, _e;
     const validation = studentFees_2.feesUpdateSchema.safeParse(studentFeesData);
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
@@ -41,6 +41,7 @@ const updateFeeDetails = (applicationStatusList, studentFeesData) => __awaiter(v
     if (!semWiseFee) {
         throw (0, http_errors_1.default)(500, 'Semester-wise fee structure not found for the course');
     }
+    const sem1FeeDepositedTOA = (_c = (_b = (_a = validation.data.otherFees) === null || _a === void 0 ? void 0 : _a.find(fee => fee.type === 'SEM1FEE')) === null || _b === void 0 ? void 0 : _b.feesDepositedTOA) !== null && _c !== void 0 ? _c : 0;
     const feeData = Object.assign(Object.assign({}, validation.data), { otherFees: validation.data.otherFees.map(fee => {
             var _a, _b;
             return (Object.assign(Object.assign({}, fee), { 
@@ -51,7 +52,8 @@ const updateFeeDetails = (applicationStatusList, studentFeesData) => __awaiter(v
             return ({
                 finalFee: semFee.finalFee,
                 // feeAmount: (semWiseFee?.fee[index]) ?? 0
-                feeAmount: (_a = (semWiseFee[index].amount)) !== null && _a !== void 0 ? _a : 0
+                feeAmount: (_a = (semWiseFee[index].amount)) !== null && _a !== void 0 ? _a : 0,
+                feesPaid: index === 0 ? sem1FeeDepositedTOA : 0
             });
         }) });
     const feesDraft = yield studentFees_1.StudentFeesModel.findByIdAndUpdate(studentFeesData.id, { $set: feeData }, { new: true, runValidators: true });
@@ -76,6 +78,6 @@ const updateFeeDetails = (applicationStatusList, studentFeesData) => __awaiter(v
             $set: enquiryUpdatePayload
         });
     }
-    return Object.assign(Object.assign({}, feesDraft), { telecaller: (_a = enquiryUpdatePayload.telecaller) !== null && _a !== void 0 ? _a : enquiry.telecaller, counsellor: (_b = enquiryUpdatePayload.counsellor) !== null && _b !== void 0 ? _b : enquiry.counsellor });
+    return Object.assign(Object.assign({}, feesDraft), { telecaller: (_d = enquiryUpdatePayload.telecaller) !== null && _d !== void 0 ? _d : enquiry.telecaller, counsellor: (_e = enquiryUpdatePayload.counsellor) !== null && _e !== void 0 ? _e : enquiry.counsellor });
 });
 exports.updateFeeDetails = updateFeeDetails;

@@ -10,3 +10,4 @@ const downloadController_2 = require("../student/controllers/downloadController"
 exports.downloadRoute = express_1.default.Router();
 exports.downloadRoute.post('/admission', downloadController_1.downloadAdmissionForm);
 exports.downloadRoute.post('/transaction-slip', downloadController_2.downloadTransactionSlip);
+exports.downloadRoute.post('/admission-transaction-slip', downloadController_2.downloadAdmissionTransactionSlip);

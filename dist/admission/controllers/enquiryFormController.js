@@ -160,7 +160,7 @@ exports.approveEnquiry = (0, express_async_handler_1.default)((0, functionLevelL
                 formNo: formNo,
                 photoNo: photoSerial.lastSerialNumber,
                 universityId: universityId,
-                applicationStatus: constants_1.ApplicationStatus.CONFIRMED,
+                // applicationStatus: ApplicationStatus.CONFIRMED,
             },
         }, { runValidators: true, new: true, projection: { createdAt: 0, updatedAt: 0, __v: 0 }, session });
         // const studentValidation = studentSchema.safeParse(approvedEnquiry);
@@ -178,6 +178,7 @@ exports.approveEnquiry = (0, express_async_handler_1.default)((0, functionLevelL
         //   ...studentValidation.data,
         // }], { session });
         const _c = yield (0, studentController_1.createStudent)((_a = req.data) === null || _a === void 0 ? void 0 : _a.id, studentValidation.data), { transactionAmount } = _c, student = __rest(_c, ["transactionAmount"]);
+        console.log("Transaction Amount is : ", transactionAmount);
         const studentCreateValidation = studentSchema_1.StudentSchema.safeParse(student);
         console.log("Student to be created : ", student);
         console.log("Student create validation errors : ", studentCreateValidation.error);
@@ -207,7 +208,8 @@ exports.approveEnquiry = (0, express_async_handler_1.default)((0, functionLevelL
                 amount: transactionAmount,
                 txnType: transactionType !== null && transactionType !== void 0 ? transactionType : constants_1.TransactionTypes.CASH,
                 actionedBy: (_b = req === null || req === void 0 ? void 0 : req.data) === null || _b === void 0 ? void 0 : _b.id,
-                transactionSettlementHistory: transactionSettlementHistory
+                transactionSettlementHistory: transactionSettlementHistory,
+                // remark : transactionRemark
             }], { session });
         const createdStudent = yield student_1.Student.create([Object.assign(Object.assign({ _id: enquiry._id }, studentCreateValidation.data), { transactionHistory: [createTransaction[0]._id] })], { session });
         console.log("Created student is : ", createdStudent);

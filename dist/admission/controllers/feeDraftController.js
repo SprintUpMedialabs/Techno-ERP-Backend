@@ -35,7 +35,7 @@ const enquiry_1 = require("../models/enquiry");
 const studentFeesDraft_1 = require("../models/studentFeesDraft");
 const studentFees_1 = require("../validators/studentFees");
 exports.createFeeDraft = (0, express_async_handler_1.default)((0, functionLevelLogging_1.functionLevelLogger)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
+    var _a, _b, _c, _d, _e;
     const data = req.body;
     const validation = studentFees_1.feesDraftRequestSchema.safeParse(data);
     if (!validation.success) {
@@ -54,18 +54,20 @@ exports.createFeeDraft = (0, express_async_handler_1.default)((0, functionLevelL
     if (!semWiseFee) {
         throw (0, http_errors_1.default)(500, 'Semester-wise fee structure not found for the course');
     }
-    const _c = validation.data, { counsellor, telecaller } = _c, feeRelatedData = __rest(_c, ["counsellor", "telecaller"]);
-    const feeData = Object.assign(Object.assign({}, feeRelatedData), { otherFees: ((_a = feeRelatedData.otherFees) === null || _a === void 0 ? void 0 : _a.map(fee => {
+    const _f = validation.data, { counsellor, telecaller } = _f, feeRelatedData = __rest(_f, ["counsellor", "telecaller"]);
+    const sem1FeeDepositedTOA = (_c = (_b = (_a = feeRelatedData.otherFees) === null || _a === void 0 ? void 0 : _a.find(fee => fee.type === 'SEM1FEE')) === null || _b === void 0 ? void 0 : _b.feesDepositedTOA) !== null && _c !== void 0 ? _c : 0;
+    const feeData = Object.assign(Object.assign({}, feeRelatedData), { otherFees: ((_d = feeRelatedData.otherFees) === null || _d === void 0 ? void 0 : _d.map(fee => {
             var _a, _b, _c, _d;
             let feeAmount = fee.feeAmount;
             // feeAmount = feeAmount ?? otherFees?.find(otherFee => otherFee.type === fee.type)?.fee ?? 0;
             feeAmount = (_b = (_a = otherFees === null || otherFees === void 0 ? void 0 : otherFees.find(otherFee => otherFee.type === fee.type)) === null || _a === void 0 ? void 0 : _a.amount) !== null && _b !== void 0 ? _b : 0;
             return Object.assign(Object.assign({}, fee), { feeAmount, finalFee: (_c = fee.finalFee) !== null && _c !== void 0 ? _c : 0, feesDepositedTOA: (_d = fee.feesDepositedTOA) !== null && _d !== void 0 ? _d : 0 });
-        })) || [], semWiseFees: ((_b = feeRelatedData.semWiseFees) === null || _b === void 0 ? void 0 : _b.map((semFee, index) => {
+        })) || [], semWiseFees: ((_e = feeRelatedData.semWiseFees) === null || _e === void 0 ? void 0 : _e.map((semFee, index) => {
             var _a, _b, _c;
             return ({
                 feeAmount: (_b = (_a = semFee.feeAmount) !== null && _a !== void 0 ? _a : semWiseFee[index].amount) !== null && _b !== void 0 ? _b : 0,
-                finalFee: (_c = semFee.finalFee) !== null && _c !== void 0 ? _c : 0
+                finalFee: (_c = semFee.finalFee) !== null && _c !== void 0 ? _c : 0,
+                feesPaid: index === 0 ? sem1FeeDepositedTOA : 0
             });
         })) || [] });
     const session = yield mongoose_1.default.startSession();
