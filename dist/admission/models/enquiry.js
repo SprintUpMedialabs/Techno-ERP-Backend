@@ -313,7 +313,7 @@ exports.enquirySchema = new mongoose_1.Schema({
     },
     isFeeApplicable: {
         type: Boolean,
-        default: false
+        default: true
     }
 }, { timestamps: true });
 exports.enquirySchema.pre('save', function (next) {

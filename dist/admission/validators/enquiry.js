@@ -49,7 +49,7 @@ exports.enquirySchema = zod_1.z.object({
     religion: zod_1.z.nativeEnum(constants_1.Religion).optional(),
     bloodGroup: zod_1.z.nativeEnum(constants_1.BloodGroup).optional(),
     admittedBy: zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['Other'])]).optional(),
-    isFeeApplicable: zod_1.z.boolean().default(false).optional()
+    isFeeApplicable: zod_1.z.boolean().default(true).optional()
 });
 // Final schema for request (omitting feesDraftId and making it strict)
 exports.enquiryStep1RequestSchema = exports.enquirySchema
