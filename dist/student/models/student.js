@@ -255,8 +255,8 @@ const SubjectSchema = new mongoose_1.Schema({
         required: true
     },
     attendance: {
-        type: [AttendanceModel],
-        default: []
+        type: AttendanceModel,
+        default: {}
     },
     exams: {
         type: [ExamsModel],

@@ -280,8 +280,7 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
     console.log("Couse COde : ", student.courseCode);
     console.log("COurse Name  : ", student.courseName)
 
-    // DTODO: isme session nahi hai 🥹🥹🥹🥹 => DONE : Session added
-      // but i think fine anyway this will be removed.
+    // DTODO: this should be removed at all 🥺🥺 we already discussed in meet.
       await CollegeTransaction.findByIdAndUpdate(
         enquiry._id,
         {

@@ -197,7 +197,7 @@ exports.approveEnquiry = (0, express_async_handler_1.default)((0, functionLevelL
         }
         console.log("Transaction Amount : ", transactionAmount);
         console.log("Transaction Settlement History : ", transactionSettlementHistory);
-        // DTODO: create student first and then create transaction so we can remove this 2 db call for create txn
+        // DTODO: create student first and then create transaction so we can remove this 2 db call for create txn => Not possible, student mai transaction ki ID kaha se laayenge
         const createTransaction = yield collegeTransactionHistory_1.CollegeTransaction.create([{
                 studentId: enquiry._id,
                 dateTime: new Date(),
@@ -213,7 +213,7 @@ exports.approveEnquiry = (0, express_async_handler_1.default)((0, functionLevelL
         console.log("STudent is : ", student);
         console.log("Couse COde : ", student.courseCode);
         console.log("COurse Name  : ", student.courseName);
-        // DTODO: isme session nahi hai 🥹🥹🥹🥹
+        // DTODO: isme session nahi hai 🥹🥹🥹🥹 => DONE : Session added
         // but i think fine anyway this will be removed.
         yield collegeTransactionHistory_1.CollegeTransaction.findByIdAndUpdate(enquiry._id, {
             $set: {
@@ -221,7 +221,7 @@ exports.approveEnquiry = (0, express_async_handler_1.default)((0, functionLevelL
                 courseName: student.courseName,
                 courseYear: (0, getCourseYearFromSemNumber_1.getCourseYearFromSemNumber)(student.currentSemester)
             }
-        });
+        }, { session });
         yield session.commitTransaction();
         session.endSession();
         return (0, formatResponse_1.formatResponse)(res, 200, 'Student created successfully with this information', true, null);

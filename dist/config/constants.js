@@ -26,6 +26,7 @@ var PipelineName;
 (function (PipelineName) {
     PipelineName["COURSE_DUES"] = "COURSE_DUES";
     PipelineName["FINANCE_ANALYTICS"] = "FINANCE_ANALYTICS";
+    PipelineName["BACKUP"] = "BACKUP";
 })(PipelineName || (exports.PipelineName = PipelineName = {}));
 var Gender;
 (function (Gender) {
@@ -275,33 +276,60 @@ exports.ADMISSION = 'admissions';
 exports.TGI = "TGI";
 exports.PHOTO = "PHOTO";
 // export const MARKETING_SHEET = 'Marketing Sheet'
+// export enum COLLECTION_NAMES {
+//   USER = 'User',
+//   VERIFY_OTP = 'VerifyOtp',
+//   ENQUIRY = 'Enquiry',
+//   ENQUIRY_DRAFT = 'enquirydrafts',
+//   ENQUIRY_ID_META_DATA = 'EnquiryIdMetaData',
+//   STUDENT_FEE = 'studentFee',
+//   STUDENT_FEE_DRAFT = 'studentFeeDraft',
+//   DEPARTMENT_COURSE = 'deptandcourse',
+//   LEAD = 'Lead',
+//   SPREADSHEET_META_DATA = 'spreadSheetMetaData',
+//   YELLOW_LEAD = 'YellowLead',
+//   COURSE_OTHER_FEES = 'CourseAndOtherFees',
+//   STUDENT = 'Student',
+//   DEPARTMENT_META_DATA = 'DepartmentMetaData',
+//   COURSE_METADATA = 'CourseMetadata',
+//   COURSE = 'Course',
+//   DROP_DOWN_META_DATA = 'DropDownMetaData',
+//   STUDENTREPO = "StudentRepo",
+//   TRANSACTION_HISTORY = "TransactionHistory",
+//   TECHNO_META_DATA = "TechnoMetaData",
+//   MARKETING_FOLLOW_UP_RAW_DATA = "MarketingFollowUpData",
+//   MARKETING_ANALYTICS = "MarketingAnalytics",
+//   COURSE_DUES = 'CourseDues',
+//   COLLEGE_META_DATA = "CollegeMetaData",
+//   FINANCE_ANALYTICS = "FinanceAnalytics"
+// }
 var COLLECTION_NAMES;
 (function (COLLECTION_NAMES) {
     COLLECTION_NAMES["USER"] = "User";
-    COLLECTION_NAMES["VERIFY_OTP"] = "VerifyOtp";
-    COLLECTION_NAMES["ENQUIRY"] = "Enquiry";
+    COLLECTION_NAMES["VERIFY_OTP"] = "verifyotps";
+    COLLECTION_NAMES["ENQUIRY"] = "enquiries";
     COLLECTION_NAMES["ENQUIRY_DRAFT"] = "enquirydrafts";
-    COLLECTION_NAMES["ENQUIRY_ID_META_DATA"] = "EnquiryIdMetaData";
-    COLLECTION_NAMES["STUDENT_FEE"] = "studentFee";
-    COLLECTION_NAMES["STUDENT_FEE_DRAFT"] = "studentFeeDraft";
+    COLLECTION_NAMES["ENQUIRY_ID_META_DATA"] = "enquiryidmetadatas";
+    COLLECTION_NAMES["STUDENT_FEE"] = "studentfees";
+    COLLECTION_NAMES["STUDENT_FEE_DRAFT"] = "studentfeedrafts";
     COLLECTION_NAMES["DEPARTMENT_COURSE"] = "deptandcourse";
-    COLLECTION_NAMES["LEAD"] = "Lead";
-    COLLECTION_NAMES["SPREADSHEET_META_DATA"] = "spreadSheetMetaData";
-    COLLECTION_NAMES["YELLOW_LEAD"] = "YellowLead";
-    COLLECTION_NAMES["COURSE_OTHER_FEES"] = "CourseAndOtherFees";
+    COLLECTION_NAMES["LEAD"] = "leads";
+    COLLECTION_NAMES["SPREADSHEET_META_DATA"] = "spreadsheetmetadatas";
+    COLLECTION_NAMES["YELLOW_LEAD"] = "yellowleads";
+    COLLECTION_NAMES["COURSE_OTHER_FEES"] = "courseandotherfees";
     COLLECTION_NAMES["STUDENT"] = "Student";
-    COLLECTION_NAMES["DEPARTMENT_META_DATA"] = "DepartmentMetaData";
-    COLLECTION_NAMES["COURSE_METADATA"] = "CourseMetadata";
-    COLLECTION_NAMES["COURSE"] = "Course";
-    COLLECTION_NAMES["DROP_DOWN_META_DATA"] = "DropDownMetaData";
+    COLLECTION_NAMES["DEPARTMENT_META_DATA"] = "departmentmetadatas";
+    COLLECTION_NAMES["COURSE_METADATA"] = "coursemetadatas";
+    COLLECTION_NAMES["COURSE"] = "courses";
+    COLLECTION_NAMES["DROP_DOWN_META_DATA"] = "dropdownmetadatas";
     COLLECTION_NAMES["STUDENTREPO"] = "StudentRepo";
-    COLLECTION_NAMES["TRANSACTION_HISTORY"] = "TransactionHistory";
-    COLLECTION_NAMES["TECHNO_META_DATA"] = "TechnoMetaData";
-    COLLECTION_NAMES["MARKETING_FOLLOW_UP_RAW_DATA"] = "MarketingFollowUpData";
-    COLLECTION_NAMES["MARKETING_ANALYTICS"] = "MarketingAnalytics";
-    COLLECTION_NAMES["COURSE_DUES"] = "CourseDues";
-    COLLECTION_NAMES["COLLEGE_META_DATA"] = "CollegeMetaData";
-    COLLECTION_NAMES["FINANCE_ANALYTICS"] = "FinanceAnalytics";
+    COLLECTION_NAMES["TRANSACTION_HISTORY"] = "transactionhistories";
+    COLLECTION_NAMES["TECHNO_META_DATA"] = "technometadatas";
+    COLLECTION_NAMES["MARKETING_FOLLOW_UP_RAW_DATA"] = "marketingfollowupdatas";
+    COLLECTION_NAMES["MARKETING_ANALYTICS"] = "marketinganalytics";
+    COLLECTION_NAMES["COURSE_DUES"] = "coursedues";
+    COLLECTION_NAMES["COLLEGE_META_DATA"] = "collegemetadatas";
+    COLLECTION_NAMES["FINANCE_ANALYTICS"] = "financeanalytics";
 })(COLLECTION_NAMES || (exports.COLLECTION_NAMES = COLLECTION_NAMES = {}));
 var LectureConfirmation;
 (function (LectureConfirmation) {
