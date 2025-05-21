@@ -140,7 +140,7 @@ export const getEnquiryById = expressAsyncHandler(functionLevelLogger(async (req
 
 
 export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
-  const { id, transactionType } = req.body;
+  const { id, transactionType, transactionRemark } = req.body;
 
   const validation = objectIdSchema.safeParse(id);
 
@@ -261,7 +261,7 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
     console.log("Transaction Amount : ", transactionAmount);
     console.log("Transaction Settlement History : ", transactionSettlementHistory);
 
-    // DTODO: create student first and then create transaction so we can remove this 2 db call for create txn
+    // DTODO: create student first and then create transaction so we can remove this 2 db call for create txn => Not possible, student mai transaction ki ID kaha se laayenge
     const createTransaction = await CollegeTransaction.create([{
       studentId: enquiry._id,
       dateTime: new Date(),
@@ -270,7 +270,7 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
       txnType: transactionType ?? TransactionTypes.CASH,
       actionedBy: req?.data?.id,
       transactionSettlementHistory: transactionSettlementHistory,
-      // remark : transactionRemark
+      remark : transactionRemark
     }], { session });
 
     const createdStudent = await Student.create([{
@@ -285,15 +285,19 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
     console.log("Couse COde : ", student.courseCode);
     console.log("COurse Name  : ", student.courseName)
 
-    // DTODO: isme session nahi hai 🥹🥹🥹🥹
+    // DTODO: isme session nahi hai 🥹🥹🥹🥹 => DONE : Session added
       // but i think fine anyway this will be removed.
-    await CollegeTransaction.findByIdAndUpdate(enquiry._id, {
-      $set: {
-        courseCode: student.courseCode,
-        courseName: student.courseName,
-        courseYear: getCourseYearFromSemNumber(student.currentSemester)
-      }
-    })
+      await CollegeTransaction.findByIdAndUpdate(
+        enquiry._id,
+        {
+          $set: {
+            courseCode: student.courseCode,
+            courseName: student.courseName,
+            courseYear: getCourseYearFromSemNumber(student.currentSemester)
+          }
+        },
+        { session } 
+      );
 
     await session.commitTransaction();
     session.endSession();
