@@ -234,8 +234,8 @@ const SubjectSchema = new Schema<ISubjectDocument>({
         required: true
     },
     attendance: {
-        type: [AttendanceModel],
-        default: []
+        type: AttendanceModel,
+        default: {}
     },
     exams: {
         type: [ExamsModel],

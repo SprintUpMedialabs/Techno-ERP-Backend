@@ -34,7 +34,7 @@ export const AttendanceSchema = z.object({
 
 export const SubjectSchema = z.object({
     subjectId: objectIdSchema,
-    attendance: z.array(AttendanceSchema).optional(),  //This optional will be removed once we will add information of the exams.
+    attendance: AttendanceSchema.optional(), //This optional will be removed once we will add information of the exams.
     exams: z.array(ExamsSchema).optional()         //This optional will be removed once we will add information of the exams.
 })
 
