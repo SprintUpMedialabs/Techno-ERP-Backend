@@ -213,8 +213,7 @@ exports.approveEnquiry = (0, express_async_handler_1.default)((0, functionLevelL
         console.log("STudent is : ", student);
         console.log("Couse COde : ", student.courseCode);
         console.log("COurse Name  : ", student.courseName);
-        // DTODO: isme session nahi hai 🥹🥹🥹🥹 => DONE : Session added
-        // but i think fine anyway this will be removed.
+        // DTODO: this should be removed at all 🥺🥺 we already discussed in meet.
         yield collegeTransactionHistory_1.CollegeTransaction.findByIdAndUpdate(enquiry._id, {
             $set: {
                 courseCode: student.courseCode,
