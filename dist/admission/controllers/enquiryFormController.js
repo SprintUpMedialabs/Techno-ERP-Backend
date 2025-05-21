@@ -136,7 +136,7 @@ exports.getEnquiryById = (0, express_async_handler_1.default)((0, functionLevelL
 })));
 exports.approveEnquiry = (0, express_async_handler_1.default)((0, functionLevelLogging_1.functionLevelLogger)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
-    const { id, transactionType } = req.body;
+    const { id, transactionType, transactionRemark } = req.body;
     const validation = commonSchema_1.objectIdSchema.safeParse(id);
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
@@ -173,10 +173,6 @@ exports.approveEnquiry = (0, express_async_handler_1.default)((0, functionLevelL
         console.log("Student Validation Errors : ", studentValidation.error);
         if (!studentValidation.success)
             throw (0, http_errors_1.default)(400, studentValidation.error.errors[0]);
-        // const student = await Student.create([{
-        //   _id: enquiry._id,
-        //   ...studentValidation.data,
-        // }], { session });
         const _c = yield (0, studentController_1.createStudent)((_a = req.data) === null || _a === void 0 ? void 0 : _a.id, studentValidation.data), { transactionAmount } = _c, student = __rest(_c, ["transactionAmount"]);
         console.log("Transaction Amount is : ", transactionAmount);
         const studentCreateValidation = studentSchema_1.StudentSchema.safeParse(student);
@@ -210,14 +206,15 @@ exports.approveEnquiry = (0, express_async_handler_1.default)((0, functionLevelL
                 txnType: transactionType !== null && transactionType !== void 0 ? transactionType : constants_1.TransactionTypes.CASH,
                 actionedBy: (_b = req === null || req === void 0 ? void 0 : req.data) === null || _b === void 0 ? void 0 : _b.id,
                 transactionSettlementHistory: transactionSettlementHistory,
-                // remark : transactionRemark
+                remark: transactionRemark
             }], { session });
         const createdStudent = yield student_1.Student.create([Object.assign(Object.assign({ _id: enquiry._id }, studentCreateValidation.data), { transactionHistory: [createTransaction[0]._id] })], { session });
         console.log("Created student is : ", createdStudent);
         console.log("STudent is : ", student);
         console.log("Couse COde : ", student.courseCode);
         console.log("COurse Name  : ", student.courseName);
-        // DTODO: isme txn nahi hai 🥹🥹🥹🥹
+        // DTODO: isme session nahi hai 🥹🥹🥹🥹
+        // but i think fine anyway this will be removed.
         yield collegeTransactionHistory_1.CollegeTransaction.findByIdAndUpdate(enquiry._id, {
             $set: {
                 courseCode: student.courseCode,
