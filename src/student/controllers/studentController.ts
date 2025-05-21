@@ -92,7 +92,7 @@ export const createStudent = async (id: any, studentData: ICreateStudentSchema) 
     const subjects = [];
     for (let j = 1; j <= semesterInfo.subjectIds.length; j++) {
       const subjectId = semesterInfo.subjectIds[j - 1];
-      const attendance: IAttendanceSchema[] = [];
+      const attendance: IAttendanceSchema = {};
       const exams: IExamSchema[] = [];
       subjects.push({
         subjectId: subjectId,
