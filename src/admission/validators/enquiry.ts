@@ -78,7 +78,7 @@ export const enquirySchema = z.object({
   religion: z.nativeEnum(Religion).optional(),
   bloodGroup: z.nativeEnum(BloodGroup).optional(),
   admittedBy: z.union([objectIdSchema, z.enum(['Other'])]).optional(),
-  isFeeApplicable : z.boolean().default(false).optional()
+  isFeeApplicable : z.boolean().default(true).optional()
 });
 
 
