@@ -282,7 +282,7 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
     },
     isFeeApplicable : {
       type : Boolean,
-      default : false
+      default : true
     }
   },
 

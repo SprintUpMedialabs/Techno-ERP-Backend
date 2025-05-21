@@ -140,7 +140,7 @@ export const getEnquiryById = expressAsyncHandler(functionLevelLogger(async (req
 
 
 export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
-  const { id, transactionType, transactionRemark } = req.body;
+  const { id, transactionType,transactionRemark } = req.body;
 
   const validation = objectIdSchema.safeParse(id);
 
@@ -222,11 +222,6 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
 
     if (!studentValidation.success)
       throw createHttpError(400, studentValidation.error.errors[0]);
-
-    // const student = await Student.create([{
-    //   _id: enquiry._id,
-    //   ...studentValidation.data,
-    // }], { session });
 
     const { transactionAmount, ...student } = await createStudent(req.data?.id, studentValidation.data);
     
