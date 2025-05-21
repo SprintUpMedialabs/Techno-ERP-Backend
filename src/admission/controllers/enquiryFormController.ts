@@ -140,7 +140,7 @@ export const getEnquiryById = expressAsyncHandler(functionLevelLogger(async (req
 
 
 export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
-  const { id, transactionType } = req.body;
+  const { id, transactionType,transactionRemark } = req.body;
 
   const validation = objectIdSchema.safeParse(id);
 
@@ -223,11 +223,6 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
     if (!studentValidation.success)
       throw createHttpError(400, studentValidation.error.errors[0]);
 
-    // const student = await Student.create([{
-    //   _id: enquiry._id,
-    //   ...studentValidation.data,
-    // }], { session });
-
     const { transactionAmount, ...student } = await createStudent(req.data?.id, studentValidation.data);
     
     console.log("Transaction Amount is : ", transactionAmount);
@@ -270,7 +265,7 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
       txnType: transactionType ?? TransactionTypes.CASH,
       actionedBy: req?.data?.id,
       transactionSettlementHistory: transactionSettlementHistory,
-      // remark : transactionRemark
+      remark : transactionRemark
     }], { session });
 
     const createdStudent = await Student.create([{
@@ -285,7 +280,8 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
     console.log("Couse COde : ", student.courseCode);
     console.log("COurse Name  : ", student.courseName)
 
-    // DTODO: isme txn nahi hai 🥹🥹🥹🥹
+    // DTODO: isme session nahi hai 🥹🥹🥹🥹
+      // but i think fine anyway this will be removed.
     await CollegeTransaction.findByIdAndUpdate(enquiry._id, {
       $set: {
         courseCode: student.courseCode,
