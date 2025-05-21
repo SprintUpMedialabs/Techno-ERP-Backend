@@ -22,6 +22,7 @@ export enum PipelineStatus {
 export enum PipelineName {
   COURSE_DUES = 'COURSE_DUES',
   FINANCE_ANALYTICS = 'FINANCE_ANALYTICS',
+  BACKUP = 'BACKUP'
 }
 
 export enum Gender {
