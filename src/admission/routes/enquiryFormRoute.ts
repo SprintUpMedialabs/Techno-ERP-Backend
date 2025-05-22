@@ -68,11 +68,11 @@ enquiryRoute.post('/approve-enquiry',
     approveEnquiry
 );
 
-enquiryRoute.put('/update-status',
-    authenticate,
-    authorize([UserRoles.COUNSELOR, UserRoles.REGISTAR, UserRoles.BASIC_USER]),
-    updateStatus
-)
+// enquiryRoute.put('/update-status',
+//     authenticate,
+//     authorize([UserRoles.COUNSELOR, UserRoles.REGISTAR, UserRoles.BASIC_USER]),
+//     updateStatus
+// )
 
 enquiryRoute.post('/create-draft-step-1',
     authenticate,
