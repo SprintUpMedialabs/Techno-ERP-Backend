@@ -26,7 +26,11 @@ exports.enquiryRoute.post('/search', jwtAuthenticationMiddleware_1.authenticate,
 exports.enquiryRoute.put('/update-document', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER, constants_1.UserRoles.COUNSELOR]), multerConfig_1.default.single('document'), enquiryStep3Controller_1.updateEnquiryDocuments);
 exports.enquiryRoute.get('/:id', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER, constants_1.UserRoles.COUNSELOR]), enquiryFormController_1.getEnquiryById);
 exports.enquiryRoute.post('/approve-enquiry', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.REGISTAR, constants_1.UserRoles.BASIC_USER]), enquiryFormController_1.approveEnquiry);
-exports.enquiryRoute.put('/update-status', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.COUNSELOR, constants_1.UserRoles.REGISTAR, constants_1.UserRoles.BASIC_USER]), enquiryFormController_1.updateStatus);
+// enquiryRoute.put('/update-status',
+//     authenticate,
+//     authorize([UserRoles.COUNSELOR, UserRoles.REGISTAR, UserRoles.BASIC_USER]),
+//     updateStatus
+// )
 exports.enquiryRoute.post('/create-draft-step-1', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.REGISTAR, constants_1.UserRoles.BASIC_USER]), enquiryDraftController_1.createEnquiryDraftStep1);
 exports.enquiryRoute.put('/update-draft-step-1', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.REGISTAR, constants_1.UserRoles.BASIC_USER]), enquiryDraftController_1.updateEnquiryDraftStep1);
 exports.enquiryRoute.post('/create-draft-step-2', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.REGISTAR, constants_1.UserRoles.BASIC_USER]), feeDraftController_1.createFeeDraft);

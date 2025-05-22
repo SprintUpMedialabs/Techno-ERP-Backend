@@ -30,9 +30,9 @@ exports.enquirySchema = zod_1.z.object({
     dateOfEnquiry: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)).optional(),
     gender: zod_1.z.nativeEnum(constants_1.Gender).default(constants_1.Gender.OTHER),
     previousCollegeData: previousCollegeDataSchema_1.previousCollegeDataSchema.optional(),
-    stateOfDomicile: zod_1.z.nativeEnum(constants_1.StatesOfIndia).optional(),
+    stateOfDomicile: zod_1.z.nativeEnum(constants_1.StatesOfIndia).default(constants_1.StatesOfIndia.UTTAR_PRADESH),
     areaType: zod_1.z.nativeEnum(constants_1.AreaType).optional(),
-    nationality: zod_1.z.string().optional(),
+    nationality: zod_1.z.string().default('INDIAN'),
     entranceExamDetails: entranceExamDetailSchema_1.entranceExamDetailSchema.optional(),
     counsellor: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['Other'])])).optional(),
     telecaller: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['Other'])])).optional(),
@@ -45,11 +45,11 @@ exports.enquirySchema = zod_1.z.object({
     dateOfAdmission: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)).optional(),
     documents: zod_1.z.array(singleDocumentSchema_1.singleDocumentSchema).optional(),
     physicalDocumentNote: zod_1.z.array(physicalDocumentNoteSchema_1.physicalDocumentNoteSchema).optional(),
-    aadharNumber: zod_1.z.string().regex(/^\d{12}$/, 'Aadhar Number must be exactly 12 digits').optional(),
+    aadharNumber: zod_1.z.string().regex(/^\d{12}$/, 'Aadhar Number must be exactly 12 digits'),
     religion: zod_1.z.nativeEnum(constants_1.Religion).optional(),
     bloodGroup: zod_1.z.nativeEnum(constants_1.BloodGroup).optional(),
     admittedBy: zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['Other'])]).optional(),
-    isFeeApplicable: zod_1.z.boolean().default(true).optional()
+    isFeeApplicable: zod_1.z.boolean().default(true)
 });
 // Final schema for request (omitting feesDraftId and making it strict)
 exports.enquiryStep1RequestSchema = exports.enquirySchema
