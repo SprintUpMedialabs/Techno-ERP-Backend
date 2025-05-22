@@ -1,13 +1,15 @@
 import { Response } from 'express';
 import expressAsyncHandler from "express-async-handler";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
-import { FinalConversionType, LeadType, OFFLINE_SOURCES, ONLINE_SOURCES } from "../../config/constants";
+import { FinalConversionType, LeadType, OFFLINE_SOURCES, ONLINE_SOURCES, PipelineName } from "../../config/constants";
 import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
 import { IAdminAnalyticsFilter } from "../types/marketingSpreadsheet";
 import { formatResponse } from '../../utils/formatResponse';
 import mongoose from 'mongoose';
 import { LeadMaster } from '../models/lead';
 import { MarketingSourceWiseAnalytics } from '../models/marketingSourceWiseAnalytics';
+import { retryMechanism } from '../../config/retryMechanism';
+import { createPipeline } from '../../pipline/controller';
 
 export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     let {
@@ -135,76 +137,86 @@ const mapLeadType = (lead: any) => {
 const updateLeadStats = (data: any, lead: any, field: string) => {
     data.totalLeads++;
     data[field]++;
-    if (lead.footFall) 
+    if (lead.footFall)
         data.footFall++;
-    if (lead.finalConversion === FinalConversionType.ADMISSION) 
+    if (lead.finalConversion === FinalConversionType.ADMISSION)
         data.totalAdmissions++;
 };
 
 
 export const createMarketingSourceWiseAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const leads = await LeadMaster.find({}, 'source leadType footFall finalConversion').lean();
 
-    const offlineMap: Record<string, any> = {};
-    const onlineMap: Record<string, any> = {};
+    const pipelineId = await createPipeline(PipelineName.MARKETING_SOURCE_WISE_ANALYTICS); 
 
-    const totalOfflineData = createEmptyData();
-    const totalOnlineData = createEmptyData();
-    const totalOthersData = createEmptyData();
+    await retryMechanism(
+        async (session) => {
+            const leads = await LeadMaster.find({}, 'source leadType footFall finalConversion').lean();
 
-    for (const lead of leads) {
-        const source = lead.source || 'Unknown';
-        const field = mapLeadType(lead);
-        const isOnline = ONLINE_SOURCES.includes(source);
-        const isOffline = OFFLINE_SOURCES.includes(source);
+            const offlineMap: Record<string, any> = {};
+            const onlineMap: Record<string, any> = {};
 
-        if (isOnline || isOffline) {
-            const map = isOnline ? onlineMap : offlineMap;
-            const total = isOnline ? totalOnlineData : totalOfflineData;
+            const totalOfflineData = createEmptyData();
+            const totalOnlineData = createEmptyData();
+            const totalOthersData = createEmptyData();
 
-            if (!map[source]) {
-                map[source] = {
-                    source,
-                    data: createEmptyData(),
-                };
+            for (const lead of leads) {
+                const source = lead.source || 'Unknown';
+                const field = mapLeadType(lead);
+                const isOnline = ONLINE_SOURCES.includes(source);
+                const isOffline = OFFLINE_SOURCES.includes(source);
+
+                if (isOnline || isOffline) {
+                    const map = isOnline ? onlineMap : offlineMap;
+                    const total = isOnline ? totalOnlineData : totalOfflineData;
+
+                    if (!map[source]) {
+                        map[source] = {
+                            source,
+                            data: createEmptyData(),
+                        };
+                    }
+
+                    updateLeadStats(map[source].data, lead, field);
+                    updateLeadStats(total, lead, field);
+                } else {
+                    updateLeadStats(totalOthersData, lead, field);
+                }
             }
 
-            updateLeadStats(map[source].data, lead, field);
-            updateLeadStats(total, lead, field);
-        } 
-        else {
-            updateLeadStats(totalOthersData, lead, field);
-        }
-    }
+            const response = [
+                { type: "offline-data", details: Object.values(offlineMap) },
+                { type: "online-data", details: Object.values(onlineMap) },
+                {
+                    type: "all-leads",
+                    details: [
+                        { source: "offline", data: totalOfflineData },
+                        { source: "online", data: totalOnlineData },
+                        { source: "others", data: totalOthersData },
+                    ],
+                },
+            ];
 
-    const response = [
-        { type: "offline-data", details: Object.values(offlineMap) },
-        { type: "online-data", details: Object.values(onlineMap) },
-        {
-            type: "all-leads",
-            details: [
-                { source: "offline", data: totalOfflineData },
-                { source: "online", data: totalOnlineData },
-                { source: "others", data: totalOthersData },
-            ],
+            const bulkOps = response.map((item) => ({
+                updateOne: {
+                    filter: { type: item.type },
+                    update: { $set: { type: item.type, details: item.details } },
+                    upsert: true,
+                },
+            }));
+
+            await MarketingSourceWiseAnalytics.bulkWrite(bulkOps, { session });
         },
-    ];
-
-    const bulkOps = response.map((item) => ({
-        updateOne: {
-            filter: { type: item.type },
-            update: { $set: { type: item.type, details: item.details } },
-            upsert: true,
-        },
-    }));
-
-    await MarketingSourceWiseAnalytics.bulkWrite(bulkOps);
+        "Marketing Source Analytics Retry Failed",
+        "Final failure after multiple retry attempts in Marketing Source Analytics pipeline",
+        pipelineId!,
+        PipelineName.MARKETING_SOURCE_WISE_ANALYTICS
+    );
 
     return formatResponse(res, 200, "Marketing Source Wise Analytics Created.", true, null);
 });
 
 
-export const getMarketingSourceWiseAnalytics = expressAsyncHandler(async (req : AuthenticatedRequest, res : Response)=>{
+export const getMarketingSourceWiseAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const data = await MarketingSourceWiseAnalytics.find({});
     return formatResponse(res, 200, "Marketing Source Wise Analytics fetched successfully", true, data);
 })

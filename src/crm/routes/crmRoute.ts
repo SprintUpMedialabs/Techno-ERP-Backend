@@ -15,6 +15,7 @@ import {
 } from '../controllers/yellowLeadController';
 import { adminAnalytics, createMarketingSourceWiseAnalytics, getMarketingSourceWiseAnalytics } from '../controllers/adminController';
 import { createMarketingAnalytics, getCallAnalytics } from '../controllers/marketingAnalyticsController';
+import { User } from '../../auth/models/user';
 
 export const crmRoute = express.Router();
 
@@ -98,12 +99,12 @@ crmRoute.get('/call-analytics',
 
 crmRoute.post('/source-analytics', 
   authenticate, 
-  authorize([UserRoles.ADMIN]), 
+  authorize([UserRoles.ADMIN, UserRoles.SYSTEM_ADMIN]), 
   createMarketingSourceWiseAnalytics
 );
 
 crmRoute.get('/source-analytics', 
   authenticate, 
-  authorize([UserRoles.ADMIN]), 
+  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING]), 
   getMarketingSourceWiseAnalytics
 );
