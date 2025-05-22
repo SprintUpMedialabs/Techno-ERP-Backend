@@ -345,7 +345,8 @@ export enum COLLECTION_NAMES {
   MARKETING_ANALYTICS = "marketinganalytics",
   COURSE_DUES = 'coursedues',
   COLLEGE_META_DATA = "collegemetadatas",
-  FINANCE_ANALYTICS = "financeanalytics"
+  FINANCE_ANALYTICS = "financeanalytics",
+  MARKETING_SOURCE_WISE_ANALYTICS = "marketingsourcewiseanalytics"
 }
 
 
@@ -446,3 +447,18 @@ export enum StudentStatus{
   UPDATED = "UPDATED",
   OLD = "OLD"
 }
+
+
+export const ONLINE_SOURCES = [
+  'Digital - Google Ads',
+  'Digital - Meta Ads',
+  'Digital - IVR',
+  'Digital - TawkTo',
+  'Digital - Website',
+];
+
+export const OFFLINE_SOURCES = [
+  'LU/NPG/External Venue',
+  'Student Reference',
+  'Technoligence',
+];
