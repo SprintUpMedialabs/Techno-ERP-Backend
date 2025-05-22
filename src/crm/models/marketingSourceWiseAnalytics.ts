@@ -1,5 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 import { IBaseMarketingSourceWiseAnalyticsSchema, IMarketingSourceWiseAnalyticsSchema } from "../validators/marketingSourceWiseAnalytics";
+import { convertToDDMMYYYY } from "../../utils/convertDateToFormatedDate";
+import moment from "moment";
 
 export interface IBaseMarketingSourceWiseAnalyticsDocument extends IBaseMarketingSourceWiseAnalyticsSchema, Document { }
 export interface IMarketingSourceWiseAnalyticsDocument extends IMarketingSourceWiseAnalyticsSchema, Document { }
@@ -41,4 +43,25 @@ const MarketingSourceWiseAnalyticsSchema = new Schema<IMarketingSourceWiseAnalyt
 );
 
 
-export const MarketingSourceWiseAnalytics = mongoose.model<IMarketingSourceWiseAnalyticsDocument>('MarketingSourceWiseAnalytics',MarketingSourceWiseAnalyticsSchema);
+
+const transformDates = (_: any, ret: any) => {
+    ['leadTypeModifiedDate', 'nextDueDate', 'date', 'updatedAt'].forEach((key) => {
+        if (key == 'updatedAt') {
+            if (ret[key]) {
+                ret[key] = moment(ret[key]).tz('Asia/Kolkata').format('DD/MM/YYYY | HH:mm');
+            }
+        } else if (ret[key]) {
+            ret[key] = convertToDDMMYYYY(ret[key]);
+        }
+    });
+    delete ret.updatedAt;
+    delete ret.createdAt;
+    delete ret.__v;
+    delete ret._id;
+    return ret;
+};
+
+MarketingSourceWiseAnalyticsSchema.set('toJSON', { transform: transformDates });
+MarketingSourceWiseAnalyticsSchema.set('toObject', { transform: transformDates });
+
+export const MarketingSourceWiseAnalytics = mongoose.model<IMarketingSourceWiseAnalyticsDocument>('MarketingSourceWiseAnalytics', MarketingSourceWiseAnalyticsSchema);

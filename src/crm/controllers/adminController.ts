@@ -202,3 +202,9 @@ export const createMarketingSourceWiseAnalytics = expressAsyncHandler(async (req
 
     return formatResponse(res, 200, "Marketing Source Wise Analytics Created.", true, null);
 });
+
+
+export const getMarketingSourceWiseAnalytics = expressAsyncHandler(async (req : AuthenticatedRequest, res : Response)=>{
+    const data = await MarketingSourceWiseAnalytics.find({});
+    return formatResponse(res, 200, "Marketing Source Wise Analytics fetched successfully", true, data);
+})
