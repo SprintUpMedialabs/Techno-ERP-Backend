@@ -72,6 +72,11 @@ const leadsToBeInserted = async (
       ) {
         leadData.gender = Gender[row[requiredColumnHeaders[MarketingsheetHeaders.Gender]] as keyof typeof Gender];
       }
+
+      if (row[requiredColumnHeaders[MarketingsheetHeaders.Remarks]]) {
+        leadData.followUpCount = 1;
+      }
+
       console.log(leadData);
 
       const leadDataValidation = leadSheetSchema.safeParse(leadData);
