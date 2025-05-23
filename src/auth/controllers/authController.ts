@@ -5,7 +5,6 @@ import createHttpError from 'http-errors';
 import * as jwt from 'jsonwebtoken';
 import { sendEmail } from '../../config/mailer';
 import { AUTH_API_PATH, JWT_SECRET } from '../../secrets';
-import { createToken, verifyToken } from '../../utils/jwtHelper';
 import { User } from '../models/user';
 import { VerifyOtp } from '../models/verifyOtp';
 import { generateOTP } from '../utils/otpGenerator';
@@ -24,6 +23,7 @@ import {
   emailSchema
 } from '../validators/authRequest';
 import { formatResponse } from '../../utils/formatResponse';
+import { jwtHelper } from '../../utils/jwtHelper';
 
 // TODO: will apply rate limit here
 export const sendOtpToEmail = expressAsyncHandler(async (req: Request, res: Response) => {
@@ -78,7 +78,7 @@ export const validateAndVerifyOtp = expressAsyncHandler(async (req: Request, res
     throw createHttpError(400, 'Expired OTP.');
   }
 
-  const token = createToken({ email: data.email }, { expiresIn: '30m' });
+  const token = jwtHelper.createToken({ email: data.email }, { expiresIn: '30m' });
 
   VerifyOtp.deleteOne({ email: data.email });
 
@@ -94,7 +94,7 @@ export const register = expressAsyncHandler(async (req: Request, res: Response) 
     throw createHttpError(400, validation.error.errors[0]);
   }
 
-  const { email } = verifyToken(data.token) as { email: string };
+  const { email } = jwtHelper.verifyToken(data.token) as { email: string };
 
   const password = Math.random().toString(36).slice(-8);
 
@@ -195,7 +195,7 @@ export const forgotPassword = expressAsyncHandler(async (req: Request, res: Resp
     throw createHttpError(404, 'User not found. Please register first.');
   }
 
-  const token = createToken({ userId: user._id }, { expiresIn: '15m' });
+  const token = jwtHelper.createToken({ userId: user._id }, { expiresIn: '15m' });
 
   const resetLink = `${AUTH_API_PATH}/?token=${encodeURIComponent(token)}`;
 
@@ -231,7 +231,7 @@ export const updatePassword = expressAsyncHandler(async (req: Request, res: Resp
     throw createHttpError(400, 'Invalid reset link.');
   }
 
-  const decoded = verifyToken(token) as { userId: string };
+  const decoded = jwtHelper.verifyToken(token) as { userId: string };
 
   await User.findByIdAndUpdate(decoded.userId, { password: data.password });
 
@@ -246,7 +246,7 @@ export const isAuthenticated = expressAsyncHandler(async (req: Request, res: Res
     throw createHttpError(404, 'User not authenticated.');
   }
 
-  const decoded = verifyToken(token) as { id: string };
+  const decoded = jwtHelper.verifyToken(token) as { id: string };
 
   const user = await User.findById(decoded.id);
   if (!user) {

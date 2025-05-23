@@ -30,7 +30,12 @@ interface SchedulePlan {
 
 
 export const getStudentInformation = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  const { universityId } = req.body;
+
+  if (!req.data?.universityId) {
+    throw new Error("University ID is missing from request data.");
+  }
+
+  const universityId = req.data.universityId;
 
   const student = await Student.findOne({ 'studentInfo.universityId': universityId });
   const courseMetaData = await CourseMetaData.findOne({ 'courseCode': student?.courseCode });
@@ -216,8 +221,10 @@ async function getEnrolledSubjectsForStudent(studentId: mongoose.Types.ObjectId 
 
 
 export const getScheduleInformation = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  
   let { studentId, courseId, semesterId, subjectId } = req.body;
 
+  studentId = new mongoose.Types.ObjectId(studentId)
   courseId = new mongoose.Types.ObjectId(courseId)
   semesterId = new mongoose.Types.ObjectId(semesterId)
   subjectId = new mongoose.Types.ObjectId(subjectId)
