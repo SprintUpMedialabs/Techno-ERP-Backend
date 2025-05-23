@@ -1,4 +1,3 @@
-import { Response } from 'express';
 import expressAsyncHandler from "express-async-handler";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
 import { FinalConversionType, LeadType, OFFLINE_SOURCES, ONLINE_SOURCES, PipelineName, UserRoles } from "../../config/constants";
@@ -13,6 +12,8 @@ import { createPipeline } from '../../pipline/controller';
 import { getISTDate } from '../../utils/getISTDate';
 import { User } from '../../auth/models/user';
 import { MarketingUserWiseAnalytics } from '../models/marketingUserWiseAnalytics';
+import { isAuthenticated } from '../../auth/controllers/authController';
+import { Response } from 'express';
 
 export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     let {
@@ -308,4 +309,48 @@ export const getMarketingUserWiseAnalytics = expressAsyncHandler(async (req: Aut
 
     return formatResponse(res, 200, "Marketing user wise analytics fetched successfully", true, todayAnalytics);
 
+})
+
+
+export const getDurationBasedUserAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const { startDate, endDate } = req.body;
+
+    const mongoStartDate = convertToMongoDate(startDate);
+    const mongoEndDate = convertToMongoDate(endDate);
+
+    const pipeline: any[] = [
+        {
+            $match: {
+                date: {
+                    $gte: mongoStartDate,
+                    $lt: mongoEndDate,
+                },
+            },
+        },
+        {
+            $unwind: '$data',
+        },
+        {
+            $sort: {
+                'data.userId': 1,
+                date: 1,
+            },
+        },
+        {
+            $group: {
+                _id: '$data.userId',
+                userFirstName: { $first: '$data.userFirstName' },
+                userLastName: { $first: '$data.userLastName' },
+                totalCalls: { $sum: '$data.totalCalls' },
+                newLeadCalls: { $sum: '$data.newLeadCalls' },
+                activeLeadCalls: { $sum: '$data.activeLeadCalls' },
+                nonActiveLeadCalls: { $sum: '$data.nonActiveLeadCalls' },
+                totalFootFall: { $last: '$data.totalFootFall' },
+                totalAdmissions: { $last: '$data.totalAdmissions' },
+            },
+        },
+    ];
+
+    const result = await MarketingUserWiseAnalytics.aggregate(pipeline);
+    return formatResponse(res, 200, "User Wise Analytics Fetched successfully", true, result);
 })
