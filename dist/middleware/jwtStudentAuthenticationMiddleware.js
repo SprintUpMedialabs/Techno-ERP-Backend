@@ -14,8 +14,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.authorize = exports.authenticate = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
-const http_errors_1 = __importDefault(require("http-errors"));
 const authenticatedRequest_1 = require("../auth/validators/authenticatedRequest");
+const http_errors_1 = __importDefault(require("http-errors"));
 const jwtHelper_1 = require("../utils/jwtHelper");
 exports.authenticate = (0, express_async_handler_1.default)((req, _, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
@@ -23,7 +23,7 @@ exports.authenticate = (0, express_async_handler_1.default)((req, _, next) => __
     if (!token) {
         throw (0, http_errors_1.default)(401, 'Unauthorized. Please log in again');
     }
-    const decoded = jwtHelper_1.jwtHelper.verifyToken(token);
+    const decoded = jwtHelper_1.studentJwtHelper.verifyToken(token);
     const parsedUser = authenticatedRequest_1.UserPayloadSchema.parse(decoded);
     req.data = parsedUser;
     next();

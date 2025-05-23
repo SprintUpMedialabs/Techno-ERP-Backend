@@ -34,13 +34,16 @@ const user_1 = require("../../auth/models/user");
 const http_errors_1 = __importDefault(require("http-errors"));
 const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
 exports.getStudentInformation = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
-    const { universityId } = req.body;
+    var _a, _b, _c;
+    if (!((_a = req.data) === null || _a === void 0 ? void 0 : _a.universityId)) {
+        throw new Error("University ID is missing from request data.");
+    }
+    const universityId = req.data.universityId;
     const student = yield student_1.Student.findOne({ 'studentInfo.universityId': universityId });
     const courseMetaData = yield courseMetadata_1.CourseMetaData.findOne({ 'courseCode': student === null || student === void 0 ? void 0 : student.courseCode });
     const courseId = student === null || student === void 0 ? void 0 : student.courseId;
     console.log("Student id : ", student === null || student === void 0 ? void 0 : student._id);
-    const _c = yield getEnrolledSubjectsForStudent(student === null || student === void 0 ? void 0 : student._id), { semesterId, id } = _c, matchedSubjects = __rest(_c, ["semesterId", "id"]);
+    const _d = yield getEnrolledSubjectsForStudent(student === null || student === void 0 ? void 0 : student._id), { semesterId, id } = _d, matchedSubjects = __rest(_d, ["semesterId", "id"]);
     console.log("Matched subjects : ", matchedSubjects);
     const responseObject = {
         id: id,
@@ -62,7 +65,7 @@ exports.getStudentInformation = (0, express_async_handler_1.default)((req, res) 
         parentInfo: {
             fatherName: student === null || student === void 0 ? void 0 : student.studentInfo.fatherName,
             motherName: student === null || student === void 0 ? void 0 : student.studentInfo.motherName,
-            contactNumber: (_a = student === null || student === void 0 ? void 0 : student.studentInfo.fatherPhoneNumber) !== null && _a !== void 0 ? _a : ((_b = student === null || student === void 0 ? void 0 : student.studentInfo.motherPhoneNumber) !== null && _b !== void 0 ? _b : ''),
+            contactNumber: (_b = student === null || student === void 0 ? void 0 : student.studentInfo.fatherPhoneNumber) !== null && _b !== void 0 ? _b : ((_c = student === null || student === void 0 ? void 0 : student.studentInfo.motherPhoneNumber) !== null && _c !== void 0 ? _c : ''),
         },
         academicInfo: matchedSubjects
     };
@@ -210,6 +213,7 @@ function getEnrolledSubjectsForStudent(studentId) {
 }
 exports.getScheduleInformation = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let { studentId, courseId, semesterId, subjectId } = req.body;
+    studentId = new mongoose_1.default.Types.ObjectId(studentId);
     courseId = new mongoose_1.default.Types.ObjectId(courseId);
     semesterId = new mongoose_1.default.Types.ObjectId(semesterId);
     subjectId = new mongoose_1.default.Types.ObjectId(subjectId);
