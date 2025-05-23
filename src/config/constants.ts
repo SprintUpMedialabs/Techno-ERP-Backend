@@ -348,7 +348,8 @@ export enum COLLECTION_NAMES {
   COURSE_DUES = 'coursedues',
   COLLEGE_META_DATA = "collegemetadatas",
   FINANCE_ANALYTICS = "financeanalytics",
-  MARKETING_SOURCE_WISE_ANALYTICS = "marketingsourcewiseanalytics"
+  MARKETING_SOURCE_WISE_ANALYTICS = "marketingsourcewiseanalytics",
+  MARKETING_USER_WISE_ANALYTICS = "marketinguserwiseanalytics"
 }
 
 

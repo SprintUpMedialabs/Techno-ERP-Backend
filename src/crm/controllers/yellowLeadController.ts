@@ -13,6 +13,7 @@ import { parseFilter } from '../helpers/parseFilter';
 import { LeadMaster } from '../models/lead';
 import { IYellowLeadUpdate, yellowLeadUpdateSchema } from '../validators/leads';
 import { logFollowUpChange } from './crmController';
+import { MarketingUserWiseAnalytics } from '../models/marketingUserWiseAnalytics';
 
 export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const updateData: IYellowLeadUpdate = req.body;
@@ -26,9 +27,11 @@ export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedReq
   if (!existingLead) {
     throw createHttpError(404, 'Yellow lead not found.');
   }
-
   const isCampusVisitChangedToYes = updateData.footFall === true && existingLead.footFall !== true;
   const isCampusVisitChangedToNo = updateData.footFall === false && existingLead.footFall !== false;
+  const isFinalConversionChangedToAdmission = updateData.finalConversion === FinalConversionType.ADMISSION &&
+    existingLead.finalConversion !== FinalConversionType.ADMISSION;
+
 
   // If the campus visit is changed to yes, then the final conversion is set to unconfirmed
   if (isCampusVisitChangedToYes) {
@@ -89,6 +92,39 @@ export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedReq
 
   if (!updatedYellowLead) {
     throw createHttpError(404, 'Yellow lead not found.');
+  }
+
+  if (isCampusVisitChangedToYes || isFinalConversionChangedToAdmission) {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    const analyticsDoc = await MarketingUserWiseAnalytics.findOne({
+      date: { $gte: todayStart },
+      data: {
+        $elemMatch: {
+          userId: currentLoggedInUser
+        }
+      }
+    });
+
+    if (!analyticsDoc) {
+      throw createHttpError(404, 'Marketing analytics not found for user.');
+    }
+
+    const updatedDataArray = analyticsDoc.data.map(entry => {
+      if (entry.userId.toString() === currentLoggedInUser) {
+        if (isCampusVisitChangedToYes) {
+          entry.totalFootFall = (entry.totalFootFall ?? 0) + 1;
+        }
+        if (isFinalConversionChangedToAdmission) {
+          entry.totalAdmissions = (entry.totalAdmissions ?? 0) + 1;
+        }
+      }
+      return entry;
+    });
+
+    analyticsDoc.data = updatedDataArray;
+    await analyticsDoc.save();
   }
 
   safeAxiosPost(axiosInstance, `${Endpoints.AuditLogService.MARKETING.SAVE_LEAD}`, {

@@ -13,7 +13,7 @@ export const createMarketingAnalytics = expressAsyncHandler(async (req: Authenti
 
   try {
     session.startTransaction();
-
+ 
     const marketingEmployees = await User.find({ roles: UserRoles.EMPLOYEE_MARKETING }).select('_id').session(session);
     const marketingEmployeeIds = marketingEmployees.map(user => user._id);
 
