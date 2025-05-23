@@ -5,10 +5,7 @@ import { COLLECTION_NAMES, FinalConversionType, Gender, LeadType } from '../../c
 import { convertToDDMMYYYY, convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import { ILeadMaster } from '../validators/leads';
 
-export interface ILeadMasterDocument extends ILeadMaster, Document { 
-  isCalledToday : Boolean,
-  isActiveLead : Boolean
-}
+export interface ILeadMasterDocument extends ILeadMaster, Document { }
 
 const leadSchema = new Schema<ILeadMasterDocument>(
   {
