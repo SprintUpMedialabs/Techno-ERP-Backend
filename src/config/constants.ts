@@ -10,7 +10,8 @@ export enum UserRoles {
   REGISTAR = 'REGISTAR',
   HOD = 'HOD',
   INSTRUCTOR = 'INSTRUCTOR',
-  SYSTEM_ADMIN = 'SYSTEM_ADMIN'
+  SYSTEM_ADMIN = 'SYSTEM_ADMIN',
+  STUDENT = 'STUDENT'
 }
 
 export enum PipelineStatus {

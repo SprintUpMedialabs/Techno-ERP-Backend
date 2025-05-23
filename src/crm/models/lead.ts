@@ -5,7 +5,10 @@ import { COLLECTION_NAMES, FinalConversionType, Gender, LeadType } from '../../c
 import { convertToDDMMYYYY, convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import { ILeadMaster } from '../validators/leads';
 
-export interface ILeadMasterDocument extends ILeadMaster, Document { }
+export interface ILeadMasterDocument extends ILeadMaster, Document { 
+  isCalledToday : Boolean,
+  isActiveLead : Boolean
+}
 
 const leadSchema = new Schema<ILeadMasterDocument>(
   {
@@ -104,6 +107,14 @@ const leadSchema = new Schema<ILeadMasterDocument>(
       type: Number,
       default: 0
     },
+    isActiveLead : {
+      type : Boolean,
+      default : false
+    },
+    isCalledToday : {
+      type : Boolean,
+      default : false
+    }
   },
   { timestamps: true }
 );
