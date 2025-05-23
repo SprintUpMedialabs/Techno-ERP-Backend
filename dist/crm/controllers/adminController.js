@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getMarketingSourceWiseAnalytics = exports.createMarketingSourceWiseAnalytics = exports.adminAnalytics = void 0;
+exports.getMarketingUserWiseAnalytics = exports.reiterateLeads = exports.initializeUserWiseAnalytics = exports.getMarketingSourceWiseAnalytics = exports.createMarketingSourceWiseAnalytics = exports.adminAnalytics = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const constants_1 = require("../../config/constants");
 const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
@@ -22,6 +22,9 @@ const lead_1 = require("../models/lead");
 const marketingSourceWiseAnalytics_1 = require("../models/marketingSourceWiseAnalytics");
 const retryMechanism_1 = require("../../config/retryMechanism");
 const controller_1 = require("../../pipline/controller");
+const getISTDate_1 = require("../../utils/getISTDate");
+const user_1 = require("../../auth/models/user");
+const marketingUserWiseAnalytics_1 = require("../models/marketingUserWiseAnalytics");
 exports.adminAnalytics = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let { startDate, endDate, city = [], assignedTo = [], source = [], gender = [] } = req.body;
     const query = {};
@@ -185,4 +188,71 @@ exports.createMarketingSourceWiseAnalytics = (0, express_async_handler_1.default
 exports.getMarketingSourceWiseAnalytics = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const data = yield marketingSourceWiseAnalytics_1.MarketingSourceWiseAnalytics.find({});
     return (0, formatResponse_1.formatResponse)(res, 200, "Marketing Source Wise Analytics fetched successfully", true, data);
+}));
+exports.initializeUserWiseAnalytics = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const yesterday = (0, getISTDate_1.getISTDate)(-1);
+    const marketingEmployees = yield user_1.User.find({ roles: constants_1.UserRoles.EMPLOYEE_MARKETING }, "_id firstName lastName").lean();
+    const yesterdayAnalytics = yield marketingUserWiseAnalytics_1.MarketingUserWiseAnalytics.findOne({ date: yesterday }).lean();
+    const yesterdayDataMap = {};
+    if (yesterdayAnalytics) {
+        for (const entry of yesterdayAnalytics.data) {
+            yesterdayDataMap[String(entry.userId)] = {
+                totalFootFall: entry.totalFootFall,
+                totalAdmissions: entry.totalAdmissions,
+            };
+        }
+    }
+    const initializedData = marketingEmployees.map(user => {
+        const userIdStr = String(user._id);
+        const previous = yesterdayDataMap[userIdStr] || { totalFootFall: 0, totalAdmissions: 0 };
+        return {
+            userId: user._id,
+            userFirstName: user.firstName,
+            userLastName: user.lastName,
+            totalCalls: 0,
+            newLeadCalls: 0,
+            activeLeadCalls: 0,
+            nonActiveLeadCalls: 0,
+            totalFootFall: previous.totalFootFall,
+            totalAdmissions: previous.totalAdmissions,
+        };
+    });
+    const todayIST = (0, getISTDate_1.getISTDate)();
+    yield marketingUserWiseAnalytics_1.MarketingUserWiseAnalytics.create({
+        date: todayIST,
+        data: initializedData,
+    });
+    return (0, formatResponse_1.formatResponse)(res, 200, "Initialised data", true, initializedData);
+}));
+exports.reiterateLeads = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const leads = yield lead_1.LeadMaster.find({});
+    const bulkOps = leads.map((lead) => {
+        return {
+            updateOne: {
+                filter: { _id: lead._id },
+                update: {
+                    isCalledToday: false,
+                    isActiveLead: lead.leadType === constants_1.LeadType.ACTIVE,
+                },
+            },
+        };
+    });
+    if (bulkOps.length > 0) {
+        const bulkWriteResult = yield lead_1.LeadMaster.bulkWrite(bulkOps);
+        return (0, formatResponse_1.formatResponse)(res, 200, "Reiterated the Lead Master Table", true, bulkWriteResult.modifiedCount);
+    }
+    else {
+        return (0, formatResponse_1.formatResponse)(res, 200, "No Leads to update", true, null);
+    }
+}));
+exports.getMarketingUserWiseAnalytics = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const startIST = (0, getISTDate_1.getISTDate)(0);
+    const nextDayIST = (0, getISTDate_1.getISTDate)(1);
+    const todayAnalytics = yield marketingUserWiseAnalytics_1.MarketingUserWiseAnalytics.findOne({
+        date: {
+            $gte: startIST,
+            $lt: nextDayIST,
+        },
+    });
+    return (0, formatResponse_1.formatResponse)(res, 200, "Marketing user wise analytics fetched successfully", true, todayAnalytics);
 }));

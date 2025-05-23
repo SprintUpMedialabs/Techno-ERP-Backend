@@ -333,6 +333,7 @@ var COLLECTION_NAMES;
     COLLECTION_NAMES["COLLEGE_META_DATA"] = "collegemetadatas";
     COLLECTION_NAMES["FINANCE_ANALYTICS"] = "financeanalytics";
     COLLECTION_NAMES["MARKETING_SOURCE_WISE_ANALYTICS"] = "marketingsourcewiseanalytics";
+    COLLECTION_NAMES["MARKETING_USER_WISE_ANALYTICS"] = "marketinguserwiseanalytics";
 })(COLLECTION_NAMES || (exports.COLLECTION_NAMES = COLLECTION_NAMES = {}));
 var LectureConfirmation;
 (function (LectureConfirmation) {
