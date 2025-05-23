@@ -3,7 +3,7 @@ import expressAsyncHandler from 'express-async-handler';
 import createHttpError from 'http-errors';
 import { AuthenticatedRequest, UserPayloadSchema } from '../auth/validators/authenticatedRequest';
 import { UserRoles } from '../config/constants';
-import { verifyToken } from '../utils/jwtHelper';
+import { jwtHelper } from '../utils/jwtHelper';
 
 export const authenticate = expressAsyncHandler(
   async (req: AuthenticatedRequest, _: Response, next: NextFunction) => {
@@ -13,7 +13,7 @@ export const authenticate = expressAsyncHandler(
       throw createHttpError(401, 'Unauthorized. Please log in again');
     }
 
-    const decoded = verifyToken(token);
+    const decoded = jwtHelper.verifyToken(token);
     const parsedUser = UserPayloadSchema.parse(decoded);
     req.data = parsedUser;
 
@@ -21,8 +21,7 @@ export const authenticate = expressAsyncHandler(
   }
 );
 
-export const authorize = (allowedRoles: UserRoles[]) =>
-  expressAsyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+export const authorize = (allowedRoles: UserRoles[]) => expressAsyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     
     if (!req.data) {
       throw createHttpError(401, 'Unauthorized. Please log in again');
@@ -41,4 +40,4 @@ export const authorize = (allowedRoles: UserRoles[]) =>
     }
 
     next();
-  });
+});

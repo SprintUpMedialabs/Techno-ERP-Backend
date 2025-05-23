@@ -15,6 +15,7 @@ import { backupRoute } from './backup/backupController';
 import { financeAnalyticsRoute } from './student/routes/financeAnalyticsRoute';
 import { piplineRouter } from './pipline/piplineRoute';
 import { studentParentRoute } from './student-parent/routes/studentParentRoute';
+import { studentAuthRoute } from './student/routes/auth/studentAuthRoute';
 
 export const apiRouter = express.Router();
 
@@ -81,6 +82,9 @@ apiRouter.use('/test', testRoute);
  * Contains the router for Student Module
  */
 apiRouter.use('/student', studentRoute);
+
+apiRouter.use('/student-auth', studentAuthRoute);
+
 
 apiRouter.use('/student-parent', studentParentRoute);
 
