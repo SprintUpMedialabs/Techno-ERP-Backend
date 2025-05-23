@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.StudentStatus = exports.MarketingAnalyticsEnum = exports.Actions = exports.FinanceFeeSchedule = exports.FinanceFeeType = exports.TransactionTypes = exports.FeeActions = exports.Schedule = exports.FeeStatus = exports.CourseYears = exports.CourseMaterialType = exports.RequestAction = exports.LectureConfirmation = exports.COLLECTION_NAMES = exports.PHOTO = exports.TGI = exports.ADMISSION = exports.AreaType = exports.Countries = exports.StatesOfIndia = exports.AdmissionMode = exports.FeeType = exports.Locations = exports.ModuleNames = exports.ApplicationStatus = exports.DocumentType = exports.AdmittedThrough = exports.BloodGroup = exports.Religion = exports.FormNoPrefixes = exports.EducationLevel = exports.Course = exports.PhysicalDocumentNoteStatus = exports.DropDownType = exports.AdmissionReference = exports.Category = exports.FinalConversionType = exports.LeadType = exports.Source = exports.Gender = exports.PipelineName = exports.PipelineStatus = exports.UserRoles = void 0;
+exports.OFFLINE_SOURCES = exports.ONLINE_SOURCES = exports.StudentStatus = exports.MarketingAnalyticsEnum = exports.Actions = exports.FinanceFeeSchedule = exports.FinanceFeeType = exports.TransactionTypes = exports.FeeActions = exports.Schedule = exports.FeeStatus = exports.CourseYears = exports.CourseMaterialType = exports.RequestAction = exports.LectureConfirmation = exports.COLLECTION_NAMES = exports.PHOTO = exports.TGI = exports.ADMISSION = exports.AreaType = exports.Countries = exports.StatesOfIndia = exports.AdmissionMode = exports.FeeType = exports.Locations = exports.ModuleNames = exports.ApplicationStatus = exports.DocumentType = exports.AdmittedThrough = exports.BloodGroup = exports.Religion = exports.FormNoPrefixes = exports.EducationLevel = exports.Course = exports.PhysicalDocumentNoteStatus = exports.DropDownType = exports.AdmissionReference = exports.Category = exports.FinalConversionType = exports.LeadType = exports.Source = exports.Gender = exports.PipelineName = exports.PipelineStatus = exports.UserRoles = void 0;
 /**
  * Marketing Module Enums
 */
@@ -27,6 +27,7 @@ var PipelineName;
     PipelineName["COURSE_DUES"] = "COURSE_DUES";
     PipelineName["FINANCE_ANALYTICS"] = "FINANCE_ANALYTICS";
     PipelineName["BACKUP"] = "BACKUP";
+    PipelineName["MARKETING_SOURCE_WISE_ANALYTICS"] = "MARKETING_SOURCE_WISE_ANALYTICS";
 })(PipelineName || (exports.PipelineName = PipelineName = {}));
 var Gender;
 (function (Gender) {
@@ -330,6 +331,7 @@ var COLLECTION_NAMES;
     COLLECTION_NAMES["COURSE_DUES"] = "coursedues";
     COLLECTION_NAMES["COLLEGE_META_DATA"] = "collegemetadatas";
     COLLECTION_NAMES["FINANCE_ANALYTICS"] = "financeanalytics";
+    COLLECTION_NAMES["MARKETING_SOURCE_WISE_ANALYTICS"] = "marketingsourcewiseanalytics";
 })(COLLECTION_NAMES || (exports.COLLECTION_NAMES = COLLECTION_NAMES = {}));
 var LectureConfirmation;
 (function (LectureConfirmation) {
@@ -426,3 +428,15 @@ var StudentStatus;
     StudentStatus["UPDATED"] = "UPDATED";
     StudentStatus["OLD"] = "OLD";
 })(StudentStatus || (exports.StudentStatus = StudentStatus = {}));
+exports.ONLINE_SOURCES = [
+    'Digital - Google Ads',
+    'Digital - Meta Ads',
+    'Digital - IVR',
+    'Digital - TawkTo',
+    'Digital - Website',
+];
+exports.OFFLINE_SOURCES = [
+    'LU/NPG/External Venue',
+    'Student Reference',
+    'Technoligence',
+];

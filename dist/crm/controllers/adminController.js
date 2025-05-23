@@ -12,13 +12,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.adminAnalytics = void 0;
+exports.getMarketingSourceWiseAnalytics = exports.createMarketingSourceWiseAnalytics = exports.adminAnalytics = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const constants_1 = require("../../config/constants");
 const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
 const formatResponse_1 = require("../../utils/formatResponse");
 const mongoose_1 = __importDefault(require("mongoose"));
 const lead_1 = require("../models/lead");
+const marketingSourceWiseAnalytics_1 = require("../models/marketingSourceWiseAnalytics");
+const retryMechanism_1 = require("../../config/retryMechanism");
+const controller_1 = require("../../pipline/controller");
 exports.adminAnalytics = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let { startDate, endDate, city = [], assignedTo = [], source = [], gender = [] } = req.body;
     const query = {};
@@ -64,7 +67,9 @@ exports.adminAnalytics = (0, express_async_handler_1.default)((req, res) => __aw
                 }
             }
         ]), lead_1.LeadMaster.aggregate([
-            { $match: Object.assign(Object.assign({}, query), { leadType: constants_1.LeadType.ACTIVE }) }, // in query we have issue
+            {
+                $match: Object.assign(Object.assign({}, query), { leadType: constants_1.LeadType.ACTIVE })
+            }, // in query we have issue
             {
                 $group: {
                     _id: null,
@@ -97,4 +102,87 @@ exports.adminAnalytics = (0, express_async_handler_1.default)((req, res) => __aw
             finalConversion: 0
         }
     });
+}));
+const createEmptyData = () => ({
+    totalLeads: 0,
+    activeLeads: 0,
+    neutralLeads: 0,
+    didNotPickLeads: 0,
+    others: 0,
+    footFall: 0,
+    totalAdmissions: 0,
+});
+const mapLeadType = (lead) => {
+    switch (lead.leadType) {
+        case constants_1.LeadType.ACTIVE: return 'activeLeads';
+        case constants_1.LeadType.NEUTRAL: return 'neutralLeads';
+        case constants_1.LeadType.DID_NOT_PICK: return 'didNotPickLeads';
+        default:
+            return 'others';
+    }
+};
+const updateLeadStats = (data, lead, field) => {
+    data.totalLeads++;
+    data[field]++;
+    if (lead.footFall)
+        data.footFall++;
+    if (lead.finalConversion === constants_1.FinalConversionType.ADMISSION)
+        data.totalAdmissions++;
+};
+exports.createMarketingSourceWiseAnalytics = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const pipelineId = yield (0, controller_1.createPipeline)(constants_1.PipelineName.MARKETING_SOURCE_WISE_ANALYTICS);
+    yield (0, retryMechanism_1.retryMechanism)((session) => __awaiter(void 0, void 0, void 0, function* () {
+        const leads = yield lead_1.LeadMaster.find({}, 'source leadType footFall finalConversion').lean();
+        const offlineMap = {};
+        const onlineMap = {};
+        const totalOfflineData = createEmptyData();
+        const totalOnlineData = createEmptyData();
+        const totalOthersData = createEmptyData();
+        for (const lead of leads) {
+            const source = lead.source || 'Unknown';
+            const field = mapLeadType(lead);
+            const isOnline = constants_1.ONLINE_SOURCES.includes(source);
+            const isOffline = constants_1.OFFLINE_SOURCES.includes(source);
+            if (isOnline || isOffline) {
+                const map = isOnline ? onlineMap : offlineMap;
+                const total = isOnline ? totalOnlineData : totalOfflineData;
+                if (!map[source]) {
+                    map[source] = {
+                        source,
+                        data: createEmptyData(),
+                    };
+                }
+                updateLeadStats(map[source].data, lead, field);
+                updateLeadStats(total, lead, field);
+            }
+            else {
+                updateLeadStats(totalOthersData, lead, field);
+            }
+        }
+        const response = [
+            { type: "offline-data", details: Object.values(offlineMap) },
+            { type: "online-data", details: Object.values(onlineMap) },
+            {
+                type: "all-leads",
+                details: [
+                    { source: "offline", data: totalOfflineData },
+                    { source: "online", data: totalOnlineData },
+                    { source: "others", data: totalOthersData },
+                ],
+            },
+        ];
+        const bulkOps = response.map((item) => ({
+            updateOne: {
+                filter: { type: item.type },
+                update: { $set: { type: item.type, details: item.details } },
+                upsert: true,
+            },
+        }));
+        yield marketingSourceWiseAnalytics_1.MarketingSourceWiseAnalytics.bulkWrite(bulkOps, { session });
+    }), "Marketing Source Analytics Retry Failed", "Final failure after multiple retry attempts in Marketing Source Analytics pipeline", pipelineId, constants_1.PipelineName.MARKETING_SOURCE_WISE_ANALYTICS);
+    return (0, formatResponse_1.formatResponse)(res, 200, "Marketing Source Wise Analytics Created.", true, null);
+}));
+exports.getMarketingSourceWiseAnalytics = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const data = yield marketingSourceWiseAnalytics_1.MarketingSourceWiseAnalytics.find({});
+    return (0, formatResponse_1.formatResponse)(res, 200, "Marketing Source Wise Analytics fetched successfully", true, data);
 }));

@@ -47,6 +47,7 @@ exports.leadSheetSchema = zod_1.z.object({
     city: zod_1.z.string().optional().transform(formators_1.toTitleCase),
     assignedTo: zod_1.z.string().transform(formators_1.splitEmails),
     gender: zod_1.z.string().optional().transform(val => val === null || val === void 0 ? void 0 : val.toUpperCase()),
+    followUpCount: zod_1.z.number().optional().default(0),
     // temporary fields
     course: zod_1.z.string().optional().transform(val => val === null || val === void 0 ? void 0 : val.toUpperCase()),
     area: zod_1.z.string().optional().transform(formators_1.toTitleCase),

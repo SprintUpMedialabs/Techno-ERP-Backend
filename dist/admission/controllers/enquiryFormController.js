@@ -197,7 +197,6 @@ exports.approveEnquiry = (0, express_async_handler_1.default)((0, functionLevelL
         }
         console.log("Transaction Amount : ", transactionAmount);
         console.log("Transaction Settlement History : ", transactionSettlementHistory);
-        // DTODO: create student first and then create transaction so we can remove this 2 db call for create txn => Not possible, student mai transaction ki ID kaha se laayenge
         const createTransaction = yield collegeTransactionHistory_1.CollegeTransaction.create([{
                 studentId: enquiry._id,
                 dateTime: new Date(),
@@ -206,21 +205,13 @@ exports.approveEnquiry = (0, express_async_handler_1.default)((0, functionLevelL
                 txnType: transactionType !== null && transactionType !== void 0 ? transactionType : constants_1.TransactionTypes.CASH,
                 actionedBy: (_b = req === null || req === void 0 ? void 0 : req.data) === null || _b === void 0 ? void 0 : _b.id,
                 transactionSettlementHistory: transactionSettlementHistory,
-                remark: transactionRemark
-            }], { session });
-        const createdStudent = yield student_1.Student.create([Object.assign(Object.assign({ _id: enquiry._id }, studentCreateValidation.data), { transactionHistory: [createTransaction[0]._id] })], { session });
-        console.log("Created student is : ", createdStudent);
-        console.log("STudent is : ", student);
-        console.log("Couse COde : ", student.courseCode);
-        console.log("COurse Name  : ", student.courseName);
-        // DTODO: this should be removed at all 🥺🥺 we already discussed in meet.
-        yield collegeTransactionHistory_1.CollegeTransaction.findByIdAndUpdate(enquiry._id, {
-            $set: {
+                remark: transactionRemark,
                 courseCode: student.courseCode,
                 courseName: student.courseName,
                 courseYear: (0, getCourseYearFromSemNumber_1.getCourseYearFromSemNumber)(student.currentSemester)
-            }
-        }, { session });
+            }], { session });
+        const createdStudent = yield student_1.Student.create([Object.assign(Object.assign({ _id: enquiry._id }, studentCreateValidation.data), { transactionHistory: [createTransaction[0]._id] })], { session });
+        console.log("Created student is : ", createdStudent);
         yield session.commitTransaction();
         session.endSession();
         return (0, formatResponse_1.formatResponse)(res, 200, 'Student created successfully with this information', true, null);

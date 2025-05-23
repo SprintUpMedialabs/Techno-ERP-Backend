@@ -53,6 +53,9 @@ const leadsToBeInserted = (latestData, report, lastSavedIndex, citySet, sourceSe
                 constants_1.Gender[row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.Gender]]]) {
                 leadData.gender = constants_1.Gender[row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.Gender]]];
             }
+            if (row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.Remarks]]) {
+                leadData.followUpCount = 1;
+            }
             console.log(leadData);
             const leadDataValidation = leads_1.leadSheetSchema.safeParse(leadData);
             if (leadDataValidation.success) {
