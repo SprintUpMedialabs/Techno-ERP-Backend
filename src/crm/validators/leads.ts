@@ -25,6 +25,8 @@ export const leadMasterSchema = z.object({
   finalConversion: z.nativeEnum(FinalConversionType).optional().default(FinalConversionType.NO_FOOTFALL),
   remarks: z.array(z.string().optional()).default([]),
   followUpCount: z.number().optional().default(0),
+  isCalledToday : z.boolean().optional(),
+  isActiveLead : z.boolean().optional()
 })
 
 export const leadSchema = leadMasterSchema.omit({

@@ -13,7 +13,7 @@ import {
   getYellowLeadsAnalytics,
   updateYellowLead
 } from '../controllers/yellowLeadController';
-import { adminAnalytics, createMarketingSourceWiseAnalytics, getMarketingSourceWiseAnalytics } from '../controllers/adminController';
+import { adminAnalytics, createMarketingSourceWiseAnalytics, getMarketingSourceWiseAnalytics, getMarketingUserWiseAnalytics, initializeUserWiseAnalytics, reiterateLeads } from '../controllers/adminController';
 import { createMarketingAnalytics, getCallAnalytics } from '../controllers/marketingAnalyticsController';
 import { User } from '../../auth/models/user';
 
@@ -108,3 +108,24 @@ crmRoute.get('/source-analytics',
   authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING]), 
   getMarketingSourceWiseAnalytics
 );
+
+crmRoute.get('/user-wise-analytics', 
+  authenticate, 
+  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING]), 
+  getMarketingUserWiseAnalytics
+);
+
+
+crmRoute.post('/user-wise-analytics', 
+  authenticate, 
+  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.SYSTEM_ADMIN]), 
+  initializeUserWiseAnalytics
+);
+
+
+crmRoute.post('/iterate-leads', 
+  authenticate, 
+  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.SYSTEM_ADMIN]), 
+  reiterateLeads
+);
+

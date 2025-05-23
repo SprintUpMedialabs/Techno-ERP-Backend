@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import expressAsyncHandler from "express-async-handler";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
-import { FinalConversionType, LeadType, OFFLINE_SOURCES, ONLINE_SOURCES, PipelineName } from "../../config/constants";
+import { FinalConversionType, LeadType, OFFLINE_SOURCES, ONLINE_SOURCES, PipelineName, UserRoles } from "../../config/constants";
 import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
 import { IAdminAnalyticsFilter } from "../types/marketingSpreadsheet";
 import { formatResponse } from '../../utils/formatResponse';
@@ -10,6 +10,9 @@ import { LeadMaster } from '../models/lead';
 import { MarketingSourceWiseAnalytics } from '../models/marketingSourceWiseAnalytics';
 import { retryMechanism } from '../../config/retryMechanism';
 import { createPipeline } from '../../pipline/controller';
+import { getISTDate } from '../../utils/getISTDate';
+import { User } from '../../auth/models/user';
+import { MarketingUserWiseAnalytics } from '../models/marketingUserWiseAnalytics';
 
 export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     let {
@@ -146,7 +149,7 @@ const updateLeadStats = (data: any, lead: any, field: string) => {
 
 export const createMarketingSourceWiseAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
 
-    const pipelineId = await createPipeline(PipelineName.MARKETING_SOURCE_WISE_ANALYTICS); 
+    const pipelineId = await createPipeline(PipelineName.MARKETING_SOURCE_WISE_ANALYTICS);
 
     await retryMechanism(
         async (session) => {
@@ -219,4 +222,90 @@ export const createMarketingSourceWiseAnalytics = expressAsyncHandler(async (req
 export const getMarketingSourceWiseAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const data = await MarketingSourceWiseAnalytics.find({});
     return formatResponse(res, 200, "Marketing Source Wise Analytics fetched successfully", true, data);
+});
+
+
+export const initializeUserWiseAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+
+    const yesterday = getISTDate(-1);
+    const marketingEmployees = await User.find({ roles: UserRoles.EMPLOYEE_MARKETING }, "_id firstName lastName").lean();
+
+    const yesterdayAnalytics = await MarketingUserWiseAnalytics.findOne({ date: yesterday }).lean();
+
+    const yesterdayDataMap: Record<string, { totalFootFall: number; totalAdmissions: number }> = {};
+    if (yesterdayAnalytics) {
+        for (const entry of yesterdayAnalytics.data) {
+            yesterdayDataMap[String(entry.userId)] = {
+                totalFootFall: entry.totalFootFall,
+                totalAdmissions: entry.totalAdmissions,
+            };
+        }
+    }
+
+    const initializedData = marketingEmployees.map(user => {
+        const userIdStr = String(user._id);
+        const previous = yesterdayDataMap[userIdStr] || { totalFootFall: 0, totalAdmissions: 0 };
+
+        return {
+            userId: user._id,
+            userFirstName: user.firstName,
+            userLastName: user.lastName,
+            totalCalls: 0,
+            newLeadCalls: 0,
+            activeLeadCalls: 0,
+            nonActiveLeadCalls: 0,
+            totalFootFall: previous.totalFootFall,
+            totalAdmissions: previous.totalAdmissions,
+        };
+    });
+
+    const todayIST = getISTDate();
+
+    await MarketingUserWiseAnalytics.create({
+        date: todayIST,
+        data: initializedData,
+    });
+
+    return formatResponse(res, 200, "Initialised data", true, initializedData);
+});
+
+
+export const reiterateLeads = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const leads = await LeadMaster.find({});
+
+    const bulkOps = leads.map((lead) => {
+        return {
+            updateOne: {
+                filter: { _id: lead._id },
+                update: {
+                    isCalledToday: false,
+                    isActiveLead: lead.leadType === LeadType.ACTIVE,
+                },
+            },
+        };
+    });
+
+    if (bulkOps.length > 0) {
+        const bulkWriteResult = await LeadMaster.bulkWrite(bulkOps);
+        return formatResponse(res, 200, "Reiterated the Lead Master Table", true, bulkWriteResult.modifiedCount)
+    }
+    else {
+        return formatResponse(res, 200, "No Leads to update", true, null);
+    }
+});
+
+
+export const getMarketingUserWiseAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const startIST = getISTDate(0);
+    const nextDayIST = getISTDate(1);
+
+    const todayAnalytics = await MarketingUserWiseAnalytics.findOne({
+        date: {
+            $gte: startIST,
+            $lt: nextDayIST,
+        },
+    });
+
+    return formatResponse(res, 200, "Marketing user wise analytics fetched successfully", true, todayAnalytics);
+
 })
