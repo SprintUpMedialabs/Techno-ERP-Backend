@@ -100,6 +100,11 @@ export const enquiryStep3UpdateRequestSchema = enquirySchema.omit({ documents: t
   physicalDocumentNote: z.array(physicalDocumentNoteRequestSchema).optional()
 }).strict();
 
+export const otpSchemaForStep3 = z.object({
+  otp: z.string(),
+  id: objectIdSchema
+});
+
 
 export const enquiryDraftStep3Schema = enquiryStep3UpdateRequestSchema
   .extend({

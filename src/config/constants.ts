@@ -293,37 +293,6 @@ export const ADMISSION = 'admissions'
 export const TGI = "TGI";
 export const PHOTO = "PHOTO";
 
-// export const MARKETING_SHEET = 'Marketing Sheet'
-
-
-// export enum COLLECTION_NAMES {
-//   USER = 'User',
-//   VERIFY_OTP = 'VerifyOtp',
-//   ENQUIRY = 'Enquiry',
-//   ENQUIRY_DRAFT = 'enquirydrafts',
-//   ENQUIRY_ID_META_DATA = 'EnquiryIdMetaData',
-//   STUDENT_FEE = 'studentFee',
-//   STUDENT_FEE_DRAFT = 'studentFeeDraft',
-//   DEPARTMENT_COURSE = 'deptandcourse',
-//   LEAD = 'Lead',
-//   SPREADSHEET_META_DATA = 'spreadSheetMetaData',
-//   YELLOW_LEAD = 'YellowLead',
-//   COURSE_OTHER_FEES = 'CourseAndOtherFees',
-//   STUDENT = 'Student',
-//   DEPARTMENT_META_DATA = 'DepartmentMetaData',
-//   COURSE_METADATA = 'CourseMetadata',
-//   COURSE = 'Course',
-//   DROP_DOWN_META_DATA = 'DropDownMetaData',
-//   STUDENTREPO = "StudentRepo",
-//   TRANSACTION_HISTORY = "TransactionHistory",
-//   TECHNO_META_DATA = "TechnoMetaData",
-//   MARKETING_FOLLOW_UP_RAW_DATA = "MarketingFollowUpData",
-//   MARKETING_ANALYTICS = "MarketingAnalytics",
-//   COURSE_DUES = 'CourseDues',
-//   COLLEGE_META_DATA = "CollegeMetaData",
-//   FINANCE_ANALYTICS = "FinanceAnalytics"
-// }
-
 export enum COLLECTION_NAMES {
   USER = 'User',
   VERIFY_OTP = 'verifyotps',
@@ -351,7 +320,8 @@ export enum COLLECTION_NAMES {
   COLLEGE_META_DATA = "collegemetadatas",
   FINANCE_ANALYTICS = "financeanalytics",
   MARKETING_SOURCE_WISE_ANALYTICS = "marketingsourcewiseanalytics",
-  MARKETING_USER_WISE_ANALYTICS = "marketinguserwiseanalytics"
+  MARKETING_USER_WISE_ANALYTICS = "marketinguserwiseanalytics",
+  OTP = "otps"
 }
 
 
