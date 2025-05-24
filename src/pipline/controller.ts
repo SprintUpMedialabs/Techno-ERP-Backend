@@ -123,7 +123,7 @@ export const sendTodayPipelineSummaryEmail = expressAsyncHandler(async (req: Aut
 
     const pipelines = await PipelineRunLog.find({ date: todayIST }).sort({ time: -1 });
 
-    const subject = `Pipeline Summary - ${today}`;
+    const subject = `Pipeline Summary - ${today} | ${process.env.NODE_ENV}`;
     const html = pipelines.length === 0
         ? 'No pipelines ran today.'
         : `
@@ -167,9 +167,8 @@ export const sendTodayPipelineSummaryEmail = expressAsyncHandler(async (req: Aut
             return formatResponse(res, 200, "Pipeline summary email sent successfully", true);
         } catch (error) {
             if (attempt === MAX_RETRIES) {
-                throw new Error(`Failed to send summary email after ${MAX_RETRIES} attempts: ${error}`);
+                throw createHttpError(400, `Failed to send summary email after ${MAX_RETRIES} attempts: ${error}`);
             }
-            console.warn(`Attempt ${attempt} to send email failed. Retrying in ${RETRY_DELAY_MS}ms...`);
             await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS));
         }
     }
