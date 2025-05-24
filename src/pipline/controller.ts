@@ -119,49 +119,58 @@ export const markCompleted = async (id: string): Promise<void | undefined> => {
 
 export const sendTodayPipelineSummaryEmail = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const todayIST = moment().tz('Asia/Kolkata').startOf('day').toDate();
-
-    const pipelines = await PipelineRunLog.find({ date: todayIST }).sort({ time: -1 });
     const today = moment().tz('Asia/Kolkata').format('YYYY-MM-DD');
 
-    if (pipelines.length === 0) {
-        await sendEmail(DEVELOPER_EMAIL, `Pipeline Summary - ${today}`, 'No pipelines ran today.');
-        return;
+    const pipelines = await PipelineRunLog.find({ date: todayIST }).sort({ time: -1 });
+
+    const subject = `Pipeline Summary - ${today}`;
+    const html = pipelines.length === 0
+        ? 'No pipelines ran today.'
+        : `
+        <h2>Pipeline Run Summary - ${today}</h2>
+        <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse;">
+          <thead>
+            <tr>
+              <th>Pipeline Name</th>
+              <th>Status</th>
+              <th>Attempts</th>
+              <th>Duration (seconds)</th>
+              <th>Started At</th>
+              <th>Error Messages</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${pipelines.map((log) => `
+              <tr>
+                <td>${log.pipelineName}</td>
+                <td>${log.status}</td>
+                <td>${log.attemptNo}</td>
+                <td>${log.durationInSeconds ?? 0}s</td>
+                <td>${moment(log.startedAt).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss')}</td>
+                <td>
+                  ${(log?.errorMessages?.length ?? 0) > 0
+                ? `<ul>${(log?.errorMessages ?? []).map((e: string) => `<li>${e}</li>`).join('')}</ul>`
+                : 'None'}
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY_MS = 2000;
+
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        try {
+            await sendEmail(DEVELOPER_EMAIL, subject, html);
+            return formatResponse(res, 200, "Pipeline summary email sent successfully", true);
+        } catch (error) {
+            if (attempt === MAX_RETRIES) {
+                throw new Error(`Failed to send summary email after ${MAX_RETRIES} attempts: ${error}`);
+            }
+            console.warn(`Attempt ${attempt} to send email failed. Retrying in ${RETRY_DELAY_MS}ms...`);
+            await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS));
+        }
     }
-
-    const tableRows = pipelines.map((log) => `
-      <tr>
-        <td>${log.pipelineName}</td>
-        <td>${log.status}</td>
-        <td>${log.attemptNo}</td>
-        <td>${log.durationInSeconds ?? 0}s</td>
-        <td>${moment(log.startedAt).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss')}</td>
-        <td>
-          ${(log?.errorMessages?.length ?? 0) > 0
-            ? `<ul>${(log?.errorMessages ?? []).map((e: string) => `<li>${e}</li>`).join('')}</ul>`
-            : 'None'}
-        </td>
-      </tr>
-    `).join('');
-
-    const html = `
-      <h2>Pipeline Run Summary - ${today}</h2>
-      <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse;">
-        <thead>
-          <tr>
-            <th>Pipeline Name</th>
-            <th>Status</th>
-            <th>Attempts</th>
-            <th>Duration (seconds)</th>
-            <th>Started At</th>
-            <th>Error Messages</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${tableRows}
-        </tbody>
-      </table>
-    `;
-
-    await sendEmail(DEVELOPER_EMAIL, `Pipeline Summary - ${today}`, html);
-    return formatResponse(res, 200, "Pipeline summary email sent successfully", true);
 });

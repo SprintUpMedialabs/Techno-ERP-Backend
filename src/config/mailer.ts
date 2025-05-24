@@ -6,6 +6,7 @@ import {
   NODEMAILER_GMAIL_APP_PASSWORD
 } from '../secrets';
 import logger from './logger';
+import createHttpError from 'http-errors';
 
 type Attachment = {
   filename: string;
@@ -36,6 +37,7 @@ export const sendEmail = async (to: string, subject: string, text: string, attac
     if (err) {
       logger.error('Error in sending email');
       logger.error(err);
+      throw createHttpError(400, err.message);
     } else {
       logger.info('Mail sent successfully');
     }
