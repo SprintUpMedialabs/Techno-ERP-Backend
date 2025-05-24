@@ -592,3 +592,5 @@ const buildStudentResponseData = async (student: any) => {
     departmentName: departmentMetaDataId?.departmentName ?? null
   };
 };
+
+

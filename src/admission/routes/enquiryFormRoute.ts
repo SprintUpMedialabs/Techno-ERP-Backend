@@ -1,14 +1,14 @@
 import express from 'express';
-import { authenticate, authorize } from '../../middleware/jwtAuthenticationMiddleware';
 import { UserRoles } from '../../config/constants';
-import { getEnquiryData, getEnquiryById, approveEnquiry, updateStatus } from '../controllers/enquiryFormController';
 import upload from '../../config/multerConfig';
+import { authenticate, authorize } from '../../middleware/jwtAuthenticationMiddleware';
 import { createEnquiryDraftStep1, updateEnquiryDraftStep1 } from '../controllers/enquiryDraftController';
-import { createFeeDraft, updateFeeDraft } from '../controllers/feeDraftController';
+import { approveEnquiry, getEnquiryById, getEnquiryData } from '../controllers/enquiryFormController';
 import { createEnquiry, updateEnquiryStep1ById } from '../controllers/enquiryStep1Controller';
 import { createEnquiryStep2, updateEnquiryStep2ById } from '../controllers/enquiryStep2Controller';
 import { saveStep3Draft, updateEnquiryDocuments, updateEnquiryStep3ById, verifyOtpAndUpdateEnquiryStatus } from '../controllers/enquiryStep3Controller';
 import { updateEnquiryStep4ById } from '../controllers/enquiryStep4Controller';
+import { createFeeDraft, updateFeeDraft } from '../controllers/feeDraftController';
 
 export const enquiryRoute = express.Router();
 
