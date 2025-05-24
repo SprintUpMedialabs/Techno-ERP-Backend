@@ -63,7 +63,8 @@ export const updateEnquiryStep3ById = expressAsyncHandler(functionLevelLogger(as
     throw createHttpError(400, 'Enquiry not found');
   }
 
-  const updatedData = await Enquiry.findByIdAndUpdate(id, { ...data, applicationStatus: ApplicationStatus.STEP_3 }, { new: true, runValidators: true });
+  // DACHECK: This is a temporary fix to ensure that the enquiry is updated to step 4 after the step 3 is updated till the time frontend is not ready for this feature
+  const updatedData = await Enquiry.findByIdAndUpdate(id, { ...data, applicationStatus: ApplicationStatus.STEP_4 }, { new: true, runValidators: true });
   await sendOTP(updatedData!.emailId);
 
   updateOnlyOneValueInDropDown(DropDownType.DISTRICT, updatedData?.address?.district);
