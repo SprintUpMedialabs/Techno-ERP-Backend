@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getMarketingUserWiseAnalytics = exports.reiterateLeads = exports.initializeUserWiseAnalytics = exports.getMarketingSourceWiseAnalytics = exports.createMarketingSourceWiseAnalytics = exports.adminAnalytics = void 0;
+exports.getDurationBasedUserAnalytics = exports.getMarketingUserWiseAnalytics = exports.reiterateLeads = exports.initializeUserWiseAnalytics = exports.getMarketingSourceWiseAnalytics = exports.createMarketingSourceWiseAnalytics = exports.adminAnalytics = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const constants_1 = require("../../config/constants");
 const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
@@ -25,6 +25,7 @@ const controller_1 = require("../../pipline/controller");
 const getISTDate_1 = require("../../utils/getISTDate");
 const user_1 = require("../../auth/models/user");
 const marketingUserWiseAnalytics_1 = require("../models/marketingUserWiseAnalytics");
+const http_errors_1 = __importDefault(require("http-errors"));
 exports.adminAnalytics = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let { startDate, endDate, city = [], assignedTo = [], source = [], gender = [] } = req.body;
     const query = {};
@@ -190,44 +191,49 @@ exports.getMarketingSourceWiseAnalytics = (0, express_async_handler_1.default)((
     return (0, formatResponse_1.formatResponse)(res, 200, "Marketing Source Wise Analytics fetched successfully", true, data);
 }));
 exports.initializeUserWiseAnalytics = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const yesterday = (0, getISTDate_1.getISTDate)(-1);
-    const marketingEmployees = yield user_1.User.find({ roles: constants_1.UserRoles.EMPLOYEE_MARKETING }, "_id firstName lastName").lean();
-    const yesterdayAnalytics = yield marketingUserWiseAnalytics_1.MarketingUserWiseAnalytics.findOne({ date: yesterday }).lean();
-    const yesterdayDataMap = {};
-    if (yesterdayAnalytics) {
-        for (const entry of yesterdayAnalytics.data) {
-            yesterdayDataMap[String(entry.userId)] = {
-                totalFootFall: entry.totalFootFall,
-                totalAdmissions: entry.totalAdmissions,
-            };
+    const pipelineId = yield (0, controller_1.createPipeline)(constants_1.PipelineName.INITIALIZE_MARKETING_ANALYTICS);
+    if (!pipelineId)
+        throw (0, http_errors_1.default)(400, "Pipeline creation failed");
+    yield (0, retryMechanism_1.retryMechanism)((session) => __awaiter(void 0, void 0, void 0, function* () {
+        const yesterday = (0, getISTDate_1.getISTDate)(-1);
+        const marketingEmployees = yield user_1.User.find({ roles: constants_1.UserRoles.EMPLOYEE_MARKETING }, "_id firstName lastName").lean();
+        const yesterdayAnalytics = yield marketingUserWiseAnalytics_1.MarketingUserWiseAnalytics.findOne({ date: yesterday }).lean();
+        const yesterdayDataMap = {};
+        if (yesterdayAnalytics) {
+            for (const entry of yesterdayAnalytics.data) {
+                yesterdayDataMap[String(entry.userId)] = {
+                    totalFootFall: entry.totalFootFall,
+                    totalAdmissions: entry.totalAdmissions,
+                };
+            }
         }
-    }
-    const initializedData = marketingEmployees.map(user => {
-        const userIdStr = String(user._id);
-        const previous = yesterdayDataMap[userIdStr] || { totalFootFall: 0, totalAdmissions: 0 };
-        return {
-            userId: user._id,
-            userFirstName: user.firstName,
-            userLastName: user.lastName,
-            totalCalls: 0,
-            newLeadCalls: 0,
-            activeLeadCalls: 0,
-            nonActiveLeadCalls: 0,
-            totalFootFall: previous.totalFootFall,
-            totalAdmissions: previous.totalAdmissions,
-        };
-    });
-    const todayIST = (0, getISTDate_1.getISTDate)();
-    yield marketingUserWiseAnalytics_1.MarketingUserWiseAnalytics.create({
-        date: todayIST,
-        data: initializedData,
-    });
-    return (0, formatResponse_1.formatResponse)(res, 200, "Initialised data", true, initializedData);
+        const initializedData = marketingEmployees.map(user => {
+            const userIdStr = String(user._id);
+            const previous = yesterdayDataMap[userIdStr] || { totalFootFall: 0, totalAdmissions: 0 };
+            return {
+                userId: user._id,
+                userFirstName: user.firstName,
+                userLastName: user.lastName,
+                totalCalls: 0,
+                newLeadCalls: 0,
+                activeLeadCalls: 0,
+                nonActiveLeadCalls: 0,
+                totalFootFall: previous.totalFootFall,
+                totalAdmissions: previous.totalAdmissions,
+            };
+        });
+        const todayIST = (0, getISTDate_1.getISTDate)();
+        yield marketingUserWiseAnalytics_1.MarketingUserWiseAnalytics.create([{ date: todayIST, data: initializedData }], { session });
+        return (0, formatResponse_1.formatResponse)(res, 201, "Initialized data", true, null);
+    }), "UserWise Analytics Initialization Failed", "Failed to initialize user-wise analytics after multiple attempts.", pipelineId, constants_1.PipelineName.INITIALIZE_MARKETING_ANALYTICS);
 }));
 exports.reiterateLeads = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const leads = yield lead_1.LeadMaster.find({});
-    const bulkOps = leads.map((lead) => {
-        return {
+    const pipelineId = yield (0, controller_1.createPipeline)(constants_1.PipelineName.ITERATE_LEADS);
+    if (!pipelineId)
+        throw (0, http_errors_1.default)(400, "Pipeline creation failed");
+    yield (0, retryMechanism_1.retryMechanism)((session) => __awaiter(void 0, void 0, void 0, function* () {
+        const leads = yield lead_1.LeadMaster.find({}).session(session);
+        const bulkOps = leads.map((lead) => ({
             updateOne: {
                 filter: { _id: lead._id },
                 update: {
@@ -235,15 +241,15 @@ exports.reiterateLeads = (0, express_async_handler_1.default)((req, res) => __aw
                     isActiveLead: lead.leadType === constants_1.LeadType.ACTIVE,
                 },
             },
-        };
-    });
-    if (bulkOps.length > 0) {
-        const bulkWriteResult = yield lead_1.LeadMaster.bulkWrite(bulkOps);
-        return (0, formatResponse_1.formatResponse)(res, 200, "Reiterated the Lead Master Table", true, bulkWriteResult.modifiedCount);
-    }
-    else {
-        return (0, formatResponse_1.formatResponse)(res, 200, "No Leads to update", true, null);
-    }
+        }));
+        if (bulkOps.length > 0) {
+            const bulkWriteResult = yield lead_1.LeadMaster.bulkWrite(bulkOps, { session });
+            return (0, formatResponse_1.formatResponse)(res, 200, "Reiterated the Lead Master Table", true, bulkWriteResult.modifiedCount);
+        }
+        else {
+            return (0, formatResponse_1.formatResponse)(res, 200, "No Leads to update", true, null);
+        }
+    }), "Lead Reiteration Failed", "Failed to reiterate lead statuses after multiple attempts.", pipelineId, constants_1.PipelineName.ITERATE_LEADS);
 }));
 exports.getMarketingUserWiseAnalytics = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const startIST = (0, getISTDate_1.getISTDate)(0);
@@ -255,4 +261,43 @@ exports.getMarketingUserWiseAnalytics = (0, express_async_handler_1.default)((re
         },
     });
     return (0, formatResponse_1.formatResponse)(res, 200, "Marketing user wise analytics fetched successfully", true, todayAnalytics);
+}));
+exports.getDurationBasedUserAnalytics = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { startDate, endDate } = req.body;
+    const mongoStartDate = (0, convertDateToFormatedDate_1.convertToMongoDate)(startDate);
+    const mongoEndDate = (0, convertDateToFormatedDate_1.convertToMongoDate)(endDate);
+    const pipeline = [
+        {
+            $match: {
+                date: {
+                    $gte: mongoStartDate,
+                    $lt: mongoEndDate,
+                },
+            },
+        },
+        {
+            $unwind: '$data',
+        },
+        {
+            $sort: {
+                'data.userId': 1,
+                date: 1,
+            },
+        },
+        {
+            $group: {
+                _id: '$data.userId',
+                userFirstName: { $first: '$data.userFirstName' },
+                userLastName: { $first: '$data.userLastName' },
+                totalCalls: { $sum: '$data.totalCalls' },
+                newLeadCalls: { $sum: '$data.newLeadCalls' },
+                activeLeadCalls: { $sum: '$data.activeLeadCalls' },
+                nonActiveLeadCalls: { $sum: '$data.nonActiveLeadCalls' },
+                totalFootFall: { $last: '$data.totalFootFall' },
+                totalAdmissions: { $last: '$data.totalAdmissions' },
+            },
+        },
+    ];
+    const result = yield marketingUserWiseAnalytics_1.MarketingUserWiseAnalytics.aggregate(pipeline);
+    return (0, formatResponse_1.formatResponse)(res, 200, "User Wise Analytics Fetched successfully", true, result);
 }));

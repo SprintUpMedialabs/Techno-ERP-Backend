@@ -29,6 +29,8 @@ var PipelineName;
     PipelineName["FINANCE_ANALYTICS"] = "FINANCE_ANALYTICS";
     PipelineName["BACKUP"] = "BACKUP";
     PipelineName["MARKETING_SOURCE_WISE_ANALYTICS"] = "MARKETING_SOURCE_WISE_ANALYTICS";
+    PipelineName["INITIALIZE_MARKETING_ANALYTICS"] = "INITIALIZE_MARKETING_ANALYTICS";
+    PipelineName["ITERATE_LEADS"] = "ITERATE_LEADS";
 })(PipelineName || (exports.PipelineName = PipelineName = {}));
 var Gender;
 (function (Gender) {
@@ -277,34 +279,6 @@ var AreaType;
 exports.ADMISSION = 'admissions';
 exports.TGI = "TGI";
 exports.PHOTO = "PHOTO";
-// export const MARKETING_SHEET = 'Marketing Sheet'
-// export enum COLLECTION_NAMES {
-//   USER = 'User',
-//   VERIFY_OTP = 'VerifyOtp',
-//   ENQUIRY = 'Enquiry',
-//   ENQUIRY_DRAFT = 'enquirydrafts',
-//   ENQUIRY_ID_META_DATA = 'EnquiryIdMetaData',
-//   STUDENT_FEE = 'studentFee',
-//   STUDENT_FEE_DRAFT = 'studentFeeDraft',
-//   DEPARTMENT_COURSE = 'deptandcourse',
-//   LEAD = 'Lead',
-//   SPREADSHEET_META_DATA = 'spreadSheetMetaData',
-//   YELLOW_LEAD = 'YellowLead',
-//   COURSE_OTHER_FEES = 'CourseAndOtherFees',
-//   STUDENT = 'Student',
-//   DEPARTMENT_META_DATA = 'DepartmentMetaData',
-//   COURSE_METADATA = 'CourseMetadata',
-//   COURSE = 'Course',
-//   DROP_DOWN_META_DATA = 'DropDownMetaData',
-//   STUDENTREPO = "StudentRepo",
-//   TRANSACTION_HISTORY = "TransactionHistory",
-//   TECHNO_META_DATA = "TechnoMetaData",
-//   MARKETING_FOLLOW_UP_RAW_DATA = "MarketingFollowUpData",
-//   MARKETING_ANALYTICS = "MarketingAnalytics",
-//   COURSE_DUES = 'CourseDues',
-//   COLLEGE_META_DATA = "CollegeMetaData",
-//   FINANCE_ANALYTICS = "FinanceAnalytics"
-// }
 var COLLECTION_NAMES;
 (function (COLLECTION_NAMES) {
     COLLECTION_NAMES["USER"] = "User";
@@ -334,6 +308,7 @@ var COLLECTION_NAMES;
     COLLECTION_NAMES["FINANCE_ANALYTICS"] = "financeanalytics";
     COLLECTION_NAMES["MARKETING_SOURCE_WISE_ANALYTICS"] = "marketingsourcewiseanalytics";
     COLLECTION_NAMES["MARKETING_USER_WISE_ANALYTICS"] = "marketinguserwiseanalytics";
+    COLLECTION_NAMES["OTP"] = "otps";
 })(COLLECTION_NAMES || (exports.COLLECTION_NAMES = COLLECTION_NAMES = {}));
 var LectureConfirmation;
 (function (LectureConfirmation) {

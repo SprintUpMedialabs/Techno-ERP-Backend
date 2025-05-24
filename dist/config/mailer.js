@@ -13,9 +13,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendEmail = void 0;
+const http_errors_1 = __importDefault(require("http-errors"));
 const nodemailer_1 = __importDefault(require("nodemailer"));
 const secrets_1 = require("../secrets");
-const logger_1 = __importDefault(require("./logger"));
 let transport = nodemailer_1.default.createTransport({
     host: secrets_1.NODEMAILER_HOST,
     port: Number(secrets_1.NODEMAILER_PORT),
@@ -34,14 +34,13 @@ const sendEmail = (to, subject, text, attachments) => __awaiter(void 0, void 0, 
         html: text,
         attachments
     };
-    transport.sendMail(mailOptions, function (err, info) {
-        if (err) {
-            logger_1.default.error('Error in sending email');
-            logger_1.default.error(err);
-        }
-        else {
-            logger_1.default.info('Mail sent successfully');
-        }
-    });
+    console.log("Mail Options : ", mailOptions);
+    try {
+        const info = yield transport.sendMail(mailOptions);
+        return info;
+    }
+    catch (err) {
+        throw (0, http_errors_1.default)(400, err.message);
+    }
 });
 exports.sendEmail = sendEmail;

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.enquiryDraftStep1UpdateSchema = exports.enquiryDraftStep1RequestSchema = exports.enquiryDraftStep3Schema = exports.enquiryStep3UpdateRequestSchema = exports.enquiryStep1UpdateRequestSchema = exports.enquiryStep1RequestSchema = exports.enquirySchema = void 0;
+exports.enquiryDraftStep1UpdateSchema = exports.enquiryDraftStep1RequestSchema = exports.enquiryDraftStep3Schema = exports.otpSchemaForStep3 = exports.enquiryStep3UpdateRequestSchema = exports.enquiryStep1UpdateRequestSchema = exports.enquiryStep1RequestSchema = exports.enquirySchema = void 0;
 const zod_1 = require("zod");
 const constants_1 = require("../../config/constants");
 const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
@@ -63,6 +63,10 @@ exports.enquiryStep3UpdateRequestSchema = exports.enquirySchema.omit({ documents
     id: commonSchema_1.objectIdSchema,
     physicalDocumentNote: zod_1.z.array(physicalDocumentNoteSchema_1.physicalDocumentNoteRequestSchema).optional()
 }).strict();
+exports.otpSchemaForStep3 = zod_1.z.object({
+    otp: zod_1.z.string(),
+    id: commonSchema_1.objectIdSchema
+});
 exports.enquiryDraftStep3Schema = exports.enquiryStep3UpdateRequestSchema
     .extend({
     address: commonSchema_1.addressSchema.partial().optional(),
