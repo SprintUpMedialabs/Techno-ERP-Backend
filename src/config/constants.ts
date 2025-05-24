@@ -321,7 +321,8 @@ export enum COLLECTION_NAMES {
   FINANCE_ANALYTICS = "financeanalytics",
   MARKETING_SOURCE_WISE_ANALYTICS = "marketingsourcewiseanalytics",
   MARKETING_USER_WISE_ANALYTICS = "marketinguserwiseanalytics",
-  OTP = "otps"
+  OTP = "otps",
+  ADMISSION_ANALYTICS = "admissionanalytics"
 }
 
 
@@ -437,3 +438,11 @@ export const OFFLINE_SOURCES = [
   'Student Reference',
   'Technoligence',
 ];
+
+
+export enum AdmissionAggregationType {
+  DATE_WISE = 'totalAdmissionDateWise',
+  MONTH_WISE = 'totalAdmissionMonthWise',
+  MONTH_AND_COURSE_WISE = 'totalAdmissionMonthAndCourseWise',
+  YEAR_AND_COURSE_WISE = 'totalAdmissionYearAndCourseWise',
+}

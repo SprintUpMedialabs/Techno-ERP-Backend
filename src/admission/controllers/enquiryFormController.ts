@@ -17,6 +17,7 @@ import { Enquiry } from '../models/enquiry';
 import { EnquiryDraft } from '../models/enquiryDraft';
 import { EnquiryApplicationId } from '../models/enquiryIdMetaDataSchema';
 import { StudentFeesModel } from '../models/studentFees';
+import { incrementAdmissionAnalytics } from './admissionController';
 
 
 export const getEnquiryData = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
@@ -278,7 +279,7 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
 
     console.log("Created student is : ", createdStudent);
 
-     
+    incrementAdmissionAnalytics(student.courseCode);
     await session.commitTransaction();
     session.endSession();
 
