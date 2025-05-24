@@ -88,7 +88,12 @@ export const getAdmissionStats = expressAsyncHandler(async (req: AuthenticatedRe
                 queryFilters.push({ type, date: d.startOf('month').toDate() });
             }
         }
-    } else if (type === AdmissionAggregationType.MONTH_AND_COURSE_WISE || type === AdmissionAggregationType.YEAR_AND_COURSE_WISE) {
+    } else if( type === AdmissionAggregationType.YEAR_AND_COURSE_WISE ){
+        for (let i = 0; i < 5; i++) {
+            const d = baseDate.clone().subtract(i, 'years');
+            queryFilters.push({ type, date: d.startOf('year').toDate(), courseCode: { $ne: 'ALL' } });
+        }
+    }else if (type === AdmissionAggregationType.MONTH_AND_COURSE_WISE) {
         queryFilters.push({ type, date: baseDate.toDate(), courseCode: { $ne: 'ALL' } });
     } else {
         throw createHttpError(400, 'Invalid type');
@@ -96,5 +101,32 @@ export const getAdmissionStats = expressAsyncHandler(async (req: AuthenticatedRe
 
     const data = await AdmissionAnalyticsModel.find({ $or: queryFilters });
 
-    formatResponse(res, 200, 'Admission stats fetched successfully', true, data);
+    if (type === AdmissionAggregationType.MONTH_AND_COURSE_WISE || type === AdmissionAggregationType.YEAR_AND_COURSE_WISE) {
+        // Group data by date
+        const groupedData: Record<string, { date: string, courseWise: { count: number; courseCode: string }[] }> = {};
+
+        data.forEach(item => {
+            const dateStr = moment(item.date).tz('Asia/Kolkata').format('DD/MM/YYYY');
+
+            if (!groupedData[dateStr]) {
+                groupedData[dateStr] = { date: dateStr, courseWise: [] };
+            }
+
+            groupedData[dateStr].courseWise.push({
+                count: item.count,
+                courseCode: item.courseCode,
+            });
+        });
+
+        const formattedData = Object.values(groupedData);
+
+        if (type === AdmissionAggregationType.MONTH_AND_COURSE_WISE) {
+            formatResponse(res, 200, 'Admission stats fetched successfully', true, { monthWise: formattedData });
+        } else {
+            formatResponse(res, 200, 'Admission stats fetched successfully', true, { yearWise: formattedData });
+        }
+    } else {
+        // For other types, keep existing format
+        formatResponse(res, 200, 'Admission stats fetched successfully', true, data);
+    }
 });
