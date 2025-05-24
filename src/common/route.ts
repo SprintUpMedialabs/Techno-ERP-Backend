@@ -7,3 +7,5 @@ export const downloadRoute = express.Router()
 downloadRoute.post('/admission', downloadAdmissionForm);
 downloadRoute.post('/transaction-slip', downloadTransactionSlip)
 downloadRoute.post('/admission-transaction-slip', downloadAdmissionTransactionSlip);
+
+export const otpRoute = express.Router();

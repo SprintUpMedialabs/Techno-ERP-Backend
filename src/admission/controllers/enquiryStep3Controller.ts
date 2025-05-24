@@ -9,8 +9,9 @@ import { uploadToS3 } from "../../config/s3Upload";
 import { updateOnlyOneValueInDropDown } from "../../utilityModules/dropdown/dropDownMetadataController";
 import { formatResponse } from "../../utils/formatResponse";
 import { Enquiry } from "../models/enquiry";
-import { IEnquiryDraftStep3Schema, enquiryDraftStep3Schema, enquiryStep3UpdateRequestSchema } from "../validators/enquiry";
+import { IEnquiryDraftStep3Schema, enquiryDraftStep3Schema, enquiryStep3UpdateRequestSchema, otpSchemaForStep3 } from "../validators/enquiry";
 import { singleDocumentSchema } from "../validators/singleDocumentSchema";
+import { sendOTP, validateOTP } from "../../common/otpController";
 
 export const saveStep3Draft = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
 
@@ -57,18 +58,40 @@ export const updateEnquiryStep3ById = expressAsyncHandler(functionLevelLogger(as
     _id: id,
     applicationStatus: ApplicationStatus.STEP_3
   });
+
   if (!isEnquiryExists) {
     throw createHttpError(400, 'Enquiry not found');
   }
 
-  const updatedData = await Enquiry.findByIdAndUpdate(id, { ...data, applicationStatus: ApplicationStatus.STEP_4 }, { new: true, runValidators: true });
+  const updatedData = await Enquiry.findByIdAndUpdate(id, { ...data, applicationStatus: ApplicationStatus.STEP_3 }, { new: true, runValidators: true });
+  await sendOTP(updatedData!.emailId);
 
   updateOnlyOneValueInDropDown(DropDownType.DISTRICT, updatedData?.address?.district);
   return formatResponse(res, 200, 'Enquiry data updated successfully', true, updatedData);
 }));
 
+export const verifyOtpAndUpdateEnquiryStatus = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
 
+  const validation = otpSchemaForStep3.safeParse(req.body);
 
+  if (!validation.success) {
+    throw createHttpError(400, validation.error.errors[0]);
+  }
+
+  const { id, otp } = validation.data;
+
+  const enquiry = await Enquiry.findOne({ _id: id, applicationStatus: ApplicationStatus.STEP_3 });
+
+  if (!enquiry) {
+    throw createHttpError(400, 'Enquiry not found');
+  }
+
+  await validateOTP(enquiry.emailId, otp);
+
+  await Enquiry.findByIdAndUpdate(id, { applicationStatus: ApplicationStatus.STEP_4 }, { runValidators: true });
+
+  return formatResponse(res, 200, 'Enquiry status updated successfully', true);
+}));
 
 export const updateEnquiryDocuments = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
 
@@ -90,7 +113,7 @@ export const updateEnquiryDocuments = expressAsyncHandler(functionLevelLogger(as
     _id: id,
     applicationStatus: ApplicationStatus.STEP_3
   });
-  
+
   if (!isEnquiryExists) {
     throw createHttpError(400, 'Enquiry not found');
   }

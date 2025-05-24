@@ -1,4 +1,3 @@
-import { Response } from 'express';
 import expressAsyncHandler from "express-async-handler";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
 import { FinalConversionType, LeadType, OFFLINE_SOURCES, ONLINE_SOURCES, PipelineName, UserRoles } from "../../config/constants";
@@ -13,6 +12,9 @@ import { createPipeline } from '../../pipline/controller';
 import { getISTDate } from '../../utils/getISTDate';
 import { User } from '../../auth/models/user';
 import { MarketingUserWiseAnalytics } from '../models/marketingUserWiseAnalytics';
+import { isAuthenticated } from '../../auth/controllers/authController';
+import { Response } from 'express';
+import createHttpError from "http-errors";
 
 export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     let {
@@ -226,73 +228,95 @@ export const getMarketingSourceWiseAnalytics = expressAsyncHandler(async (req: A
 
 
 export const initializeUserWiseAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const pipelineId = await createPipeline(PipelineName.INITIALIZE_MARKETING_ANALYTICS);
+    if (!pipelineId) 
+        throw createHttpError(400, "Pipeline creation failed");
+  
 
-    const yesterday = getISTDate(-1);
-    const marketingEmployees = await User.find({ roles: UserRoles.EMPLOYEE_MARKETING }, "_id firstName lastName").lean();
+    await retryMechanism(
+        async (session) => {
+            const yesterday = getISTDate(-1);
+            const marketingEmployees = await User.find({ roles: UserRoles.EMPLOYEE_MARKETING }, "_id firstName lastName").lean();
 
-    const yesterdayAnalytics = await MarketingUserWiseAnalytics.findOne({ date: yesterday }).lean();
+            const yesterdayAnalytics = await MarketingUserWiseAnalytics.findOne({ date: yesterday }).lean();
+            const yesterdayDataMap: Record<string, { totalFootFall: number; totalAdmissions: number }> = {};
 
-    const yesterdayDataMap: Record<string, { totalFootFall: number; totalAdmissions: number }> = {};
-    if (yesterdayAnalytics) {
-        for (const entry of yesterdayAnalytics.data) {
-            yesterdayDataMap[String(entry.userId)] = {
-                totalFootFall: entry.totalFootFall,
-                totalAdmissions: entry.totalAdmissions,
-            };
-        }
-    }
+            if (yesterdayAnalytics) {
+                for (const entry of yesterdayAnalytics.data) {
+                    yesterdayDataMap[String(entry.userId)] = {
+                        totalFootFall: entry.totalFootFall,
+                        totalAdmissions: entry.totalAdmissions,
+                    };
+                }
+            }
 
-    const initializedData = marketingEmployees.map(user => {
-        const userIdStr = String(user._id);
-        const previous = yesterdayDataMap[userIdStr] || { totalFootFall: 0, totalAdmissions: 0 };
+            const initializedData = marketingEmployees.map(user => {
+                const userIdStr = String(user._id);
+                const previous = yesterdayDataMap[userIdStr] || { totalFootFall: 0, totalAdmissions: 0 };
 
-        return {
-            userId: user._id,
-            userFirstName: user.firstName,
-            userLastName: user.lastName,
-            totalCalls: 0,
-            newLeadCalls: 0,
-            activeLeadCalls: 0,
-            nonActiveLeadCalls: 0,
-            totalFootFall: previous.totalFootFall,
-            totalAdmissions: previous.totalAdmissions,
-        };
-    });
+                return {
+                    userId: user._id,
+                    userFirstName: user.firstName,
+                    userLastName: user.lastName,
+                    totalCalls: 0,
+                    newLeadCalls: 0,
+                    activeLeadCalls: 0,
+                    nonActiveLeadCalls: 0,
+                    totalFootFall: previous.totalFootFall,
+                    totalAdmissions: previous.totalAdmissions,
+                };
+            });
 
-    const todayIST = getISTDate();
+            const todayIST = getISTDate();
 
-    await MarketingUserWiseAnalytics.create({
-        date: todayIST,
-        data: initializedData,
-    });
+            await MarketingUserWiseAnalytics.create(
+                [{ date: todayIST, data: initializedData }],
+                { session }
+            );
 
-    return formatResponse(res, 200, "Initialised data", true, initializedData);
+            return formatResponse(res, 201, "Initialized data", true, null);
+        },
+        "UserWise Analytics Initialization Failed",
+        "Failed to initialize user-wise analytics after multiple attempts.",
+        pipelineId,
+        PipelineName.INITIALIZE_MARKETING_ANALYTICS
+    );
 });
 
 
 export const reiterateLeads = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const leads = await LeadMaster.find({});
+    const pipelineId = await createPipeline(PipelineName.ITERATE_LEADS);
+    if (!pipelineId) throw createHttpError(400, "Pipeline creation failed");
+  
 
-    const bulkOps = leads.map((lead) => {
-        return {
-            updateOne: {
-                filter: { _id: lead._id },
-                update: {
-                    isCalledToday: false,
-                    isActiveLead: lead.leadType === LeadType.ACTIVE,
+    await retryMechanism(
+        async (session) => {
+            const leads = await LeadMaster.find({}).session(session);
+
+            const bulkOps = leads.map((lead) => ({
+                updateOne: {
+                    filter: { _id: lead._id },
+                    update: {
+                        isCalledToday: false,
+                        isActiveLead: lead.leadType === LeadType.ACTIVE,
+                    },
                 },
-            },
-        };
-    });
+            }));
 
-    if (bulkOps.length > 0) {
-        const bulkWriteResult = await LeadMaster.bulkWrite(bulkOps);
-        return formatResponse(res, 200, "Reiterated the Lead Master Table", true, bulkWriteResult.modifiedCount)
-    }
-    else {
-        return formatResponse(res, 200, "No Leads to update", true, null);
-    }
+            if (bulkOps.length > 0) {
+                const bulkWriteResult = await LeadMaster.bulkWrite(bulkOps, { session });
+                return formatResponse(res, 200, "Reiterated the Lead Master Table", true, bulkWriteResult.modifiedCount);
+            } else {
+                return formatResponse(res, 200, "No Leads to update", true, null);
+            }
+        },
+        "Lead Reiteration Failed",
+        "Failed to reiterate lead statuses after multiple attempts.",
+        pipelineId,
+        PipelineName.ITERATE_LEADS
+    );
 });
+
 
 
 export const getMarketingUserWiseAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
@@ -308,4 +332,48 @@ export const getMarketingUserWiseAnalytics = expressAsyncHandler(async (req: Aut
 
     return formatResponse(res, 200, "Marketing user wise analytics fetched successfully", true, todayAnalytics);
 
+})
+
+
+export const getDurationBasedUserAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const { startDate, endDate } = req.body;
+
+    const mongoStartDate = convertToMongoDate(startDate);
+    const mongoEndDate = convertToMongoDate(endDate);
+
+    const pipeline: any[] = [
+        {
+            $match: {
+                date: {
+                    $gte: mongoStartDate,
+                    $lt: mongoEndDate,
+                },
+            },
+        },
+        {
+            $unwind: '$data',
+        },
+        {
+            $sort: {
+                'data.userId': 1,
+                date: 1,
+            },
+        },
+        {
+            $group: {
+                _id: '$data.userId',
+                userFirstName: { $first: '$data.userFirstName' },
+                userLastName: { $first: '$data.userLastName' },
+                totalCalls: { $sum: '$data.totalCalls' },
+                newLeadCalls: { $sum: '$data.newLeadCalls' },
+                activeLeadCalls: { $sum: '$data.activeLeadCalls' },
+                nonActiveLeadCalls: { $sum: '$data.nonActiveLeadCalls' },
+                totalFootFall: { $last: '$data.totalFootFall' },
+                totalAdmissions: { $last: '$data.totalAdmissions' },
+            },
+        },
+    ];
+
+    const result = await MarketingUserWiseAnalytics.aggregate(pipeline);
+    return formatResponse(res, 200, "User Wise Analytics Fetched successfully", true, result);
 })
