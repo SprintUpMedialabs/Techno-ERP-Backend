@@ -41,7 +41,7 @@ const enquiry_1 = require("../models/enquiry");
 const enquiryDraft_1 = require("../models/enquiryDraft");
 const enquiryIdMetaDataSchema_1 = require("../models/enquiryIdMetaDataSchema");
 const studentFees_1 = require("../models/studentFees");
-const admissionController_1 = require("./admissionController");
+const admissionAnalyticsController_1 = require("./admissionAnalyticsController");
 exports.getEnquiryData = (0, express_async_handler_1.default)((0, functionLevelLogging_1.functionLevelLogger)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let { search, applicationStatus } = req.body;
     search !== null && search !== void 0 ? search : (search = '');
@@ -213,7 +213,7 @@ exports.approveEnquiry = (0, express_async_handler_1.default)((0, functionLevelL
             }], { session });
         const createdStudent = yield student_1.Student.create([Object.assign(Object.assign({ _id: enquiry._id }, studentCreateValidation.data), { transactionHistory: [createTransaction[0]._id] })], { session });
         console.log("Created student is : ", createdStudent);
-        (0, admissionController_1.incrementAdmissionAnalytics)(student.courseCode);
+        (0, admissionAnalyticsController_1.incrementAdmissionAnalytics)(student.courseCode);
         yield session.commitTransaction();
         session.endSession();
         return (0, formatResponse_1.formatResponse)(res, 200, 'Student created successfully with this information', true, null);

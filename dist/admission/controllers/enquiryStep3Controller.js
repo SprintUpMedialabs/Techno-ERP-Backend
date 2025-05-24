@@ -69,8 +69,7 @@ exports.updateEnquiryStep3ById = (0, express_async_handler_1.default)((0, functi
     if (!isEnquiryExists) {
         throw (0, http_errors_1.default)(400, 'Enquiry not found');
     }
-    // DACHECK: This is a temporary fix to ensure that the enquiry is updated to step 4 after the step 3 is updated till the time frontend is not ready for this feature
-    const updatedData = yield enquiry_1.Enquiry.findByIdAndUpdate(id, Object.assign(Object.assign({}, data), { applicationStatus: constants_1.ApplicationStatus.STEP_4 }), { new: true, runValidators: true });
+    const updatedData = yield enquiry_1.Enquiry.findByIdAndUpdate(id, Object.assign(Object.assign({}, data), { applicationStatus: constants_1.ApplicationStatus.STEP_3 }), { new: true, runValidators: true });
     yield (0, otpController_1.sendOTP)(updatedData.emailId);
     (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.DISTRICT, (_a = updatedData === null || updatedData === void 0 ? void 0 : updatedData.address) === null || _a === void 0 ? void 0 : _a.district);
     return (0, formatResponse_1.formatResponse)(res, 200, 'Enquiry data updated successfully', true, updatedData);
