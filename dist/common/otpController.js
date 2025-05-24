@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.validateOTP = exports.sendOTP = void 0;
 const http_errors_1 = __importDefault(require("http-errors"));
 const otp_1 = require("./otp");
+const mailer_1 = require("../config/mailer");
 const sendOTP = (email) => __awaiter(void 0, void 0, void 0, function* () {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const otpExpiry = new Date();
@@ -24,6 +25,7 @@ const sendOTP = (email) => __awaiter(void 0, void 0, void 0, function* () {
         otp,
         otpExpiry
     };
+    yield (0, mailer_1.sendEmail)(email, 'OTP', otp);
     yield otp_1.OtpModel.create(otpData);
     return true;
 });

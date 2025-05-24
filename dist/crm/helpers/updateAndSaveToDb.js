@@ -42,7 +42,6 @@ const leadsToBeInserted = (latestData, report, lastSavedIndex, citySet, sourceSe
             }
             // if assignTo is not mentationed in sheet
             if (!row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.AssignedTo]]) {
-                // logger.info('Assigned to not found at index : ', correspondingSheetIndex);
                 report.assignedToNotFound.push(correspondingSheetIndex);
                 report.rowsFailed++;
                 continue;
@@ -56,7 +55,6 @@ const leadsToBeInserted = (latestData, report, lastSavedIndex, citySet, sourceSe
             if (row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.Remarks]]) {
                 leadData.followUpCount = 1;
             }
-            console.log(leadData);
             const leadDataValidation = leads_1.leadSheetSchema.safeParse(leadData);
             if (leadDataValidation.success) {
                 if (leadDataValidation.data.phoneNumber.length == 0 && leadDataValidation.data.name.length == 0) {

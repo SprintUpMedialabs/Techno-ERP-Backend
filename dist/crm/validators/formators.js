@@ -37,7 +37,13 @@ const toTitleCase = (text) => {
 exports.toTitleCase = toTitleCase;
 const formatAndValidateLeadType = (val) => {
     const leadTypeValues = Object.values(constants_1.LeadType);
-    const formatted = val === null || val === void 0 ? void 0 : val.trim().toUpperCase();
+    let formatted = val === null || val === void 0 ? void 0 : val.trim().toUpperCase();
+    if (formatted === 'ACTIVE' || formatted == "INTERESTED") {
+        formatted = 'ACTIVE';
+    }
+    else if (formatted === 'NOT_INTERESTED' || formatted == "DEAD") {
+        formatted = 'NOT_INTERESTED';
+    }
     return (formatted && leadTypeValues.includes(formatted))
         ? formatted
         : constants_1.LeadType.LEFT_OVER;

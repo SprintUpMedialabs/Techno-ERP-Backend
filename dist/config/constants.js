@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.OFFLINE_SOURCES = exports.ONLINE_SOURCES = exports.StudentStatus = exports.MarketingAnalyticsEnum = exports.Actions = exports.FinanceFeeSchedule = exports.FinanceFeeType = exports.TransactionTypes = exports.FeeActions = exports.Schedule = exports.FeeStatus = exports.CourseYears = exports.CourseMaterialType = exports.RequestAction = exports.LectureConfirmation = exports.COLLECTION_NAMES = exports.PHOTO = exports.TGI = exports.ADMISSION = exports.AreaType = exports.Countries = exports.StatesOfIndia = exports.AdmissionMode = exports.FeeType = exports.Locations = exports.ModuleNames = exports.ApplicationStatus = exports.DocumentType = exports.AdmittedThrough = exports.BloodGroup = exports.Religion = exports.FormNoPrefixes = exports.EducationLevel = exports.Course = exports.PhysicalDocumentNoteStatus = exports.DropDownType = exports.AdmissionReference = exports.Category = exports.FinalConversionType = exports.LeadType = exports.Source = exports.Gender = exports.PipelineName = exports.PipelineStatus = exports.UserRoles = void 0;
+exports.AdmissionAggregationType = exports.OFFLINE_SOURCES = exports.ONLINE_SOURCES = exports.StudentStatus = exports.MarketingAnalyticsEnum = exports.Actions = exports.FinanceFeeSchedule = exports.FinanceFeeType = exports.TransactionTypes = exports.FeeActions = exports.Schedule = exports.FeeStatus = exports.CourseYears = exports.CourseMaterialType = exports.RequestAction = exports.LectureConfirmation = exports.COLLECTION_NAMES = exports.PHOTO = exports.TGI = exports.ADMISSION = exports.AreaType = exports.Countries = exports.StatesOfIndia = exports.AdmissionMode = exports.FeeType = exports.Locations = exports.ModuleNames = exports.ApplicationStatus = exports.DocumentType = exports.AdmittedThrough = exports.BloodGroup = exports.Religion = exports.FormNoPrefixes = exports.EducationLevel = exports.Course = exports.PhysicalDocumentNoteStatus = exports.DropDownType = exports.AdmissionReference = exports.Category = exports.FinalConversionType = exports.LeadType = exports.Source = exports.Gender = exports.PipelineName = exports.PipelineStatus = exports.UserRoles = void 0;
 /**
  * Marketing Module Enums
 */
@@ -309,6 +309,7 @@ var COLLECTION_NAMES;
     COLLECTION_NAMES["MARKETING_SOURCE_WISE_ANALYTICS"] = "marketingsourcewiseanalytics";
     COLLECTION_NAMES["MARKETING_USER_WISE_ANALYTICS"] = "marketinguserwiseanalytics";
     COLLECTION_NAMES["OTP"] = "otps";
+    COLLECTION_NAMES["ADMISSION_ANALYTICS"] = "admissionanalytics";
 })(COLLECTION_NAMES || (exports.COLLECTION_NAMES = COLLECTION_NAMES = {}));
 var LectureConfirmation;
 (function (LectureConfirmation) {
@@ -417,3 +418,10 @@ exports.OFFLINE_SOURCES = [
     'Student Reference',
     'Technoligence',
 ];
+var AdmissionAggregationType;
+(function (AdmissionAggregationType) {
+    AdmissionAggregationType["DATE_WISE"] = "totalAdmissionDateWise";
+    AdmissionAggregationType["MONTH_WISE"] = "totalAdmissionMonthWise";
+    AdmissionAggregationType["MONTH_AND_COURSE_WISE"] = "totalAdmissionMonthAndCourseWise";
+    AdmissionAggregationType["YEAR_AND_COURSE_WISE"] = "totalAdmissionYearAndCourseWise";
+})(AdmissionAggregationType || (exports.AdmissionAggregationType = AdmissionAggregationType = {}));
