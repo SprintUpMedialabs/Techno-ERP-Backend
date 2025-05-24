@@ -1,5 +1,6 @@
 import createHttpError from "http-errors";
 import { OtpModel } from "./otp";
+import { sendEmail } from "../config/mailer";
 
 export const sendOTP = async (email: string) => {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -11,6 +12,8 @@ export const sendOTP = async (email: string) => {
         otp,
         otpExpiry
     }
+
+    await sendEmail(email, 'OTP', otp);
 
     await OtpModel.create(otpData);
 
