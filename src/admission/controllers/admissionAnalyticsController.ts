@@ -49,7 +49,7 @@ export const incrementAdmissionAnalytics = async (courseCode: string) => {
 
 
 const getStartOfDateByType = (type: AdmissionAggregationType, dateStr: string): moment.Moment => {
-    const format = 'DD/MM/YYYY';
+    const format = 'DD-MM-YYYY'; // Corrected format
     const baseMoment = moment.tz(dateStr, format, 'Asia/Kolkata');
 
     switch (type) {

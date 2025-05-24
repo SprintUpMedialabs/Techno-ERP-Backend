@@ -1,5 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import { COLLECTION_NAMES, AdmissionAggregationType } from '../../config/constants';
+import { convertToDDMMYYYY } from '../../utils/convertDateToFormatedDate';
+import moment from 'moment-timezone';
 
 export interface IAdmissionAnalytics {
     type: AdmissionAggregationType;
@@ -36,6 +38,24 @@ const admissionAnalyticsSchema = new Schema<IAdmissionAnalyticsDocument>(
 
 // Optional compound index if you're querying often by (type + date + courseCode)
 admissionAnalyticsSchema.index({ type: 1, date: 1, courseCode: 1 }, { unique: true });
+
+const transformDates = (_: any, ret: any) => {
+    ['date'].forEach((key) => {
+      if (key == 'updatedAt') {
+        if (ret[key]) {
+          ret[key] = moment(ret[key]).tz('Asia/Kolkata').format('DD/MM/YYYY');
+        }
+      } else if (ret[key]) {
+        ret[key] = convertToDDMMYYYY(ret[key]);
+      }
+    });
+    delete ret.createdAt;
+    delete ret.__v;
+    return ret;
+  };
+  
+  admissionAnalyticsSchema.set('toJSON', { transform: transformDates });
+  admissionAnalyticsSchema.set('toObject', { transform: transformDates });
 
 export const AdmissionAnalyticsModel = mongoose.model<IAdmissionAnalyticsDocument>(
     COLLECTION_NAMES.ADMISSION_ANALYTICS,

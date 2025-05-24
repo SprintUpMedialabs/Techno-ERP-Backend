@@ -17,7 +17,7 @@ import { Enquiry } from '../models/enquiry';
 import { EnquiryDraft } from '../models/enquiryDraft';
 import { EnquiryApplicationId } from '../models/enquiryIdMetaDataSchema';
 import { StudentFeesModel } from '../models/studentFees';
-import { incrementAdmissionAnalytics } from './admissionController';
+import { incrementAdmissionAnalytics } from './admissionAnalyticsController';
 
 
 export const getEnquiryData = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
