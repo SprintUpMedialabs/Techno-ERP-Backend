@@ -23,7 +23,7 @@ exports.authenticate = (0, express_async_handler_1.default)((req, _, next) => __
     if (!token) {
         throw (0, http_errors_1.default)(401, 'Unauthorized. Please log in again');
     }
-    const decoded = (0, jwtHelper_1.verifyToken)(token);
+    const decoded = jwtHelper_1.jwtHelper.verifyToken(token);
     const parsedUser = authenticatedRequest_1.UserPayloadSchema.parse(decoded);
     req.data = parsedUser;
     next();

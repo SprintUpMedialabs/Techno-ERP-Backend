@@ -255,8 +255,8 @@ const SubjectSchema = new mongoose_1.Schema({
         required: true
     },
     attendance: {
-        type: [AttendanceModel],
-        default: []
+        type: AttendanceModel,
+        default: {}
     },
     exams: {
         type: [ExamsModel],
@@ -381,8 +381,8 @@ const removeExtraInfo = (_, ret) => {
     if (Array.isArray((_c = ret.studentInfo) === null || _c === void 0 ? void 0 : _c.physicalDocumentNote)) {
         ret.studentInfo.physicalDocumentNote = ret.studentInfo.physicalDocumentNote.map((note) => (Object.assign(Object.assign({}, note), { dueBy: note.dueBy ? (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(note.dueBy) : note.dueBy })));
     }
-    delete ret.createdAt;
-    delete ret.updatedAt;
+    // delete ret.createdAt;
+    // delete ret.updatedAt;
     delete ret.__v;
     return ret;
 };

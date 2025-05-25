@@ -32,7 +32,7 @@ exports.AttendanceSchema = zod_1.z.object({
 });
 exports.SubjectSchema = zod_1.z.object({
     subjectId: commonSchema_1.objectIdSchema,
-    attendance: zod_1.z.array(exports.AttendanceSchema).optional(), //This optional will be removed once we will add information of the exams.
+    attendance: exports.AttendanceSchema.optional(), //This optional will be removed once we will add information of the exams.
     exams: zod_1.z.array(exports.ExamsSchema).optional() //This optional will be removed once we will add information of the exams.
 });
 exports.SemesterSchema = zod_1.z.object({

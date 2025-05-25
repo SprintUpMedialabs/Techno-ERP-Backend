@@ -13,11 +13,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.fetchOtherFees = exports.fetchCourseFeeByCourse = exports.getOtherFees = exports.getCourseFeeByCourseName = exports.getFeesStructureById = exports.getAllFeesStructures = exports.updateFeesStructure = exports.createFeesStructure = void 0;
-const http_errors_1 = __importDefault(require("http-errors"));
-const courseAndOtherFees_model_1 = require("./courseAndOtherFees.model");
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
+const http_errors_1 = __importDefault(require("http-errors"));
+const constants_1 = require("../config/constants");
 const courseMetadata_1 = require("../course/models/courseMetadata");
 const formatResponse_1 = require("../utils/formatResponse");
+const courseAndOtherFees_model_1 = require("./courseAndOtherFees.model");
 const createFeesStructure = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const newDoc = yield courseAndOtherFees_model_1.CourseAndOtherFeesModel.create(req.body);
     res.status(201).json(newDoc);
@@ -63,13 +64,18 @@ const getOtherFees = (req, res) => __awaiter(void 0, void 0, void 0, function* (
 exports.getOtherFees = getOtherFees;
 const fetchCourseFeeByCourse = (courseCode) => __awaiter(void 0, void 0, void 0, function* () {
     const record = yield courseMetadata_1.CourseMetaData.findOne({
-        'courseCode': courseCode
+        'courseCode': courseCode,
+        'fee.semWiseFee.type': constants_1.FeeType.EDUCATION
     });
     if (!record)
         return null;
     const courseFee = record.fee.semWiseFee;
-    // console.log("Course Fee : ", courseFee);
-    return courseFee || null;
+    let feeAmt = [];
+    courseFee.forEach((fee) => {
+        if (fee.type == constants_1.FeeType.EDUCATION)
+            feeAmt = fee.fees;
+    });
+    return feeAmt || null;
 });
 exports.fetchCourseFeeByCourse = fetchCourseFeeByCourse;
 const fetchOtherFees = (courseCode) => __awaiter(void 0, void 0, void 0, function* () {
@@ -78,11 +84,19 @@ const fetchOtherFees = (courseCode) => __awaiter(void 0, void 0, void 0, functio
     });
     if (!record)
         return null;
-    // console.log("Record is : ", record);
-    // console.log("Fees : ", record.fee);
+    const courseFee = record.fee.semWiseFee;
+    let feeAmt = [];
+    courseFee.forEach((fee) => {
+        if (fee.type == constants_1.FeeType.BOOKBANK)
+            feeAmt = fee.fees;
+    });
+    const bookBankAmt = {
+        type: "Book Bank",
+        amount: feeAmt[0]
+    };
     const yearlyFee = record.fee.yearlyFee || [];
     const oneTimeFee = record.fee.oneTime || [];
-    const otherFees = [...yearlyFee, ...oneTimeFee];
+    const otherFees = [...yearlyFee, ...oneTimeFee, bookBankAmt];
     // console.log("Other fees : ", otherFees);
     return otherFees;
 });

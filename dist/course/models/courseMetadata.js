@@ -26,6 +26,16 @@ const FeeItemSchema = new mongoose_1.Schema({
         min: [0, 'Amount cannot be negative'],
     },
 }, { _id: false });
+const SemWiseFeeItemSchema = new mongoose_1.Schema({
+    type: {
+        type: String,
+        required: true,
+    },
+    fees: {
+        type: [Number],
+        required: true,
+    },
+}, { _id: false });
 exports.courseModelSchema = new mongoose_1.Schema({
     departmentName: {
         type: String,
@@ -81,7 +91,7 @@ exports.courseModelSchema = new mongoose_1.Schema({
             default: [],
         },
         semWiseFee: {
-            type: [Number],
+            type: [SemWiseFeeItemSchema],
             default: [],
         },
         oneTime: {

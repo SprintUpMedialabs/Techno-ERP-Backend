@@ -22,6 +22,7 @@ const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDa
 const formatResponse_1 = require("../../utils/formatResponse");
 const courseDues_1 = require("../models/courseDues");
 const courseMetadata_1 = require("../models/courseMetadata");
+const controller_1 = require("../../pipline/controller");
 exports.courseFeeDues = (0, express_async_handler_1.default)((_, res) => __awaiter(void 0, void 0, void 0, function* () {
     const today = new Date();
     const currentYear = today.getFullYear();
@@ -38,11 +39,14 @@ exports.courseFeeDues = (0, express_async_handler_1.default)((_, res) => __await
             select: 'firstName lastName email'
         }
     });
+    const pipelineId = yield (0, controller_1.createPipeline)(constants_1.PipelineName.COURSE_DUES);
+    if (!pipelineId)
+        throw (0, http_errors_1.default)(400, "Pipeline creation failed");
     yield (0, retryMechanism_1.retryMechanism)((session) => __awaiter(void 0, void 0, void 0, function* () {
         var _a;
         for (const course of courseList) {
             const { courseCode, courseName, courseDuration, collegeName } = course;
-            const date = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate() - 1));
+            const date = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
             const department = course.departmentMetaDataId;
             const hod = department === null || department === void 0 ? void 0 : department.departmentHODId;
             const departmentHODName = hod ? `${hod.firstName} ${hod.lastName}` : '';
@@ -111,7 +115,7 @@ exports.courseFeeDues = (0, express_async_handler_1.default)((_, res) => __await
             }
             yield courseDues_1.CourseDues.create([courseDetails], { session });
         }
-    }), 'Course Dues Pipeline Failure', "All retry limits expired for the course dues creation");
+    }), 'Course Dues Pipeline Failure', "All retry limits expired for the course dues creation", pipelineId, constants_1.PipelineName.COURSE_DUES);
     return (0, formatResponse_1.formatResponse)(res, 200, 'course dues recorded successfully', true);
 }));
 exports.getCourseDuesByDate = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
