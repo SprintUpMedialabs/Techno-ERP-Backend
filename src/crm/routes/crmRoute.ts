@@ -115,7 +115,7 @@ crmRoute.get('/user-wise-analytics-daily',
   getMarketingUserWiseAnalytics
 );
 
-crmRoute.get('/user-wise-analytics-duration', 
+crmRoute.post('/user-wise-analytics-duration', 
   authenticate, 
   authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING]), 
   getDurationBasedUserAnalytics
