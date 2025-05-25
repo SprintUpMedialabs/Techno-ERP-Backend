@@ -12,13 +12,17 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAdmissionStats = exports.incrementAdmissionAnalytics = void 0;
-const moment_timezone_1 = __importDefault(require("moment-timezone"));
-const admissionAnalytics_1 = require("../models/admissionAnalytics");
-const constants_1 = require("../../config/constants");
+exports.getAdmissionStats = exports.assignBaseValueToAdmissionAnalytics = exports.incrementAdmissionAnalytics = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const http_errors_1 = __importDefault(require("http-errors"));
+const moment_timezone_1 = __importDefault(require("moment-timezone"));
+const constants_1 = require("../../config/constants");
+const courseMetadata_1 = require("../../course/models/courseMetadata");
 const formatResponse_1 = require("../../utils/formatResponse");
+const admissionAnalytics_1 = require("../models/admissionAnalytics");
+const retryMechanism_1 = require("../../config/retryMechanism");
+const controller_1 = require("../../pipline/controller");
+const mongoose_1 = __importDefault(require("mongoose"));
 // DACHECK: This function should be robust enough so that if it get failed then it retries by its own until it get success and also should send mails upon 5th attempt failure
 // TEST: this function is going to be tested with the time
 const incrementAdmissionAnalytics = (courseCode) => __awaiter(void 0, void 0, void 0, function* () {
@@ -49,6 +53,59 @@ const incrementAdmissionAnalytics = (courseCode) => __awaiter(void 0, void 0, vo
     yield Promise.all(updatePromises);
 });
 exports.incrementAdmissionAnalytics = incrementAdmissionAnalytics;
+exports.assignBaseValueToAdmissionAnalytics = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { type } = req.query;
+    const courseList = yield courseMetadata_1.CourseMetaData.find().select('courseCode courseName');
+    const courseCodeList = courseList.map(course => ({ courseCode: course.courseCode, courseName: course.courseName }));
+    const now = (0, moment_timezone_1.default)().tz('Asia/Kolkata');
+    if (!Object.values(constants_1.AdmissionAggregationType).includes(type)) {
+        throw (0, http_errors_1.default)(400, 'Invalid type');
+    }
+    const pipelineId = yield (0, controller_1.createPipeline)(constants_1.PipelineName.ADMISSION_ANALYTICS_BASE_VALUE_ASSIGNMENT);
+    if (!pipelineId)
+        throw (0, http_errors_1.default)(400, "Pipeline creation failed");
+    const session = yield mongoose_1.default.startSession();
+    session.startTransaction();
+    (0, retryMechanism_1.retryMechanism)((session) => __awaiter(void 0, void 0, void 0, function* () {
+        if (type === constants_1.AdmissionAggregationType.DATE_WISE) {
+            yield admissionAnalytics_1.AdmissionAnalyticsModel.create({
+                type,
+                date: now.clone().startOf('day').toDate(),
+                courseCode: 'ALL',
+                count: 0,
+            }, { session });
+        }
+        else if (type === constants_1.AdmissionAggregationType.MONTH_WISE) {
+            yield admissionAnalytics_1.AdmissionAnalyticsModel.create({
+                type,
+                date: now.clone().startOf('month').toDate(),
+                courseCode: 'ALL',
+                count: 0,
+            }, { session });
+        }
+        else if (type === constants_1.AdmissionAggregationType.MONTH_AND_COURSE_WISE) {
+            yield Promise.all(courseCodeList.map((course) => __awaiter(void 0, void 0, void 0, function* () {
+                return yield admissionAnalytics_1.AdmissionAnalyticsModel.create({
+                    type,
+                    date: now.clone().startOf('month').toDate(),
+                    courseCode: course.courseCode,
+                    count: 0,
+                }, { session });
+            })));
+        }
+        else if (type === constants_1.AdmissionAggregationType.YEAR_AND_COURSE_WISE) {
+            yield Promise.all(courseCodeList.map((course) => __awaiter(void 0, void 0, void 0, function* () {
+                return yield admissionAnalytics_1.AdmissionAnalyticsModel.create({
+                    type,
+                    date: now.clone().startOf('year').toDate(),
+                    courseCode: course.courseCode,
+                    count: 0,
+                }, { session });
+            })));
+        }
+    }), `Base value assignment failed`, `Base value assignment failed for type ${type}`, pipelineId, constants_1.PipelineName.ADMISSION_ANALYTICS_BASE_VALUE_ASSIGNMENT, 5, 500);
+    (0, formatResponse_1.formatResponse)(res, 200, 'Base value assigned successfully', true, null);
+}));
 const getStartOfDateByType = (type, dateStr) => {
     const format = 'DD-MM-YYYY'; // Corrected format
     const baseMoment = moment_timezone_1.default.tz(dateStr, format, 'Asia/Kolkata');
@@ -73,7 +130,6 @@ exports.getAdmissionStats = (0, express_async_handler_1.default)((req, res) => _
     if (type === constants_1.AdmissionAggregationType.DATE_WISE) {
         for (let i = 0; i < 5; i++) {
             const d = baseDate.clone().subtract(i, 'days');
-            console.log(d.toDate());
             if (d.month() === baseDate.month()) {
                 queryFilters.push({ type, date: d.toDate() });
             }

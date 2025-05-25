@@ -31,6 +31,7 @@ var PipelineName;
     PipelineName["MARKETING_SOURCE_WISE_ANALYTICS"] = "MARKETING_SOURCE_WISE_ANALYTICS";
     PipelineName["INITIALIZE_MARKETING_ANALYTICS"] = "INITIALIZE_MARKETING_ANALYTICS";
     PipelineName["ITERATE_LEADS"] = "ITERATE_LEADS";
+    PipelineName["ADMISSION_ANALYTICS_BASE_VALUE_ASSIGNMENT"] = "ADMISSION_ANALYTICS_BASE_VALUE_ASSIGNMENT";
 })(PipelineName || (exports.PipelineName = PipelineName = {}));
 var Gender;
 (function (Gender) {

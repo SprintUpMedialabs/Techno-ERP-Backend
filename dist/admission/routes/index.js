@@ -12,3 +12,4 @@ const jwtAuthenticationMiddleware_1 = require("../../middleware/jwtAuthenticatio
 exports.admissionRoute = express_1.default.Router();
 exports.admissionRoute.use('/enquiry', enquiryFormRoute_1.enquiryRoute);
 exports.admissionRoute.get('/analytics', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER]), admissionAnalyticsController_1.getAdmissionStats);
+exports.admissionRoute.get('/assign-base-value', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.SYSTEM_ADMIN]), admissionAnalyticsController_1.assignBaseValueToAdmissionAnalytics);
