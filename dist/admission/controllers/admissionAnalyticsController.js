@@ -66,41 +66,41 @@ exports.assignBaseValueToAdmissionAnalytics = (0, express_async_handler_1.defaul
         throw (0, http_errors_1.default)(400, "Pipeline creation failed");
     const session = yield mongoose_1.default.startSession();
     session.startTransaction();
-    (0, retryMechanism_1.retryMechanism)((session) => __awaiter(void 0, void 0, void 0, function* () {
+    yield (0, retryMechanism_1.retryMechanism)((session) => __awaiter(void 0, void 0, void 0, function* () {
         if (type === constants_1.AdmissionAggregationType.DATE_WISE) {
-            yield admissionAnalytics_1.AdmissionAnalyticsModel.create({
-                type,
-                date: now.clone().startOf('day').toDate(),
-                courseCode: 'ALL',
-                count: 0,
-            }, { session });
+            yield admissionAnalytics_1.AdmissionAnalyticsModel.create([{
+                    type,
+                    date: now.clone().startOf('day').toDate(),
+                    courseCode: 'ALL',
+                    count: 0,
+                }], { session });
         }
         else if (type === constants_1.AdmissionAggregationType.MONTH_WISE) {
-            yield admissionAnalytics_1.AdmissionAnalyticsModel.create({
-                type,
-                date: now.clone().startOf('month').toDate(),
-                courseCode: 'ALL',
-                count: 0,
-            }, { session });
+            yield admissionAnalytics_1.AdmissionAnalyticsModel.create([{
+                    type,
+                    date: now.clone().startOf('month').toDate(),
+                    courseCode: 'ALL',
+                    count: 0,
+                }], { session });
         }
         else if (type === constants_1.AdmissionAggregationType.MONTH_AND_COURSE_WISE) {
             yield Promise.all(courseCodeList.map((course) => __awaiter(void 0, void 0, void 0, function* () {
-                return yield admissionAnalytics_1.AdmissionAnalyticsModel.create({
-                    type,
-                    date: now.clone().startOf('month').toDate(),
-                    courseCode: course.courseCode,
-                    count: 0,
-                }, { session });
+                return yield admissionAnalytics_1.AdmissionAnalyticsModel.create([{
+                        type,
+                        date: now.clone().startOf('month').toDate(),
+                        courseCode: course.courseCode,
+                        count: 0,
+                    }], { session });
             })));
         }
         else if (type === constants_1.AdmissionAggregationType.YEAR_AND_COURSE_WISE) {
             yield Promise.all(courseCodeList.map((course) => __awaiter(void 0, void 0, void 0, function* () {
-                return yield admissionAnalytics_1.AdmissionAnalyticsModel.create({
-                    type,
-                    date: now.clone().startOf('year').toDate(),
-                    courseCode: course.courseCode,
-                    count: 0,
-                }, { session });
+                return yield admissionAnalytics_1.AdmissionAnalyticsModel.create([{
+                        type,
+                        date: now.clone().startOf('year').toDate(),
+                        courseCode: course.courseCode,
+                        count: 0,
+                    }], { session });
             })));
         }
     }), `Base value assignment failed`, `Base value assignment failed for type ${type}`, pipelineId, constants_1.PipelineName.ADMISSION_ANALYTICS_BASE_VALUE_ASSIGNMENT, 5, 500);
