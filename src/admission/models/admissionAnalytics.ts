@@ -41,13 +41,7 @@ admissionAnalyticsSchema.index({ type: 1, date: 1, courseCode: 1 }, { unique: tr
 
 const transformDates = (_: any, ret: any) => {
     ['date'].forEach((key) => {
-      if (key == 'updatedAt') {
-        if (ret[key]) {
-          ret[key] = moment(ret[key]).tz('Asia/Kolkata').format('DD/MM/YYYY');
-        }
-      } else if (ret[key]) {
-        ret[key] = convertToDDMMYYYY(ret[key]);
-      }
+      ret[key] = moment(ret[key]).tz('Asia/Kolkata').format('DD/MM/YYYY');
     });
     delete ret.createdAt;
     delete ret.__v;

@@ -40,7 +40,7 @@ enquiryRoute.put('/step-3', authenticate,
     updateEnquiryStep3ById
 );
 
-enquiryRoute.put('/step-3/verify-otp', authenticate,
+enquiryRoute.post('/step-3/verify-otp', authenticate,
     authorize([UserRoles.REGISTAR, UserRoles.BASIC_USER]),
     verifyOtpAndUpdateEnquiryStatus
 );
