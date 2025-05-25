@@ -1,12 +1,16 @@
 
-import moment from 'moment-timezone';
-import { AdmissionAnalyticsModel } from '../models/admissionAnalytics';
-import { AdmissionAggregationType } from '../../config/constants';
-import expressAsyncHandler from 'express-async-handler';
-import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
 import { Response } from 'express';
+import expressAsyncHandler from 'express-async-handler';
 import createHttpError from 'http-errors';
+import moment from 'moment-timezone';
+import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
+import { AdmissionAggregationType, PipelineName } from '../../config/constants';
+import { CourseMetaData } from '../../course/models/courseMetadata';
 import { formatResponse } from '../../utils/formatResponse';
+import { AdmissionAnalyticsModel } from '../models/admissionAnalytics';
+import { retryMechanism } from '../../config/retryMechanism';
+import { createPipeline } from '../../pipline/controller';
+import mongoose from 'mongoose';
 
 // DACHECK: This function should be robust enough so that if it get failed then it retries by its own until it get success and also should send mails upon 5th attempt failure
 // TEST: this function is going to be tested with the time
@@ -46,6 +50,59 @@ export const incrementAdmissionAnalytics = async (courseCode: string) => {
 
     await Promise.all(updatePromises);
 };
+
+export const assignBaseValueToAdmissionAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const { type } = req.query;
+    const courseList = await CourseMetaData.find().select('courseCode courseName');
+    const courseCodeList = courseList.map(course => ({ courseCode: course.courseCode, courseName: course.courseName }));
+    const now = moment().tz('Asia/Kolkata');
+    if (!Object.values(AdmissionAggregationType).includes(type as AdmissionAggregationType)) {
+        throw createHttpError(400, 'Invalid type');
+    }
+    const pipelineId = await createPipeline(PipelineName.ADMISSION_ANALYTICS_BASE_VALUE_ASSIGNMENT);
+    if (!pipelineId) throw createHttpError(400, "Pipeline creation failed");
+
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    retryMechanism(async (session) => {
+        if (type === AdmissionAggregationType.DATE_WISE) {
+            await AdmissionAnalyticsModel.create({
+                type,
+                date: now.clone().startOf('day').toDate(),
+                courseCode: 'ALL',
+                count: 0,
+            }, { session });
+        } else if (type === AdmissionAggregationType.MONTH_WISE) {
+            await AdmissionAnalyticsModel.create({
+                type,
+                date: now.clone().startOf('month').toDate(),
+                courseCode: 'ALL',
+                count: 0,
+            }, { session });
+        } else if (type === AdmissionAggregationType.MONTH_AND_COURSE_WISE) {
+            await Promise.all(courseCodeList.map(async course =>
+                await AdmissionAnalyticsModel.create({
+                    type,
+                    date: now.clone().startOf('month').toDate(),
+                    courseCode: course.courseCode,
+                    count: 0,
+                }, { session })
+            ));
+        } else if (type === AdmissionAggregationType.YEAR_AND_COURSE_WISE) {
+            await Promise.all(courseCodeList.map(async course =>
+                await AdmissionAnalyticsModel.create({
+                    type,
+                    date: now.clone().startOf('year').toDate(),
+                    courseCode: course.courseCode,
+                    count: 0,
+                }, { session })
+            ));
+        }
+    }, `Base value assignment failed`, `Base value assignment failed for type ${type}`, pipelineId, PipelineName.ADMISSION_ANALYTICS_BASE_VALUE_ASSIGNMENT, 5, 500);
+
+    formatResponse(res, 200, 'Base value assigned successfully', true, null);
+});
 
 
 const getStartOfDateByType = (type: AdmissionAggregationType, dateStr: string): moment.Moment => {
@@ -88,12 +145,12 @@ export const getAdmissionStats = expressAsyncHandler(async (req: AuthenticatedRe
                 queryFilters.push({ type, date: d.startOf('month').toDate() });
             }
         }
-    } else if( type === AdmissionAggregationType.YEAR_AND_COURSE_WISE ){
+    } else if (type === AdmissionAggregationType.YEAR_AND_COURSE_WISE) {
         for (let i = 0; i < 5; i++) {
             const d = baseDate.clone().subtract(i, 'years');
             queryFilters.push({ type, date: d.startOf('year').toDate(), courseCode: { $ne: 'ALL' } });
         }
-    }else if (type === AdmissionAggregationType.MONTH_AND_COURSE_WISE) {
+    } else if (type === AdmissionAggregationType.MONTH_AND_COURSE_WISE) {
         queryFilters.push({ type, date: baseDate.toDate(), courseCode: { $ne: 'ALL' } });
     } else {
         throw createHttpError(400, 'Invalid type');
