@@ -14,11 +14,7 @@ import { CollegeTransaction } from "../models/collegeTransactionHistory";
 import { CourseWiseDetails, CourseWiseInformation, FinanceAnalytics } from "../models/financeAnalytics";
 import { Student } from "../models/student";
 import { createPipeline } from "../../pipline/controller";
-
-/*
-  academicYear : 2024-2025
-  course 
-*/
+import moment from "moment-timezone";
 
 export const createFinanceAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const today = new Date();
@@ -26,15 +22,12 @@ export const createFinanceAnalytics = expressAsyncHandler(async (req: Authentica
   const currentMonth = today.getMonth();
   const courseYears = ['', CourseYears.First, CourseYears.Second, CourseYears.Third, CourseYears.Fourth];
 
-  //DTODO : Handle edge case here
-  const date = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate() - 1));
+  const date = moment().tz('Asia/Kolkata').startOf('day').subtract(1, 'day').toDate();
 
   const academicYear =
     currentMonth >= 6
       ? `${currentYear}-${currentYear + 1}`
       : `${currentYear - 1}-${currentYear}`;
-
-  console.log("Academic Year : ", academicYear);
 
   const courseList = await CourseMetaData.find(
     {},
@@ -109,19 +102,6 @@ export const createFinanceAnalytics = expressAsyncHandler(async (req: Authentica
               }
             }
           },
-          /*
-            3rd:
-            actual fee: 5000
-            paid : 5000
-            4th 
-            actual fee: 5000
-            paid : 4000
-            5th
-            actual fee: 5000
-            paid : 4000
-            6th:
-            dueDate Null:
-          */
           { $unwind: "$semesters" },
           {
             $group: {
@@ -202,13 +182,10 @@ export const fetchDayWiseAnalytics = expressAsyncHandler(async (req: Authenticat
 
   const pastDates = getPastSevenDates(date);
 
-  // console.log("Past 7 days dates are : ", pastDates);
-
   const pastSevenDocs = await FinanceAnalytics.find({
     date: { $in: pastDates },
   }).sort({ date: 1 });
 
-  // console.log("Past 7 days docs : ", pastSevenDocs);
   const pastSevenDayDocs: { date: string; dailyCollection: number; }[] = [];
   pastSevenDocs.forEach(daywiseDoc => {
     pastSevenDayDocs.push({
@@ -250,8 +227,6 @@ export const fetchMonthWiseAnalytics = expressAsyncHandler(async (req: Authentic
 
   const datesOfMonth = getDatesOfMonth(monthNumber);
 
-  // console.log("Dates of Month are : ", datesOfMonth);
-
   let data = await FinanceAnalytics.find({
     date: { $in: datesOfMonth },
   }).sort({ date: 1 });
@@ -288,9 +263,6 @@ export const fetchMonthWiseAnalytics = expressAsyncHandler(async (req: Authentic
     }))
   }));
 
-  // console.log("Total Collection : ", totalCollection);
-  // console.log("Month wise data : ", monthWiseData);
-  // console.log("Course wise collection : ", courseWiseCollection);
   return formatResponse(res, 200, "Monthwise analytics fetched successfully", true, {
     totalCollection: totalCollection,
     monthWiseData: monthWiseData,
