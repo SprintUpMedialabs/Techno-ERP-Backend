@@ -65,38 +65,38 @@ export const assignBaseValueToAdmissionAnalytics = expressAsyncHandler(async (re
     const session = await mongoose.startSession();
     session.startTransaction();
 
-    retryMechanism(async (session) => {
+    await retryMechanism(async (session) => {
         if (type === AdmissionAggregationType.DATE_WISE) {
-            await AdmissionAnalyticsModel.create({
+            await AdmissionAnalyticsModel.create([{
                 type,
                 date: now.clone().startOf('day').toDate(),
                 courseCode: 'ALL',
                 count: 0,
-            }, { session });
+            }], { session });
         } else if (type === AdmissionAggregationType.MONTH_WISE) {
-            await AdmissionAnalyticsModel.create({
+            await AdmissionAnalyticsModel.create([{
                 type,
                 date: now.clone().startOf('month').toDate(),
                 courseCode: 'ALL',
                 count: 0,
-            }, { session });
+            }], { session });
         } else if (type === AdmissionAggregationType.MONTH_AND_COURSE_WISE) {
             await Promise.all(courseCodeList.map(async course =>
-                await AdmissionAnalyticsModel.create({
+                await AdmissionAnalyticsModel.create([{
                     type,
                     date: now.clone().startOf('month').toDate(),
                     courseCode: course.courseCode,
                     count: 0,
-                }, { session })
+                }], { session })
             ));
         } else if (type === AdmissionAggregationType.YEAR_AND_COURSE_WISE) {
             await Promise.all(courseCodeList.map(async course =>
-                await AdmissionAnalyticsModel.create({
+                await AdmissionAnalyticsModel.create([{
                     type,
                     date: now.clone().startOf('year').toDate(),
                     courseCode: course.courseCode,
                     count: 0,
-                }, { session })
+                }], { session })
             ));
         }
     }, `Base value assignment failed`, `Base value assignment failed for type ${type}`, pipelineId, PipelineName.ADMISSION_ANALYTICS_BASE_VALUE_ASSIGNMENT, 5, 500);
