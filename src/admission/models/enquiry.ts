@@ -1,15 +1,15 @@
 import createHttpError from 'http-errors';
 import mongoose, { Schema, Types } from 'mongoose';
-import { AdmissionMode, AdmissionReference, AdmittedThrough, ApplicationStatus, AreaType, BloodGroup, Category, COLLECTION_NAMES, Course, Gender, Religion, StatesOfIndia } from '../../config/constants';
+import { AdmissionMode, AdmissionReference, AdmittedThrough, ApplicationStatus, AreaType, BloodGroup, Category, COLLECTION_NAMES, Gender, Religion, StatesOfIndia } from '../../config/constants';
 import { convertToDDMMYYYY, convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import { contactNumberSchema, emailSchema } from '../../validators/commonSchema';
 import { IEnquirySchema } from '../validators/enquiry';
 import { academicDetailFormSchema } from './academicDetail';
 import { addressSchema } from './address';
+import { entranceExamDetailSchema } from './entranceExamDetail';
+import { physicalDocumentNoteSchema } from './physicalDocumentNoteSchema';
 import { previousCollegeDataSchema } from './previousCollegeData';
 import { singleDocumentSchema } from './singleDocument';
-import { entranceExamDetailSchema } from './entranceExamDetail';
-import { IPhysicalDocumentNoteSchemaDoc, physicalDocumentNoteSchema } from './physicalDocumentNoteSchema';
 
 export interface IEnquiryDocument extends IEnquirySchema, Document {
   formNo: string;
@@ -282,7 +282,7 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
     },
     isFeeApplicable : {
       type : Boolean,
-      default : false
+      default : true
     }
   },
 

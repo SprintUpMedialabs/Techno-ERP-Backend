@@ -691,3 +691,8 @@ export const editFeeBreakUp = expressAsyncHandler(async (req: AuthenticatedReque
 
     return formatResponse(res, 200, "Student fees updated successfully", true, null);
 });
+
+
+export const assignDueDateByCourseAndSemester = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const { courseCode, semesterNumber } = req.body;
+});

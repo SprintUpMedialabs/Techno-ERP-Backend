@@ -25,6 +25,8 @@ export const leadMasterSchema = z.object({
   finalConversion: z.nativeEnum(FinalConversionType).optional().default(FinalConversionType.NO_FOOTFALL),
   remarks: z.array(z.string().optional()).default([]),
   followUpCount: z.number().optional().default(0),
+  isCalledToday : z.boolean().optional(),
+  isActiveLead : z.boolean().optional()
 })
 
 export const leadSchema = leadMasterSchema.omit({
@@ -49,8 +51,8 @@ export const leadSheetSchema = z.object({
   city: z.string().optional().transform(toTitleCase),
   assignedTo: z.string().transform(splitEmails),
   gender: z.string().optional().transform(val => val?.toUpperCase()),
-
-  // temporary fields
+  followUpCount: z.number().optional().default(0),
+    // temporary fields
   course: z.string().optional().transform(val => val?.toUpperCase()),
   area: z.string().optional().transform(toTitleCase),
   leadType: z.string().transform(formatAndValidateLeadType),

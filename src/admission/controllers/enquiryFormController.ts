@@ -17,6 +17,7 @@ import { Enquiry } from '../models/enquiry';
 import { EnquiryDraft } from '../models/enquiryDraft';
 import { EnquiryApplicationId } from '../models/enquiryIdMetaDataSchema';
 import { StudentFeesModel } from '../models/studentFees';
+import { incrementAdmissionAnalytics } from './admissionAnalyticsController';
 
 
 export const getEnquiryData = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
@@ -140,7 +141,7 @@ export const getEnquiryById = expressAsyncHandler(functionLevelLogger(async (req
 
 
 export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
-  const { id, transactionType } = req.body;
+  const { id, transactionType,transactionRemark } = req.body;
 
   const validation = objectIdSchema.safeParse(id);
 
@@ -223,11 +224,6 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
     if (!studentValidation.success)
       throw createHttpError(400, studentValidation.error.errors[0]);
 
-    // const student = await Student.create([{
-    //   _id: enquiry._id,
-    //   ...studentValidation.data,
-    // }], { session });
-
     const { transactionAmount, ...student } = await createStudent(req.data?.id, studentValidation.data);
     
     console.log("Transaction Amount is : ", transactionAmount);
@@ -261,7 +257,6 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
     console.log("Transaction Amount : ", transactionAmount);
     console.log("Transaction Settlement History : ", transactionSettlementHistory);
 
-    // DTODO: create student first and then create transaction so we can remove this 2 db call for create txn
     const createTransaction = await CollegeTransaction.create([{
       studentId: enquiry._id,
       dateTime: new Date(),
@@ -270,7 +265,10 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
       txnType: transactionType ?? TransactionTypes.CASH,
       actionedBy: req?.data?.id,
       transactionSettlementHistory: transactionSettlementHistory,
-      // remark : transactionRemark
+      remark : transactionRemark,
+      courseCode: student.courseCode,
+      courseName: student.courseName,
+      courseYear: getCourseYearFromSemNumber(student.currentSemester)
     }], { session });
 
     const createdStudent = await Student.create([{
@@ -281,20 +279,7 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
 
     console.log("Created student is : ", createdStudent);
 
-    console.log("STudent is : ", student);
-    console.log("Couse COde : ", student.courseCode);
-    console.log("COurse Name  : ", student.courseName)
-
-    // DTODO: isme session nahi hai 🥹🥹🥹🥹
-      // but i think fine anyway this will be removed.
-    await CollegeTransaction.findByIdAndUpdate(enquiry._id, {
-      $set: {
-        courseCode: student.courseCode,
-        courseName: student.courseName,
-        courseYear: getCourseYearFromSemNumber(student.currentSemester)
-      }
-    })
-
+    incrementAdmissionAnalytics(student.courseCode);
     await session.commitTransaction();
     session.endSession();
 

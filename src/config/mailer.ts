@@ -1,11 +1,11 @@
+import createHttpError from 'http-errors';
 import nodemailer from 'nodemailer';
 import {
+  NODEMAILER_GMAIL_APP_PASSWORD,
   NODEMAILER_HOST,
   NODEMAILER_PORT,
-  NODEMAILER_SENDER_ADDRESS,
-  NODEMAILER_GMAIL_APP_PASSWORD
+  NODEMAILER_SENDER_ADDRESS
 } from '../secrets';
-import logger from './logger';
 
 type Attachment = {
   filename: string;
@@ -32,12 +32,12 @@ export const sendEmail = async (to: string, subject: string, text: string, attac
     attachments
   };
 
-  transport.sendMail(mailOptions, function (err : any, info : any) {
-    if (err) {
-      logger.error('Error in sending email');
-      logger.error(err);
-    } else {
-      logger.info('Mail sent successfully');
-    }
-  });
+  console.log("Mail Options : ", mailOptions);
+
+  try {
+    const info = await transport.sendMail(mailOptions);
+    return info;
+  } catch (err: any) {
+    throw createHttpError(400, err.message);
+  }
 };
