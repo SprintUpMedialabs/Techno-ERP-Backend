@@ -234,8 +234,8 @@ const SubjectSchema = new Schema<ISubjectDocument>({
         required: true
     },
     attendance: {
-        type: [AttendanceModel],
-        default: []
+        type: AttendanceModel,
+        default: {}
     },
     exams: {
         type: [ExamsModel],
@@ -371,8 +371,8 @@ export const removeExtraInfo = (_: any, ret: any) => {
             dueBy: note.dueBy ? convertToDDMMYYYY(note.dueBy) : note.dueBy,
         }));
     }
-    delete ret.createdAt;
-    delete ret.updatedAt;
+    // delete ret.createdAt;
+    // delete ret.updatedAt;
     delete ret.__v;
     return ret;
 };

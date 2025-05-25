@@ -14,14 +14,19 @@ export enum CourseStatus {
   INACTIVE = 'Inactive',
 }
 
-interface IFeeItem {
+export interface IFeeItem {
   type: string;
   amount: number;
 }
 
+interface SemWiseFeeItem{
+  type : string;
+  fees: number[]
+}
+
 interface IFeeSchema {
   yearlyFee: IFeeItem[];
-  semWiseFee: IFeeItem[];
+  semWiseFee: SemWiseFeeItem[];
   oneTime: IFeeItem[];
 }
 
@@ -53,6 +58,20 @@ const FeeItemSchema = new Schema<IFeeItem>(
       type: Number,
       required: true,
       min: [0, 'Amount cannot be negative'],
+    },
+  },
+  { _id: false }
+);
+
+const SemWiseFeeItemSchema = new Schema<SemWiseFeeItem>(
+  {
+    type: {
+      type: String,
+      required: true,
+    },
+    fees: {
+      type: [Number],
+      required: true,
     },
   },
   { _id: false }
@@ -114,7 +133,7 @@ export const courseModelSchema = new Schema<ICourseMetaDataDocument>(
         default: [],
       },
       semWiseFee: {
-        type: [Number],
+        type: [SemWiseFeeItemSchema],
         default: [],
       },
       oneTime: {

@@ -7,6 +7,14 @@ import { CollegeMetaData } from "../models/collegeMetaData";
 import { convertToDDMMYYYY } from "../../utils/convertDateToFormatedDate";
 import { formatResponse } from "../../utils/formatResponse";
 import { Enquiry } from "../models/enquiry";
+import { ISingleDocumentSchema } from "../validators/singleDocumentSchema";
+
+const getDocument = (label: string, documents: ISingleDocumentSchema[]) => {
+    const note = documents?.find(p =>
+        p.type?.toLowerCase().includes(label.toLowerCase())
+    );
+    return note ? (note.fileUrl ? note.fileUrl : note.dueBy) : '';
+};
 
 export const downloadAdmissionForm = expressAsyncHandler(async (req : AuthenticatedRequest, res : Response)=>{
     const { studentId } = req.body;
@@ -43,6 +51,7 @@ export const downloadAdmissionForm = expressAsyncHandler(async (req : Authentica
         state : student?.studentInfo.address.state,
         academicDetails : student?.studentInfo.academicDetails || [],
         entranceExamDetails : student?.studentInfo.entranceExamDetails || {},
+        profileImage : getDocument("Photo",student?.studentInfo.documents ?? [])
     };
     return formatResponse(res, 200, "Fetched the reciept data successfully!", true,  responseObj);
 })

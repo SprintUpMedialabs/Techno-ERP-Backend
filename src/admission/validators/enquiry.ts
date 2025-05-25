@@ -52,9 +52,9 @@ export const enquirySchema = z.object({
 
   previousCollegeData: previousCollegeDataSchema.optional(),
 
-  stateOfDomicile: z.nativeEnum(StatesOfIndia).optional(),
+  stateOfDomicile: z.nativeEnum(StatesOfIndia).default(StatesOfIndia.UTTAR_PRADESH),
   areaType: z.nativeEnum(AreaType).optional(),
-  nationality: z.string().optional(),
+  nationality: z.string().default('INDIAN'),
 
   entranceExamDetails: entranceExamDetailSchema.optional(),
 
@@ -74,11 +74,11 @@ export const enquirySchema = z.object({
 
   physicalDocumentNote: z.array(physicalDocumentNoteSchema).optional(),
 
-  aadharNumber: z.string().regex(/^\d{12}$/, 'Aadhar Number must be exactly 12 digits').optional(),
+  aadharNumber: z.string().regex(/^\d{12}$/, 'Aadhar Number must be exactly 12 digits'),
   religion: z.nativeEnum(Religion).optional(),
   bloodGroup: z.nativeEnum(BloodGroup).optional(),
   admittedBy: z.union([objectIdSchema, z.enum(['Other'])]).optional(),
-  isFeeApplicable : z.boolean().default(false).optional()
+  isFeeApplicable : z.boolean().default(true)
 });
 
 
@@ -99,6 +99,11 @@ export const enquiryStep3UpdateRequestSchema = enquirySchema.omit({ documents: t
   id: objectIdSchema,
   physicalDocumentNote: z.array(physicalDocumentNoteRequestSchema).optional()
 }).strict();
+
+export const otpSchemaForStep3 = z.object({
+  otp: z.string(),
+  id: objectIdSchema
+});
 
 
 export const enquiryDraftStep3Schema = enquiryStep3UpdateRequestSchema

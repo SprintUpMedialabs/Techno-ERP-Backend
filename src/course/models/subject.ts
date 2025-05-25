@@ -9,6 +9,7 @@ export interface ISubjectDocument extends ISubjectSchema, Document {
     isDeleted : boolean
 };
 
+
 export const subjectModelSchema = new Schema<ISubjectDocument>({
     subjectName: {
         type: String,

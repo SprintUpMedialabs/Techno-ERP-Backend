@@ -42,7 +42,6 @@ const leadsToBeInserted = async (
 
       // if assignTo is not mentationed in sheet
       if (!row[requiredColumnHeaders[MarketingsheetHeaders.AssignedTo]]) {
-        // logger.info('Assigned to not found at index : ', correspondingSheetIndex);
         report.assignedToNotFound.push(correspondingSheetIndex);
         report.rowsFailed++;
         continue;
@@ -72,7 +71,10 @@ const leadsToBeInserted = async (
       ) {
         leadData.gender = Gender[row[requiredColumnHeaders[MarketingsheetHeaders.Gender]] as keyof typeof Gender];
       }
-      console.log(leadData);
+
+      if (row[requiredColumnHeaders[MarketingsheetHeaders.Remarks]]) {
+        leadData.followUpCount = 1;
+      }
 
       const leadDataValidation = leadSheetSchema.safeParse(leadData);
 
