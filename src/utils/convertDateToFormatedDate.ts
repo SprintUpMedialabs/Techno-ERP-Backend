@@ -10,7 +10,9 @@ export const convertToMongoDate = (dateString: string | Date): Date => {
   return new Date(Date.UTC(year, month - 1, day));
 };
 
-export const convertToDDMMYYYY = (dateObj: Date | string): string => {
+export const convertToDDMMYYYY = (dateObj: Date | string | undefined): string => {
+  if(!dateObj)
+    return ""
   if (typeof dateObj === 'string') {
     dateObj = new Date(dateObj);
   }

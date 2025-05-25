@@ -3,7 +3,7 @@ import expressAsyncHandler from "express-async-handler";
 import createHttpError from "http-errors";
 import mongoose from "mongoose";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
-import { ApplicationStatus, Course } from "../../config/constants";
+import { ApplicationStatus, Course, FeeType } from "../../config/constants";
 import { functionLevelLogger } from "../../config/functionLevelLogging";
 import { fetchCourseFeeByCourse, fetchOtherFees } from "../../fees/courseAndOtherFees.controller";
 import { formatResponse } from "../../utils/formatResponse";
@@ -51,6 +51,8 @@ export const createEnquiryStep2 = expressAsyncHandler(functionLevelLogger(async 
 
     const { counsellor, telecaller, ...feeRelatedData } = validation.data;
 
+    const sem1FeeDepositedTOA = feeRelatedData.otherFees?.find(fee => fee.type === 'SEM1FEE')?.feesDepositedTOA ?? 0;
+
     const feeData: IStudentFeesSchema = {
       ...feeRelatedData,
       otherFees: feeRelatedData.otherFees?.map(fee => {
@@ -66,7 +68,7 @@ export const createEnquiryStep2 = expressAsyncHandler(functionLevelLogger(async 
       semWiseFees: feeRelatedData.semWiseFees.map((semFee, index: number) => ({
         finalFee: semFee.finalFee,
         feeAmount: semWiseFee[index].amount ?? 0,
-        feesPaid: 0,
+        feesPaid: index === 0 ? sem1FeeDepositedTOA : 0, 
       })),
     };
 

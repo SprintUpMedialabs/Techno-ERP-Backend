@@ -10,7 +10,24 @@ export enum UserRoles {
   REGISTAR = 'REGISTAR',
   HOD = 'HOD',
   INSTRUCTOR = 'INSTRUCTOR',
-  SYSTEM_ADMIN = 'SYSTEM_ADMIN'
+  SYSTEM_ADMIN = 'SYSTEM_ADMIN',
+  STUDENT = 'STUDENT'
+}
+
+export enum PipelineStatus {
+  STARTED = 'STARTED',
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
+}
+
+export enum PipelineName {
+  COURSE_DUES = 'COURSE_DUES',
+  FINANCE_ANALYTICS = 'FINANCE_ANALYTICS',
+  BACKUP = 'BACKUP',
+  MARKETING_SOURCE_WISE_ANALYTICS = "MARKETING_SOURCE_WISE_ANALYTICS",
+  INITIALIZE_MARKETING_ANALYTICS = "INITIALIZE_MARKETING_ANALYTICS",
+  ITERATE_LEADS = "ITERATE_LEADS",
+  ADMISSION_ANALYTICS_BASE_VALUE_ASSIGNMENT = "ADMISSION_ANALYTICS_BASE_VALUE_ASSIGNMENT"
 }
 
 export enum Gender {
@@ -211,7 +228,8 @@ export enum FeeType {
   UNIFORM = "UNIFORM",
   STUDENTWELFARE = "STUDENTWELFARE",
   BOOKBANK = "BOOKBANK",
-  EXAMFEES = "EXAMFEES"
+  EXAMFEES = "EXAMFEES",
+  EDUCATION = "EDUCATION"
 }
 
 export enum AdmissionMode {
@@ -276,34 +294,36 @@ export const ADMISSION = 'admissions'
 export const TGI = "TGI";
 export const PHOTO = "PHOTO";
 
-// export const MARKETING_SHEET = 'Marketing Sheet'
-
-
 export enum COLLECTION_NAMES {
   USER = 'User',
-  VERIFY_OTP = 'VerifyOtp',
-  ENQUIRY = 'Enquiry',
-  ENQUIRY_DRAFT = 'EnquiryDraft',
-  ENQUIRY_ID_META_DATA = 'EnquiryIdMetaData',
-  STUDENT_FEE = 'studentFee',
-  STUDENT_FEE_DRAFT = 'studentFeeDraft',
+  VERIFY_OTP = 'verifyotps',
+  ENQUIRY = 'enquiries',
+  ENQUIRY_DRAFT = 'enquirydrafts',
+  ENQUIRY_ID_META_DATA = 'enquiryidmetadatas',
+  STUDENT_FEE = 'studentfees',
+  STUDENT_FEE_DRAFT = 'studentfeedrafts',
   DEPARTMENT_COURSE = 'deptandcourse',
-  LEAD = 'Lead',
-  SPREADSHEET_META_DATA = 'spreadSheetMetaData',
-  YELLOW_LEAD = 'YellowLead',
-  COURSE_OTHER_FEES = 'CourseAndOtherFees',
+  LEAD = 'leads',
+  SPREADSHEET_META_DATA = 'spreadsheetmetadatas',
+  YELLOW_LEAD = 'yellowleads',
+  COURSE_OTHER_FEES = 'courseandotherfees',
   STUDENT = 'Student',
-  DEPARTMENT_META_DATA = 'DepartmentMetaData',
-  COURSE_METADATA = 'CourseMetadata',
-  COURSE = 'Course',
-  DROP_DOWN_META_DATA = 'DropDownMetaData',
+  DEPARTMENT_META_DATA = 'departmentmetadatas',
+  COURSE_METADATA = 'coursemetadatas',
+  COURSE = 'courses',
+  DROP_DOWN_META_DATA = 'dropdownmetadatas',
   STUDENTREPO = "StudentRepo",
-  TRANSACTION_HISTORY = "TransactionHistory",
-  TECHNO_META_DATA = "TechnoMetaData",
-  MARKETING_FOLLOW_UP_RAW_DATA = "MarketingFollowUpData",
-  MARKETING_ANALYTICS = "MarketingAnalytics",
-  COURSE_DUES = 'CourseDues',
-  COLLEGE_META_DATA = "CollegeMetaData"
+  TRANSACTION_HISTORY = "transactionhistories",
+  TECHNO_META_DATA = "technometadatas",
+  MARKETING_FOLLOW_UP_RAW_DATA = "marketingfollowupdatas",
+  MARKETING_ANALYTICS = "marketinganalytics",
+  COURSE_DUES = 'coursedues',
+  COLLEGE_META_DATA = "collegemetadatas",
+  FINANCE_ANALYTICS = "financeanalytics",
+  MARKETING_SOURCE_WISE_ANALYTICS = "marketingsourcewiseanalytics",
+  MARKETING_USER_WISE_ANALYTICS = "marketinguserwiseanalytics",
+  OTP = "otps",
+  ADMISSION_ANALYTICS = "admissionanalytics"
 }
 
 
@@ -397,4 +417,33 @@ export enum Actions {
 
 export enum MarketingAnalyticsEnum {
   NO_OF_CALLS = "NO_OF_CALLS"
+}
+
+export enum StudentStatus{
+  NEW = "NEW",
+  UPDATED = "UPDATED",
+  OLD = "OLD"
+}
+
+
+export const ONLINE_SOURCES = [
+  'Digital - Google Ads',
+  'Digital - Meta Ads',
+  'Digital - IVR',
+  'Digital - TawkTo',
+  'Digital - Website',
+];
+
+export const OFFLINE_SOURCES = [
+  'LU/NPG/External Venue',
+  'Student Reference',
+  'Technoligence',
+];
+
+
+export enum AdmissionAggregationType {
+  DATE_WISE = 'totalAdmissionDateWise',
+  MONTH_WISE = 'totalAdmissionMonthWise',
+  MONTH_AND_COURSE_WISE = 'totalAdmissionMonthAndCourseWise',
+  YEAR_AND_COURSE_WISE = 'totalAdmissionYearAndCourseWise',
 }

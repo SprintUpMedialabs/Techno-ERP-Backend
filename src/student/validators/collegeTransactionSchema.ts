@@ -16,7 +16,8 @@ export const CollegeTransactionSchema = z.object({
     transactionSettlementHistory : z.array(z.object({
         name : z.string(),
         amount : z.number()
-    })).optional()
+    })).optional(),
+    courseYear : z.string().optional()
 })
 
 export const CreateCollegeTransactionSchema = CollegeTransactionSchema;

@@ -104,6 +104,14 @@ const leadSchema = new Schema<ILeadMasterDocument>(
       type: Number,
       default: 0
     },
+    isActiveLead : {
+      type : Boolean,
+      default : false
+    },
+    isCalledToday : {
+      type : Boolean,
+      default : false
+    }
   },
   { timestamps: true }
 );

@@ -13,6 +13,7 @@ import { EditFeeBreakUpSchema, FetchFeeHistorySchema, IEditFeeBreakUpSchema, IFe
 import { getCurrentLoggedInUser } from "../../auth/utils/getCurrentLoggedInUser";
 import { getCourseYrFromSemNum } from "../../course/utils/getAcaYrFromStartYrSemNum";
 import { toRoman } from "../utils/getRomanSemNumber";
+import { getCourseYearFromSemNumber } from "../../utils/getCourseYearFromSemNumber";
 
 type FeeDetailInterface = {
     _id: string;
@@ -320,7 +321,8 @@ export const recordPayment = expressAsyncHandler(async (req: AuthenticatedReques
             dateTime: new Date(),
             actionedBy: currentLoggedInUser,
             courseCode: student.courseCode,
-            courseName: student.courseName
+            courseName: student.courseName,
+            courseYear : getCourseYearFromSemNumber(student.currentSemester)
         }], { session });
 
         console.log("Transaction created : ", transaction);
@@ -688,4 +690,9 @@ export const editFeeBreakUp = expressAsyncHandler(async (req: AuthenticatedReque
     console.log(student.semester);
 
     return formatResponse(res, 200, "Student fees updated successfully", true, null);
+});
+
+
+export const assignDueDateByCourseAndSemester = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const { courseCode, semesterNumber } = req.body;
 });

@@ -1,12 +1,20 @@
-import { Response } from 'express';
 import expressAsyncHandler from "express-async-handler";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
-import { FinalConversionType, LeadType } from "../../config/constants";
+import { FinalConversionType, LeadType, OFFLINE_SOURCES, ONLINE_SOURCES, PipelineName, UserRoles } from "../../config/constants";
 import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
 import { IAdminAnalyticsFilter } from "../types/marketingSpreadsheet";
 import { formatResponse } from '../../utils/formatResponse';
 import mongoose from 'mongoose';
 import { LeadMaster } from '../models/lead';
+import { MarketingSourceWiseAnalytics } from '../models/marketingSourceWiseAnalytics';
+import { retryMechanism } from '../../config/retryMechanism';
+import { createPipeline } from '../../pipline/controller';
+import { getISTDate } from '../../utils/getISTDate';
+import { User } from '../../auth/models/user';
+import { MarketingUserWiseAnalytics } from '../models/marketingUserWiseAnalytics';
+import { isAuthenticated } from '../../auth/controllers/authController';
+import { Response } from 'express';
+import createHttpError from "http-errors";
 
 export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     let {
@@ -68,10 +76,12 @@ export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedReque
                 }
             }
         ]), LeadMaster.aggregate([
-            { $match: {
-                ...query,
-                leadType : LeadType.ACTIVE
-            } }, // in query we have issue
+            {
+                $match: {
+                    ...query,
+                    leadType: LeadType.ACTIVE
+                }
+            }, // in query we have issue
             {
                 $group: {
                     _id: null,
@@ -109,3 +119,261 @@ export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedReque
         });
 });
 
+
+const createEmptyData = () => ({
+    totalLeads: 0,
+    activeLeads: 0,
+    neutralLeads: 0,
+    didNotPickLeads: 0,
+    others: 0,
+    footFall: 0,
+    totalAdmissions: 0,
+});
+
+const mapLeadType = (lead: any) => {
+    switch (lead.leadType) {
+        case LeadType.ACTIVE: return 'activeLeads';
+        case LeadType.NEUTRAL: return 'neutralLeads';
+        case LeadType.DID_NOT_PICK: return 'didNotPickLeads';
+        default:
+            return 'others';
+    }
+};
+const updateLeadStats = (data: any, lead: any, field: string) => {
+    data.totalLeads++;
+    data[field]++;
+    if (lead.footFall)
+        data.footFall++;
+    if (lead.finalConversion === FinalConversionType.ADMISSION)
+        data.totalAdmissions++;
+};
+
+
+export const createMarketingSourceWiseAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+
+    const pipelineId = await createPipeline(PipelineName.MARKETING_SOURCE_WISE_ANALYTICS);
+
+    await retryMechanism(
+        async (session) => {
+            const leads = await LeadMaster.find({}, 'source leadType footFall finalConversion').lean();
+
+            const offlineMap: Record<string, any> = {};
+            const onlineMap: Record<string, any> = {};
+
+            const totalOfflineData = createEmptyData();
+            const totalOnlineData = createEmptyData();
+            const totalOthersData = createEmptyData();
+
+            for (const lead of leads) {
+                const source = lead.source || 'Unknown';
+                const field = mapLeadType(lead);
+                const isOnline = ONLINE_SOURCES.includes(source);
+                const isOffline = OFFLINE_SOURCES.includes(source);
+
+                if (isOnline || isOffline) {
+                    const map = isOnline ? onlineMap : offlineMap;
+                    const total = isOnline ? totalOnlineData : totalOfflineData;
+
+                    if (!map[source]) {
+                        map[source] = {
+                            source,
+                            data: createEmptyData(),
+                        };
+                    }
+
+                    updateLeadStats(map[source].data, lead, field);
+                    updateLeadStats(total, lead, field);
+                } else {
+                    updateLeadStats(totalOthersData, lead, field);
+                }
+            }
+
+            const response = [
+                { type: "offline-data", details: Object.values(offlineMap) },
+                { type: "online-data", details: Object.values(onlineMap) },
+                {
+                    type: "all-leads",
+                    details: [
+                        { source: "offline", data: totalOfflineData },
+                        { source: "online", data: totalOnlineData },
+                        { source: "others", data: totalOthersData },
+                    ],
+                },
+            ];
+
+            const bulkOps = response.map((item) => ({
+                updateOne: {
+                    filter: { type: item.type },
+                    update: { $set: { type: item.type, details: item.details } },
+                    upsert: true,
+                },
+            }));
+
+            await MarketingSourceWiseAnalytics.bulkWrite(bulkOps, { session });
+        },
+        "Marketing Source Analytics Retry Failed",
+        "Final failure after multiple retry attempts in Marketing Source Analytics pipeline",
+        pipelineId!,
+        PipelineName.MARKETING_SOURCE_WISE_ANALYTICS
+    );
+
+    return formatResponse(res, 200, "Marketing Source Wise Analytics Created.", true, null);
+});
+
+
+export const getMarketingSourceWiseAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const data = await MarketingSourceWiseAnalytics.find({});
+    return formatResponse(res, 200, "Marketing Source Wise Analytics fetched successfully", true, data);
+});
+
+
+export const initializeUserWiseAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const pipelineId = await createPipeline(PipelineName.INITIALIZE_MARKETING_ANALYTICS);
+    if (!pipelineId) 
+        throw createHttpError(400, "Pipeline creation failed");
+  
+
+    await retryMechanism(
+        async (session) => {
+            const yesterday = getISTDate(-1);
+            const marketingEmployees = await User.find({ roles: UserRoles.EMPLOYEE_MARKETING }, "_id firstName lastName").lean();
+
+            const yesterdayAnalytics = await MarketingUserWiseAnalytics.findOne({ date: yesterday }).lean();
+            const yesterdayDataMap: Record<string, { totalFootFall: number; totalAdmissions: number }> = {};
+
+            if (yesterdayAnalytics) {
+                for (const entry of yesterdayAnalytics.data) {
+                    yesterdayDataMap[String(entry.userId)] = {
+                        totalFootFall: entry.totalFootFall,
+                        totalAdmissions: entry.totalAdmissions,
+                    };
+                }
+            }
+
+            const initializedData = marketingEmployees.map(user => {
+                const userIdStr = String(user._id);
+                const previous = yesterdayDataMap[userIdStr] || { totalFootFall: 0, totalAdmissions: 0 };
+
+                return {
+                    userId: user._id,
+                    userFirstName: user.firstName,
+                    userLastName: user.lastName,
+                    totalCalls: 0,
+                    newLeadCalls: 0,
+                    activeLeadCalls: 0,
+                    nonActiveLeadCalls: 0,
+                    totalFootFall: previous.totalFootFall,
+                    totalAdmissions: previous.totalAdmissions,
+                };
+            });
+
+            const todayIST = getISTDate();
+
+            await MarketingUserWiseAnalytics.create(
+                [{ date: todayIST, data: initializedData }],
+                { session }
+            );
+
+            return formatResponse(res, 201, "Initialized data", true, null);
+        },
+        "UserWise Analytics Initialization Failed",
+        "Failed to initialize user-wise analytics after multiple attempts.",
+        pipelineId,
+        PipelineName.INITIALIZE_MARKETING_ANALYTICS
+    );
+});
+
+
+export const reiterateLeads = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const pipelineId = await createPipeline(PipelineName.ITERATE_LEADS);
+    if (!pipelineId) throw createHttpError(400, "Pipeline creation failed");
+  
+
+    await retryMechanism(
+        async (session) => {
+            const leads = await LeadMaster.find({}).session(session);
+
+            const bulkOps = leads.map((lead) => ({
+                updateOne: {
+                    filter: { _id: lead._id },
+                    update: {
+                        isCalledToday: false,
+                        isActiveLead: lead.leadType === LeadType.ACTIVE,
+                    },
+                },
+            }));
+
+            if (bulkOps.length > 0) {
+                const bulkWriteResult = await LeadMaster.bulkWrite(bulkOps, { session });
+                return formatResponse(res, 200, "Reiterated the Lead Master Table", true, bulkWriteResult.modifiedCount);
+            } else {
+                return formatResponse(res, 200, "No Leads to update", true, null);
+            }
+        },
+        "Lead Reiteration Failed",
+        "Failed to reiterate lead statuses after multiple attempts.",
+        pipelineId,
+        PipelineName.ITERATE_LEADS
+    );
+});
+
+
+
+export const getMarketingUserWiseAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const startIST = getISTDate(0);
+    const nextDayIST = getISTDate(1);
+
+    const todayAnalytics = await MarketingUserWiseAnalytics.findOne({
+        date: {
+            $gte: startIST,
+            $lt: nextDayIST,
+        },
+    });
+
+    return formatResponse(res, 200, "Marketing user wise analytics fetched successfully", true, todayAnalytics);
+
+})
+
+
+export const getDurationBasedUserAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const { startDate, endDate } = req.body;
+
+    const mongoStartDate = convertToMongoDate(startDate);
+    const mongoEndDate = convertToMongoDate(endDate);
+
+    const pipeline: any[] = [
+        {
+            $match: {
+                date: {
+                    $gte: mongoStartDate,
+                    $lt: mongoEndDate,
+                },
+            },
+        },
+        {
+            $unwind: '$data',
+        },
+        {
+            $sort: {
+                'data.userId': 1,
+                date: 1,
+            },
+        },
+        {
+            $group: {
+                _id: '$data.userId',
+                userFirstName: { $first: '$data.userFirstName' },
+                userLastName: { $first: '$data.userLastName' },
+                totalCalls: { $sum: '$data.totalCalls' },
+                newLeadCalls: { $sum: '$data.newLeadCalls' },
+                activeLeadCalls: { $sum: '$data.activeLeadCalls' },
+                nonActiveLeadCalls: { $sum: '$data.nonActiveLeadCalls' },
+                totalFootFall: { $last: '$data.totalFootFall' },
+                totalAdmissions: { $last: '$data.totalAdmissions' },
+            },
+        },
+    ];
+
+    const result = await MarketingUserWiseAnalytics.aggregate(pipeline);
+    return formatResponse(res, 200, "User Wise Analytics Fetched successfully", true, result);
+})

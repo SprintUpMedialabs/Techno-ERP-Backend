@@ -1,39 +1,30 @@
 import createHttpError from 'http-errors';
-import jwt, { SignOptions } from 'jsonwebtoken';
-import { JWT_SECRET } from '../secrets';
+import jwt, { SignOptions, JwtPayload } from 'jsonwebtoken';
+import { JWT_SECRET, STUDENT_JWT_SECRET } from '../secrets';
 
-/**
- * Generate a JWT token
- * @param payload - Data to be stored in the token
- * @param expiresIn - Expiry time (default: 1 hour)
- * @returns Signed JWT token
- */
-export const createToken = (payload: object, options: SignOptions): string => {
-  return jwt.sign(payload, JWT_SECRET, options);
+const createJwtHelper = (secret: string) => {
+  return {
+    createToken: (payload: object, options: SignOptions = {expiresIn: '15d'}): string => {
+      return jwt.sign(payload, secret, options);
+    },
+
+    verifyToken: (token: string): JwtPayload => {
+      try {
+        return jwt.verify(token, secret) as JwtPayload;
+      } catch {
+        throw createHttpError(400, 'Invalid token');
+      }
+    },
+
+    decodeToken: (token: string): JwtPayload => {
+      try {
+        return jwt.decode(token) as JwtPayload;
+      } catch {
+        throw createHttpError(500, 'Invalid token');
+      }
+    },
+  };
 };
 
-/**
- * Verify a JWT token
- * @param token - The token to verify
- * @returns Decoded token payload if valid, throws error if invalid
- */
-export const verifyToken = (token: string): object | null => {
-  try {
-    return jwt.verify(token, JWT_SECRET) as object;
-  } catch (error: any) {
-    throw createHttpError(400, 'Invalid token');
-  }
-};
-
-/**
- * Decode a JWT token (Does not verify signature)
- * @param token - The token to decode
- * @returns Decoded token payload or null if invalid
- */
-export const decodeToken = (token: string): object | null => {
-  try {
-    return jwt.decode(token) as object;
-  } catch (error: any) {
-    throw createHttpError(500, 'Invalid Token.');
-  }
-};
+export const jwtHelper = createJwtHelper(JWT_SECRET);
+export const studentJwtHelper = createJwtHelper(STUDENT_JWT_SECRET);

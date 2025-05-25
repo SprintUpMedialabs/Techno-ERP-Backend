@@ -1,14 +1,14 @@
 import express from 'express';
-import { authenticate, authorize } from '../../middleware/jwtAuthenticationMiddleware';
 import { UserRoles } from '../../config/constants';
-import { getEnquiryData, getEnquiryById, approveEnquiry, updateStatus } from '../controllers/enquiryFormController';
 import upload from '../../config/multerConfig';
+import { authenticate, authorize } from '../../middleware/jwtAuthenticationMiddleware';
 import { createEnquiryDraftStep1, updateEnquiryDraftStep1 } from '../controllers/enquiryDraftController';
-import { createFeeDraft, updateFeeDraft } from '../controllers/feeDraftController';
+import { approveEnquiry, getEnquiryById, getEnquiryData } from '../controllers/enquiryFormController';
 import { createEnquiry, updateEnquiryStep1ById } from '../controllers/enquiryStep1Controller';
 import { createEnquiryStep2, updateEnquiryStep2ById } from '../controllers/enquiryStep2Controller';
-import { saveStep3Draft, updateEnquiryDocuments, updateEnquiryStep3ById } from '../controllers/enquiryStep3Controller';
+import { saveStep3Draft, updateEnquiryDocuments, updateEnquiryStep3ById, verifyOtpAndUpdateEnquiryStatus } from '../controllers/enquiryStep3Controller';
 import { updateEnquiryStep4ById } from '../controllers/enquiryStep4Controller';
+import { createFeeDraft, updateFeeDraft } from '../controllers/feeDraftController';
 
 export const enquiryRoute = express.Router();
 
@@ -27,15 +27,22 @@ enquiryRoute.put('/step-1',
 enquiryRoute.post('/step-2',
     authenticate,
     authorize([UserRoles.BASIC_USER, UserRoles.COUNSELOR]),
-    createEnquiryStep2);
+    createEnquiryStep2
+);
 
 enquiryRoute.put('/step-2', authenticate,
     authorize([UserRoles.BASIC_USER, UserRoles.COUNSELOR]),
-    updateEnquiryStep2ById);
+    updateEnquiryStep2ById
+);
 
 enquiryRoute.put('/step-3', authenticate,
     authorize([UserRoles.REGISTAR, UserRoles.BASIC_USER]),
     updateEnquiryStep3ById
+);
+
+enquiryRoute.post('/step-3/verify-otp', authenticate,
+    authorize([UserRoles.REGISTAR, UserRoles.BASIC_USER]),
+    verifyOtpAndUpdateEnquiryStatus
 );
 
 enquiryRoute.put('/step-4', authenticate,
@@ -47,7 +54,7 @@ enquiryRoute.post('/search',
     authenticate,
     authorize([UserRoles.COUNSELOR, UserRoles.BASIC_USER, UserRoles.REGISTAR]),
     getEnquiryData
-)
+);
 
 enquiryRoute.put('/update-document',
     authenticate,
@@ -67,12 +74,6 @@ enquiryRoute.post('/approve-enquiry',
     authorize([UserRoles.REGISTAR, UserRoles.BASIC_USER]),
     approveEnquiry
 );
-
-enquiryRoute.put('/update-status',
-    authenticate,
-    authorize([UserRoles.COUNSELOR, UserRoles.REGISTAR, UserRoles.BASIC_USER]),
-    updateStatus
-)
 
 enquiryRoute.post('/create-draft-step-1',
     authenticate,
