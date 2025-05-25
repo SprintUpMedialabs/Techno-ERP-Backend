@@ -39,7 +39,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AdmissionAnalyticsModel = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 const constants_1 = require("../../config/constants");
-const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
 const moment_timezone_1 = __importDefault(require("moment-timezone"));
 const admissionAnalyticsSchema = new mongoose_1.Schema({
     type: {
@@ -65,14 +64,7 @@ const admissionAnalyticsSchema = new mongoose_1.Schema({
 admissionAnalyticsSchema.index({ type: 1, date: 1, courseCode: 1 }, { unique: true });
 const transformDates = (_, ret) => {
     ['date'].forEach((key) => {
-        if (key == 'updatedAt') {
-            if (ret[key]) {
-                ret[key] = (0, moment_timezone_1.default)(ret[key]).tz('Asia/Kolkata').format('DD/MM/YYYY');
-            }
-        }
-        else if (ret[key]) {
-            ret[key] = (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(ret[key]);
-        }
+        ret[key] = (0, moment_timezone_1.default)(ret[key]).tz('Asia/Kolkata').format('DD/MM/YYYY');
     });
     delete ret.createdAt;
     delete ret.__v;
