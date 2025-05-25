@@ -27,21 +27,16 @@ const collegeTransactionHistory_1 = require("../models/collegeTransactionHistory
 const financeAnalytics_1 = require("../models/financeAnalytics");
 const student_1 = require("../models/student");
 const controller_1 = require("../../pipline/controller");
-/*
-  academicYear : 2024-2025
-  course
-*/
+const moment_timezone_1 = __importDefault(require("moment-timezone"));
 exports.createFinanceAnalytics = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const today = new Date();
     const currentYear = today.getFullYear();
     const currentMonth = today.getMonth();
     const courseYears = ['', constants_1.CourseYears.First, constants_1.CourseYears.Second, constants_1.CourseYears.Third, constants_1.CourseYears.Fourth];
-    //DTODO : Handle edge case here
-    const date = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate() - 1));
+    const date = (0, moment_timezone_1.default)().tz('Asia/Kolkata').startOf('day').subtract(1, 'day').toDate();
     const academicYear = currentMonth >= 6
         ? `${currentYear}-${currentYear + 1}`
         : `${currentYear - 1}-${currentYear}`;
-    console.log("Academic Year : ", academicYear);
     const courseList = yield courseMetadata_1.CourseMetaData.find({}, { courseCode: 1, courseName: 1, courseDuration: 1, departmentMetaDataId: 1, collegeName: 1 }).populate({
         path: 'departmentMetaDataId',
         select: 'departmentName departmentHODId',
@@ -104,19 +99,6 @@ exports.createFinanceAnalytics = (0, express_async_handler_1.default)((req, res)
                             }
                         }
                     },
-                    /*
-                      3rd:
-                      actual fee: 5000
-                      paid : 5000
-                      4th
-                      actual fee: 5000
-                      paid : 4000
-                      5th
-                      actual fee: 5000
-                      paid : 4000
-                      6th:
-                      dueDate Null:
-                    */
                     { $unwind: "$semesters" },
                     {
                         $group: {
@@ -178,11 +160,9 @@ exports.fetchDayWiseAnalytics = (0, express_async_handler_1.default)((req, res) 
         date: (0, convertDateToFormatedDate_1.convertToMongoDate)(date),
     });
     const pastDates = (0, getPastSevenDates_1.getPastSevenDates)(date);
-    // console.log("Past 7 days dates are : ", pastDates);
     const pastSevenDocs = yield financeAnalytics_1.FinanceAnalytics.find({
         date: { $in: pastDates },
     }).sort({ date: 1 });
-    // console.log("Past 7 days docs : ", pastSevenDocs);
     const pastSevenDayDocs = [];
     pastSevenDocs.forEach(daywiseDoc => {
         pastSevenDayDocs.push({
@@ -211,7 +191,6 @@ exports.fetchDayWiseAnalytics = (0, express_async_handler_1.default)((req, res) 
 exports.fetchMonthWiseAnalytics = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { monthNumber } = req.body;
     const datesOfMonth = (0, getDatesOfMonth_1.getDatesOfMonth)(monthNumber);
-    // console.log("Dates of Month are : ", datesOfMonth);
     let data = yield financeAnalytics_1.FinanceAnalytics.find({
         date: { $in: datesOfMonth },
     }).sort({ date: 1 });
@@ -242,9 +221,6 @@ exports.fetchMonthWiseAnalytics = (0, express_async_handler_1.default)((req, res
             totalCollection
         }))
     }));
-    // console.log("Total Collection : ", totalCollection);
-    // console.log("Month wise data : ", monthWiseData);
-    // console.log("Course wise collection : ", courseWiseCollection);
     return (0, formatResponse_1.formatResponse)(res, 200, "Monthwise analytics fetched successfully", true, {
         totalCollection: totalCollection,
         monthWiseData: monthWiseData,
