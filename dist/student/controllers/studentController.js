@@ -104,7 +104,7 @@ const createStudent = (id, studentData) => __awaiter(void 0, void 0, void 0, fun
         const subjects = [];
         for (let j = 1; j <= semesterInfo.subjectIds.length; j++) {
             const subjectId = semesterInfo.subjectIds[j - 1];
-            const attendance = [];
+            const attendance = {};
             const exams = [];
             subjects.push({
                 subjectId: subjectId,

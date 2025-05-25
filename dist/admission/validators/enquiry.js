@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.enquiryDraftStep1UpdateSchema = exports.enquiryDraftStep1RequestSchema = exports.enquiryDraftStep3Schema = exports.enquiryStep3UpdateRequestSchema = exports.enquiryStep1UpdateRequestSchema = exports.enquiryStep1RequestSchema = exports.enquirySchema = void 0;
+exports.enquiryDraftStep1UpdateSchema = exports.enquiryDraftStep1RequestSchema = exports.enquiryDraftStep3Schema = exports.otpSchemaForStep3 = exports.enquiryStep3UpdateRequestSchema = exports.enquiryStep1UpdateRequestSchema = exports.enquiryStep1RequestSchema = exports.enquirySchema = void 0;
 const zod_1 = require("zod");
 const constants_1 = require("../../config/constants");
 const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
@@ -30,9 +30,9 @@ exports.enquirySchema = zod_1.z.object({
     dateOfEnquiry: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)).optional(),
     gender: zod_1.z.nativeEnum(constants_1.Gender).default(constants_1.Gender.OTHER),
     previousCollegeData: previousCollegeDataSchema_1.previousCollegeDataSchema.optional(),
-    stateOfDomicile: zod_1.z.nativeEnum(constants_1.StatesOfIndia).optional(),
+    stateOfDomicile: zod_1.z.nativeEnum(constants_1.StatesOfIndia).default(constants_1.StatesOfIndia.UTTAR_PRADESH),
     areaType: zod_1.z.nativeEnum(constants_1.AreaType).optional(),
-    nationality: zod_1.z.string().optional(),
+    nationality: zod_1.z.string().default('INDIAN'),
     entranceExamDetails: entranceExamDetailSchema_1.entranceExamDetailSchema.optional(),
     counsellor: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['Other'])])).optional(),
     telecaller: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['Other'])])).optional(),
@@ -45,11 +45,11 @@ exports.enquirySchema = zod_1.z.object({
     dateOfAdmission: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)).optional(),
     documents: zod_1.z.array(singleDocumentSchema_1.singleDocumentSchema).optional(),
     physicalDocumentNote: zod_1.z.array(physicalDocumentNoteSchema_1.physicalDocumentNoteSchema).optional(),
-    aadharNumber: zod_1.z.string().regex(/^\d{12}$/, 'Aadhar Number must be exactly 12 digits').optional(),
+    aadharNumber: zod_1.z.string().regex(/^\d{12}$/, 'Aadhar Number must be exactly 12 digits'),
     religion: zod_1.z.nativeEnum(constants_1.Religion).optional(),
     bloodGroup: zod_1.z.nativeEnum(constants_1.BloodGroup).optional(),
     admittedBy: zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['Other'])]).optional(),
-    isFeeApplicable: zod_1.z.boolean().default(false).optional()
+    isFeeApplicable: zod_1.z.boolean().default(true)
 });
 // Final schema for request (omitting feesDraftId and making it strict)
 exports.enquiryStep1RequestSchema = exports.enquirySchema
@@ -63,6 +63,10 @@ exports.enquiryStep3UpdateRequestSchema = exports.enquirySchema.omit({ documents
     id: commonSchema_1.objectIdSchema,
     physicalDocumentNote: zod_1.z.array(physicalDocumentNoteSchema_1.physicalDocumentNoteRequestSchema).optional()
 }).strict();
+exports.otpSchemaForStep3 = zod_1.z.object({
+    otp: zod_1.z.string(),
+    id: commonSchema_1.objectIdSchema
+});
 exports.enquiryDraftStep3Schema = exports.enquiryStep3UpdateRequestSchema
     .extend({
     address: commonSchema_1.addressSchema.partial().optional(),

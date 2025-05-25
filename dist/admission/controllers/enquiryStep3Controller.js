@@ -23,7 +23,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateEnquiryDocuments = exports.updateEnquiryStep3ById = exports.saveStep3Draft = void 0;
+exports.updateEnquiryDocuments = exports.verifyOtpAndUpdateEnquiryStatus = exports.updateEnquiryStep3ById = exports.saveStep3Draft = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const http_errors_1 = __importDefault(require("http-errors"));
 const mongoose_1 = __importDefault(require("mongoose"));
@@ -35,6 +35,7 @@ const formatResponse_1 = require("../../utils/formatResponse");
 const enquiry_1 = require("../models/enquiry");
 const enquiry_2 = require("../validators/enquiry");
 const singleDocumentSchema_1 = require("../validators/singleDocumentSchema");
+const otpController_1 = require("../../common/otpController");
 exports.saveStep3Draft = (0, express_async_handler_1.default)((0, functionLevelLogging_1.functionLevelLogger)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const data = req.body;
@@ -68,9 +69,24 @@ exports.updateEnquiryStep3ById = (0, express_async_handler_1.default)((0, functi
     if (!isEnquiryExists) {
         throw (0, http_errors_1.default)(400, 'Enquiry not found');
     }
-    const updatedData = yield enquiry_1.Enquiry.findByIdAndUpdate(id, Object.assign(Object.assign({}, data), { applicationStatus: constants_1.ApplicationStatus.STEP_4 }), { new: true, runValidators: true });
+    const updatedData = yield enquiry_1.Enquiry.findByIdAndUpdate(id, Object.assign(Object.assign({}, data), { applicationStatus: constants_1.ApplicationStatus.STEP_3 }), { new: true, runValidators: true });
+    yield (0, otpController_1.sendOTP)(updatedData.emailId);
     (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.DISTRICT, (_a = updatedData === null || updatedData === void 0 ? void 0 : updatedData.address) === null || _a === void 0 ? void 0 : _a.district);
     return (0, formatResponse_1.formatResponse)(res, 200, 'Enquiry data updated successfully', true, updatedData);
+})));
+exports.verifyOtpAndUpdateEnquiryStatus = (0, express_async_handler_1.default)((0, functionLevelLogging_1.functionLevelLogger)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const validation = enquiry_2.otpSchemaForStep3.safeParse(req.body);
+    if (!validation.success) {
+        throw (0, http_errors_1.default)(400, validation.error.errors[0]);
+    }
+    const { id, otp } = validation.data;
+    const enquiry = yield enquiry_1.Enquiry.findOne({ _id: id, applicationStatus: constants_1.ApplicationStatus.STEP_3 });
+    if (!enquiry) {
+        throw (0, http_errors_1.default)(400, 'Enquiry not found');
+    }
+    yield (0, otpController_1.validateOTP)(enquiry.emailId, otp);
+    yield enquiry_1.Enquiry.findByIdAndUpdate(id, { applicationStatus: constants_1.ApplicationStatus.STEP_4 }, { runValidators: true });
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Enquiry status updated successfully', true);
 })));
 exports.updateEnquiryDocuments = (0, express_async_handler_1.default)((0, functionLevelLogging_1.functionLevelLogger)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;

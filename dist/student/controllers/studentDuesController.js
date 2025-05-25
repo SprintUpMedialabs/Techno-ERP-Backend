@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.editFeeBreakUp = exports.fetchFeeUpdatesHistory = exports.fetchTransactionsByStudentID = exports.settleFees = exports.recordPayment = exports.fetchFeeInformationByStudentId = exports.getStudentDues = void 0;
+exports.assignDueDateByCourseAndSemester = exports.editFeeBreakUp = exports.fetchFeeUpdatesHistory = exports.fetchTransactionsByStudentID = exports.settleFees = exports.recordPayment = exports.fetchFeeInformationByStudentId = exports.getStudentDues = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const constants_1 = require("../../config/constants");
 const student_1 = require("../models/student");
@@ -579,4 +579,7 @@ exports.editFeeBreakUp = (0, express_async_handler_1.default)((req, res) => __aw
     yield student.save();
     console.log(student.semester);
     return (0, formatResponse_1.formatResponse)(res, 200, "Student fees updated successfully", true, null);
+}));
+exports.assignDueDateByCourseAndSemester = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { courseCode, semesterNumber } = req.body;
 }));

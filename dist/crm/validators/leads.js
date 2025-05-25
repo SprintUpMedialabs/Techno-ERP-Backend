@@ -27,6 +27,8 @@ exports.leadMasterSchema = zod_1.z.object({
     finalConversion: zod_1.z.nativeEnum(constants_1.FinalConversionType).optional().default(constants_1.FinalConversionType.NO_FOOTFALL),
     remarks: zod_1.z.array(zod_1.z.string().optional()).default([]),
     followUpCount: zod_1.z.number().optional().default(0),
+    isCalledToday: zod_1.z.boolean().optional(),
+    isActiveLead: zod_1.z.boolean().optional()
 });
 exports.leadSchema = exports.leadMasterSchema.omit({
     finalConversion: true,
@@ -47,6 +49,7 @@ exports.leadSheetSchema = zod_1.z.object({
     city: zod_1.z.string().optional().transform(formators_1.toTitleCase),
     assignedTo: zod_1.z.string().transform(formators_1.splitEmails),
     gender: zod_1.z.string().optional().transform(val => val === null || val === void 0 ? void 0 : val.toUpperCase()),
+    followUpCount: zod_1.z.number().optional().default(0),
     // temporary fields
     course: zod_1.z.string().optional().transform(val => val === null || val === void 0 ? void 0 : val.toUpperCase()),
     area: zod_1.z.string().optional().transform(formators_1.toTitleCase),

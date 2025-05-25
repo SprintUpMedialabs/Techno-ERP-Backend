@@ -133,47 +133,57 @@ const markCompleted = (id) => __awaiter(void 0, void 0, void 0, function* () {
 exports.markCompleted = markCompleted;
 exports.sendTodayPipelineSummaryEmail = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const todayIST = (0, moment_timezone_1.default)().tz('Asia/Kolkata').startOf('day').toDate();
-    const pipelines = yield pipelineRunLog_1.PipelineRunLog.find({ date: todayIST }).sort({ time: -1 });
     const today = (0, moment_timezone_1.default)().tz('Asia/Kolkata').format('YYYY-MM-DD');
-    if (pipelines.length === 0) {
-        yield (0, mailer_1.sendEmail)(secrets_1.DEVELOPER_EMAIL, `Pipeline Summary - ${today}`, 'No pipelines ran today.');
-        return;
+    const pipelines = yield pipelineRunLog_1.PipelineRunLog.find({ date: todayIST }).sort({ time: -1 });
+    const subject = `Pipeline Summary - ${today} | ${process.env.NODE_ENV}`;
+    const html = pipelines.length === 0
+        ? 'No pipelines ran today.'
+        : `
+        <h2>Pipeline Run Summary - ${today}</h2>
+        <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse;">
+          <thead>
+            <tr>
+              <th>Pipeline Name</th>
+              <th>Status</th>
+              <th>Attempts</th>
+              <th>Duration (seconds)</th>
+              <th>Started At</th>
+              <th>Error Messages</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${pipelines.map((log) => {
+            var _a, _b, _c, _d;
+            return `
+              <tr>
+                <td>${log.pipelineName}</td>
+                <td>${log.status}</td>
+                <td>${log.attemptNo}</td>
+                <td>${(_a = log.durationInSeconds) !== null && _a !== void 0 ? _a : 0}s</td>
+                <td>${(0, moment_timezone_1.default)(log.startedAt).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss')}</td>
+                <td>
+                  ${((_c = (_b = log === null || log === void 0 ? void 0 : log.errorMessages) === null || _b === void 0 ? void 0 : _b.length) !== null && _c !== void 0 ? _c : 0) > 0
+                ? `<ul>${((_d = log === null || log === void 0 ? void 0 : log.errorMessages) !== null && _d !== void 0 ? _d : []).map((e) => `<li>${e}</li>`).join('')}</ul>`
+                : 'None'}
+                </td>
+              </tr>
+            `;
+        }).join('')}
+          </tbody>
+        </table>
+      `;
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY_MS = 2000;
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        try {
+            yield (0, mailer_1.sendEmail)(secrets_1.DEVELOPER_EMAIL, subject, html);
+            return (0, formatResponse_1.formatResponse)(res, 200, "Pipeline summary email sent successfully", true);
+        }
+        catch (error) {
+            if (attempt === MAX_RETRIES) {
+                throw (0, http_errors_1.default)(400, `Failed to send summary email after ${MAX_RETRIES} attempts: ${error}`);
+            }
+            yield new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS));
+        }
     }
-    const tableRows = pipelines.map((log) => {
-        var _a, _b, _c, _d;
-        return `
-      <tr>
-        <td>${log.pipelineName}</td>
-        <td>${log.status}</td>
-        <td>${log.attemptNo}</td>
-        <td>${(_a = log.durationInSeconds) !== null && _a !== void 0 ? _a : 0}s</td>
-        <td>${(0, moment_timezone_1.default)(log.startedAt).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss')}</td>
-        <td>
-          ${((_c = (_b = log === null || log === void 0 ? void 0 : log.errorMessages) === null || _b === void 0 ? void 0 : _b.length) !== null && _c !== void 0 ? _c : 0) > 0
-            ? `<ul>${((_d = log === null || log === void 0 ? void 0 : log.errorMessages) !== null && _d !== void 0 ? _d : []).map((e) => `<li>${e}</li>`).join('')}</ul>`
-            : 'None'}
-        </td>
-      </tr>
-    `;
-    }).join('');
-    const html = `
-      <h2>Pipeline Run Summary - ${today}</h2>
-      <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse;">
-        <thead>
-          <tr>
-            <th>Pipeline Name</th>
-            <th>Status</th>
-            <th>Attempts</th>
-            <th>Duration (seconds)</th>
-            <th>Started At</th>
-            <th>Error Messages</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${tableRows}
-        </tbody>
-      </table>
-    `;
-    yield (0, mailer_1.sendEmail)(secrets_1.DEVELOPER_EMAIL, `Pipeline Summary - ${today}`, html);
-    return (0, formatResponse_1.formatResponse)(res, 200, "Pipeline summary email sent successfully", true);
 }));

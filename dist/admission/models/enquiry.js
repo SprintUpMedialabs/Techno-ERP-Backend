@@ -53,10 +53,10 @@ const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDa
 const commonSchema_1 = require("../../validators/commonSchema");
 const academicDetail_1 = require("./academicDetail");
 const address_1 = require("./address");
-const previousCollegeData_1 = require("./previousCollegeData");
-const singleDocument_1 = require("./singleDocument");
 const entranceExamDetail_1 = require("./entranceExamDetail");
 const physicalDocumentNoteSchema_1 = require("./physicalDocumentNoteSchema");
+const previousCollegeData_1 = require("./previousCollegeData");
+const singleDocument_1 = require("./singleDocument");
 exports.enquirySchema = new mongoose_1.Schema({
     admissionMode: {
         type: String,
@@ -313,7 +313,7 @@ exports.enquirySchema = new mongoose_1.Schema({
     },
     isFeeApplicable: {
         type: Boolean,
-        default: false
+        default: true
     }
 }, { timestamps: true });
 exports.enquirySchema.pre('save', function (next) {

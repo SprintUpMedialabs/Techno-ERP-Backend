@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.StudentStatus = exports.MarketingAnalyticsEnum = exports.Actions = exports.FinanceFeeSchedule = exports.FinanceFeeType = exports.TransactionTypes = exports.FeeActions = exports.Schedule = exports.FeeStatus = exports.CourseYears = exports.CourseMaterialType = exports.RequestAction = exports.LectureConfirmation = exports.COLLECTION_NAMES = exports.PHOTO = exports.TGI = exports.ADMISSION = exports.AreaType = exports.Countries = exports.StatesOfIndia = exports.AdmissionMode = exports.FeeType = exports.Locations = exports.ModuleNames = exports.ApplicationStatus = exports.DocumentType = exports.AdmittedThrough = exports.BloodGroup = exports.Religion = exports.FormNoPrefixes = exports.EducationLevel = exports.Course = exports.PhysicalDocumentNoteStatus = exports.DropDownType = exports.AdmissionReference = exports.Category = exports.FinalConversionType = exports.LeadType = exports.Source = exports.Gender = exports.PipelineName = exports.PipelineStatus = exports.UserRoles = void 0;
+exports.AdmissionAggregationType = exports.OFFLINE_SOURCES = exports.ONLINE_SOURCES = exports.StudentStatus = exports.MarketingAnalyticsEnum = exports.Actions = exports.FinanceFeeSchedule = exports.FinanceFeeType = exports.TransactionTypes = exports.FeeActions = exports.Schedule = exports.FeeStatus = exports.CourseYears = exports.CourseMaterialType = exports.RequestAction = exports.LectureConfirmation = exports.COLLECTION_NAMES = exports.PHOTO = exports.TGI = exports.ADMISSION = exports.AreaType = exports.Countries = exports.StatesOfIndia = exports.AdmissionMode = exports.FeeType = exports.Locations = exports.ModuleNames = exports.ApplicationStatus = exports.DocumentType = exports.AdmittedThrough = exports.BloodGroup = exports.Religion = exports.FormNoPrefixes = exports.EducationLevel = exports.Course = exports.PhysicalDocumentNoteStatus = exports.DropDownType = exports.AdmissionReference = exports.Category = exports.FinalConversionType = exports.LeadType = exports.Source = exports.Gender = exports.PipelineName = exports.PipelineStatus = exports.UserRoles = void 0;
 /**
  * Marketing Module Enums
 */
@@ -15,6 +15,7 @@ var UserRoles;
     UserRoles["HOD"] = "HOD";
     UserRoles["INSTRUCTOR"] = "INSTRUCTOR";
     UserRoles["SYSTEM_ADMIN"] = "SYSTEM_ADMIN";
+    UserRoles["STUDENT"] = "STUDENT";
 })(UserRoles || (exports.UserRoles = UserRoles = {}));
 var PipelineStatus;
 (function (PipelineStatus) {
@@ -26,6 +27,11 @@ var PipelineName;
 (function (PipelineName) {
     PipelineName["COURSE_DUES"] = "COURSE_DUES";
     PipelineName["FINANCE_ANALYTICS"] = "FINANCE_ANALYTICS";
+    PipelineName["BACKUP"] = "BACKUP";
+    PipelineName["MARKETING_SOURCE_WISE_ANALYTICS"] = "MARKETING_SOURCE_WISE_ANALYTICS";
+    PipelineName["INITIALIZE_MARKETING_ANALYTICS"] = "INITIALIZE_MARKETING_ANALYTICS";
+    PipelineName["ITERATE_LEADS"] = "ITERATE_LEADS";
+    PipelineName["ADMISSION_ANALYTICS_BASE_VALUE_ASSIGNMENT"] = "ADMISSION_ANALYTICS_BASE_VALUE_ASSIGNMENT";
 })(PipelineName || (exports.PipelineName = PipelineName = {}));
 var Gender;
 (function (Gender) {
@@ -274,34 +280,37 @@ var AreaType;
 exports.ADMISSION = 'admissions';
 exports.TGI = "TGI";
 exports.PHOTO = "PHOTO";
-// export const MARKETING_SHEET = 'Marketing Sheet'
 var COLLECTION_NAMES;
 (function (COLLECTION_NAMES) {
     COLLECTION_NAMES["USER"] = "User";
-    COLLECTION_NAMES["VERIFY_OTP"] = "VerifyOtp";
-    COLLECTION_NAMES["ENQUIRY"] = "Enquiry";
+    COLLECTION_NAMES["VERIFY_OTP"] = "verifyotps";
+    COLLECTION_NAMES["ENQUIRY"] = "enquiries";
     COLLECTION_NAMES["ENQUIRY_DRAFT"] = "enquirydrafts";
-    COLLECTION_NAMES["ENQUIRY_ID_META_DATA"] = "EnquiryIdMetaData";
-    COLLECTION_NAMES["STUDENT_FEE"] = "studentFee";
-    COLLECTION_NAMES["STUDENT_FEE_DRAFT"] = "studentFeeDraft";
+    COLLECTION_NAMES["ENQUIRY_ID_META_DATA"] = "enquiryidmetadatas";
+    COLLECTION_NAMES["STUDENT_FEE"] = "studentfees";
+    COLLECTION_NAMES["STUDENT_FEE_DRAFT"] = "studentfeedrafts";
     COLLECTION_NAMES["DEPARTMENT_COURSE"] = "deptandcourse";
-    COLLECTION_NAMES["LEAD"] = "Lead";
-    COLLECTION_NAMES["SPREADSHEET_META_DATA"] = "spreadSheetMetaData";
-    COLLECTION_NAMES["YELLOW_LEAD"] = "YellowLead";
-    COLLECTION_NAMES["COURSE_OTHER_FEES"] = "CourseAndOtherFees";
+    COLLECTION_NAMES["LEAD"] = "leads";
+    COLLECTION_NAMES["SPREADSHEET_META_DATA"] = "spreadsheetmetadatas";
+    COLLECTION_NAMES["YELLOW_LEAD"] = "yellowleads";
+    COLLECTION_NAMES["COURSE_OTHER_FEES"] = "courseandotherfees";
     COLLECTION_NAMES["STUDENT"] = "Student";
-    COLLECTION_NAMES["DEPARTMENT_META_DATA"] = "DepartmentMetaData";
-    COLLECTION_NAMES["COURSE_METADATA"] = "CourseMetadata";
-    COLLECTION_NAMES["COURSE"] = "Course";
-    COLLECTION_NAMES["DROP_DOWN_META_DATA"] = "DropDownMetaData";
+    COLLECTION_NAMES["DEPARTMENT_META_DATA"] = "departmentmetadatas";
+    COLLECTION_NAMES["COURSE_METADATA"] = "coursemetadatas";
+    COLLECTION_NAMES["COURSE"] = "courses";
+    COLLECTION_NAMES["DROP_DOWN_META_DATA"] = "dropdownmetadatas";
     COLLECTION_NAMES["STUDENTREPO"] = "StudentRepo";
-    COLLECTION_NAMES["TRANSACTION_HISTORY"] = "TransactionHistory";
-    COLLECTION_NAMES["TECHNO_META_DATA"] = "TechnoMetaData";
-    COLLECTION_NAMES["MARKETING_FOLLOW_UP_RAW_DATA"] = "MarketingFollowUpData";
-    COLLECTION_NAMES["MARKETING_ANALYTICS"] = "MarketingAnalytics";
-    COLLECTION_NAMES["COURSE_DUES"] = "CourseDues";
-    COLLECTION_NAMES["COLLEGE_META_DATA"] = "CollegeMetaData";
-    COLLECTION_NAMES["FINANCE_ANALYTICS"] = "FinanceAnalytics";
+    COLLECTION_NAMES["TRANSACTION_HISTORY"] = "transactionhistories";
+    COLLECTION_NAMES["TECHNO_META_DATA"] = "technometadatas";
+    COLLECTION_NAMES["MARKETING_FOLLOW_UP_RAW_DATA"] = "marketingfollowupdatas";
+    COLLECTION_NAMES["MARKETING_ANALYTICS"] = "marketinganalytics";
+    COLLECTION_NAMES["COURSE_DUES"] = "coursedues";
+    COLLECTION_NAMES["COLLEGE_META_DATA"] = "collegemetadatas";
+    COLLECTION_NAMES["FINANCE_ANALYTICS"] = "financeanalytics";
+    COLLECTION_NAMES["MARKETING_SOURCE_WISE_ANALYTICS"] = "marketingsourcewiseanalytics";
+    COLLECTION_NAMES["MARKETING_USER_WISE_ANALYTICS"] = "marketinguserwiseanalytics";
+    COLLECTION_NAMES["OTP"] = "otps";
+    COLLECTION_NAMES["ADMISSION_ANALYTICS"] = "admissionanalytics";
 })(COLLECTION_NAMES || (exports.COLLECTION_NAMES = COLLECTION_NAMES = {}));
 var LectureConfirmation;
 (function (LectureConfirmation) {
@@ -398,3 +407,22 @@ var StudentStatus;
     StudentStatus["UPDATED"] = "UPDATED";
     StudentStatus["OLD"] = "OLD";
 })(StudentStatus || (exports.StudentStatus = StudentStatus = {}));
+exports.ONLINE_SOURCES = [
+    'Digital - Google Ads',
+    'Digital - Meta Ads',
+    'Digital - IVR',
+    'Digital - TawkTo',
+    'Digital - Website',
+];
+exports.OFFLINE_SOURCES = [
+    'LU/NPG/External Venue',
+    'Student Reference',
+    'Technoligence',
+];
+var AdmissionAggregationType;
+(function (AdmissionAggregationType) {
+    AdmissionAggregationType["DATE_WISE"] = "totalAdmissionDateWise";
+    AdmissionAggregationType["MONTH_WISE"] = "totalAdmissionMonthWise";
+    AdmissionAggregationType["MONTH_AND_COURSE_WISE"] = "totalAdmissionMonthAndCourseWise";
+    AdmissionAggregationType["YEAR_AND_COURSE_WISE"] = "totalAdmissionYearAndCourseWise";
+})(AdmissionAggregationType || (exports.AdmissionAggregationType = AdmissionAggregationType = {}));

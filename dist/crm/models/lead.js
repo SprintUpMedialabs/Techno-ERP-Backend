@@ -133,6 +133,14 @@ const leadSchema = new mongoose_1.Schema({
         type: Number,
         default: 0
     },
+    isActiveLead: {
+        type: Boolean,
+        default: false
+    },
+    isCalledToday: {
+        type: Boolean,
+        default: false
+    }
 }, { timestamps: true });
 leadSchema.index({ source: 1, name: 1, phoneNumber: 1 }, { unique: true, name: 'unique_lead_combo' });
 const handleMongooseError = (error, next) => {

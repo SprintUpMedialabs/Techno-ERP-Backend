@@ -52,12 +52,12 @@ const http_errors_1 = __importDefault(require("http-errors"));
 const jwt = __importStar(require("jsonwebtoken"));
 const mailer_1 = require("../../config/mailer");
 const secrets_1 = require("../../secrets");
-const jwtHelper_1 = require("../../utils/jwtHelper");
 const user_1 = require("../models/user");
 const verifyOtp_1 = require("../models/verifyOtp");
 const otpGenerator_1 = require("../utils/otpGenerator");
 const authRequest_1 = require("../validators/authRequest");
 const formatResponse_1 = require("../../utils/formatResponse");
+const jwtHelper_1 = require("../../utils/jwtHelper");
 // TODO: will apply rate limit here
 exports.sendOtpToEmail = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const data = req.body;
@@ -98,7 +98,7 @@ exports.validateAndVerifyOtp = (0, express_async_handler_1.default)((req, res) =
     if (otpRecord.verifyOtpExpireAt < new Date()) {
         throw (0, http_errors_1.default)(400, 'Expired OTP.');
     }
-    const token = (0, jwtHelper_1.createToken)({ email: data.email }, { expiresIn: '30m' });
+    const token = jwtHelper_1.jwtHelper.createToken({ email: data.email }, { expiresIn: '30m' });
     verifyOtp_1.VerifyOtp.deleteOne({ email: data.email });
     return (0, formatResponse_1.formatResponse)(res, 200, "Email verified successfully", true, token);
 }));
@@ -108,7 +108,7 @@ exports.register = (0, express_async_handler_1.default)((req, res) => __awaiter(
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }
-    const { email } = (0, jwtHelper_1.verifyToken)(data.token);
+    const { email } = jwtHelper_1.jwtHelper.verifyToken(data.token);
     const password = Math.random().toString(36).slice(-8);
     const newUser = yield user_1.User.create({
         email,
@@ -187,7 +187,7 @@ exports.forgotPassword = (0, express_async_handler_1.default)((req, res) => __aw
     if (!user) {
         throw (0, http_errors_1.default)(404, 'User not found. Please register first.');
     }
-    const token = (0, jwtHelper_1.createToken)({ userId: user._id }, { expiresIn: '15m' });
+    const token = jwtHelper_1.jwtHelper.createToken({ userId: user._id }, { expiresIn: '15m' });
     const resetLink = `${secrets_1.AUTH_API_PATH}/?token=${encodeURIComponent(token)}`;
     yield (0, mailer_1.sendEmail)(data.email, 'Reset Password Link', `
     <html>
@@ -211,7 +211,7 @@ exports.updatePassword = (0, express_async_handler_1.default)((req, res) => __aw
     if (!token) {
         throw (0, http_errors_1.default)(400, 'Invalid reset link.');
     }
-    const decoded = (0, jwtHelper_1.verifyToken)(token);
+    const decoded = jwtHelper_1.jwtHelper.verifyToken(token);
     yield user_1.User.findByIdAndUpdate(decoded.userId, { password: data.password });
     return (0, formatResponse_1.formatResponse)(res, 200, 'Password updated successfully', true);
 }));
@@ -220,7 +220,7 @@ exports.isAuthenticated = (0, express_async_handler_1.default)((req, res) => __a
     if (!token) {
         throw (0, http_errors_1.default)(404, 'User not authenticated.');
     }
-    const decoded = (0, jwtHelper_1.verifyToken)(token);
+    const decoded = jwtHelper_1.jwtHelper.verifyToken(token);
     const user = yield user_1.User.findById(decoded.id);
     if (!user) {
         throw (0, http_errors_1.default)(404, 'User not found.');
