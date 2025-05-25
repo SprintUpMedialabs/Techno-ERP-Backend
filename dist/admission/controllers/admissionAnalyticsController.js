@@ -73,6 +73,7 @@ exports.getAdmissionStats = (0, express_async_handler_1.default)((req, res) => _
     if (type === constants_1.AdmissionAggregationType.DATE_WISE) {
         for (let i = 0; i < 5; i++) {
             const d = baseDate.clone().subtract(i, 'days');
+            console.log(d.toDate());
             if (d.month() === baseDate.month()) {
                 queryFilters.push({ type, date: d.toDate() });
             }
