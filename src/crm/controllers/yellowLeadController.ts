@@ -98,33 +98,33 @@ export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedReq
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
 
-    const analyticsDoc = await MarketingUserWiseAnalytics.findOne({
-      date: { $gte: todayStart },
-      data: {
-        $elemMatch: {
-          userId: currentLoggedInUser
-        }
-      }
-    });
+    // const analyticsDoc = await MarketingUserWiseAnalytics.findOne({
+    //   date: { $gte: todayStart },
+    //   data: {
+    //     $elemMatch: {
+    //       userId: currentLoggedInUser
+    //     }
+    //   }
+    // });
 
-    if (!analyticsDoc) {
-      throw createHttpError(404, 'Marketing analytics not found for user.');
-    }
+    // if (!analyticsDoc) {
+    //   throw createHttpError(404, 'Marketing analytics not found for user.');
+    // }
 
-    const updatedDataArray = analyticsDoc.data.map(entry => {
-      if (entry.userId.toString() === currentLoggedInUser) {
-        if (isCampusVisitChangedToYes) {
-          entry.totalFootFall = (entry.totalFootFall ?? 0) + 1;
-        }
-        if (isFinalConversionChangedToAdmission) {
-          entry.totalAdmissions = (entry.totalAdmissions ?? 0) + 1;
-        }
-      }
-      return entry;
-    });
+    // const updatedDataArray = analyticsDoc.data.map(entry => {
+    //   if (entry.userId.toString() === currentLoggedInUser) {
+    //     if (isCampusVisitChangedToYes) {
+    //       entry.totalFootFall = (entry.totalFootFall ?? 0) + 1;
+    //     }
+    //     if (isFinalConversionChangedToAdmission) {
+    //       entry.totalAdmissions = (entry.totalAdmissions ?? 0) + 1;
+    //     }
+    //   }
+    //   return entry;
+    // });
 
-    analyticsDoc.data = updatedDataArray;
-    await analyticsDoc.save();
+    // analyticsDoc.data = updatedDataArray;
+    // await analyticsDoc.save();
   }
 
   safeAxiosPost(axiosInstance, `${Endpoints.AuditLogService.MARKETING.SAVE_LEAD}`, {

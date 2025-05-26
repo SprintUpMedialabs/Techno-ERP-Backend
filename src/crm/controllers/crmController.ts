@@ -148,47 +148,47 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
 
-    const userAnalyticsDoc = await MarketingUserWiseAnalytics.findOne({
-      date: { $gte: todayStart },
-      data: { $elemMatch: { userId: currentLoggedInUser } },
-    });
+    // const userAnalyticsDoc = await MarketingUserWiseAnalytics.findOne({
+    //   date: { $gte: todayStart },
+    //   data: { $elemMatch: { userId: currentLoggedInUser } },
+    // });
 
-    if (!userAnalyticsDoc) 
-      throw createHttpError(404, 'User analytics not found.');
+    // if (!userAnalyticsDoc) 
+    //   throw createHttpError(404, 'User analytics not found.');
 
-    const userIndex = userAnalyticsDoc.data.findIndex((entry) =>
-      entry.userId.toString() === currentLoggedInUser.toString()
-    );
+    // const userIndex = userAnalyticsDoc.data.findIndex((entry) =>
+    //   entry.userId.toString() === currentLoggedInUser.toString()
+    // );
 
-    if (userIndex === -1) 
-      throw createHttpError(404, 'User not found in analytics data.');
+    // if (userIndex === -1) 
+    //   throw createHttpError(404, 'User not found in analytics data.');
 
     let shouldMarkCalled = false;
     const isFirstFollowUp = existingFollowUpCount === 0 && newFollowUpCount > 0;
 
-    if (isFirstFollowUp) {
-      userAnalyticsDoc.data[userIndex].newLeadCalls += 1;
-      if (!wasCalled) {
-        userAnalyticsDoc.data[userIndex].totalCalls += 1;
-        shouldMarkCalled = true;
-      }
-    } 
-    else if (!wasCalled) {
-      userAnalyticsDoc.data[userIndex].totalCalls += 1;
-      shouldMarkCalled = true;
-      if (isActive) {
-        userAnalyticsDoc.data[userIndex].activeLeadCalls += 1;
-      } 
-      else {
-        userAnalyticsDoc.data[userIndex].nonActiveLeadCalls += 1;
-      }
-    }
+    // if (isFirstFollowUp) {
+      // userAnalyticsDoc.data[userIndex].newLeadCalls += 1;
+      // if (!wasCalled) {
+      //   userAnalyticsDoc.data[userIndex].totalCalls += 1;
+      //   shouldMarkCalled = true;
+      // }
+    // } 
+    // else if (!wasCalled) {
+      // userAnalyticsDoc.data[userIndex].totalCalls += 1;
+      // shouldMarkCalled = true;
+      // if (isActive) {
+      //   userAnalyticsDoc.data[userIndex].activeLeadCalls += 1;
+      // } 
+      // else {
+      //   userAnalyticsDoc.data[userIndex].nonActiveLeadCalls += 1;
+      // }
+    // }
 
-    if (shouldMarkCalled) {
-      leadRequestData.isCalledToday = true;
-    }
+    // if (shouldMarkCalled) {
+    //   leadRequestData.isCalledToday = true;
+    // }
 
-    await userAnalyticsDoc.save();
+    // await userAnalyticsDoc.save();
   }
 
   const updatedData = await LeadMaster.findByIdAndUpdate(

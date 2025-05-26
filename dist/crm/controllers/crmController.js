@@ -32,7 +32,6 @@ const exceljs_1 = __importDefault(require("exceljs"));
 const leads_1 = require("../validators/leads");
 const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
 const moment_timezone_1 = __importDefault(require("moment-timezone"));
-const marketingUserWiseAnalytics_1 = require("../models/marketingUserWiseAnalytics");
 exports.uploadData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const user = yield user_1.User.findById((_a = req.data) === null || _a === void 0 ? void 0 : _a.id);
@@ -137,38 +136,40 @@ exports.updateData = (0, express_async_handler_1.default)((req, res) => __awaite
         const wasCalled = existingLead.isCalledToday;
         const todayStart = new Date();
         todayStart.setHours(0, 0, 0, 0);
-        const userAnalyticsDoc = yield marketingUserWiseAnalytics_1.MarketingUserWiseAnalytics.findOne({
-            date: { $gte: todayStart },
-            data: { $elemMatch: { userId: currentLoggedInUser } },
-        });
-        if (!userAnalyticsDoc)
-            throw (0, http_errors_1.default)(404, 'User analytics not found.');
-        const userIndex = userAnalyticsDoc.data.findIndex((entry) => entry.userId.toString() === currentLoggedInUser.toString());
-        if (userIndex === -1)
-            throw (0, http_errors_1.default)(404, 'User not found in analytics data.');
+        // const userAnalyticsDoc = await MarketingUserWiseAnalytics.findOne({
+        //   date: { $gte: todayStart },
+        //   data: { $elemMatch: { userId: currentLoggedInUser } },
+        // });
+        // if (!userAnalyticsDoc) 
+        //   throw createHttpError(404, 'User analytics not found.');
+        // const userIndex = userAnalyticsDoc.data.findIndex((entry) =>
+        //   entry.userId.toString() === currentLoggedInUser.toString()
+        // );
+        // if (userIndex === -1) 
+        //   throw createHttpError(404, 'User not found in analytics data.');
         let shouldMarkCalled = false;
         const isFirstFollowUp = existingFollowUpCount === 0 && newFollowUpCount > 0;
-        if (isFirstFollowUp) {
-            userAnalyticsDoc.data[userIndex].newLeadCalls += 1;
-            if (!wasCalled) {
-                userAnalyticsDoc.data[userIndex].totalCalls += 1;
-                shouldMarkCalled = true;
-            }
-        }
-        else if (!wasCalled) {
-            userAnalyticsDoc.data[userIndex].totalCalls += 1;
-            shouldMarkCalled = true;
-            if (isActive) {
-                userAnalyticsDoc.data[userIndex].activeLeadCalls += 1;
-            }
-            else {
-                userAnalyticsDoc.data[userIndex].nonActiveLeadCalls += 1;
-            }
-        }
-        if (shouldMarkCalled) {
-            leadRequestData.isCalledToday = true;
-        }
-        yield userAnalyticsDoc.save();
+        // if (isFirstFollowUp) {
+        // userAnalyticsDoc.data[userIndex].newLeadCalls += 1;
+        // if (!wasCalled) {
+        //   userAnalyticsDoc.data[userIndex].totalCalls += 1;
+        //   shouldMarkCalled = true;
+        // }
+        // } 
+        // else if (!wasCalled) {
+        // userAnalyticsDoc.data[userIndex].totalCalls += 1;
+        // shouldMarkCalled = true;
+        // if (isActive) {
+        //   userAnalyticsDoc.data[userIndex].activeLeadCalls += 1;
+        // } 
+        // else {
+        //   userAnalyticsDoc.data[userIndex].nonActiveLeadCalls += 1;
+        // }
+        // }
+        // if (shouldMarkCalled) {
+        //   leadRequestData.isCalledToday = true;
+        // }
+        // await userAnalyticsDoc.save();
     }
     const updatedData = yield lead_1.LeadMaster.findByIdAndUpdate(existingLead._id, Object.assign(Object.assign({}, leadRequestData), { leadTypeModifiedDate }), { new: true, runValidators: true });
     const updatedFollowUpCount = (_c = updatedData === null || updatedData === void 0 ? void 0 : updatedData.followUpCount) !== null && _c !== void 0 ? _c : 0;
