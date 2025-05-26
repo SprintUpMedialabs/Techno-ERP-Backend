@@ -13,11 +13,11 @@ const BaseMarketingUserWiseAnalyticsSchema = new Schema<IBaseMarketingUserWiseAn
     },
     userFirstName: { 
         type: String, 
-        required: true 
+        default: ''
     },
     userLastName: { 
         type: String, 
-        required: true 
+        default: ''
     },
     totalCalls: { 
         type: Number, 
