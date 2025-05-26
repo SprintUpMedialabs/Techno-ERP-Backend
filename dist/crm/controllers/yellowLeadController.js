@@ -26,7 +26,6 @@ const parseFilter_1 = require("../helpers/parseFilter");
 const lead_1 = require("../models/lead");
 const leads_1 = require("../validators/leads");
 const crmController_1 = require("./crmController");
-const marketingUserWiseAnalytics_1 = require("../models/marketingUserWiseAnalytics");
 exports.updateYellowLead = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c, _d, _e;
     const updateData = req.body;
@@ -92,31 +91,30 @@ exports.updateYellowLead = (0, express_async_handler_1.default)((req, res) => __
     if (isCampusVisitChangedToYes || isFinalConversionChangedToAdmission) {
         const todayStart = new Date();
         todayStart.setHours(0, 0, 0, 0);
-        const analyticsDoc = yield marketingUserWiseAnalytics_1.MarketingUserWiseAnalytics.findOne({
-            date: { $gte: todayStart },
-            data: {
-                $elemMatch: {
-                    userId: currentLoggedInUser
-                }
-            }
-        });
-        if (!analyticsDoc) {
-            throw (0, http_errors_1.default)(404, 'Marketing analytics not found for user.');
-        }
-        const updatedDataArray = analyticsDoc.data.map(entry => {
-            var _a, _b;
-            if (entry.userId.toString() === currentLoggedInUser) {
-                if (isCampusVisitChangedToYes) {
-                    entry.totalFootFall = ((_a = entry.totalFootFall) !== null && _a !== void 0 ? _a : 0) + 1;
-                }
-                if (isFinalConversionChangedToAdmission) {
-                    entry.totalAdmissions = ((_b = entry.totalAdmissions) !== null && _b !== void 0 ? _b : 0) + 1;
-                }
-            }
-            return entry;
-        });
-        analyticsDoc.data = updatedDataArray;
-        yield analyticsDoc.save();
+        // const analyticsDoc = await MarketingUserWiseAnalytics.findOne({
+        //   date: { $gte: todayStart },
+        //   data: {
+        //     $elemMatch: {
+        //       userId: currentLoggedInUser
+        //     }
+        //   }
+        // });
+        // if (!analyticsDoc) {
+        //   throw createHttpError(404, 'Marketing analytics not found for user.');
+        // }
+        // const updatedDataArray = analyticsDoc.data.map(entry => {
+        //   if (entry.userId.toString() === currentLoggedInUser) {
+        //     if (isCampusVisitChangedToYes) {
+        //       entry.totalFootFall = (entry.totalFootFall ?? 0) + 1;
+        //     }
+        //     if (isFinalConversionChangedToAdmission) {
+        //       entry.totalAdmissions = (entry.totalAdmissions ?? 0) + 1;
+        //     }
+        //   }
+        //   return entry;
+        // });
+        // analyticsDoc.data = updatedDataArray;
+        // await analyticsDoc.save();
     }
     (0, safeAxios_1.safeAxiosPost)(axiosInstance_1.default, `${endPoints_1.Endpoints.AuditLogService.MARKETING.SAVE_LEAD}`, {
         documentId: updatedYellowLead === null || updatedYellowLead === void 0 ? void 0 : updatedYellowLead._id,
