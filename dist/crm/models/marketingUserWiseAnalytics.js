@@ -44,11 +44,11 @@ const BaseMarketingUserWiseAnalyticsSchema = new mongoose_1.Schema({
     },
     userFirstName: {
         type: String,
-        required: true
+        default: ''
     },
     userLastName: {
         type: String,
-        required: true
+        default: ''
     },
     totalCalls: {
         type: Number,
