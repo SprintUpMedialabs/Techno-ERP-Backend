@@ -1,7 +1,7 @@
+import moment from "moment-timezone";
+
 export function getISTDate(offsetDays = 0): Date {
-    const now = new Date(); 
-    const ist = new Date(now.getTime() + 330 * 60000); 
-    ist.setDate(ist.getDate() + offsetDays);
-    ist.setHours(0, 0, 0, 0);
+    const now = moment().tz('Asia/Kolkata');
+    const ist = now.clone().add(offsetDays, 'days').startOf('day').toDate();
     return ist;
 }
