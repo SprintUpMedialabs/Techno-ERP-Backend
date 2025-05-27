@@ -1,17 +1,15 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getPreviousDayDateTime = void 0;
+const moment_timezone_1 = __importDefault(require("moment-timezone"));
 const getPreviousDayDateTime = () => {
-    const today = new Date();
-    const startOfYesterday = new Date(today);
-    startOfYesterday.setDate(today.getDate() - 1);
-    startOfYesterday.setHours(0, 0, 0, 0);
-    const endOfYesterday = new Date(today);
-    endOfYesterday.setDate(today.getDate() - 1);
-    endOfYesterday.setHours(23, 59, 59, 999);
+    const now = (0, moment_timezone_1.default)().tz('Asia/Kolkata');
     return {
-        startOfYesterday: startOfYesterday,
-        endOfYesterday: endOfYesterday
+        startOfYesterday: now.clone().subtract(1, 'days').startOf('day').toDate(),
+        endOfYesterday: now.clone().subtract(1, 'days').endOf('day').toDate(),
     };
 };
 exports.getPreviousDayDateTime = getPreviousDayDateTime;

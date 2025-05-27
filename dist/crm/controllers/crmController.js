@@ -13,8 +13,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.exportData = exports.logFollowUpChange = exports.updateData = exports.getAllLeadAnalytics = exports.getFilteredLeadData = exports.uploadData = void 0;
+const exceljs_1 = __importDefault(require("exceljs"));
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const http_errors_1 = __importDefault(require("http-errors"));
+const moment_timezone_1 = __importDefault(require("moment-timezone"));
 const axiosInstance_1 = __importDefault(require("../../api/axiosInstance"));
 const endPoints_1 = require("../../api/endPoints");
 const safeAxios_1 = require("../../api/safeAxios");
@@ -22,17 +24,16 @@ const user_1 = require("../../auth/models/user");
 const getCurrentLoggedInUser_1 = require("../../auth/utils/getCurrentLoggedInUser");
 const constants_1 = require("../../config/constants");
 const dropDownMetadataController_1 = require("../../utilityModules/dropdown/dropDownMetadataController");
+const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
 const formatResponse_1 = require("../../utils/formatResponse");
+const getISTDate_1 = require("../../utils/getISTDate");
 const googleSheetOperations_1 = require("../helpers/googleSheetOperations");
 const parseFilter_1 = require("../helpers/parseFilter");
 const updateAndSaveToDb_1 = require("../helpers/updateAndSaveToDb");
 const lead_1 = require("../models/lead");
 const marketingFollowUp_1 = require("../models/marketingFollowUp");
-const exceljs_1 = __importDefault(require("exceljs"));
-const leads_1 = require("../validators/leads");
-const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
-const moment_timezone_1 = __importDefault(require("moment-timezone"));
 const marketingUserWiseAnalytics_1 = require("../models/marketingUserWiseAnalytics");
+const leads_1 = require("../validators/leads");
 exports.uploadData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const user = yield user_1.User.findById((_a = req.data) === null || _a === void 0 ? void 0 : _a.id);
@@ -135,8 +136,7 @@ exports.updateData = (0, express_async_handler_1.default)((req, res) => __awaite
     if (isRemarkChanged) {
         const isActive = existingLead.isActiveLead;
         const wasCalled = existingLead.isCalledToday;
-        const todayStart = new Date();
-        todayStart.setHours(0, 0, 0, 0);
+        const todayStart = (0, getISTDate_1.getISTDate)();
         const userAnalyticsDoc = yield marketingUserWiseAnalytics_1.MarketingUserWiseAnalytics.findOne({
             date: { $gte: todayStart },
             data: { $elemMatch: { userId: currentLoggedInUser } },
