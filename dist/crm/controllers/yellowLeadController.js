@@ -27,6 +27,7 @@ const lead_1 = require("../models/lead");
 const leads_1 = require("../validators/leads");
 const crmController_1 = require("./crmController");
 const marketingUserWiseAnalytics_1 = require("../models/marketingUserWiseAnalytics");
+const getISTDate_1 = require("../../utils/getISTDate");
 exports.updateYellowLead = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c, _d, _e;
     const updateData = req.body;
@@ -90,8 +91,7 @@ exports.updateYellowLead = (0, express_async_handler_1.default)((req, res) => __
         throw (0, http_errors_1.default)(404, 'Yellow lead not found.');
     }
     if (isCampusVisitChangedToYes || isFinalConversionChangedToAdmission) {
-        const todayStart = new Date();
-        todayStart.setHours(0, 0, 0, 0);
+        const todayStart = (0, getISTDate_1.getISTDate)();
         const analyticsDoc = yield marketingUserWiseAnalytics_1.MarketingUserWiseAnalytics.findOne({
             date: { $gte: todayStart },
             data: {
