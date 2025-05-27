@@ -14,6 +14,7 @@ import { LeadMaster } from '../models/lead';
 import { IYellowLeadUpdate, yellowLeadUpdateSchema } from '../validators/leads';
 import { logFollowUpChange } from './crmController';
 import { MarketingUserWiseAnalytics } from '../models/marketingUserWiseAnalytics';
+import { getISTDate } from '../../utils/getISTDate';
 
 export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const updateData: IYellowLeadUpdate = req.body;
@@ -95,8 +96,7 @@ export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedReq
   }
 
   if (isCampusVisitChangedToYes || isFinalConversionChangedToAdmission) {
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
+    const todayStart = getISTDate();
 
     const analyticsDoc = await MarketingUserWiseAnalytics.findOne({
       date: { $gte: todayStart },
