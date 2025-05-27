@@ -80,6 +80,18 @@ exports.createFinanceAnalytics = (0, express_async_handler_1.default)((req, res)
                     totalExpectedRevenue: 0,
                     totalStudents: 0
                 };
+                // $project: {
+                //   semesters: {
+                //     $filter: {
+                //       input: "$semester",
+                //       as: "sem",
+                //       // TODO: here we need to change the condition that 
+                //         // 1. for current semster only it will be totalFinalFee
+                //         // 2. for rest will have that benchmark [ this benchmark will get updated upon semseter change means the date on which semster get updated on the same date night we need to update this benchmark ]
+                //       cond: { $in: ["$$sem.semesterNumber", semNumbers] }
+                //     }
+                //   }
+                // }
                 const revenueResult = yield student_1.Student.aggregate([
                     {
                         $match: {
@@ -90,20 +102,44 @@ exports.createFinanceAnalytics = (0, express_async_handler_1.default)((req, res)
                     },
                     {
                         $project: {
-                            semesters: {
-                                $filter: {
-                                    input: "$semester",
-                                    as: "sem",
-                                    cond: { $in: ["$$sem.semesterNumber", semNumbers] }
+                            totalFinalFee: {
+                                $sum: {
+                                    $map: {
+                                        input: {
+                                            $filter: {
+                                                input: '$semester',
+                                                as: 'sem',
+                                                cond: {
+                                                    $and: [
+                                                        { $ne: ['$$sem.fees.dueDate', null] },
+                                                        { $ifNull: ['$$sem.fees.dueDate', false] },
+                                                        { $eq: ['$$sem.semesterNumber', '$$ROOT.currentSemester'] }
+                                                    ]
+                                                }
+                                            }
+                                        },
+                                        as: 'filteredSem',
+                                        in: '$$filteredSem.fees.totalFinalFee'
+                                    }
                                 }
+                            },
+                            prevTotalDueAtSemStart: 1
+                        }
+                    },
+                    {
+                        $project: {
+                            totalDueWithPrev: {
+                                $add: ['$totalFinalFee', '$prevTotalDueAtSemStart']
                             }
                         }
                     },
-                    { $unwind: "$semesters" },
+                    {
+                        $match: { totalDueWithPrev: { $gt: 0 } }
+                    },
                     {
                         $group: {
                             _id: null,
-                            totalFinalFeeSum: { $sum: "$semesters.fees.totalFinalFee" }
+                            totalDueSum: { $sum: '$totalDueWithPrev' }
                         }
                     }
                 ]).session(session);
@@ -148,10 +184,10 @@ exports.createFinanceAnalytics = (0, express_async_handler_1.default)((req, res)
     }), 'Finance Analytics Pipeline Failure', "All retry limits expired for the finance analytics creation", pipelineId, constants_1.PipelineName.FINANCE_ANALYTICS);
     financeAnalyticsDetails.totalCollection = totalCollectionGlobal;
     financeAnalyticsDetails.totalExpectedRevenue = totalExpectedRevenueGlobal;
-    console.log(JSON.stringify(financeAnalyticsDetails, null, 2));
     yield financeAnalytics_1.FinanceAnalytics.create(financeAnalyticsDetails);
     return (0, formatResponse_1.formatResponse)(res, 201, "Finance Analytics created successfully!", true, null);
 }));
+// TODO: NEW ADDMISSION NEEDS TO BE HANDLE ALSO PASSOUT STUDENT DUES
 exports.fetchDayWiseAnalytics = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { date } = req.body;
     if (!date)
@@ -173,57 +209,109 @@ exports.fetchDayWiseAnalytics = (0, express_async_handler_1.default)((req, res) 
     const courseWiseData = (analyticsForDate === null || analyticsForDate === void 0 ? void 0 : analyticsForDate.courseWise) || [];
     const courseWiseInformation = [];
     courseWiseData.forEach((courseWise) => {
-        const detailsArray = courseWise.details.map((det) => ({
-            courseYear: det.courseYear,
-            totalCollection: det.totalCollection
-        }));
+        const totalCollection = courseWise.details.reduce((acc, curr) => acc + curr.totalCollection, 0);
         courseWiseInformation.push({
             courseCode: courseWise.courseCode,
-            details: detailsArray
+            totalCollection: totalCollection
         });
     });
     return (0, formatResponse_1.formatResponse)(res, 200, "Fetch day wise trend information successfully", true, {
-        totalCollection: (analyticsForDate === null || analyticsForDate === void 0 ? void 0 : analyticsForDate.totalCollection) || 0,
+        totalCollectionForThisDay: (analyticsForDate === null || analyticsForDate === void 0 ? void 0 : analyticsForDate.totalCollection) || 0,
         pastSevenDays: pastSevenDayDocs,
-        courseWiseInformation: courseWiseInformation
+        courseWiseCollectionForThisDay: courseWiseInformation
     });
 }));
 exports.fetchMonthWiseAnalytics = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { monthNumber } = req.body;
     const datesOfMonth = (0, getDatesOfMonth_1.getDatesOfMonth)(monthNumber);
+    // TODO: missing logic is i will not get data of previous months means left chart is not going to be created from this.
     let data = yield financeAnalytics_1.FinanceAnalytics.find({
         date: { $in: datesOfMonth },
     }).sort({ date: 1 });
-    let totalCollection = 0;
-    const monthWiseData = [];
+    let totalCollectionForThisMonth = 0;
+    // const monthWiseData: { date: string; totalCollection: number; }[] = [];
     const courseWiseObj = {};
     data.forEach((record) => {
-        totalCollection += record.totalCollection;
-        monthWiseData.push({
-            date: (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(record.date),
-            totalCollection: record.totalCollection
-        });
+        totalCollectionForThisMonth += record.totalCollection;
+        // monthWiseData.push({
+        //   date: convertToDDMMYYYY(record.date),
+        //   totalCollection: record.totalCollection
+        // });
         record.courseWise.forEach((course) => {
             const courseCode = course.courseCode;
             if (!courseWiseObj[courseCode]) {
-                courseWiseObj[courseCode] = {};
+                courseWiseObj[courseCode] = 0;
             }
             course.details.forEach((detail) => {
-                const year = detail.courseYear;
-                courseWiseObj[courseCode][year] = (courseWiseObj[courseCode][year] || 0) + detail.totalCollection;
+                courseWiseObj[courseCode] = (courseWiseObj[courseCode] || 0) + detail.totalCollection;
             });
         });
     });
-    const courseWiseCollection = Object.entries(courseWiseObj).map(([courseCode, yearObj]) => ({
+    const courseWiseCollectionForThisMonth = Object.entries(courseWiseObj).map(([courseCode, totalCollection]) => ({
         courseCode,
-        details: Object.entries(yearObj).map(([courseYear, totalCollection]) => ({
-            courseYear,
-            totalCollection
-        }))
+        totalCollection
     }));
+    // MONTH WISE DATA CALCULATION
+    const timezone = 'Asia/Kolkata';
+    const now = moment_timezone_1.default.tz(timezone);
+    const currentYear = now.year();
+    // Build array of {start, end, label} for last 7 months including given monthNumber
+    // If month goes below 1, go to previous year
+    const months = [];
+    let year = currentYear;
+    let month = monthNumber; // 1-12
+    for (let i = 0; i < 7; i++) {
+        if (month < 1) {
+            month = 12;
+            year--;
+        }
+        // start and end of month in timezone
+        const startDate = moment_timezone_1.default.tz({ year, month: month - 1, day: 1 }, timezone).startOf('day').toDate();
+        const endDate = moment_timezone_1.default.tz(startDate, timezone).endOf('month').endOf('day').toDate();
+        months.push({
+            year,
+            month,
+            startDate,
+            endDate,
+            label: moment_timezone_1.default.tz(startDate, timezone).format('MMMM YY') // e.g. May 25
+        });
+        month--;
+    }
+    // Get the overall date range for aggregation query
+    const earliestStart = months[months.length - 1].startDate;
+    const latestEnd = months[0].endDate;
+    // Mongo aggregation pipeline
+    const aggregation = [
+        {
+            $match: {
+                date: { $gte: earliestStart, $lte: latestEnd }
+            }
+        },
+        {
+            $group: {
+                _id: {
+                    year: { $year: '$date' },
+                    month: { $month: '$date' }
+                },
+                totalCollection: { $sum: '$totalCollection' }
+            }
+        }
+    ];
+    const results = yield financeAnalytics_1.FinanceAnalytics.aggregate(aggregation);
+    // Create a map for quick lookup
+    const resultMap = new Map();
+    results.forEach(r => {
+        const key = `${r._id.year}-${r._id.month}`;
+        resultMap.set(key, r.totalCollection);
+    });
+    // Build final response array
+    const monthWiseData = months.map(m => ({
+        date: m.label,
+        totalCollection: resultMap.get(`${m.year}-${m.month}`) || 0
+    })).reverse(); // reverse so older month comes first
     return (0, formatResponse_1.formatResponse)(res, 200, "Monthwise analytics fetched successfully", true, {
-        totalCollection: totalCollection,
+        totalCollectionForThisMonth: totalCollectionForThisMonth,
         monthWiseData: monthWiseData,
-        courseWiseCollection: courseWiseCollection
+        courseWiseCollectionForThisMonth: courseWiseCollectionForThisMonth
     });
 }));

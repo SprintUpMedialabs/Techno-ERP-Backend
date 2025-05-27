@@ -1,25 +1,24 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.convertToDDMMYYYY = exports.convertToMongoDate = void 0;
+const moment_timezone_1 = __importDefault(require("moment-timezone"));
 const convertToMongoDate = (dateString) => {
+    const istZone = 'Asia/Kolkata';
     if (dateString instanceof Date) {
-        return dateString;
+        // Interpret this date in IST and set time to start of day
+        return moment_timezone_1.default.tz(dateString, istZone).startOf('day').toDate();
     }
-    // Split the date string into day, month, and year
-    const [day, month, year] = dateString.split('/').map(Number);
-    // Create a JavaScript Date object (Months are 0-based in JavaScript)
-    return new Date(Date.UTC(year, month - 1, day));
+    // Parse the string assuming it's in 'DD/MM/YYYY' format in IST
+    const date = moment_timezone_1.default.tz(dateString, 'DD/MM/YYYY', istZone);
+    return date.startOf('day').toDate();
 };
 exports.convertToMongoDate = convertToMongoDate;
 const convertToDDMMYYYY = (dateObj) => {
     if (!dateObj)
         return "";
-    if (typeof dateObj === 'string') {
-        dateObj = new Date(dateObj);
-    }
-    const day = String(dateObj.getDate()).padStart(2, '0');
-    const month = String(Number(dateObj.getMonth()) + 1).padStart(2, '0'); // Month is 0-based
-    const year = dateObj.getFullYear();
-    return `${day}/${month}/${year}`;
+    return moment_timezone_1.default.tz(dateObj, 'Asia/Kolkata').format('DD/MM/YYYY');
 };
 exports.convertToDDMMYYYY = convertToDDMMYYYY;
