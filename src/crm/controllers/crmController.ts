@@ -1,6 +1,8 @@
+import ExcelJS from 'exceljs';
 import { Response } from 'express';
 import expressAsyncHandler from 'express-async-handler';
 import createHttpError from 'http-errors';
+import moment from 'moment-timezone';
 import axiosInstance from '../../api/axiosInstance';
 import { Endpoints } from '../../api/endPoints';
 import { safeAxiosPost } from '../../api/safeAxios';
@@ -9,18 +11,16 @@ import { getCurrentLoggedInUser } from '../../auth/utils/getCurrentLoggedInUser'
 import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
 import { Actions, DropDownType, LeadType, RequestAction, UserRoles } from '../../config/constants';
 import { updateOnlyOneValueInDropDown } from '../../utilityModules/dropdown/dropDownMetadataController';
+import { convertToDDMMYYYY } from '../../utils/convertDateToFormatedDate';
 import { formatResponse } from '../../utils/formatResponse';
+import { getISTDate } from '../../utils/getISTDate';
 import { readFromGoogleSheet } from '../helpers/googleSheetOperations';
 import { parseFilter } from '../helpers/parseFilter';
 import { saveDataToDb } from '../helpers/updateAndSaveToDb';
 import { LeadMaster } from '../models/lead';
 import { MarketingFollowUpModel } from '../models/marketingFollowUp';
-import { normaliseText } from '../validators/formators';
-import ExcelJS from 'exceljs';
-import { IUpdateLeadRequestSchema, updateLeadRequestSchema } from '../validators/leads';
-import { convertToDDMMYYYY } from '../../utils/convertDateToFormatedDate';
-import moment from 'moment-timezone';
 import { MarketingUserWiseAnalytics } from '../models/marketingUserWiseAnalytics';
+import { IUpdateLeadRequestSchema, updateLeadRequestSchema } from '../validators/leads';
 
 export const uploadData = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const user = await User.findById(req.data?.id);
@@ -145,8 +145,7 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
     const isActive = existingLead.isActiveLead;
     const wasCalled = existingLead.isCalledToday;
     
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
+    const todayStart = getISTDate();
 
     const userAnalyticsDoc = await MarketingUserWiseAnalytics.findOne({
       date: { $gte: todayStart },
