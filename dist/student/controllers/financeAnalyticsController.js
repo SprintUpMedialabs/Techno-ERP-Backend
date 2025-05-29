@@ -28,15 +28,17 @@ const financeAnalytics_1 = require("../models/financeAnalytics");
 const student_1 = require("../models/student");
 const controller_1 = require("../../pipline/controller");
 const moment_timezone_1 = __importDefault(require("moment-timezone"));
+const mongoose_1 = __importDefault(require("mongoose"));
 exports.createFinanceAnalytics = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const today = new Date();
     const currentYear = today.getFullYear();
     const currentMonth = today.getMonth();
-    const courseYears = ['', constants_1.CourseYears.First, constants_1.CourseYears.Second, constants_1.CourseYears.Third, constants_1.CourseYears.Fourth];
-    const date = (0, moment_timezone_1.default)().tz('Asia/Kolkata').startOf('day').subtract(1, 'day').toDate();
+    const courseYears = ['Zero', constants_1.CourseYears.First, constants_1.CourseYears.Second, constants_1.CourseYears.Third, constants_1.CourseYears.Fourth];
+    const date = (0, moment_timezone_1.default)().tz('Asia/Kolkata').startOf('day').toDate();
     const academicYear = currentMonth >= 6
         ? `${currentYear}-${currentYear + 1}`
         : `${currentYear - 1}-${currentYear}`;
+    const newAdmissionAcademicYear = `${currentYear}-${currentYear + 1}`;
     const courseList = yield courseMetadata_1.CourseMetaData.find({}, { courseCode: 1, courseName: 1, courseDuration: 1, departmentMetaDataId: 1, collegeName: 1 }).populate({
         path: 'departmentMetaDataId',
         select: 'departmentName departmentHODId',
@@ -50,13 +52,17 @@ exports.createFinanceAnalytics = (0, express_async_handler_1.default)((req, res)
         academicYear,
         totalExpectedRevenue: 0,
         totalCollection: 0,
+        totalStudents: 0,
         courseWise: []
     };
     let totalExpectedRevenueGlobal = 0;
     let totalCollectionGlobal = 0;
+    let totalStudentsGlobal = 0;
     const pipelineId = yield (0, controller_1.createPipeline)(constants_1.PipelineName.FINANCE_ANALYTICS);
     if (!pipelineId)
         throw (0, http_errors_1.default)(400, "Pipeline creation failed");
+    const session = yield mongoose_1.default.startSession();
+    session.startTransaction();
     yield (0, retryMechanism_1.retryMechanism)((session) => __awaiter(void 0, void 0, void 0, function* () {
         var _a, _b, _c;
         for (const course of courseList) {
@@ -64,39 +70,33 @@ exports.createFinanceAnalytics = (0, express_async_handler_1.default)((req, res)
             const departmentName = course.departmentName;
             let totalExpectedRevenueCourseWise = 0;
             let totalCollectionCourseWise = 0;
+            let totalStudentsCourseWise = 0;
             const courseWise = {
                 courseCode,
                 departmentName,
                 totalCollection: 0,
                 totalExpectedRevenue: 0,
+                totalStudents: 0,
                 details: []
             };
-            for (let i = 1; i <= courseDuration; i++) {
+            for (let i = 0; i <= courseDuration; i++) {
                 const courseYear = courseYears[i];
-                const semNumbers = [i * 2 - 1, i * 2];
+                const semNumbers = i == 0 ? [1] : [i * 2 - 1, i * 2];
+                let useAcademicYear = i == 0 ? newAdmissionAcademicYear : academicYear;
                 const courseYearDetail = {
-                    courseYear,
+                    courseYear: courseYear,
                     totalCollection: 0,
                     totalExpectedRevenue: 0,
                     totalStudents: 0
                 };
-                // $project: {
-                //   semesters: {
-                //     $filter: {
-                //       input: "$semester",
-                //       as: "sem",
-                //       // TODO: here we need to change the condition that 
-                //         // 1. for current semster only it will be totalFinalFee
-                //         // 2. for rest will have that benchmark [ this benchmark will get updated upon semseter change means the date on which semster get updated on the same date night we need to update this benchmark ]
-                //       cond: { $in: ["$$sem.semesterNumber", semNumbers] }
-                //     }
-                //   }
-                // }
+                // TODO: pass out student handling
+                //       remaining dues
+                //       prevTotalDueAtSemStart => create cron job for this
                 const revenueResult = yield student_1.Student.aggregate([
                     {
                         $match: {
                             courseCode,
-                            currentAcademicYear: academicYear,
+                            currentAcademicYear: useAcademicYear,
                             currentSemester: { $in: semNumbers },
                         }
                     },
@@ -143,13 +143,13 @@ exports.createFinanceAnalytics = (0, express_async_handler_1.default)((req, res)
                         }
                     }
                 ]).session(session);
-                const totalExpectedRevenueCourseYearWise = ((_a = revenueResult[0]) === null || _a === void 0 ? void 0 : _a.totalFinalFeeSum) || 0;
+                const totalExpectedRevenueCourseYearWise = ((_a = revenueResult[0]) === null || _a === void 0 ? void 0 : _a.totalDueSum) || 0;
                 const yesterday = (0, previousDayDateTime_1.getPreviousDayDateTime)();
                 const collectionResult = yield collegeTransactionHistory_1.CollegeTransaction.aggregate([
                     {
                         $match: {
                             courseCode,
-                            courseYear,
+                            courseYear: courseYear == 'Zero' ? 'First' : courseYear,
                             dateTime: {
                                 $gte: yesterday.startOfYesterday,
                                 $lte: yesterday.endOfYesterday
@@ -168,23 +168,27 @@ exports.createFinanceAnalytics = (0, express_async_handler_1.default)((req, res)
                 courseYearDetail.totalExpectedRevenue = totalExpectedRevenueCourseYearWise;
                 courseYearDetail.totalStudents = yield student_1.Student.countDocuments({
                     courseCode,
-                    currentAcademicYear: academicYear,
+                    currentAcademicYear: useAcademicYear,
                     currentSemester: { $in: semNumbers }
                 }).session(session);
                 totalCollectionCourseWise += totalCollectionCourseYearWise;
                 totalExpectedRevenueCourseWise += totalExpectedRevenueCourseYearWise;
+                totalStudentsCourseWise += courseYearDetail.totalStudents;
                 courseWise.details.push(courseYearDetail);
             }
             courseWise.totalCollection = totalCollectionCourseWise;
             courseWise.totalExpectedRevenue = totalExpectedRevenueCourseWise;
+            courseWise.totalStudents = totalStudentsCourseWise;
             financeAnalyticsDetails.courseWise.push(courseWise);
             totalCollectionGlobal += totalCollectionCourseWise;
             totalExpectedRevenueGlobal += totalExpectedRevenueCourseWise;
+            totalStudentsGlobal += totalStudentsCourseWise;
         }
+        financeAnalyticsDetails.totalCollection = totalCollectionGlobal;
+        financeAnalyticsDetails.totalExpectedRevenue = totalExpectedRevenueGlobal;
+        financeAnalyticsDetails.totalStudents = totalStudentsGlobal;
+        yield financeAnalytics_1.FinanceAnalytics.create([financeAnalyticsDetails], { session });
     }), 'Finance Analytics Pipeline Failure', "All retry limits expired for the finance analytics creation", pipelineId, constants_1.PipelineName.FINANCE_ANALYTICS);
-    financeAnalyticsDetails.totalCollection = totalCollectionGlobal;
-    financeAnalyticsDetails.totalExpectedRevenue = totalExpectedRevenueGlobal;
-    yield financeAnalytics_1.FinanceAnalytics.create(financeAnalyticsDetails);
     return (0, formatResponse_1.formatResponse)(res, 201, "Finance Analytics created successfully!", true, null);
 }));
 // TODO: NEW ADDMISSION NEEDS TO BE HANDLE ALSO PASSOUT STUDENT DUES

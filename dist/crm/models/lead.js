@@ -71,7 +71,7 @@ const leadSchema = new mongoose_1.Schema({
     // Optional alternate phone number; must follow the same format as phoneNumber
     altPhoneNumber: {
         type: String,
-        match: [/^[1-9]\d{9}$/, 'Invalid contact number format. Expected: 1234567890']
+        // match: [/^[1-9]\d{9}$/, 'Invalid contact number format. Expected: 1234567890']
     },
     // Email validation using regex
     email: {
@@ -143,7 +143,7 @@ const leadSchema = new mongoose_1.Schema({
     }
 }, { timestamps: true });
 leadSchema.index({ source: 1, name: 1, phoneNumber: 1 }, { unique: true, name: 'unique_lead_combo' });
-const handleMongooseError = (error, next) => {
+const handleMongooseError = (error, leadData, next) => {
     if (error.code === 11000) {
         throw (0, http_errors_1.default)(400, 'Phone Number already exists');
     }
@@ -159,10 +159,10 @@ const handleMongooseError = (error, next) => {
     }
 };
 leadSchema.post('save', function (error, doc, next) {
-    handleMongooseError(error, next);
+    handleMongooseError(error, doc, next);
 });
 leadSchema.post('findOneAndUpdate', function (error, doc, next) {
-    handleMongooseError(error, next);
+    handleMongooseError(error, doc, next);
 });
 const transformDates = (_, ret) => {
     ['leadTypeModifiedDate', 'nextDueDate', 'date', 'updatedAt'].forEach((key) => {

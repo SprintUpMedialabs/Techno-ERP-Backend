@@ -13,17 +13,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.saveDataToDb = void 0;
+const mongoose_1 = require("mongoose");
 const user_1 = require("../../auth/models/user");
 const constants_1 = require("../../config/constants");
 const logger_1 = __importDefault(require("../../config/logger"));
-const mailer_1 = require("../../config/mailer");
-const secrets_1 = require("../../secrets");
 const dropDownMetaDeta_1 = require("../../utilityModules/dropdown/dropDownMetaDeta");
 const dropDownMetadataController_1 = require("../../utilityModules/dropdown/dropDownMetadataController");
 const marketingSheetHeader_1 = require("../enums/marketingSheetHeader");
 const lead_1 = require("../models/lead");
 const leads_1 = require("../validators/leads");
-const formatReport_1 = require("./formatReport");
 const googleSheetOperations_1 = require("./googleSheetOperations");
 const leadsToBeInserted = (latestData, report, lastSavedIndex, citySet, sourceSet, courseSet, requiredColumnHeaders) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
@@ -134,7 +132,7 @@ const saveDataToDb = (latestData, lastSavedIndex, sheetId, sheetName, requiredCo
     const dataToInsert = yield leadsToBeInserted(latestData, report, lastSavedIndex, citySet, sourceSet, courseSet, requiredColumnHeaders);
     if (!dataToInsert || dataToInsert.length === 0) {
         if (report.rowsFailed != 0) {
-            (0, mailer_1.sendEmail)(secrets_1.LEAD_MARKETING_EMAIL, 'Lead Processing Report', (0, formatReport_1.formatReport)(report));
+            // sendEmail(LEAD_MARKETING_EMAIL, 'Lead Processing Report', formatReport(report));
             logger_1.default.info('Error report sent to Lead!');
         }
         logger_1.default.info('No valid data to insert.');
@@ -148,22 +146,31 @@ const saveDataToDb = (latestData, lastSavedIndex, sheetId, sheetName, requiredCo
     catch (error) {
         try {
             report.actullyProcessedRows = error.result.insertedCount;
-            error.writeErrors.map((e) => {
+            for (const e of error.writeErrors) {
                 report.rowsFailed++;
                 if (e.err.code === 11000) {
+                    const { name, phoneNumber, source, assignedTo } = dataToInsert[e.err.index];
+                    const existingLead = yield lead_1.LeadMaster.findOne({ name, phoneNumber, source });
+                    if (existingLead) {
+                        const existingAssigned = existingLead.assignedTo.map((id) => id.toString());
+                        const newAssigned = (assignedTo || []).map((id) => id.toString());
+                        const combined = [...new Set([...existingAssigned, ...newAssigned])]; // merge + dedupe
+                        existingLead.assignedTo = combined.map(id => new mongoose_1.Types.ObjectId(id));
+                        yield existingLead.save();
+                    }
                     report.duplicateRowIds.push(e.err.index + lastSavedIndex + 1);
                 }
                 else {
                     report.otherIssue.push({ rowId: e.err.index + lastSavedIndex + 1, issue: e.err.errmsg });
                 }
-            });
+            }
         }
         catch (error) {
             logger_1.default.error(`Error processing rows: ${JSON.stringify(error)}`);
         }
     }
     if (report.rowsFailed != 0) {
-        (0, mailer_1.sendEmail)(secrets_1.LEAD_MARKETING_EMAIL, 'Lead Processing Report', (0, formatReport_1.formatReport)(report));
+        // sendEmail(LEAD_MARKETING_EMAIL, 'Lead Processing Report', formatReport(report));
         logger_1.default.info('Error report sent to Lead!');
     }
     (0, dropDownMetadataController_1.updateDropDownByType)(constants_1.DropDownType.MARKETING_CITY, Array.from(citySet));
