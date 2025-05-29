@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.exportData = exports.logFollowUpChange = exports.updateData = exports.getAllLeadAnalytics = exports.getFilteredLeadData = exports.getAssignedSheets = exports.uploadData = void 0;
+exports.exportData = exports.logFollowUpChange = exports.updateData = exports.getAllLeadAnalytics = exports.getFilteredLeadData = exports.updateSource = exports.getAssignedSheets = exports.uploadData = void 0;
 const exceljs_1 = __importDefault(require("exceljs"));
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const http_errors_1 = __importDefault(require("http-errors"));
@@ -51,6 +51,19 @@ exports.getAssignedSheets = (0, express_async_handler_1.default)((req, res) => _
     const marketingSheet = user === null || user === void 0 ? void 0 : user.marketingSheet;
     logger_1.default.info(marketingSheet);
     return (0, formatResponse_1.formatResponse)(res, 200, 'Assigned sheets fetched successfully', true, marketingSheet);
+}));
+exports.updateSource = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { currentSource, newSource } = req.body;
+    if (!currentSource || !newSource) {
+        return res.status(400).json({ message: 'Both currentSource and newSource are required' });
+    }
+    const result = yield lead_1.LeadMaster.updateMany({ source: { $regex: `^${currentSource}$`, $options: 'i' } }, // case-insensitive exact match
+    { $set: { source: newSource } });
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Source updated successfully', true, {
+        message: `Updated ${result.modifiedCount} leads`,
+        matchedCount: result.matchedCount,
+        modifiedCount: result.modifiedCount,
+    });
 }));
 exports.getFilteredLeadData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.normaliseText = exports.splitEmails = exports.extractLast10Digits = exports.formatAndValidateLeadType = exports.toTitleCase = exports.formatDate = void 0;
+exports.normaliseText = exports.splitEmails = exports.extractLast10Digits = exports.formatAndValidateLeadType = exports.formatSource = exports.toTitleCase = exports.formatDate = void 0;
 const constants_1 = require("../../config/constants");
 // Utility functions
 const formatDate = (date) => {
@@ -35,6 +35,26 @@ const toTitleCase = (text) => {
         .join(" ");
 };
 exports.toTitleCase = toTitleCase;
+const formatSource = (val) => {
+    if (!val)
+        return "Other";
+    val = val.trim().toLowerCase();
+    switch (val) {
+        case "digital - ivr":
+            return "Digital - IVR";
+        case "pg data":
+            return "PG Data";
+        case "ug data":
+            return "UG Data";
+        case "cuet":
+            return "CUET";
+        case "euet entrance":
+            return "CUET";
+        default:
+            return (0, exports.toTitleCase)(val);
+    }
+};
+exports.formatSource = formatSource;
 const formatAndValidateLeadType = (val) => {
     const leadTypeValues = Object.values(constants_1.LeadType);
     let formatted = val === null || val === void 0 ? void 0 : val.trim().toUpperCase();

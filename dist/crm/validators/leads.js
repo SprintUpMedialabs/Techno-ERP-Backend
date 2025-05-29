@@ -41,7 +41,7 @@ exports.leadRequestSchema = exports.leadSchema.extend({
 }).omit({ leadTypeModifiedDate: true });
 exports.leadSheetSchema = zod_1.z.object({
     date: zod_1.z.string().optional().transform(formators_1.formatDate),
-    source: zod_1.z.string().optional().transform(formators_1.toTitleCase),
+    source: zod_1.z.string().optional().transform(formators_1.formatSource),
     name: zod_1.z.string().optional().transform(formators_1.toTitleCase),
     phoneNumber: zod_1.z.string().optional().transform(formators_1.extractLast10Digits),
     altPhoneNumber: zod_1.z.string().optional().transform(formators_1.extractLast10Digits),
