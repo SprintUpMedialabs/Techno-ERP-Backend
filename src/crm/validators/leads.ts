@@ -10,8 +10,8 @@ export const leadMasterSchema = z.object({
   schoolName: z.string().optional(),
   name: z.string().optional(),
   degree: z.string().optional(),
-  phoneNumber: contactNumberSchema.optional(),
-  altPhoneNumber: contactNumberSchema.optional(),
+  phoneNumber: z.string().optional(),
+  altPhoneNumber: z.string().optional(),
   email: z.string().email('Invalid Email Format').optional(),
   gender: z.nativeEnum(Gender).default(Gender.OTHER),
   area: z.string().optional(),
@@ -66,7 +66,7 @@ export const leadSheetSchema = z.object({
 export const updateLeadRequestSchema = leadRequestSchema.extend({
   _id: objectIdSchema,
   date: requestDateSchema.optional(),
-  phoneNumber: contactNumberSchema.optional(),
+  phoneNumber: z.string().optional(),
   gender: z.nativeEnum(Gender).optional(),
   leadType: z.nativeEnum(LeadType).optional(),
   assignedTo: objectIdSchema.array().optional(),
@@ -76,7 +76,7 @@ export const updateLeadRequestSchema = leadRequestSchema.extend({
 export const yellowLeadUpdateSchema = yellowLeadSchema.extend({
   _id: objectIdSchema,
   name: z.string().optional(),
-  phoneNumber: contactNumberSchema.optional(),
+  phoneNumber: z.string().optional(),
   assignedTo: objectIdSchema.array().optional(),
   date: requestDateSchema.transform((date) => convertToMongoDate(date) as Date).optional(),
   nextDueDate: requestDateSchema.transform((date) => convertToMongoDate(date) as Date).optional(),

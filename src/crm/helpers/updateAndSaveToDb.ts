@@ -63,7 +63,7 @@ const leadsToBeInserted = async (
         ...(row[requiredColumnHeaders[MarketingsheetHeaders.Course]] && { course: row[requiredColumnHeaders[MarketingsheetHeaders.Course]] }),
         assignedTo: row[requiredColumnHeaders[MarketingsheetHeaders.AssignedTo]],
       };
-      
+
       row[requiredColumnHeaders[MarketingsheetHeaders.Gender]] = row[requiredColumnHeaders[MarketingsheetHeaders.Gender]]?.toUpperCase();
       if (
         row[requiredColumnHeaders[MarketingsheetHeaders.Gender]] &&
@@ -165,7 +165,7 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number, sh
   const dataToInsert = await leadsToBeInserted(latestData, report, lastSavedIndex, citySet, sourceSet, courseSet, requiredColumnHeaders);
   if (!dataToInsert || dataToInsert.length === 0) {
     if (report.rowsFailed != 0) {
-      sendEmail(LEAD_MARKETING_EMAIL, 'Lead Processing Report', formatReport(report));
+      // sendEmail(LEAD_MARKETING_EMAIL, 'Lead Processing Report', formatReport(report));
       logger.info('Error report sent to Lead!');
     }
     logger.info('No valid data to insert.');
@@ -181,21 +181,34 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number, sh
     try {
       report.actullyProcessedRows = error.result.insertedCount;
 
-      error.writeErrors.map((e: any) => {
+      for (const e of error.writeErrors) {
         report.rowsFailed++;
         if (e.err.code === 11000) {
+          const { name, phoneNumber, source, assignedTo } = dataToInsert[e.err.index];
+
+          const existingLead = await LeadMaster.findOne({ name, phoneNumber, source });
+
+          if (existingLead) {
+            const existingAssigned = existingLead.assignedTo.map((id: any) => id.toString());
+            const newAssigned = (assignedTo || []).map((id: any) => id.toString());
+  
+            const combined = [...new Set([...existingAssigned, ...newAssigned])]; // merge + dedupe
+  
+            existingLead.assignedTo = combined.map(id => new Types.ObjectId(id));
+            await existingLead.save();
+          }
           report.duplicateRowIds.push(e.err.index + lastSavedIndex + 1);
         }
         else {
           report.otherIssue.push({ rowId: e.err.index + lastSavedIndex + 1, issue: e.err.errmsg });
         }
-      });
+      }
     } catch (error) {
       logger.error(`Error processing rows: ${JSON.stringify(error)}`);
     }
   }
   if (report.rowsFailed != 0) {
-    sendEmail(LEAD_MARKETING_EMAIL, 'Lead Processing Report', formatReport(report));
+    // sendEmail(LEAD_MARKETING_EMAIL, 'Lead Processing Report', formatReport(report));
     logger.info('Error report sent to Lead!');
   }
   updateDropDownByType(DropDownType.MARKETING_CITY, Array.from(citySet));

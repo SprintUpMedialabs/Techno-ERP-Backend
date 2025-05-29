@@ -14,6 +14,7 @@ export interface CourseWiseInformation{
     departmentName : string,
     totalCollection : number,
     totalExpectedRevenue : number,
+    totalStudents : number,
     details : CourseWiseDetails[]
 }
 
@@ -23,6 +24,7 @@ export interface FinanceAnalytics{
     academicYear : string,
     totalCollection : number,
     totalExpectedRevenue : number,
+    totalStudents : number,
     courseWise : CourseWiseInformation[]
 }
 
@@ -33,7 +35,7 @@ export interface ICourseYearDetailDocument extends ICourseYearDetailSchema, Docu
 const CourseWiseDetailSchema = new Schema<ICourseYearDetailDocument>({
     courseYear : {
         type : String,
-        enum : Object.values(CourseYears)
+        // enum : Object.values(CourseYears)
     },
     totalCollection : {
         type : Number,
@@ -64,6 +66,10 @@ const CourseWiseSchema = new Schema<ICourseWiseDocument>({
         type : Number,
         default : 0
     },  
+    totalStudents : {
+        type : Number,
+        default : 0
+    },
     details : {
         type : [CourseWiseDetailSchema],
         default : []
@@ -78,6 +84,10 @@ const FinanceAnalyticsSchema  = new Schema<IFinanceAnalyticsDocument>({
         type : String
     },
     totalCollection : {
+        type : Number,
+        default : 0
+    },
+    totalStudents : {
         type : Number,
         default : 0
     },

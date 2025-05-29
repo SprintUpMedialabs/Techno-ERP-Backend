@@ -325,6 +325,10 @@ const StudentModel = new Schema<IStudentDocument>({
         type: Number,
         default: 0
     },
+    prevTotalDueAtSemStart: {
+        type: Number,
+        default: 0
+    },
     transactionHistory: {
         type: [{
             type: Schema.Types.ObjectId,
