@@ -21,22 +21,26 @@ import { LeadMaster } from '../models/lead';
 import { MarketingFollowUpModel } from '../models/marketingFollowUp';
 import { MarketingUserWiseAnalytics } from '../models/marketingUserWiseAnalytics';
 import { IUpdateLeadRequestSchema, updateLeadRequestSchema } from '../validators/leads';
+import logger from '../../config/logger';
 
 export const uploadData = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const { id, name } = req.body;
+
+  if (id && name) {
+    const latestData = await readFromGoogleSheet(id, name);
+    if (latestData) {
+      await saveDataToDb(latestData.rowData, latestData.lastSavedIndex, id, name, latestData.requiredColumnHeaders);
+    }
+  }
+  return formatResponse(res, 200, 'Data updated in Database!', true);
+
+});
+
+export const getAssignedSheets = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const user = await User.findById(req.data?.id);
   const marketingSheet = user?.marketingSheet;
-
-  if (marketingSheet && marketingSheet.length > 0) {
-    for (const sheet of marketingSheet) {
-      const latestData = await readFromGoogleSheet(sheet.id, sheet.name);
-      if (latestData) {
-        await saveDataToDb(latestData.rowData, latestData.lastSavedIndex, sheet.id, sheet.name, latestData.requiredColumnHeaders);
-      }
-    }
-    return formatResponse(res, 200, 'Data updated in Database!', true);
-  } else {
-    return formatResponse(res, 400, 'No data found in the sheet!', false);
-  }
+  logger.info(marketingSheet);
+  return formatResponse(res, 200, 'Assigned sheets fetched successfully', true, marketingSheet);
 });
 
 export const getFilteredLeadData = expressAsyncHandler(
@@ -144,7 +148,7 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
   if (isRemarkChanged) {
     const isActive = existingLead.isActiveLead;
     const wasCalled = existingLead.isCalledToday;
-    
+
     const todayStart = getISTDate();
 
     const userAnalyticsDoc = await MarketingUserWiseAnalytics.findOne({
@@ -152,14 +156,14 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
       data: { $elemMatch: { userId: currentLoggedInUser } },
     });
 
-    if (!userAnalyticsDoc) 
+    if (!userAnalyticsDoc)
       throw createHttpError(404, 'User analytics not found.');
 
     const userIndex = userAnalyticsDoc.data.findIndex((entry) =>
       entry.userId.toString() === currentLoggedInUser.toString()
     );
 
-    if (userIndex === -1) 
+    if (userIndex === -1)
       throw createHttpError(404, 'User not found in analytics data.');
 
     let shouldMarkCalled = false;
@@ -171,13 +175,13 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
         userAnalyticsDoc.data[userIndex].totalCalls += 1;
         shouldMarkCalled = true;
       }
-    } 
+    }
     else if (!wasCalled) {
       userAnalyticsDoc.data[userIndex].totalCalls += 1;
       shouldMarkCalled = true;
       if (isActive) {
         userAnalyticsDoc.data[userIndex].activeLeadCalls += 1;
-      } 
+      }
       else {
         userAnalyticsDoc.data[userIndex].nonActiveLeadCalls += 1;
       }
@@ -235,7 +239,7 @@ export const logFollowUpChange = (leadId: any, userId: any, action: Actions) => 
 
 
 export const exportData = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  
+
   const roles = req.data?.roles || [];
   const user = await User.findById(req.data?.id);
 
@@ -302,8 +306,8 @@ export const exportData = expressAsyncHandler(async (req: AuthenticatedRequest, 
     if (isAdminOrLead) {
       rowData.assignedTo = Array.isArray(lead.assignedTo)
         ? lead.assignedTo.map((user: any) =>
-            `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim()
-          ).join(', ')
+          `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim()
+        ).join(', ')
         : '';
     }
 

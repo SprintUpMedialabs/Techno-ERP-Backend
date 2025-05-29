@@ -12,5 +12,6 @@ export enum MarketingsheetHeaders {
   Remarks = "Remarks",
   AltPhoneNumber = "Alt Phone Number",
   Gender = "Gender",
-  SchoolName = "School Name",
+  SchoolName = "School/College Name",
+  Degree = "Degree",
 }

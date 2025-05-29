@@ -4,6 +4,7 @@ import { authenticate, authorize } from '../../middleware/jwtAuthenticationMiddl
 import {
   exportData,
   getAllLeadAnalytics,
+  getAssignedSheets,
   getFilteredLeadData,
   updateData,
   uploadData
@@ -15,7 +16,6 @@ import {
 } from '../controllers/yellowLeadController';
 import { adminAnalytics, createMarketingSourceWiseAnalytics, getDurationBasedUserAnalytics, getMarketingSourceWiseAnalytics, getMarketingUserWiseAnalytics, initializeUserWiseAnalytics, reiterateLeads } from '../controllers/adminController';
 import { createMarketingAnalytics, getCallAnalytics } from '../controllers/marketingAnalyticsController';
-import { User } from '../../auth/models/user';
 
 export const crmRoute = express.Router();
 
@@ -24,6 +24,12 @@ crmRoute.post(
   authenticate,
   authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING]),
   uploadData
+);
+
+crmRoute.get('/assigned-sheets',
+  authenticate,
+  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING,UserRoles.EMPLOYEE_MARKETING]),
+  getAssignedSheets
 );
 
 crmRoute.get(
