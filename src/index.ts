@@ -10,6 +10,8 @@ import { validateEnvVariables } from './config/validateEnv';
 import { errorHandler } from './middleware/error';
 import { apiRouter } from './route';
 import { PORT } from './secrets';
+import mongoose from 'mongoose';
+import { LeadMaster } from './crm/models/lead';
 
 const app = express();
 
@@ -57,6 +59,14 @@ connectToDatabase();
 initializeDB();
 
 app.use('/api', apiRouter);
+
+app.get('/abc', async (req, res) => {
+  await LeadMaster.deleteMany({
+    assignedTo: { $size: 1, $all: [new mongoose.Types.ObjectId('680e04fafd5f1da267edf23b')] }
+  });
+  
+  res.send('Hello World');
+});
 
 app.use(
   morgan(':method :url :status :response-time ms', {

@@ -1,19 +1,20 @@
+import moment from 'moment-timezone';
 import { convertToMongoDate } from "./convertDateToFormatedDate";
 
-export function getPastSevenDates(dateStr: string) {
-    const baseDate = convertToMongoDate(dateStr);
-    if (isNaN(baseDate.getTime())) throw new Error("Invalid date");
+export function getPastSevenDates(dateStr: string): Date[] {
+  const baseDate = convertToMongoDate(dateStr);
 
-    const pastDates: Date[] = [];
+  const istZone = 'Asia/Kolkata';
+  const pastDates: Date[] = [];
 
-    for (let i = 7; i >= 0; i--) {
-        const pastDate = new Date(Date.UTC(
-            baseDate.getUTCFullYear(),
-            baseDate.getUTCMonth(),
-            baseDate.getUTCDate() - i
-        ));
-        pastDates.push(pastDate);
-    }
+  // Start from 7 days ago up to today
+  for (let i = 7; i >= 0; i--) {
+    const pastDate = moment.tz(baseDate, istZone)
+      .subtract(i, 'days')
+      .startOf('day')
+      .toDate();
+    pastDates.push(pastDate);
+  }
 
-    return pastDates;
+  return pastDates;
 }

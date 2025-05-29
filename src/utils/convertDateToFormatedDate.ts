@@ -1,23 +1,22 @@
+import moment from 'moment-timezone';
+
 export const convertToMongoDate = (dateString: string | Date): Date => {
+  const istZone = 'Asia/Kolkata';
+
   if (dateString instanceof Date) {
-    return dateString;
+    // Interpret this date in IST and set time to start of day
+    return moment.tz(dateString, istZone).startOf('day').toDate();
   }
 
-  // Split the date string into day, month, and year
-  const [day, month, year] = dateString.split('/').map(Number);
+  // Parse the string assuming it's in 'DD/MM/YYYY' format in IST
+  const date = moment.tz(dateString, 'DD/MM/YYYY', istZone);
 
-  // Create a JavaScript Date object (Months are 0-based in JavaScript)
-  return new Date(Date.UTC(year, month - 1, day));
+  return date.startOf('day').toDate();
 };
 
+
 export const convertToDDMMYYYY = (dateObj: Date | string | undefined): string => {
-  if(!dateObj)
-    return ""
-  if (typeof dateObj === 'string') {
-    dateObj = new Date(dateObj);
-  }
-  const day = String(dateObj.getDate()).padStart(2, '0');
-  const month = String(Number(dateObj.getMonth()) + 1).padStart(2, '0'); // Month is 0-based
-  const year = dateObj.getFullYear();
-  return `${day}/${month}/${year}`;
+  if (!dateObj) return "";
+
+  return moment.tz(dateObj, 'Asia/Kolkata').format('DD/MM/YYYY');
 };

@@ -105,7 +105,8 @@ export const StudentSchema = z.object({
     totalSemester: z.number({ required_error: "Total Number of Semesters is Required." }).nonnegative("Total number of semesters must be non-negative"),
     semester: z.array(SemesterSchema),
     feeStatus: z.nativeEnum(FeeStatus).default(FeeStatus.DUE),
-    extraBalance: z.number().default(0),
+    extraBalance: z.number(),
+    prevTotalDueAtSemStart: z.number(),
     transactionHistory: z.array(objectIdSchema).optional()
 })
 
