@@ -13,7 +13,8 @@ export const courseWiseSchema = z.object({
     departmentName : z.string(),
     details : z.array(courseYearDetailSchema),
     totalExpectedRevenue : z.number().nonnegative().default(0),
-    totalCollection : z.number().nonnegative().default(0)
+    totalCollection : z.number().nonnegative().default(0),
+    totalStudents : z.number().nonnegative().default(0)
 })
 
 export const FinanceAnalyticsSchema = z.object({
@@ -21,7 +22,8 @@ export const FinanceAnalyticsSchema = z.object({
     academicYear : z.string(),
     totalExpectedRevenue : z.number().nonnegative().default(0),
     totalCollection : z.number().nonnegative().default(0),
-    courseWise : z.array(courseWiseSchema)
+    courseWise : z.array(courseWiseSchema),
+    totalStudents : z.number().nonnegative().default(0)
 })
 
 
