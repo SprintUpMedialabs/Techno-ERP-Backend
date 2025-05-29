@@ -12,8 +12,8 @@ exports.leadMasterSchema = zod_1.z.object({
     schoolName: zod_1.z.string().optional(),
     name: zod_1.z.string().optional(),
     degree: zod_1.z.string().optional(),
-    phoneNumber: commonSchema_1.contactNumberSchema.optional(),
-    altPhoneNumber: commonSchema_1.contactNumberSchema.optional(),
+    phoneNumber: zod_1.z.string().optional(),
+    altPhoneNumber: zod_1.z.string().optional(),
     email: zod_1.z.string().email('Invalid Email Format').optional(),
     gender: zod_1.z.nativeEnum(constants_1.Gender).default(constants_1.Gender.OTHER),
     area: zod_1.z.string().optional(),
@@ -63,7 +63,7 @@ exports.leadSheetSchema = zod_1.z.object({
 exports.updateLeadRequestSchema = exports.leadRequestSchema.extend({
     _id: commonSchema_1.objectIdSchema,
     date: commonSchema_1.requestDateSchema.optional(),
-    phoneNumber: commonSchema_1.contactNumberSchema.optional(),
+    phoneNumber: zod_1.z.string().optional(),
     gender: zod_1.z.nativeEnum(constants_1.Gender).optional(),
     leadType: zod_1.z.nativeEnum(constants_1.LeadType).optional(),
     assignedTo: commonSchema_1.objectIdSchema.array().optional(),
@@ -72,7 +72,7 @@ exports.updateLeadRequestSchema = exports.leadRequestSchema.extend({
 exports.yellowLeadUpdateSchema = exports.yellowLeadSchema.extend({
     _id: commonSchema_1.objectIdSchema,
     name: zod_1.z.string().optional(),
-    phoneNumber: commonSchema_1.contactNumberSchema.optional(),
+    phoneNumber: zod_1.z.string().optional(),
     assignedTo: commonSchema_1.objectIdSchema.array().optional(),
     date: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)).optional(),
     nextDueDate: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)).optional(),

@@ -39,7 +39,7 @@ const constants_1 = require("../../config/constants");
 const CourseWiseDetailSchema = new mongoose_1.Schema({
     courseYear: {
         type: String,
-        enum: Object.values(constants_1.CourseYears)
+        // enum : Object.values(CourseYears)
     },
     totalCollection: {
         type: Number,
@@ -69,6 +69,10 @@ const CourseWiseSchema = new mongoose_1.Schema({
         type: Number,
         default: 0
     },
+    totalStudents: {
+        type: Number,
+        default: 0
+    },
     details: {
         type: [CourseWiseDetailSchema],
         default: []
@@ -82,6 +86,10 @@ const FinanceAnalyticsSchema = new mongoose_1.Schema({
         type: String
     },
     totalCollection: {
+        type: Number,
+        default: 0
+    },
+    totalStudents: {
         type: Number,
         default: 0
     },
