@@ -22,8 +22,7 @@ export const readFromGoogleSheet = async (MARKETING_SHEET_ID: string, MARKETING_
   const lastSavedIndex = spreadSheetMetaData.lastIdxMarketingSheet;
 
   logger.info(`Last saved index from DB: ${lastSavedIndex}`);
-  console.log( MARKETING_SHEET_ID)
-  console.log(MARKETING_SHEET_PAGE_NAME)
+  
   const sheetMeta = await sheetInstance.spreadsheets.get({
     spreadsheetId: MARKETING_SHEET_ID
   });

@@ -50,6 +50,7 @@ export const leadSheetSchema = z.object({
   email: z.string().optional(),
   city: z.string().optional().transform(toTitleCase),
   assignedTo: z.string().transform(splitEmails),
+  degree: z.string().optional(),
   gender: z.string().optional().transform(val => val?.toUpperCase()),
   followUpCount: z.number().optional().default(0),
     // temporary fields

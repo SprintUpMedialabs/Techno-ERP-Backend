@@ -62,6 +62,7 @@ const leadsToBeInserted = async (
         ...(row[requiredColumnHeaders[MarketingsheetHeaders.Area]] && { area: row[requiredColumnHeaders[MarketingsheetHeaders.Area]] }),
         ...(row[requiredColumnHeaders[MarketingsheetHeaders.Course]] && { course: row[requiredColumnHeaders[MarketingsheetHeaders.Course]] }),
         assignedTo: row[requiredColumnHeaders[MarketingsheetHeaders.AssignedTo]],
+        ...(row[requiredColumnHeaders[MarketingsheetHeaders.Degree]] && { degree: row[requiredColumnHeaders[MarketingsheetHeaders.Degree]] }),
       };
 
       row[requiredColumnHeaders[MarketingsheetHeaders.Gender]] = row[requiredColumnHeaders[MarketingsheetHeaders.Gender]]?.toUpperCase();
