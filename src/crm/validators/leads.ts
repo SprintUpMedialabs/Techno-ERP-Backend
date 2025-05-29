@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { FinalConversionType, Gender, LeadType } from '../../config/constants';
 import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import { contactNumberSchema, objectIdSchema, requestDateSchema } from '../../validators/commonSchema';
-import { extractLast10Digits, formatAndValidateLeadType, formatDate, splitEmails, toTitleCase } from './formators';
+import { extractLast10Digits, formatAndValidateLeadType, formatDate, formatSource, splitEmails, toTitleCase } from './formators';
 
 export const leadMasterSchema = z.object({
   date: z.date(),
@@ -39,11 +39,11 @@ export const yellowLeadSchema = leadMasterSchema.omit({ leadType: true, leadType
 export const leadRequestSchema = leadSchema.extend({
   date: requestDateSchema,
   nextDueDate: requestDateSchema.optional()
-}).omit({ leadTypeModifiedDate: true })
+}).omit({ leadTypeModifiedDate: true });
 
 export const leadSheetSchema = z.object({
   date: z.string().optional().transform(formatDate),
-  source: z.string().optional().transform(toTitleCase),
+  source: z.string().optional().transform(formatSource),
   name: z.string().optional().transform(toTitleCase),
   phoneNumber: z.string().optional().transform(extractLast10Digits),
   altPhoneNumber: z.string().optional().transform(extractLast10Digits),

@@ -107,7 +107,6 @@ export const getCallAnalytics = expressAsyncHandler(async (req: AuthenticatedReq
   if (!callAnalytics || callAnalytics.details.length === 0) {
     return formatResponse(res, 200, "No analytics data found", true, {});
   }
-
   const latestEntry = callAnalytics.details[callAnalytics.details.length - 1];
   const userIds = latestEntry.data.map(item => item.userId);
 

@@ -43,6 +43,25 @@ export const getAssignedSheets = expressAsyncHandler(async (req: AuthenticatedRe
   return formatResponse(res, 200, 'Assigned sheets fetched successfully', true, marketingSheet);
 });
 
+export const updateSource = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const { currentSource, newSource } = req.body;
+
+  if (!currentSource || !newSource) {
+    return res.status(400).json({ message: 'Both currentSource and newSource are required' });
+  }
+
+  const result = await LeadMaster.updateMany(
+    { source: { $regex: `^${currentSource}$`, $options: 'i' } }, // case-insensitive exact match
+    { $set: { source: newSource } }
+  );
+
+  return formatResponse(res, 200, 'Source updated successfully', true, {
+    message: `Updated ${result.modifiedCount} leads`,
+    matchedCount: result.matchedCount,
+    modifiedCount: result.modifiedCount,
+  });
+});
+
 export const getFilteredLeadData = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const { query, search, page, limit, sort } = parseFilter(req);
