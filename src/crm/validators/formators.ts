@@ -33,6 +33,25 @@ export const toTitleCase = (text: string | undefined): string => {
         .join(" ");
 };
 
+export const formatSource = (val?: string): string => {
+    if(!val) return "Other";
+    val = val.trim().toLowerCase();
+    switch(val){
+        case "digital - ivr":
+            return "Digital - IVR";
+        case "pg data":
+            return "PG Data";
+        case "ug data":
+            return "UG Data";
+        case "cuet":
+            return "CUET";
+        case "euet entrance":
+            return "CUET";
+        default:
+            return toTitleCase(val);
+    }
+}
+
 export const formatAndValidateLeadType = (val?: string): LeadType => {
     const leadTypeValues = Object.values(LeadType);
     let formatted = val?.trim().toUpperCase();
