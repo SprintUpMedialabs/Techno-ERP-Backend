@@ -15,19 +15,21 @@ import { CourseWiseDetails, CourseWiseInformation, FinanceAnalytics } from "../m
 import { Student } from "../models/student";
 import { createPipeline } from "../../pipline/controller";
 import moment from "moment-timezone";
+import mongoose from "mongoose";
 
 export const createFinanceAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const today = new Date();
   const currentYear = today.getFullYear();
   const currentMonth = today.getMonth();
-  const courseYears = ['', CourseYears.First, CourseYears.Second, CourseYears.Third, CourseYears.Fourth];
+  const courseYears = ['Zero', CourseYears.First, CourseYears.Second, CourseYears.Third, CourseYears.Fourth];
 
-  const date = moment().tz('Asia/Kolkata').startOf('day').subtract(1, 'day').toDate();
+  const date = moment().tz('Asia/Kolkata').startOf('day').toDate();
 
   const academicYear =
     currentMonth >= 6
       ? `${currentYear}-${currentYear + 1}`
       : `${currentYear - 1}-${currentYear}`;
+  const newAdmissionAcademicYear = `${currentYear}-${currentYear + 1}`;
 
   const courseList = await CourseMetaData.find(
     {},
@@ -46,14 +48,19 @@ export const createFinanceAnalytics = expressAsyncHandler(async (req: Authentica
     academicYear,
     totalExpectedRevenue: 0,
     totalCollection: 0,
+    totalStudents : 0,
     courseWise: []
   };
 
   let totalExpectedRevenueGlobal = 0;
   let totalCollectionGlobal = 0;
+  let totalStudentsGlobal = 0;
 
   const pipelineId = await createPipeline(PipelineName.FINANCE_ANALYTICS);
   if (!pipelineId) throw createHttpError(400, "Pipeline creation failed");
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
   await retryMechanism(async (session) => {
     for (const course of courseList) {
@@ -63,45 +70,38 @@ export const createFinanceAnalytics = expressAsyncHandler(async (req: Authentica
 
       let totalExpectedRevenueCourseWise = 0;
       let totalCollectionCourseWise = 0;
+      let totalStudentsCourseWise = 0;
 
       const courseWise: CourseWiseInformation = {
         courseCode,
         departmentName,
         totalCollection: 0,
         totalExpectedRevenue: 0,
+        totalStudents : 0,
         details: []
       };
 
-      for (let i = 1; i <= courseDuration; i++) {
+      for (let i = 0; i <= courseDuration; i++) {
         const courseYear = courseYears[i];
-        const semNumbers = [i * 2 - 1, i * 2];
+        const semNumbers = i == 0 ? [1] : [i * 2 - 1, i * 2];
+        let useAcademicYear = i == 0 ? newAdmissionAcademicYear : academicYear;
 
         const courseYearDetail: CourseWiseDetails = {
-          courseYear,
+          courseYear: courseYear,
           totalCollection: 0,
           totalExpectedRevenue: 0,
           totalStudents: 0
         };
 
-
-        // $project: {
-        //   semesters: {
-        //     $filter: {
-        //       input: "$semester",
-        //       as: "sem",
-        //       // TODO: here we need to change the condition that 
-        //         // 1. for current semster only it will be totalFinalFee
-        //         // 2. for rest will have that benchmark [ this benchmark will get updated upon semseter change means the date on which semster get updated on the same date night we need to update this benchmark ]
-        //       cond: { $in: ["$$sem.semesterNumber", semNumbers] }
-        //     }
-        //   }
-        // }
+// TODO: pass out student handling
+//       remaining dues
+//       prevTotalDueAtSemStart => create cron job for this
 
         const revenueResult = await Student.aggregate([
           {
             $match: {
               courseCode,
-              currentAcademicYear: academicYear,
+              currentAcademicYear: useAcademicYear,
               currentSemester: { $in: semNumbers },
             }
           },
@@ -149,15 +149,14 @@ export const createFinanceAnalytics = expressAsyncHandler(async (req: Authentica
           }
         ]).session(session);
 
-
-        const totalExpectedRevenueCourseYearWise = revenueResult[0]?.totalFinalFeeSum || 0;
+        const totalExpectedRevenueCourseYearWise = revenueResult[0]?.totalDueSum || 0;
 
         const yesterday = getPreviousDayDateTime();
         const collectionResult = await CollegeTransaction.aggregate([
           {
             $match: {
               courseCode,
-              courseYear,
+              courseYear: courseYear == 'Zero' ? 'First' : courseYear,
               dateTime: {
                 $gte: yesterday.startOfYesterday,
                 $lte: yesterday.endOfYesterday
@@ -178,30 +177,32 @@ export const createFinanceAnalytics = expressAsyncHandler(async (req: Authentica
         courseYearDetail.totalExpectedRevenue = totalExpectedRevenueCourseYearWise;
         courseYearDetail.totalStudents = await Student.countDocuments({
           courseCode,
-          currentAcademicYear: academicYear,
+          currentAcademicYear: useAcademicYear,
           currentSemester: { $in: semNumbers }
         }).session(session);
 
         totalCollectionCourseWise += totalCollectionCourseYearWise;
         totalExpectedRevenueCourseWise += totalExpectedRevenueCourseYearWise;
+        totalStudentsCourseWise += courseYearDetail.totalStudents;
 
         courseWise.details.push(courseYearDetail);
       }
 
       courseWise.totalCollection = totalCollectionCourseWise;
       courseWise.totalExpectedRevenue = totalExpectedRevenueCourseWise;
+      courseWise.totalStudents = totalStudentsCourseWise;
 
       financeAnalyticsDetails.courseWise.push(courseWise);
 
       totalCollectionGlobal += totalCollectionCourseWise;
       totalExpectedRevenueGlobal += totalExpectedRevenueCourseWise;
+      totalStudentsGlobal += totalStudentsCourseWise;
     }
+    financeAnalyticsDetails.totalCollection = totalCollectionGlobal;
+    financeAnalyticsDetails.totalExpectedRevenue = totalExpectedRevenueGlobal;
+    financeAnalyticsDetails.totalStudents = totalStudentsGlobal;
+    await FinanceAnalytics.create([financeAnalyticsDetails], { session });
   }, 'Finance Analytics Pipeline Failure', "All retry limits expired for the finance analytics creation", pipelineId, PipelineName.FINANCE_ANALYTICS);
-
-  financeAnalyticsDetails.totalCollection = totalCollectionGlobal;
-  financeAnalyticsDetails.totalExpectedRevenue = totalExpectedRevenueGlobal;
-
-  await FinanceAnalytics.create(financeAnalyticsDetails);
 
   return formatResponse(res, 201, "Finance Analytics created successfully!", true, null);
 });
@@ -241,7 +242,7 @@ export const fetchDayWiseAnalytics = expressAsyncHandler(async (req: Authenticat
 
   courseWiseData.forEach((courseWise: { details: any; courseCode: any; }) => {
     const totalCollection = courseWise.details.reduce((acc: number, curr: { courseYear: CourseYears; totalCollection: number }) => acc + curr.totalCollection, 0);
-    
+
     courseWiseInformation.push({
       courseCode: courseWise.courseCode,
       totalCollection: totalCollection

@@ -13,7 +13,7 @@ financeAnalyticsRoute.post('/create',
 
 financeAnalyticsRoute.post('/daywise',
     authenticate,
-    authorize([UserRoles.BASIC_USER]),
+    authorize([UserRoles.BASIC_USER, UserRoles.SYSTEM_ADMIN]),
     fetchDayWiseAnalytics
 );
 
