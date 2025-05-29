@@ -31,8 +31,6 @@ const readFromGoogleSheet = (MARKETING_SHEET_ID, MARKETING_SHEET_PAGE_NAME) => _
     }));
     const lastSavedIndex = spreadSheetMetaData.lastIdxMarketingSheet;
     logger_1.default.info(`Last saved index from DB: ${lastSavedIndex}`);
-    console.log(MARKETING_SHEET_ID);
-    console.log(MARKETING_SHEET_PAGE_NAME);
     const sheetMeta = yield sheetInstance.spreadsheets.get({
         spreadsheetId: MARKETING_SHEET_ID
     });

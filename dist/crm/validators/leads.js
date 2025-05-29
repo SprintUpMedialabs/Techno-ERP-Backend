@@ -48,6 +48,7 @@ exports.leadSheetSchema = zod_1.z.object({
     email: zod_1.z.string().optional(),
     city: zod_1.z.string().optional().transform(formators_1.toTitleCase),
     assignedTo: zod_1.z.string().transform(formators_1.splitEmails),
+    degree: zod_1.z.string().optional(),
     gender: zod_1.z.string().optional().transform(val => val === null || val === void 0 ? void 0 : val.toUpperCase()),
     followUpCount: zod_1.z.number().optional().default(0),
     // temporary fields

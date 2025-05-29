@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.exportData = exports.logFollowUpChange = exports.updateData = exports.getAllLeadAnalytics = exports.getFilteredLeadData = exports.uploadData = void 0;
+exports.exportData = exports.logFollowUpChange = exports.updateData = exports.getAllLeadAnalytics = exports.getFilteredLeadData = exports.getAssignedSheets = exports.uploadData = void 0;
 const exceljs_1 = __importDefault(require("exceljs"));
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const http_errors_1 = __importDefault(require("http-errors"));
@@ -34,22 +34,23 @@ const lead_1 = require("../models/lead");
 const marketingFollowUp_1 = require("../models/marketingFollowUp");
 const marketingUserWiseAnalytics_1 = require("../models/marketingUserWiseAnalytics");
 const leads_1 = require("../validators/leads");
+const logger_1 = __importDefault(require("../../config/logger"));
 exports.uploadData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id, name } = req.body;
+    if (id && name) {
+        const latestData = yield (0, googleSheetOperations_1.readFromGoogleSheet)(id, name);
+        if (latestData) {
+            yield (0, updateAndSaveToDb_1.saveDataToDb)(latestData.rowData, latestData.lastSavedIndex, id, name, latestData.requiredColumnHeaders);
+        }
+    }
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Data updated in Database!', true);
+}));
+exports.getAssignedSheets = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const user = yield user_1.User.findById((_a = req.data) === null || _a === void 0 ? void 0 : _a.id);
     const marketingSheet = user === null || user === void 0 ? void 0 : user.marketingSheet;
-    if (marketingSheet && marketingSheet.length > 0) {
-        for (const sheet of marketingSheet) {
-            const latestData = yield (0, googleSheetOperations_1.readFromGoogleSheet)(sheet.id, sheet.name);
-            if (latestData) {
-                yield (0, updateAndSaveToDb_1.saveDataToDb)(latestData.rowData, latestData.lastSavedIndex, sheet.id, sheet.name, latestData.requiredColumnHeaders);
-            }
-        }
-        return (0, formatResponse_1.formatResponse)(res, 200, 'Data updated in Database!', true);
-    }
-    else {
-        return (0, formatResponse_1.formatResponse)(res, 400, 'No data found in the sheet!', false);
-    }
+    logger_1.default.info(marketingSheet);
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Assigned sheets fetched successfully', true, marketingSheet);
 }));
 exports.getFilteredLeadData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
