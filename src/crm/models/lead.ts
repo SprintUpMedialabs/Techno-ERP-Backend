@@ -4,6 +4,7 @@ import mongoose, { Document, Schema } from 'mongoose';
 import { COLLECTION_NAMES, FinalConversionType, Gender, LeadType } from '../../config/constants';
 import { convertToDDMMYYYY, convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import { ILeadMaster } from '../validators/leads';
+import logger from '../../config/logger';
 
 export interface ILeadMasterDocument extends ILeadMaster, Document { }
 
@@ -38,7 +39,7 @@ const leadSchema = new Schema<ILeadMasterDocument>(
     // Optional alternate phone number; must follow the same format as phoneNumber
     altPhoneNumber: {
       type: String,
-      match: [/^[1-9]\d{9}$/, 'Invalid contact number format. Expected: 1234567890']
+      // match: [/^[1-9]\d{9}$/, 'Invalid contact number format. Expected: 1234567890']
     },
     // Email validation using regex
     email: {
@@ -121,7 +122,7 @@ leadSchema.index(
   { unique: true, name: 'unique_lead_combo' }
 );
 
-const handleMongooseError = (error: any, next: Function) => {
+const handleMongooseError = (error: any,leadData:any, next: Function) => {
   if (error.code === 11000) {
     throw createHttpError(400, 'Phone Number already exists');
   } else if (error.name === 'ValidationError') {
@@ -135,11 +136,11 @@ const handleMongooseError = (error: any, next: Function) => {
 };
 
 leadSchema.post('save', function (error: any, doc: any, next: Function) {
-  handleMongooseError(error, next);
+  handleMongooseError(error, doc,next);
 });
 
 leadSchema.post('findOneAndUpdate', function (error: any, doc: any, next: Function) {
-  handleMongooseError(error, next);
+  handleMongooseError(error,doc, next);
 });
 
 const transformDates = (_: any, ret: any) => {
