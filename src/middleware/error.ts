@@ -11,7 +11,7 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
 
   if (!err.statusCode || err.statusCode === 500) {
     if (process.env.NODE_ENV) {
-      sendEmail(DEVELOPER_EMAIL, 'Error in the application', err.message);
+      sendEmail(DEVELOPER_EMAIL, `Error in the application ${process.env.NODE_ENV}`, err.message);
     }
   }
 

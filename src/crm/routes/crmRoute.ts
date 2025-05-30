@@ -1,6 +1,7 @@
 import express from 'express';
 import { UserRoles } from '../../config/constants';
 import { authenticate, authorize } from '../../middleware/jwtAuthenticationMiddleware';
+import { adminAnalytics, createMarketingSourceWiseAnalytics, getDurationBasedUserAnalytics, getMarketingSourceWiseAnalytics, getMarketingUserWiseAnalytics, getUserDailyAnalytics, initializeUserWiseAnalytics, reiterateLeads } from '../controllers/adminController';
 import {
   exportData,
   getAllLeadAnalytics,
@@ -10,13 +11,12 @@ import {
   updateSource,
   uploadData
 } from '../controllers/crmController';
+import { createMarketingAnalytics, getCallAnalytics, updateMarketingRemark } from '../controllers/marketingAnalyticsController';
 import {
   getFilteredYellowLeads,
   getYellowLeadsAnalytics,
   updateYellowLead
 } from '../controllers/yellowLeadController';
-import { adminAnalytics, createMarketingSourceWiseAnalytics, getDurationBasedUserAnalytics, getMarketingSourceWiseAnalytics, getMarketingUserWiseAnalytics, getUserDailyAnalytics, initializeUserWiseAnalytics, reiterateLeads } from '../controllers/adminController';
-import { createMarketingAnalytics, getCallAnalytics, updateMarketingRemark } from '../controllers/marketingAnalyticsController';
 
 export const crmRoute = express.Router();
 
