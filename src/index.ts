@@ -59,58 +59,6 @@ connectToDatabase();
 initializeDB();
 
 app.use('/api', apiRouter);
-import fs from 'fs';
-
-app.get('/abc', async (req, res) => {
-  const leads = await LeadMaster.find({}).lean();
-  const backupPath = path.join(__dirname, 'leads_backup.json');
-
-  fs.writeFileSync(backupPath, JSON.stringify(leads, null, 2));
-  console.log(`Backup saved to ${backupPath}`);
-});
-
-app.get('/upload', async (req, res) => {
-  const filePath = path.join(__dirname, 'leads_backup.json');
-  const leads: ILeadMasterDocument[] = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-
-  const leadsToInsert: any[] = [];
-
-  for (const lead of leads) {
-    const baseData = {
-      ...lead,
-      // __v: 0, // Optional: reset version
-    };
-
-    // If multiple assignedTo users, create a copy per user
-    const assignedUsers = Array.isArray(lead.assignedTo) ? lead.assignedTo : [null];
-
-    if (assignedUsers.length > 0) {
-      for (const userId of assignedUsers) {
-        const newLead = {
-          ...baseData,
-          assignedTo: userId,
-          _id: new mongoose.Types.ObjectId(), // Generate new _id for each
-          createdAt: lead.createdAt,
-          updatedAt: lead.updatedAt,
-        };
-        leadsToInsert.push(newLead);
-      }
-    } else {
-      // No assignedTo — just insert the original
-      const newLead = {
-        ...baseData,
-        assignedTo: null,
-        _id: new mongoose.Types.ObjectId(),
-        createdAt: lead.createdAt,
-        updatedAt: lead.updatedAt,
-      };
-      leadsToInsert.push(newLead);
-    }
-  }
-
-  await LeadMaster.insertMany(leadsToInsert);
-  console.log(`Inserted ${leadsToInsert.length} leads.`);
-});
 
 app.use(
   morgan(':method :url :status :response-time ms', {

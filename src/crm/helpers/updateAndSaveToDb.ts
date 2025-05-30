@@ -7,12 +7,11 @@ import { LEAD_MARKETING_EMAIL } from '../../secrets';
 import { DropDownMetaData } from '../../utilityModules/dropdown/dropDownMetaDeta';
 import { formatCapital, formatDropdownValue, updateDropDownByType } from '../../utilityModules/dropdown/dropDownMetadataController';
 import { MarketingsheetHeaders } from '../enums/marketingSheetHeader';
-import { ILeadMasterDocument, LeadMaster } from '../models/lead';
+import { LeadMaster } from '../models/lead';
 import { IMarketingSpreadsheetProcessReport } from '../types/marketingSpreadsheet';
 import { leadSheetSchema } from '../validators/leads';
 import { formatReport } from './formatReport';
 import { updateStatusForMarketingSheet } from './googleSheetOperations';
-import createHttpError from 'http-errors';
 
 const leadsToBeInserted = async (
   latestData: any[],
@@ -175,20 +174,11 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number, sh
   }
 
   try {
-    console.log('dataToInsert');
-    console.log(dataToInsert);
     const insertedData = await LeadMaster.insertMany(dataToInsert, { ordered: false, throwOnValidationError: true });
-    console.log('insertedData');
-    console.log(insertedData);
     report.actullyProcessedRows = insertedData.length;
   } catch (error: any) {
     try {
-      console.log('report.actullyProcessedRows');
-      console.log(error);
       report.actullyProcessedRows = error.result.insertedCount;
-      console.log(report.actullyProcessedRows);
-
-
       for (const e of error.writeErrors) {
         report.rowsFailed++;
         if (e.err.code === 11000) {
@@ -199,8 +189,6 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number, sh
         }
       }
     } catch (error) {
-      console.log('error');
-      console.log(error);
       logger.error(`Error processing rows: ${JSON.stringify(error)}`);
     }
   }
