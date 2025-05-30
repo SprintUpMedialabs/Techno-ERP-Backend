@@ -14,7 +14,7 @@ import { retryMechanism } from "../config/retryMechanism";
 import { createPipeline } from "../pipline/controller";
 export const backupRoute = Router();
 
-backupRoute.get('/', authenticate, authorize([UserRoles.SYSTEM_ADMIN]), expressAsyncHandler(async (_: AuthenticatedRequest, res) => {
+backupRoute.get('/', authenticate, authorize([UserRoles.SYSTEM_ADMIN, UserRoles.BASIC_USER]), expressAsyncHandler(async (_: AuthenticatedRequest, res) => {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const dumpDir = `backup-${timestamp}`;
     const dumpFile = `${dumpDir}.tar.gz`;

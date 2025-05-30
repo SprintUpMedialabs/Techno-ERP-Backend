@@ -17,7 +17,7 @@ export const leadMasterSchema = z.object({
   area: z.string().optional(),
   city: z.string().optional().default('Other'),
   course: z.string().optional(),
-  assignedTo: objectIdSchema.array(),
+  assignedTo: objectIdSchema,
   leadType: z.nativeEnum(LeadType).default(LeadType.LEFT_OVER),
   leadTypeModifiedDate: z.date().optional(),
   nextDueDate: z.date().optional(),
@@ -70,7 +70,6 @@ export const updateLeadRequestSchema = leadRequestSchema.extend({
   phoneNumber: z.string().optional(),
   gender: z.nativeEnum(Gender).optional(),
   leadType: z.nativeEnum(LeadType).optional(),
-  assignedTo: objectIdSchema.array().optional(),
   nextDueDate: requestDateSchema.transform((date) => convertToMongoDate(date) as Date).optional(),
 }).omit({ source: true }).strict(); // strict will restrict extra properties
 
@@ -78,7 +77,6 @@ export const yellowLeadUpdateSchema = yellowLeadSchema.extend({
   _id: objectIdSchema,
   name: z.string().optional(),
   phoneNumber: z.string().optional(),
-  assignedTo: objectIdSchema.array().optional(),
   date: requestDateSchema.transform((date) => convertToMongoDate(date) as Date).optional(),
   nextDueDate: requestDateSchema.transform((date) => convertToMongoDate(date) as Date).optional(),
 }).strict();

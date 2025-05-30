@@ -16,7 +16,7 @@ import {
   updateYellowLead
 } from '../controllers/yellowLeadController';
 import { adminAnalytics, createMarketingSourceWiseAnalytics, getDurationBasedUserAnalytics, getMarketingSourceWiseAnalytics, getMarketingUserWiseAnalytics, getUserDailyAnalytics, initializeUserWiseAnalytics, reiterateLeads } from '../controllers/adminController';
-import { createMarketingAnalytics, getCallAnalytics } from '../controllers/marketingAnalyticsController';
+import { createMarketingAnalytics, getCallAnalytics, updateMarketingRemark } from '../controllers/marketingAnalyticsController';
 
 export const crmRoute = express.Router();
 
@@ -110,6 +110,12 @@ crmRoute.get('/call-analytics',
   getCallAnalytics
 );
 
+crmRoute.put('/update-marketing-remark', 
+  authenticate, 
+  authorize([UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING]), 
+  updateMarketingRemark
+);
+
 crmRoute.post('/source-analytics', 
   authenticate, 
   authorize([UserRoles.ADMIN, UserRoles.SYSTEM_ADMIN]), 
@@ -152,4 +158,3 @@ crmRoute.post('/iterate-leads',
   authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.SYSTEM_ADMIN]), 
   reiterateLeads
 );
-

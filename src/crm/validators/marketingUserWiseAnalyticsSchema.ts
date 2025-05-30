@@ -10,7 +10,8 @@ export const baseMarketingUserWiseAnalyticsSchema = z.object({
     activeLeadCalls : z.number(),
     nonActiveLeadCalls : z.number(),
     totalFootFall : z.number(),
-    totalAdmissions : z.number()
+    totalAdmissions : z.number(),
+    analyticsRemark : z.string()
 });
 
 export const marketingUserWiseAnalyticsSchema = z.object({

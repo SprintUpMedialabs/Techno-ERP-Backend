@@ -7,11 +7,12 @@ import { LEAD_MARKETING_EMAIL } from '../../secrets';
 import { DropDownMetaData } from '../../utilityModules/dropdown/dropDownMetaDeta';
 import { formatCapital, formatDropdownValue, updateDropDownByType } from '../../utilityModules/dropdown/dropDownMetadataController';
 import { MarketingsheetHeaders } from '../enums/marketingSheetHeader';
-import { LeadMaster } from '../models/lead';
+import { ILeadMasterDocument, LeadMaster } from '../models/lead';
 import { IMarketingSpreadsheetProcessReport } from '../types/marketingSpreadsheet';
 import { leadSheetSchema } from '../validators/leads';
 import { formatReport } from './formatReport';
 import { updateStatusForMarketingSheet } from './googleSheetOperations';
+import createHttpError from 'http-errors';
 
 const leadsToBeInserted = async (
   latestData: any[],
@@ -96,7 +97,7 @@ const leadsToBeInserted = async (
         if (leadDataValidation.data.course) {
           courseSet.add(formatCapital(leadDataValidation.data.course));
         }
-        let assignedToIDs: Types.ObjectId[] = [];
+        
         for (const assignedTo of leadDataValidation.data.assignedTo) {
           let assignedToID = MarketingEmployees.get(assignedTo);
 
@@ -111,13 +112,11 @@ const leadsToBeInserted = async (
               } else {
                 report.unauthorizedAssignedTo.push(correspondingSheetIndex);
               }
-              report.rowsFailed++;
               continue;
             }
           }
-          assignedToIDs.push(assignedToID);
+          dataToInsert.push({ ...leadDataValidation.data, assignedTo: assignedToID });
         }
-        dataToInsert.push({ ...leadDataValidation.data, assignedTo: assignedToIDs });
       }
       else {
         report.rowsFailed++;
@@ -166,7 +165,7 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number, sh
   const dataToInsert = await leadsToBeInserted(latestData, report, lastSavedIndex, citySet, sourceSet, courseSet, requiredColumnHeaders);
   if (!dataToInsert || dataToInsert.length === 0) {
     if (report.rowsFailed != 0) {
-      // sendEmail(LEAD_MARKETING_EMAIL, 'Lead Processing Report', formatReport(report));
+      sendEmail(LEAD_MARKETING_EMAIL, 'Lead Processing Report', formatReport(report));
       logger.info('Error report sent to Lead!');
     }
     logger.info('No valid data to insert.');
@@ -176,28 +175,23 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number, sh
   }
 
   try {
+    console.log('dataToInsert');
+    console.log(dataToInsert);
     const insertedData = await LeadMaster.insertMany(dataToInsert, { ordered: false, throwOnValidationError: true });
+    console.log('insertedData');
+    console.log(insertedData);
     report.actullyProcessedRows = insertedData.length;
   } catch (error: any) {
     try {
+      console.log('report.actullyProcessedRows');
+      console.log(error);
       report.actullyProcessedRows = error.result.insertedCount;
+      console.log(report.actullyProcessedRows);
+
 
       for (const e of error.writeErrors) {
         report.rowsFailed++;
         if (e.err.code === 11000) {
-          const { name, phoneNumber, source, assignedTo } = dataToInsert[e.err.index];
-
-          const existingLead = await LeadMaster.findOne({ name, phoneNumber, source });
-
-          if (existingLead) {
-            const existingAssigned = existingLead.assignedTo.map((id: any) => id.toString());
-            const newAssigned = (assignedTo || []).map((id: any) => id.toString());
-  
-            const combined = [...new Set([...existingAssigned, ...newAssigned])]; // merge + dedupe
-  
-            existingLead.assignedTo = combined.map(id => new Types.ObjectId(id));
-            await existingLead.save();
-          }
           report.duplicateRowIds.push(e.err.index + lastSavedIndex + 1);
         }
         else {
@@ -205,11 +199,13 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number, sh
         }
       }
     } catch (error) {
+      console.log('error');
+      console.log(error);
       logger.error(`Error processing rows: ${JSON.stringify(error)}`);
     }
   }
   if (report.rowsFailed != 0) {
-    // sendEmail(LEAD_MARKETING_EMAIL, 'Lead Processing Report', formatReport(report));
+    sendEmail(LEAD_MARKETING_EMAIL, 'Lead Processing Report', formatReport(report));
     logger.info('Error report sent to Lead!');
   }
   updateDropDownByType(DropDownType.MARKETING_CITY, Array.from(citySet));

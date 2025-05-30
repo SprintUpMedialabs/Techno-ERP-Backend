@@ -43,6 +43,7 @@ export const getAssignedSheets = expressAsyncHandler(async (req: AuthenticatedRe
   return formatResponse(res, 200, 'Assigned sheets fetched successfully', true, marketingSheet);
 });
 
+// THIS IS JUST TO UPDATE THE SOURCE OF THE LEADS | BE AWARE WHILE USING IT |
 export const updateSource = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const { currentSource, newSource } = req.body;
 
@@ -186,7 +187,7 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
       throw createHttpError(404, 'User not found in analytics data.');
 
     let shouldMarkCalled = false;
-    const isFirstFollowUp = existingFollowUpCount === 0 && newFollowUpCount > 0;
+    const isFirstFollowUp = newRemarkLength == 1;
 
     if (isFirstFollowUp) {
       userAnalyticsDoc.data[userIndex].newLeadCalls += 1;
@@ -294,14 +295,14 @@ export const exportData = expressAsyncHandler(async (req: AuthenticatedRequest, 
   }
 
   worksheet.columns = baseColumns;
-  const leads = await LeadMaster.find({
+  const leads:any = await LeadMaster.find({
     assignedTo: { $in: [req.data?.id] }
   }).populate({
     path: 'assignedTo',
     select: 'firstName lastName'
   });
 
-  leads.forEach(lead => {
+  leads.forEach((lead: any) => {
     const rowData: any = {
       date: lead.date ? convertToDDMMYYYY(lead.date) : '',
       name: lead.name || '',
@@ -323,11 +324,7 @@ export const exportData = expressAsyncHandler(async (req: AuthenticatedRequest, 
     };
 
     if (isAdminOrLead) {
-      rowData.assignedTo = Array.isArray(lead.assignedTo)
-        ? lead.assignedTo.map((user: any) =>
-          `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim()
-        ).join(', ')
-        : '';
+      rowData.assignedTo = lead.assignedTo.firstName + ' ' + lead.assignedTo.lastName;
     }
 
     worksheet.addRow(rowData);

@@ -5,13 +5,15 @@ import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import { OrderBy, SortableFields } from '../enums/sorting';
 import { IAllLeadFilter } from '../types/marketingSpreadsheet';
 
-//We need to add here one for LTC of yellow leads for allowing analytics of yellow leads table on that => createdAt pe kaam kar raha hai ab
+// We need to add here one for LTC of yellow leads for allowing analytics of yellow leads table on that => createdAt pe kaam kar raha hai ab
 export const parseFilter = (req: AuthenticatedRequest) => {
   const {
     startDate,
     endDate,
     startLTCDate,// related to yellow lead table
     endLTCDate,// related to yellow lead table
+    startNextDueDate,
+    endNextDueDate,
     leadType = [],
     finalConversionType = [], // related to yellow lead table
     course = [],
@@ -35,7 +37,9 @@ export const parseFilter = (req: AuthenticatedRequest) => {
     assignedTo,
     startLTCDate,
     endLTCDate,
-    source
+    source,
+    startNextDueDate,
+    endNextDueDate,
   };
 
   const query: any = {};
@@ -98,7 +102,15 @@ export const parseFilter = (req: AuthenticatedRequest) => {
     }
   }
 
-
+  if (filters.startNextDueDate || filters.endNextDueDate) {
+    query.nextDueDate = {};
+    if (filters.startNextDueDate) {
+      query.nextDueDate.$gte = convertToMongoDate(filters.startNextDueDate);
+    }
+    if (filters.endNextDueDate) {
+      query.nextDueDate.$lte = convertToMongoDate(filters.endNextDueDate);
+    }
+  }
 
   const reversedSortBy = [...sortBy].reverse();
   const reversedOrderBy = [...orderBy].reverse();
@@ -116,7 +128,6 @@ export const parseFilter = (req: AuthenticatedRequest) => {
     }
     sort['_id'] = 1;
   });
-
 
   return {
     search: search,

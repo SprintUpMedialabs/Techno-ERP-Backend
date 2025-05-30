@@ -9,6 +9,7 @@ import {
 
 import { DocumentType } from './constants';
 import logger from './logger';
+import moment from 'moment-timezone';
 
 
 const s3Client = new S3Client({
@@ -56,10 +57,11 @@ export const uploadToS3 = async (folderName: string, yearSubFolderName: string, 
 }
 
 export const uploadBackupToS3 = async (fileName: string, fileStream: fs.ReadStream) => {
-  console.log(new Date().toISOString().split('T')[0]);
+  const ist = moment().tz('Asia/Kolkata').clone();
+  const formatted = ist.format('DD-MM-YYYY HH:mm');
   const uploadParams = {
     Bucket: AWS_BUCKET_NAME,
-    Key: `mongo-backups/${new Date().toISOString().split('T')[0]}.tar.gz`,
+    Key: `mongo-backups/${formatted}.tar.gz`,
     Body: fileStream
   };
 
