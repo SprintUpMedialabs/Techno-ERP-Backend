@@ -12,7 +12,8 @@ exports.baseMarketingUserWiseAnalyticsSchema = zod_1.z.object({
     activeLeadCalls: zod_1.z.number(),
     nonActiveLeadCalls: zod_1.z.number(),
     totalFootFall: zod_1.z.number(),
-    totalAdmissions: zod_1.z.number()
+    totalAdmissions: zod_1.z.number(),
+    analyticsRemark: zod_1.z.string()
 });
 exports.marketingUserWiseAnalyticsSchema = zod_1.z.object({
     date: zod_1.z.date(),

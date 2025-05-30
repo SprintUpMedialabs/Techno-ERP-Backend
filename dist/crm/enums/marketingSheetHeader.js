@@ -16,5 +16,6 @@ var MarketingsheetHeaders;
     MarketingsheetHeaders["Remarks"] = "Remarks";
     MarketingsheetHeaders["AltPhoneNumber"] = "Alt Phone Number";
     MarketingsheetHeaders["Gender"] = "Gender";
-    MarketingsheetHeaders["SchoolName"] = "School Name";
+    MarketingsheetHeaders["SchoolName"] = "School/College Name";
+    MarketingsheetHeaders["Degree"] = "Degree";
 })(MarketingsheetHeaders || (exports.MarketingsheetHeaders = MarketingsheetHeaders = {}));

@@ -7,12 +7,12 @@ exports.parseFilter = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const constants_1 = require("../../config/constants");
 const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
-//We need to add here one for LTC of yellow leads for allowing analytics of yellow leads table on that => createdAt pe kaam kar raha hai ab
+// We need to add here one for LTC of yellow leads for allowing analytics of yellow leads table on that => createdAt pe kaam kar raha hai ab
 const parseFilter = (req) => {
     var _a, _b, _c, _d, _e;
     const { startDate, endDate, startLTCDate, // related to yellow lead table
     endLTCDate, // related to yellow lead table
-    leadType = [], finalConversionType = [], // related to yellow lead table
+    startNextDueDate, endNextDueDate, leadType = [], finalConversionType = [], // related to yellow lead table
     course = [], city = [], assignedTo = [], page = 1, limit = 10, sortBy = [], orderBy = [], search = '', source = [] } = req.body;
     const filters = {
         startDate,
@@ -24,7 +24,9 @@ const parseFilter = (req) => {
         assignedTo,
         startLTCDate,
         endLTCDate,
-        source
+        source,
+        startNextDueDate,
+        endNextDueDate,
     };
     const query = {};
     if (finalConversionType.length > 0) {
@@ -70,6 +72,15 @@ const parseFilter = (req) => {
         }
         if (filters.endLTCDate) {
             query.createdAt.$lte = (0, convertDateToFormatedDate_1.convertToMongoDate)(filters.endLTCDate);
+        }
+    }
+    if (filters.startNextDueDate || filters.endNextDueDate) {
+        query.nextDueDate = {};
+        if (filters.startNextDueDate) {
+            query.nextDueDate.$gte = (0, convertDateToFormatedDate_1.convertToMongoDate)(filters.startNextDueDate);
+        }
+        if (filters.endNextDueDate) {
+            query.nextDueDate.$lte = (0, convertDateToFormatedDate_1.convertToMongoDate)(filters.endNextDueDate);
         }
     }
     const reversedSortBy = [...sortBy].reverse();

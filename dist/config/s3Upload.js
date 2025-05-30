@@ -17,6 +17,7 @@ const client_s3_1 = require("@aws-sdk/client-s3");
 const secrets_1 = require("../secrets");
 const constants_1 = require("./constants");
 const logger_1 = __importDefault(require("./logger"));
+const moment_timezone_1 = __importDefault(require("moment-timezone"));
 const s3Client = new client_s3_1.S3Client({
     region: secrets_1.AWS_REGION,
     credentials: {
@@ -54,10 +55,11 @@ const uploadToS3 = (folderName, yearSubFolderName, fileType, file) => __awaiter(
 });
 exports.uploadToS3 = uploadToS3;
 const uploadBackupToS3 = (fileName, fileStream) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log(new Date().toISOString().split('T')[0]);
+    const ist = (0, moment_timezone_1.default)().tz('Asia/Kolkata').clone();
+    const formatted = ist.format('DD-MM-YYYY HH:mm');
     const uploadParams = {
         Bucket: secrets_1.AWS_BUCKET_NAME,
-        Key: `mongo-backups/${new Date().toISOString().split('T')[0]}.tar.gz`,
+        Key: `mongo-backups/${formatted}.tar.gz`,
         Body: fileStream
     };
     yield s3Client.send(new client_s3_1.PutObjectCommand(uploadParams));
