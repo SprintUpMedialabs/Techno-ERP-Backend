@@ -3,11 +3,11 @@ import { Response } from 'express';
 import expressAsyncHandler from 'express-async-handler';
 import createHttpError from 'http-errors';
 import moment from 'moment-timezone';
+import mongoose from 'mongoose';
 import axiosInstance from '../../api/axiosInstance';
 import { Endpoints } from '../../api/endPoints';
 import { safeAxiosPost } from '../../api/safeAxios';
 import { User } from '../../auth/models/user';
-import { getCurrentLoggedInUser } from '../../auth/utils/getCurrentLoggedInUser';
 import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
 import { Actions, DropDownType, LeadType, RequestAction, UserRoles } from '../../config/constants';
 import { updateOnlyOneValueInDropDown } from '../../utilityModules/dropdown/dropDownMetadataController';
@@ -21,8 +21,6 @@ import { LeadMaster } from '../models/lead';
 import { MarketingFollowUpModel } from '../models/marketingFollowUp';
 import { MarketingUserWiseAnalytics } from '../models/marketingUserWiseAnalytics';
 import { IUpdateLeadRequestSchema, updateLeadRequestSchema } from '../validators/leads';
-import logger from '../../config/logger';
-import mongoose from 'mongoose';
 
 export const uploadData = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const { id, name } = req.body;
@@ -40,7 +38,6 @@ export const uploadData = expressAsyncHandler(async (req: AuthenticatedRequest, 
 export const getAssignedSheets = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const user = await User.findById(req.data?.id);
   const marketingSheet = user?.marketingSheet;
-  logger.info(marketingSheet);
   return formatResponse(res, 200, 'Assigned sheets fetched successfully', true, marketingSheet);
 });
 
@@ -132,6 +129,81 @@ export const getAllLeadAnalytics = expressAsyncHandler(
     });
   }
 );
+
+export const getAllLeadAnalyticsV1 = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const { query } = parseFilter(req);
+  const analytics = await LeadMaster.aggregate([
+    { $match: query }, // Step 1: Apply Filters
+  
+    // Step 2: Group by unique identifier (name + phoneNumber + source)
+    {
+      $group: {
+        _id: {
+          name: '$name',
+          phoneNumber: '$phoneNumber',
+          source: '$source',
+        },
+        leadTypes: { $addToSet: '$leadType' }
+      }
+    },
+  
+    {
+      $project: {
+        _id: 0,
+        representativeLeadType: {
+          $switch: {
+            branches: [
+              {
+                case: {$in:[LeadType.ACTIVE, '$leadTypes']},
+                then: LeadType.ACTIVE
+              },
+              {
+                case: {$in:[LeadType.NEUTRAL, '$leadTypes']},
+                then: LeadType.NEUTRAL
+              },
+              {
+                case: {$in:[LeadType.DID_NOT_PICK, '$leadTypes']},
+                then: LeadType.DID_NOT_PICK
+              },
+              {
+                case: {$in:[LeadType.NOT_INTERESTED, '$leadTypes']},
+                then: LeadType.NOT_INTERESTED
+              },
+              {
+                case: {$in:[LeadType.LEFT_OVER, '$leadTypes']},
+                then: LeadType.LEFT_OVER
+              }
+            ],
+            default: 'UNKNOWN'
+          }
+        }
+      }
+    },
+    {
+      $group: {
+        _id: null,
+        totalLeads: { $sum: 1 },
+        activeLeads: { $sum: { $cond: [{ $eq: ['$representativeLeadType', LeadType.ACTIVE] }, 1, 0] } },
+        neutralLeads: { $sum: { $cond: [{ $eq: ['$representativeLeadType', LeadType.NEUTRAL] }, 1, 0] } },
+        didNotPickLeads: { $sum: { $cond: [{ $eq: ['$representativeLeadType', LeadType.DID_NOT_PICK] }, 1, 0] } },
+        notInterestedLeads: { $sum: { $cond: [{ $eq: ['$representativeLeadType', LeadType.NOT_INTERESTED] }, 1, 0] } },
+        leftOverLeads: { $sum: { $cond: [{ $eq: ['$representativeLeadType', LeadType.LEFT_OVER] }, 1, 0] } }
+      }
+    }
+  ]);
+
+  // Step 6: Format output
+  const leadAnalytics = {
+    totalLeads: analytics[0]?.totalLeads ?? 0,
+    activeLeads: analytics[0]?.activeLeads ?? 0,
+    neutralLeads: analytics[0]?.neutralLeads ?? 0,
+    didNotPickLeads: analytics[0]?.didNotPickLeads ?? 0,
+    notInterestedLeads: analytics[0]?.notInterestedLeads ?? 0,
+    leftOverLeads: analytics[0]?.leftOverLeads ?? 0
+  };
+
+  return formatResponse(res, 200, 'Lead analytics fetched successfully', true, leadAnalytics);  
+});
 
 export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const leadRequestData: IUpdateLeadRequestSchema = req.body;
