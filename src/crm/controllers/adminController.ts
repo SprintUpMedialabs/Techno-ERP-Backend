@@ -321,18 +321,21 @@ export const reiterateLeads = expressAsyncHandler(async (req: AuthenticatedReque
 
 export const getMarketingUserWiseAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const startIST = getISTDate(0);
-    const nextDayIST = getISTDate(1);
 
     const todayAnalytics = await MarketingUserWiseAnalytics.findOne({
-        date: {
-            $gte: startIST,
-            $lt: nextDayIST,
-        },
+        date: startIST 
     });
-
     return formatResponse(res, 200, "Marketing user wise analytics fetched successfully", true, todayAnalytics);
+});
 
-})
+export const getUserDailyAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const startIST = getISTDate(0);
+    const todayAnalytics = await MarketingUserWiseAnalytics.findOne({
+        date: startIST,
+    });
+    const userAnalytics = todayAnalytics?.data.find(item => item.userId.toString() === req.data?.id);
+    return formatResponse(res, 200, "User daily analytics fetched successfully", true, userAnalytics);
+});
 
 
 export const getDurationBasedUserAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {

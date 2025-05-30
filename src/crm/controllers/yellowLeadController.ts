@@ -6,15 +6,15 @@ import { Endpoints } from '../../api/endPoints';
 import { safeAxiosPost } from '../../api/safeAxios';
 import { getCurrentLoggedInUser } from '../../auth/utils/getCurrentLoggedInUser';
 import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
-import { Actions, DropDownType, FinalConversionType, LeadType, RequestAction } from '../../config/constants';
+import { DropDownType, FinalConversionType, LeadType, RequestAction } from '../../config/constants';
 import { updateOnlyOneValueInDropDown } from '../../utilityModules/dropdown/dropDownMetadataController';
 import { formatResponse } from '../../utils/formatResponse';
+import { getISTDate } from '../../utils/getISTDate';
 import { parseFilter } from '../helpers/parseFilter';
 import { LeadMaster } from '../models/lead';
-import { IYellowLeadUpdate, yellowLeadUpdateSchema } from '../validators/leads';
-import { logFollowUpChange } from './crmController';
 import { MarketingUserWiseAnalytics } from '../models/marketingUserWiseAnalytics';
-import { getISTDate } from '../../utils/getISTDate';
+import { IYellowLeadUpdate, yellowLeadUpdateSchema } from '../validators/leads';
+import mongoose from 'mongoose';
 
 export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const updateData: IYellowLeadUpdate = req.body;
@@ -32,6 +32,9 @@ export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedReq
   const isCampusVisitChangedToNo = updateData.footFall === false && existingLead.footFall !== false;
   const isFinalConversionChangedToAdmission = updateData.finalConversion === FinalConversionType.ADMISSION &&
     existingLead.finalConversion !== FinalConversionType.ADMISSION;
+  const isFinalConversionChangedFromAdmission =
+    updateData.finalConversion !== FinalConversionType.ADMISSION &&
+    existingLead.finalConversion === FinalConversionType.ADMISSION;
 
 
   // If the campus visit is changed to yes, then the final conversion is set to unconfirmed
@@ -55,87 +58,108 @@ export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedReq
     throw createHttpError(400, 'Final conversion can not be no footfall if campus visit is yes.');
   }
 
-  let existingRemark = existingLead?.remarks?.length;
-  let yellowLeadRequestDataRemark = updateData.remarks?.length;
+  let existingRemarkLength = existingLead?.remarks?.length || 0;
+  let yellowLeadRequestDataRemarkLength = updateData.remarks?.length || 0;
 
-  let existingFollowUpCount = existingLead.followUpCount;
-  let yellowLeadRequestDataFollowUpCount = updateData.followUpCount;
 
-  const isRemarkChanged = existingRemark !== yellowLeadRequestDataRemark;
-  const isFollowUpCountChanged = existingFollowUpCount !== yellowLeadRequestDataFollowUpCount;
+  const isRemarkChanged = existingRemarkLength < yellowLeadRequestDataRemarkLength ;
 
-  if (isRemarkChanged && !isFollowUpCountChanged) {
+  if (isRemarkChanged) {
     updateData.followUpCount = existingLead.followUpCount + 1;
   }
 
-  const updatedYellowLead = await LeadMaster.findByIdAndUpdate(updateData._id, updateData, {
-    new: true,
-    runValidators: true
+  const currentLoggedInUser = req.data?.id;
+  const todayStart = getISTDate();
+
+  const userAnalyticsDoc = await MarketingUserWiseAnalytics.findOne({
+    date: todayStart,
+    data: { $elemMatch: { userId: currentLoggedInUser } },
   });
 
-  const currentLoggedInUser = getCurrentLoggedInUser(req);
+  if (!userAnalyticsDoc)
+    throw createHttpError(404, 'User analytics not found.');
 
-  const updatedFollowUpCount = updatedYellowLead?.followUpCount ?? 0;
+  const userIndex = userAnalyticsDoc.data.findIndex((entry) =>
+    entry.userId.toString() === currentLoggedInUser?.toString()
+  );
 
-
-  if (updatedFollowUpCount > existingFollowUpCount) {
-    logFollowUpChange(existingLead._id, currentLoggedInUser, Actions.INCREAMENT)
-  }
-  else if (updatedFollowUpCount < existingFollowUpCount) {
-    logFollowUpChange(existingLead._id, currentLoggedInUser, Actions.DECREAMENT)
-  }
-
-
-  updateOnlyOneValueInDropDown(DropDownType.FIX_MARKETING_CITY, updatedYellowLead?.city);
-  updateOnlyOneValueInDropDown(DropDownType.MARKETING_CITY, updatedYellowLead?.city);
-  updateOnlyOneValueInDropDown(DropDownType.FIX_MARKETING_COURSE_CODE, updatedYellowLead?.course);
-  updateOnlyOneValueInDropDown(DropDownType.MARKETING_COURSE_CODE, updatedYellowLead?.course);
-
-  if (!updatedYellowLead) {
-    throw createHttpError(404, 'Yellow lead not found.');
+  if (userIndex === -1) {
+    throw createHttpError(404, 'User not found in analytics data.');
   }
 
-  if (isCampusVisitChangedToYes || isFinalConversionChangedToAdmission) {
-    const todayStart = getISTDate();
+  if (isRemarkChanged && !existingLead?.isCalledToday) {
+    userAnalyticsDoc.data[userIndex].totalCalls += 1;
 
-    const analyticsDoc = await MarketingUserWiseAnalytics.findOne({
-      date: { $gte: todayStart },
-      data: {
-        $elemMatch: {
-          userId: currentLoggedInUser
-        }
-      }
-    });
-
-    if (!analyticsDoc) {
-      throw createHttpError(404, 'Marketing analytics not found for user.');
+    if (existingLead?.isActiveLead) {
+      userAnalyticsDoc.data[userIndex].activeLeadCalls += 1;
+    } else {
+      userAnalyticsDoc.data[userIndex].nonActiveLeadCalls += 1;
     }
-
-    const updatedDataArray = analyticsDoc.data.map(entry => {
-      if (entry.userId.toString() === currentLoggedInUser) {
-        if (isCampusVisitChangedToYes) {
-          entry.totalFootFall = (entry.totalFootFall ?? 0) + 1;
-        }
-        if (isFinalConversionChangedToAdmission) {
-          entry.totalAdmissions = (entry.totalAdmissions ?? 0) + 1;
-        }
-      }
-      return entry;
-    });
-
-    analyticsDoc.data = updatedDataArray;
-    await analyticsDoc.save();
+    updateData.isCalledToday = true;
   }
 
-  safeAxiosPost(axiosInstance, `${Endpoints.AuditLogService.MARKETING.SAVE_LEAD}`, {
-    documentId: updatedYellowLead?._id,
-    action: RequestAction.POST,
-    payload: updatedYellowLead,
-    performedBy: req.data?.id,
-    restEndpoint: '/api/update-yellow-lead',
-  });
 
-  return formatResponse(res, 200, 'Yellow lead updated successfully', true, updatedYellowLead);
+  if (isFinalConversionChangedToAdmission) {
+    userAnalyticsDoc.data[userIndex].totalAdmissions += 1;
+  }
+  if (isFinalConversionChangedFromAdmission) {
+    userAnalyticsDoc.data[userIndex].totalAdmissions -= 1;
+  }
+
+  if (isCampusVisitChangedToYes) {
+    userAnalyticsDoc.data[userIndex].totalFootFall += 1;
+  }
+  if (isCampusVisitChangedToNo) {
+    userAnalyticsDoc.data[userIndex].totalFootFall -= 1;
+  }
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+
+    await userAnalyticsDoc.save({ session });
+
+
+    const updatedYellowLead = await LeadMaster.findByIdAndUpdate(updateData._id, updateData, {
+      new: true,
+      runValidators: true,
+      session
+    });
+
+    // const updatedFollowUpCount = updatedYellowLead?.followUpCount ?? 0;
+    // if (updatedFollowUpCount > existingFollowUpCount) {
+    //   logFollowUpChange(existingLead._id, currentLoggedInUser, Actions.INCREAMENT)
+    // }
+    // else if (updatedFollowUpCount < existingFollowUpCount) {
+    //   logFollowUpChange(existingLead._id, currentLoggedInUser, Actions.DECREAMENT)
+    // }
+
+
+    updateOnlyOneValueInDropDown(DropDownType.FIX_MARKETING_CITY, updatedYellowLead?.city);
+    updateOnlyOneValueInDropDown(DropDownType.MARKETING_CITY, updatedYellowLead?.city);
+    updateOnlyOneValueInDropDown(DropDownType.FIX_MARKETING_COURSE_CODE, updatedYellowLead?.course);
+    updateOnlyOneValueInDropDown(DropDownType.MARKETING_COURSE_CODE, updatedYellowLead?.course);
+
+
+
+    safeAxiosPost(axiosInstance, `${Endpoints.AuditLogService.MARKETING.SAVE_LEAD}`, {
+      documentId: updatedYellowLead?._id,
+      action: RequestAction.POST,
+      payload: updatedYellowLead,
+      performedBy: req.data?.id,
+      restEndpoint: '/api/update-yellow-lead',
+    });
+
+    await session.commitTransaction();
+
+    return formatResponse(res, 200, 'Yellow lead updated successfully', true, updatedYellowLead);
+  } catch (error) {
+    await session.abortTransaction();
+    throw error;
+  } finally {
+    await session.endSession();
+  }
 });
 
 export const getFilteredYellowLeads = expressAsyncHandler(

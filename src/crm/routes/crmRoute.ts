@@ -4,8 +4,10 @@ import { authenticate, authorize } from '../../middleware/jwtAuthenticationMiddl
 import {
   exportData,
   getAllLeadAnalytics,
+  getAssignedSheets,
   getFilteredLeadData,
   updateData,
+  updateSource,
   uploadData
 } from '../controllers/crmController';
 import {
@@ -13,9 +15,8 @@ import {
   getYellowLeadsAnalytics,
   updateYellowLead
 } from '../controllers/yellowLeadController';
-import { adminAnalytics, createMarketingSourceWiseAnalytics, getDurationBasedUserAnalytics, getMarketingSourceWiseAnalytics, getMarketingUserWiseAnalytics, initializeUserWiseAnalytics, reiterateLeads } from '../controllers/adminController';
-import { createMarketingAnalytics, getCallAnalytics } from '../controllers/marketingAnalyticsController';
-import { User } from '../../auth/models/user';
+import { adminAnalytics, createMarketingSourceWiseAnalytics, getDurationBasedUserAnalytics, getMarketingSourceWiseAnalytics, getMarketingUserWiseAnalytics, getUserDailyAnalytics, initializeUserWiseAnalytics, reiterateLeads } from '../controllers/adminController';
+import { createMarketingAnalytics, getCallAnalytics, updateMarketingRemark } from '../controllers/marketingAnalyticsController';
 
 export const crmRoute = express.Router();
 
@@ -24,6 +25,18 @@ crmRoute.post(
   authenticate,
   authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING]),
   uploadData
+);
+
+crmRoute.get('/assigned-sheets',
+  authenticate,
+  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING,UserRoles.EMPLOYEE_MARKETING]),
+  getAssignedSheets
+);
+
+crmRoute.put('/update-source',
+  authenticate,
+  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING]),
+  updateSource
 );
 
 crmRoute.get(
@@ -97,6 +110,12 @@ crmRoute.get('/call-analytics',
   getCallAnalytics
 );
 
+crmRoute.put('/update-marketing-remark', 
+  authenticate, 
+  authorize([UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING]), 
+  updateMarketingRemark
+);
+
 crmRoute.post('/source-analytics', 
   authenticate, 
   authorize([UserRoles.ADMIN, UserRoles.SYSTEM_ADMIN]), 
@@ -113,6 +132,12 @@ crmRoute.get('/user-wise-analytics-daily',
   authenticate, 
   authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING]), 
   getMarketingUserWiseAnalytics
+);
+
+crmRoute.get('/user-daily-analytics', 
+  authenticate, 
+  authorize([UserRoles.EMPLOYEE_MARKETING]), 
+  getUserDailyAnalytics
 );
 
 crmRoute.post('/user-wise-analytics-duration', 
@@ -133,4 +158,3 @@ crmRoute.post('/iterate-leads',
   authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.SYSTEM_ADMIN]), 
   reiterateLeads
 );
-
