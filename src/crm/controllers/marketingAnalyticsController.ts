@@ -134,7 +134,7 @@ export const getCallAnalytics = expressAsyncHandler(async (req: AuthenticatedReq
 });
 
 export const updateMarketingRemark = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  const { remark } = req.body;
+  const { analyticsRemark } = req.body;
   const todayStart = getISTDate();
   const userAnalyticsDoc = await MarketingUserWiseAnalytics.findOne({
     date: { $gte: todayStart },
@@ -148,7 +148,7 @@ export const updateMarketingRemark = expressAsyncHandler(async (req: Authenticat
 
   if (userIndex === -1)
     throw createHttpError(404, 'User not found in analytics data.');
-  userAnalyticsDoc.data[userIndex].analyticsRemark = remark;
+  userAnalyticsDoc.data[userIndex].analyticsRemark = analyticsRemark;
   await userAnalyticsDoc.save();
 
   return formatResponse(res, 200, "Marketing remark updated successfully", true, null);
