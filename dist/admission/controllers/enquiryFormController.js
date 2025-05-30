@@ -74,7 +74,7 @@ exports.getEnquiryData = (0, express_async_handler_1.default)((0, functionLevelL
                 course: 1,
                 applicationStatus: 1,
                 fatherPhoneNumber: 1,
-                motherPhoneNumber: 1,
+                fatherName: 1,
                 updatedAt: 1,
                 source: { $literal: 'enquiry' }
             }

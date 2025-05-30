@@ -1,0 +1,13 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.crmV1Routes = void 0;
+const constants_1 = require("../../config/constants");
+const jwtAuthenticationMiddleware_1 = require("../../middleware/jwtAuthenticationMiddleware");
+const crmController_1 = require("../controllers/crmController");
+const express_1 = require("express");
+const yellowLeadController_1 = require("../controllers/yellowLeadController");
+const adminController_1 = require("../controllers/adminController");
+exports.crmV1Routes = (0, express_1.Router)();
+exports.crmV1Routes.post('/analytics', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.ADMIN, constants_1.UserRoles.LEAD_MARKETING, constants_1.UserRoles.EMPLOYEE_MARKETING]), crmController_1.getAllLeadAnalyticsV1);
+exports.crmV1Routes.post('/yellow-lead-analytics', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.ADMIN, constants_1.UserRoles.LEAD_MARKETING, constants_1.UserRoles.EMPLOYEE_MARKETING]), yellowLeadController_1.getYellowLeadsAnalyticsV1);
+exports.crmV1Routes.post('/admin/analytics', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.ADMIN]), adminController_1.adminAnalyticsV1);
