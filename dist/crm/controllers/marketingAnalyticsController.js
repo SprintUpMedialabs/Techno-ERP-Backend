@@ -118,7 +118,7 @@ exports.getCallAnalytics = (0, express_async_handler_1.default)((req, res) => __
 }));
 exports.updateMarketingRemark = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
-    const { remark } = req.body;
+    const { analyticsRemark } = req.body;
     const todayStart = (0, getISTDate_1.getISTDate)();
     const userAnalyticsDoc = yield marketingUserWiseAnalytics_1.MarketingUserWiseAnalytics.findOne({
         date: { $gte: todayStart },
@@ -129,7 +129,7 @@ exports.updateMarketingRemark = (0, express_async_handler_1.default)((req, res) 
     const userIndex = userAnalyticsDoc.data.findIndex((entry) => { var _a; return entry.userId.toString() === ((_a = req.data) === null || _a === void 0 ? void 0 : _a.id.toString()); });
     if (userIndex === -1)
         throw (0, http_errors_1.default)(404, 'User not found in analytics data.');
-    userAnalyticsDoc.data[userIndex].analyticsRemark = remark;
+    userAnalyticsDoc.data[userIndex].analyticsRemark = analyticsRemark;
     yield userAnalyticsDoc.save();
     return (0, formatResponse_1.formatResponse)(res, 200, "Marketing remark updated successfully", true, null);
 }));
