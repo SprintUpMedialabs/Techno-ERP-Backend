@@ -25,6 +25,7 @@ const constants_1 = require("../config/constants");
 const jwtAuthenticationMiddleware_1 = require("../middleware/jwtAuthenticationMiddleware");
 const retryMechanism_1 = require("../config/retryMechanism");
 const controller_1 = require("../pipline/controller");
+const path_1 = __importDefault(require("path"));
 exports.backupRoute = (0, express_1.Router)();
 exports.backupRoute.get('/', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.SYSTEM_ADMIN]), (0, express_async_handler_1.default)((_, res) => __awaiter(void 0, void 0, void 0, function* () {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
@@ -61,4 +62,36 @@ exports.backupRoute.get('/', jwtAuthenticationMiddleware_1.authenticate, (0, jwt
         logger_1.default.warn('Cleanup warning:', cleanupError);
     }
     return (0, formatResponse_1.formatResponse)(res, 200, 'Backup created and uploaded to S3.', true);
+})));
+exports.backupRoute.get('/sync', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.SYSTEM_ADMIN, constants_1.UserRoles.BASIC_USER]), (0, express_async_handler_1.default)((_, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const dumpPath = path_1.default.join(__dirname, 'prod-dump');
+    const PROD_URI = secrets_1.MONGODB_PRODUCTION_DATABASE_URL;
+    const DEV_URI = secrets_1.MONGODB_DATABASE_URL;
+    console.log(PROD_URI);
+    const dumpCommand = `mongodump --uri="${PROD_URI}" --out="${dumpPath}"`;
+    const restoreCommand = `mongorestore --uri="${DEV_URI}" --drop "${dumpPath}/Techno-Prod"`; // Use correct folder name
+    // exec(dumpCommand, (dumpErr, dumpStdout, dumpStderr) => {
+    //     if (dumpErr) {
+    //         console.error('Dump error:', dumpStderr);
+    //         return res.status(500).json({ message: 'Dump failed', error: dumpStderr });
+    //     }
+    //     console.log('Dump completed.');
+    //     exec(restoreCommand, (restoreErr, restoreStdout, restoreStderr) => {
+    //         if (restoreErr) {
+    //             console.error('Restore error:', restoreStderr);
+    //             return res.status(500).json({ message: 'Restore failed', error: restoreStderr });
+    //         }
+    //         console.log('Restore completed.');
+    //         return res.status(200).json({
+    //             message: '✅ Database synced successfully from production to development',
+    //         });
+    //     });
+    // });
+    try {
+        if (fs_1.default.existsSync(dumpPath))
+            fs_1.default.rmSync(dumpPath, { recursive: true, force: true });
+    }
+    catch (cleanupError) {
+        logger_1.default.warn('Cleanup warning:', cleanupError);
+    }
 })));

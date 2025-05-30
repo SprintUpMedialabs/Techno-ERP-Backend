@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.STUDENT_JWT_SECRET = exports.DEVELOPER_EMAIL = exports.SERVICE_AUTH_TOKEN = exports.AUDIT_LOG_SERVICE_URL = exports.NODE_ENV = exports.AWS_BUCKET_NAME = exports.AWS_REGION = exports.AWS_SECRET_ACCESS_KEY = exports.AWS_ACCESS_KEY_ID = exports.AUTH_API_PATH = exports.LEAD_MARKETING_EMAIL = exports.MARKETING_SHEET_PAGE_NAME = exports.GOOGLE_SA_PRIVATE_KEY = exports.GOOGLE_SA_CLIENT_EMAIL = exports.MARKETING_SHEET_ID = exports.MONGODB_DATABASE_NAME = exports.CRYPTO_HASH_SECRET = exports.JWT_SECRET = exports.NODEMAILER_GMAIL_APP_PASSWORD = exports.NODEMAILER_PORT = exports.NODEMAILER_SENDER_ADDRESS = exports.NODEMAILER_HOST = exports.PORT = exports.MONGODB_DATABASE_URL = void 0;
+exports.STUDENT_JWT_SECRET = exports.DEVELOPER_EMAIL = exports.SERVICE_AUTH_TOKEN = exports.AUDIT_LOG_SERVICE_URL = exports.NODE_ENV = exports.AWS_BUCKET_NAME = exports.AWS_REGION = exports.AWS_SECRET_ACCESS_KEY = exports.AWS_ACCESS_KEY_ID = exports.AUTH_API_PATH = exports.LEAD_MARKETING_EMAIL = exports.MARKETING_SHEET_PAGE_NAME = exports.GOOGLE_SA_PRIVATE_KEY = exports.GOOGLE_SA_CLIENT_EMAIL = exports.MARKETING_SHEET_ID = exports.MONGODB_DATABASE_NAME = exports.CRYPTO_HASH_SECRET = exports.JWT_SECRET = exports.NODEMAILER_GMAIL_APP_PASSWORD = exports.NODEMAILER_PORT = exports.NODEMAILER_SENDER_ADDRESS = exports.NODEMAILER_HOST = exports.PORT = exports.MONGODB_PRODUCTION_DATABASE_URL = exports.MONGODB_DATABASE_URL = void 0;
 const dotenv_1 = __importDefault(require("dotenv"));
 const path_1 = __importDefault(require("path"));
 let envFile;
@@ -18,6 +18,7 @@ else {
 }
 dotenv_1.default.config({ path: path_1.default.resolve(__dirname, '../', envFile) });
 exports.MONGODB_DATABASE_URL = process.env.MONGODB_DATABASE_URL;
+exports.MONGODB_PRODUCTION_DATABASE_URL = process.env.MONGODB_PRODUCTION_DATABASE_URL;
 exports.PORT = process.env.PORT;
 exports.NODEMAILER_HOST = process.env.NODEMAILER_HOST;
 exports.NODEMAILER_SENDER_ADDRESS = process.env.NODEMAILER_SENDER_ADDRESS;

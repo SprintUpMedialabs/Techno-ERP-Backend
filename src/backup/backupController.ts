@@ -70,25 +70,30 @@ backupRoute.get('/sync', authenticate, authorize([UserRoles.SYSTEM_ADMIN, UserRo
     const dumpCommand = `mongodump --uri="${PROD_URI}" --out="${dumpPath}"`;
     const restoreCommand = `mongorestore --uri="${DEV_URI}" --drop "${dumpPath}/Techno-Prod"`; // Use correct folder name
 
-    exec(dumpCommand, (dumpErr, dumpStdout, dumpStderr) => {
-        if (dumpErr) {
-            console.error('Dump error:', dumpStderr);
-            return res.status(500).json({ message: 'Dump failed', error: dumpStderr });
-        }
+    // exec(dumpCommand, (dumpErr, dumpStdout, dumpStderr) => {
+    //     if (dumpErr) {
+    //         console.error('Dump error:', dumpStderr);
+    //         return res.status(500).json({ message: 'Dump failed', error: dumpStderr });
+    //     }
 
-        console.log('Dump completed.');
+    //     console.log('Dump completed.');
 
-        exec(restoreCommand, (restoreErr, restoreStdout, restoreStderr) => {
-            if (restoreErr) {
-                console.error('Restore error:', restoreStderr);
-                return res.status(500).json({ message: 'Restore failed', error: restoreStderr });
-            }
+    //     exec(restoreCommand, (restoreErr, restoreStdout, restoreStderr) => {
+    //         if (restoreErr) {
+    //             console.error('Restore error:', restoreStderr);
+    //             return res.status(500).json({ message: 'Restore failed', error: restoreStderr });
+    //         }
 
-            console.log('Restore completed.');
-            return res.status(200).json({
-                message: '✅ Database synced successfully from production to development',
-            });
-        });
-    });
+    //         console.log('Restore completed.');
+    //         return res.status(200).json({
+    //             message: '✅ Database synced successfully from production to development',
+    //         });
+    //     });
+    // });
 
+    try{
+        if (fs.existsSync(dumpPath)) fs.rmSync(dumpPath, { recursive: true, force: true });
+    } catch (cleanupError) {
+        logger.warn('Cleanup warning:', cleanupError);
+    }
 }))
