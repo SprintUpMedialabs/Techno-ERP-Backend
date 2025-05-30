@@ -1,20 +1,19 @@
+import { Response } from 'express';
 import expressAsyncHandler from "express-async-handler";
+import createHttpError from "http-errors";
+import mongoose from 'mongoose';
+import { User } from '../../auth/models/user';
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
 import { FinalConversionType, LeadType, OFFLINE_SOURCES, ONLINE_SOURCES, PipelineName, UserRoles } from "../../config/constants";
-import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
-import { IAdminAnalyticsFilter } from "../types/marketingSpreadsheet";
-import { formatResponse } from '../../utils/formatResponse';
-import mongoose from 'mongoose';
-import { LeadMaster } from '../models/lead';
-import { MarketingSourceWiseAnalytics } from '../models/marketingSourceWiseAnalytics';
 import { retryMechanism } from '../../config/retryMechanism';
 import { createPipeline } from '../../pipline/controller';
+import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
+import { formatResponse } from '../../utils/formatResponse';
 import { getISTDate } from '../../utils/getISTDate';
-import { User } from '../../auth/models/user';
+import { LeadMaster } from '../models/lead';
+import { MarketingSourceWiseAnalytics } from '../models/marketingSourceWiseAnalytics';
 import { MarketingUserWiseAnalytics } from '../models/marketingUserWiseAnalytics';
-import { isAuthenticated } from '../../auth/controllers/authController';
-import { Response } from 'express';
-import createHttpError from "http-errors";
+import { IAdminAnalyticsFilter } from "../types/marketingSpreadsheet";
 
 export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     let {
@@ -118,6 +117,188 @@ export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedReque
             }
         });
 });
+
+export const adminAnalyticsV1 = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    let {
+        startDate,
+        endDate,
+        city = [],
+        assignedTo = [],
+        source = [],
+        gender = []
+    } = req.body as IAdminAnalyticsFilter;
+
+    const query: Record<string, any> = {};
+
+    if (city.length > 0) query.city = { $in: city };
+
+    if (startDate || endDate) {
+        query.date = {};
+        if (startDate) query.date.$gte = convertToMongoDate(startDate);
+        if (endDate) query.date.$lte = convertToMongoDate(endDate);
+    }
+
+    if (assignedTo.length > 0)
+        query.assignedTo = { $in: assignedTo.map(id => new mongoose.Types.ObjectId(id)) };
+
+    if (source.length > 0) query.source = { $in: source };
+    if (gender.length > 0) query.gender = { $in: gender };
+
+    const [allLeadAnalytics, yellowLeadAnalytics] = await Promise.all([
+        LeadMaster.aggregate([
+            { $match: query },
+            {
+                $group: {
+                    _id: {
+                        name: "$name",
+                        phoneNumber: "$phoneNumber",
+                        source: "$source"
+                    },
+                    leadTypes: { $addToSet: '$leadType' }
+                }
+            },
+
+            {
+                $project: {
+                    _id: 0,
+                    representativeLeadType: {
+                        $switch: {
+                            branches: [
+                                {
+                                    case: { $in: [LeadType.ACTIVE, '$leadTypes'] },
+                                    then: LeadType.ACTIVE
+                                },
+                                {
+                                    case: { $in: [LeadType.NEUTRAL, '$leadTypes'] },
+                                    then: LeadType.NEUTRAL
+                                },
+                                {
+                                    case: { $in: [LeadType.DID_NOT_PICK, '$leadTypes'] },
+                                    then: LeadType.DID_NOT_PICK
+                                },
+                                {
+                                    case: { $in: [LeadType.NOT_INTERESTED, '$leadTypes'] },
+                                    then: LeadType.NOT_INTERESTED
+                                },
+                                {
+                                    case: { $in: [LeadType.COURSE_UNAVAILABLE, '$leadTypes'] },
+                                    then: LeadType.COURSE_UNAVAILABLE
+                                },
+                                {
+                                    case: { $in: [LeadType.INVALID, '$leadTypes'] },
+                                    then: LeadType.INVALID
+                                },
+                                {
+                                    case: { $in: [LeadType.LEFT_OVER, '$leadTypes'] },
+                                    then: LeadType.LEFT_OVER
+                                }
+                            ],
+                            default: 'UNKNOWN'
+                        }
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    allLeads: { $sum: 1 },
+                    reached: { $sum: { $cond: [{ $ne: ['$representativeLeadType', LeadType.LEFT_OVER] }, 1, 0] } },
+                    notReached: { $sum: { $cond: [{ $eq: ['$representativeLeadType', LeadType.LEFT_OVER] }, 1, 0] } },
+                    white: { $sum: { $cond: [{ $eq: ['$representativeLeadType', LeadType.DID_NOT_PICK] }, 1, 0] } },
+                    black: { $sum: { $cond: [{ $eq: ['$representativeLeadType', LeadType.COURSE_UNAVAILABLE] }, 1, 0] } },
+                    red: { $sum: { $cond: [{ $eq: ['$representativeLeadType', LeadType.NOT_INTERESTED] }, 1, 0] } },
+                    blue: { $sum: { $cond: [{ $eq: ['$representativeLeadType', LeadType.NEUTRAL] }, 1, 0] } },
+                    activeLeads: { $sum: { $cond: [{ $eq: ['$representativeLeadType', LeadType.ACTIVE] }, 1, 0] } },
+                    invalidType: { $sum: { $cond: [{ $eq: ['$representativeLeadType', LeadType.INVALID] }, 1, 0] } }
+                }
+            }
+        ]),
+
+        LeadMaster.aggregate([
+            {
+                $match: {
+                    ...query,
+                    leadType: LeadType.ACTIVE
+                }
+            },
+            // Group by name, phoneNumber, and source
+            {
+                $group: {
+                    _id: {
+                        name: '$name',
+                        phoneNumber: '$phoneNumber',
+                        source: '$source'
+                    },
+                    finalConversions: { $addToSet: '$finalConversion' },
+                    footFalls: { $addToSet: '$footFall' }
+                }
+            },
+            // Determine representative lead per group using priority logic
+            {
+                $project: {
+                    _id: 0,
+                    hasFootFall: {
+                        $in: [true, '$footFalls']
+                    },
+                    representativeFinalConversion: {
+                        $switch: {
+                            branches: [
+                                {
+                                    case: { $in: [FinalConversionType.ADMISSION, '$finalConversions'] },
+                                    then: FinalConversionType.ADMISSION
+                                },
+                                {
+                                    case: { $in: [FinalConversionType.NEUTRAL, '$finalConversions'] },
+                                    then: FinalConversionType.NEUTRAL
+                                },
+                                {
+                                    case: { $in: [FinalConversionType.NOT_INTERESTED, '$finalConversions'] },
+                                    then: FinalConversionType.NOT_INTERESTED
+                                }
+                            ],
+                            default: FinalConversionType.NO_FOOTFALL
+                        }
+                    }
+                }
+            },
+            // Group again to count different categories
+            {
+                $group: {
+                    _id: null,
+                    footFall: { $sum: { $cond: [{ $eq: ["$hasFootFall", true] }, 1, 0] } },
+                    noFootFall: { $sum: { $cond: [{ $eq: ["$hasFootFall", false] }, 1, 0] } },
+                    admissions: { $sum: { $cond: [{ $eq: ["$representativeFinalConversion", FinalConversionType.ADMISSION] }, 1, 0] } },
+                    neutral: { $sum: { $cond: [{ $eq: ["$representativeFinalConversion", FinalConversionType.NEUTRAL] }, 1, 0] } },
+                    dead: { $sum: { $cond: [{ $eq: ["$representativeFinalConversion", FinalConversionType.NOT_INTERESTED] }, 1, 0] } },
+                }
+            }
+        ])
+    ]);
+
+    return formatResponse(res, 200, 'Analytics fetched successfully',
+        true,
+        {
+            allLeadsAnalytics: allLeadAnalytics[0] ?? {
+                allLeads: 0,
+                reached: 0,
+                notReached: 0,
+                white: 0,
+                black: 0,
+                red: 0,
+                blue: 0,
+                activeLeads: 0,
+                invalidType: 0
+            },
+            yellowLeadsAnalytics: yellowLeadAnalytics[0] ?? {
+                footFall: 0,
+                noFootFall: 0,
+                admissions: 0,
+                neutral: 0,
+                dead: 0
+            }
+        });
+});
+
 
 
 const createEmptyData = () => ({
@@ -229,9 +410,9 @@ export const getMarketingSourceWiseAnalytics = expressAsyncHandler(async (req: A
 
 export const initializeUserWiseAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const pipelineId = await createPipeline(PipelineName.INITIALIZE_MARKETING_ANALYTICS);
-    if (!pipelineId) 
+    if (!pipelineId)
         throw createHttpError(400, "Pipeline creation failed");
-  
+
 
     await retryMechanism(
         async (session) => {
@@ -287,28 +468,47 @@ export const initializeUserWiseAnalytics = expressAsyncHandler(async (req: Authe
 export const reiterateLeads = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const pipelineId = await createPipeline(PipelineName.ITERATE_LEADS);
     if (!pipelineId) throw createHttpError(400, "Pipeline creation failed");
-  
+
 
     await retryMechanism(
         async (session) => {
-            const leads = await LeadMaster.find({}).session(session);
+            const BATCH_SIZE = 1000; // Tune batch size as per memory limits
+            const cursor = LeadMaster.find({}, null, { lean: true }).cursor({ session });
+            let bulkOps: any[] = [];
+            let updatedCount = 0;
 
-            const bulkOps = leads.map((lead) => ({
-                updateOne: {
-                    filter: { _id: lead._id },
-                    update: {
-                        isCalledToday: false,
-                        isActiveLead: lead.leadType === LeadType.ACTIVE,
+            for await (const lead of cursor) {
+                bulkOps.push({
+                    updateOne: {
+                        filter: { _id: lead._id },
+                        update: {
+                            isCalledToday: false,
+                            isActiveLead: lead.leadType === LeadType.ACTIVE,
+                        },
                     },
-                },
-            }));
+                });
 
+                if (bulkOps.length === BATCH_SIZE) {
+                    const bulkWriteResult = await LeadMaster.bulkWrite(bulkOps, { session });
+                    updatedCount += bulkWriteResult.modifiedCount;
+                    bulkOps = []; // reset for next batch
+                }
+            }
+
+            // Process any remaining operations
             if (bulkOps.length > 0) {
                 const bulkWriteResult = await LeadMaster.bulkWrite(bulkOps, { session });
-                return formatResponse(res, 200, "Reiterated the Lead Master Table", true, bulkWriteResult.modifiedCount);
-            } else {
-                return formatResponse(res, 200, "No Leads to update", true, null);
+                updatedCount += bulkWriteResult.modifiedCount;
             }
+
+            return formatResponse(
+                res,
+                200,
+                "Reiterated the Lead Master Table",
+                true,
+                updatedCount
+            );
+
         },
         "Lead Reiteration Failed",
         "Failed to reiterate lead statuses after multiple attempts.",
@@ -323,7 +523,7 @@ export const getMarketingUserWiseAnalytics = expressAsyncHandler(async (req: Aut
     const startIST = getISTDate(0);
 
     const todayAnalytics = await MarketingUserWiseAnalytics.findOne({
-        date: startIST 
+        date: startIST
     });
     return formatResponse(res, 200, "Marketing user wise analytics fetched successfully", true, todayAnalytics);
 });

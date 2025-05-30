@@ -65,33 +65,44 @@ backupRoute.get('/sync', authenticate, authorize([UserRoles.SYSTEM_ADMIN, UserRo
     const dumpPath = path.join(__dirname, 'prod-dump');
     const PROD_URI = MONGODB_PRODUCTION_DATABASE_URL;
     const DEV_URI = MONGODB_DATABASE_URL;
-    console.log(PROD_URI);
 
     const dumpCommand = `mongodump --uri="${PROD_URI}" --out="${dumpPath}"`;
     const restoreCommand = `mongorestore --uri="${DEV_URI}" --drop "${dumpPath}/Techno-Prod"`; // Use correct folder name
 
-    // exec(dumpCommand, (dumpErr, dumpStdout, dumpStderr) => {
-    //     if (dumpErr) {
-    //         console.error('Dump error:', dumpStderr);
-    //         return res.status(500).json({ message: 'Dump failed', error: dumpStderr });
-    //     }
+    const pipelineId = await createPipeline(PipelineName.SYNC_DATABASE);
+    const emailSubject = 'Database Sync Failed';
+    const emailMessage = 'The database sync process failed after multiple attempts. Manual intervention may be required.';
 
-    //     console.log('Dump completed.');
+    await retryMechanism(
+        async (_session) => {
+            exec(dumpCommand, (dumpErr, dumpStdout, dumpStderr) => {
+                if (dumpErr) {
+                    console.error('Dump error:', dumpStderr);
+                    return res.status(500).json({ message: 'Dump failed', error: dumpStderr });
+                }
 
-    //     exec(restoreCommand, (restoreErr, restoreStdout, restoreStderr) => {
-    //         if (restoreErr) {
-    //             console.error('Restore error:', restoreStderr);
-    //             return res.status(500).json({ message: 'Restore failed', error: restoreStderr });
-    //         }
+                console.log('Dump completed.');
 
-    //         console.log('Restore completed.');
-    //         return res.status(200).json({
-    //             message: '✅ Database synced successfully from production to development',
-    //         });
-    //     });
-    // });
+                exec(restoreCommand, (restoreErr, restoreStdout, restoreStderr) => {
+                    if (restoreErr) {
+                        console.error('Restore error:', restoreStderr);
+                        return res.status(500).json({ message: 'Restore failed', error: restoreStderr });
+                    }
 
-    try{
+                    console.log('Restore completed.');
+                    return res.status(200).json({
+                        message: '✅ Database synced successfully from production to development',
+                    });
+                });
+            });
+        },
+        emailSubject,
+        emailMessage,
+        pipelineId!,
+        PipelineName.SYNC_DATABASE
+    );
+
+    try {
         if (fs.existsSync(dumpPath)) fs.rmSync(dumpPath, { recursive: true, force: true });
     } catch (cleanupError) {
         logger.warn('Cleanup warning:', cleanupError);

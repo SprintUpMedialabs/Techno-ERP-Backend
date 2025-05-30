@@ -9,6 +9,7 @@ import logger from './config/logger';
 import { validateEnvVariables } from './config/validateEnv';
 import { errorHandler } from './middleware/error';
 import { apiRouter } from './route';
+import { v1Router } from './v1Router';
 import { PORT } from './secrets';
 
 const app = express();
@@ -57,6 +58,7 @@ connectToDatabase();
 initializeDB();
 
 app.use('/api', apiRouter);
+app.use('/api/v1', v1Router);
 
 app.use(
   morgan(':method :url :status :response-time ms', {
