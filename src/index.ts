@@ -10,8 +10,6 @@ import { validateEnvVariables } from './config/validateEnv';
 import { errorHandler } from './middleware/error';
 import { apiRouter } from './route';
 import { PORT } from './secrets';
-import mongoose from 'mongoose';
-import { ILeadMasterDocument, LeadMaster } from './crm/models/lead';
 
 const app = express();
 
