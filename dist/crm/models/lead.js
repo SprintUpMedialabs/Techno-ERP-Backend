@@ -98,11 +98,11 @@ const leadSchema = new mongoose_1.Schema({
     degree: {
         type: String,
     },
-    // Required field with a custom validation error message
+    // ✅ Modified from array to single ObjectId
     assignedTo: {
-        type: [mongoose_1.Schema.Types.ObjectId],
-        default: [],
-        ref: constants_1.COLLECTION_NAMES.USER
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: constants_1.COLLECTION_NAMES.USER,
+        required: true,
     },
     // Must be one of the predefined lead types; defaults to "ORANGE"
     leadType: {
@@ -142,7 +142,10 @@ const leadSchema = new mongoose_1.Schema({
         default: false
     }
 }, { timestamps: true });
-leadSchema.index({ source: 1, name: 1, phoneNumber: 1 }, { unique: true, name: 'unique_lead_combo' });
+// leadSchema.index(
+//   { source: 1, name: 1, phoneNumber: 1 },
+//   { unique: true, name: 'unique_lead_combo' }
+// );
 const handleMongooseError = (error, leadData, next) => {
     if (error.code === 11000) {
         throw (0, http_errors_1.default)(400, 'Phone Number already exists');

@@ -19,7 +19,7 @@ exports.leadMasterSchema = zod_1.z.object({
     area: zod_1.z.string().optional(),
     city: zod_1.z.string().optional().default('Other'),
     course: zod_1.z.string().optional(),
-    assignedTo: commonSchema_1.objectIdSchema.array(),
+    assignedTo: commonSchema_1.objectIdSchema,
     leadType: zod_1.z.nativeEnum(constants_1.LeadType).default(constants_1.LeadType.LEFT_OVER),
     leadTypeModifiedDate: zod_1.z.date().optional(),
     nextDueDate: zod_1.z.date().optional(),
@@ -67,14 +67,12 @@ exports.updateLeadRequestSchema = exports.leadRequestSchema.extend({
     phoneNumber: zod_1.z.string().optional(),
     gender: zod_1.z.nativeEnum(constants_1.Gender).optional(),
     leadType: zod_1.z.nativeEnum(constants_1.LeadType).optional(),
-    assignedTo: commonSchema_1.objectIdSchema.array().optional(),
     nextDueDate: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)).optional(),
 }).omit({ source: true }).strict(); // strict will restrict extra properties
 exports.yellowLeadUpdateSchema = exports.yellowLeadSchema.extend({
     _id: commonSchema_1.objectIdSchema,
     name: zod_1.z.string().optional(),
     phoneNumber: zod_1.z.string().optional(),
-    assignedTo: commonSchema_1.objectIdSchema.array().optional(),
     date: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)).optional(),
     nextDueDate: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)).optional(),
 }).strict();

@@ -52,6 +52,7 @@ exports.getAssignedSheets = (0, express_async_handler_1.default)((req, res) => _
     logger_1.default.info(marketingSheet);
     return (0, formatResponse_1.formatResponse)(res, 200, 'Assigned sheets fetched successfully', true, marketingSheet);
 }));
+// THIS IS JUST TO UPDATE THE SOURCE OF THE LEADS | BE AWARE WHILE USING IT |
 exports.updateSource = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { currentSource, newSource } = req.body;
     if (!currentSource || !newSource) {
@@ -161,7 +162,7 @@ exports.updateData = (0, express_async_handler_1.default)((req, res) => __awaite
         if (userIndex === -1)
             throw (0, http_errors_1.default)(404, 'User not found in analytics data.');
         let shouldMarkCalled = false;
-        const isFirstFollowUp = existingFollowUpCount === 0 && newFollowUpCount > 0;
+        const isFirstFollowUp = newRemarkLength == 1;
         if (isFirstFollowUp) {
             userAnalyticsDoc.data[userIndex].newLeadCalls += 1;
             if (!wasCalled) {
@@ -253,7 +254,7 @@ exports.exportData = (0, express_async_handler_1.default)((req, res) => __awaite
         path: 'assignedTo',
         select: 'firstName lastName'
     });
-    leads.forEach(lead => {
+    leads.forEach((lead) => {
         const rowData = {
             date: lead.date ? (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(lead.date) : '',
             name: lead.name || '',
@@ -274,9 +275,7 @@ exports.exportData = (0, express_async_handler_1.default)((req, res) => __awaite
             followUpCount: lead.followUpCount || 0,
         };
         if (isAdminOrLead) {
-            rowData.assignedTo = Array.isArray(lead.assignedTo)
-                ? lead.assignedTo.map((user) => { var _a, _b; return `${(_a = user.firstName) !== null && _a !== void 0 ? _a : ''} ${(_b = user.lastName) !== null && _b !== void 0 ? _b : ''}`.trim(); }).join(', ')
-                : '';
+            rowData.assignedTo = lead.assignedTo.firstName + ' ' + lead.assignedTo.lastName;
         }
         worksheet.addRow(rowData);
     });
