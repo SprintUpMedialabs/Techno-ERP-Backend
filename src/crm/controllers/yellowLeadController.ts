@@ -251,3 +251,104 @@ export const getYellowLeadsAnalytics = expressAsyncHandler(async (req: Request, 
 
   return formatResponse(res, 200, 'Yellow leads analytics fetched successfully', true, result);
 });
+
+export const getYellowLeadsAnalyticsV1 = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const { query } = parseFilter(req);
+  query.leadType = LeadType.ACTIVE;
+
+  const analytics = await LeadMaster.aggregate([
+    { $match: query },
+
+    // Group by name, phoneNumber, and source
+    {
+      $group: {
+        _id: {
+          name: '$name',
+          phoneNumber: '$phoneNumber',
+          source: '$source'
+        },
+        finalConversions: { $addToSet: '$finalConversion' },
+        footFalls: { $addToSet: '$footFall' }
+      }
+    },
+
+    // Determine representative lead per group using priority logic
+    {
+      $project: {
+        _id: 0,
+        hasFootFall: {
+          $in: [true, '$footFalls']
+        },
+        representativeFinalConversion: {
+          $switch: {
+            branches: [
+              {
+                case: { $in: [FinalConversionType.ADMISSION, '$finalConversions'] },
+                then: FinalConversionType.ADMISSION
+              },
+              {
+                case: { $in: [FinalConversionType.NEUTRAL, '$finalConversions'] },
+                then: FinalConversionType.NEUTRAL
+              },
+              {
+                case: { $in: [FinalConversionType.NOT_INTERESTED, '$finalConversions'] },
+                then: FinalConversionType.NOT_INTERESTED
+              }
+            ],
+            default: FinalConversionType.NO_FOOTFALL
+          }
+        }
+      }
+    },
+
+    // Group again to count different categories
+    {
+      $group: {
+        _id: null,
+        allLeadsCount: { $sum: 1 },
+        campusVisitTrueCount: {
+          $sum: { $cond: [{ $eq: ['$hasFootFall', true] }, 1, 0] }
+        },
+        activeYellowLeadsCount: {
+          $sum: { $cond: [{ $eq: ['$hasFootFall', false] }, 1, 0] }
+        },
+        deadLeadCount: {
+          $sum: { $cond: [{ $eq: ['$representativeFinalConversion', FinalConversionType.NOT_INTERESTED] }, 1, 0] }
+        },
+        admissions: {
+          $sum: { $cond: [{ $eq: ['$representativeFinalConversion', FinalConversionType.ADMISSION] }, 1, 0] }
+        },
+        neutral: {
+          $sum: { $cond: [{ $eq: ['$representativeFinalConversion', FinalConversionType.NEUTRAL] }, 1, 0] }
+        }
+      }
+    },
+
+    // Remove _id and keep only necessary fields
+    {
+      $project: {
+        _id: 0,
+        allLeadsCount: 1,
+        campusVisitTrueCount: 1,
+        activeYellowLeadsCount: 1,
+        deadLeadCount: 1,
+        admissions: 1,
+        neutral: 1
+      }
+    }
+  ]);
+
+  const result =
+    analytics.length > 0
+      ? analytics[0]
+      : {
+          allLeadsCount: 0,
+          campusVisitTrueCount: 0,
+          activeYellowLeadsCount: 0,
+          deadLeadCount: 0,
+          admissions: 0,
+          neutral: 0
+        };
+
+  return formatResponse(res, 200, 'Yellow leads analytics fetched successfully', true, result);
+});
