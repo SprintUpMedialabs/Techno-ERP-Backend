@@ -4,7 +4,6 @@ import mongoose, { Document, Schema } from 'mongoose';
 import { COLLECTION_NAMES, FinalConversionType, Gender, LeadType } from '../../config/constants';
 import { convertToDDMMYYYY, convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import { ILeadMaster } from '../validators/leads';
-import logger from '../../config/logger';
 
 export interface ILeadMasterDocument extends ILeadMaster, Document { }
 
@@ -67,13 +66,12 @@ const leadSchema = new Schema<ILeadMasterDocument>(
       type: String,
     },
 
-    // Required field with a custom validation error message
+    // ✅ Modified from array to single ObjectId
     assignedTo: {
-      type: [Schema.Types.ObjectId],
-      default: [],
-      ref: COLLECTION_NAMES.USER
+      type: Schema.Types.ObjectId,
+      ref: COLLECTION_NAMES.USER,
+      required: true,
     },
-
     // Must be one of the predefined lead types; defaults to "ORANGE"
     leadType: {
       type: String,
@@ -87,7 +85,7 @@ const leadSchema = new Schema<ILeadMasterDocument>(
     remarks: {
       type: [String],
       default: [],
-    },    
+    },
     leadTypeModifiedDate: { type: Date },
 
     nextDueDate: {
@@ -105,24 +103,24 @@ const leadSchema = new Schema<ILeadMasterDocument>(
       type: Number,
       default: 0
     },
-    isActiveLead : {
-      type : Boolean,
-      default : false
+    isActiveLead: {
+      type: Boolean,
+      default: false
     },
-    isCalledToday : {
-      type : Boolean,
-      default : false
+    isCalledToday: {
+      type: Boolean,
+      default: false
     }
   },
   { timestamps: true }
 );
 
-leadSchema.index(
-  { source: 1, name: 1, phoneNumber: 1 },
-  { unique: true, name: 'unique_lead_combo' }
-);
+// leadSchema.index(
+//   { source: 1, name: 1, phoneNumber: 1 },
+//   { unique: true, name: 'unique_lead_combo' }
+// );
 
-const handleMongooseError = (error: any,leadData:any, next: Function) => {
+const handleMongooseError = (error: any, leadData: any, next: Function) => {
   if (error.code === 11000) {
     throw createHttpError(400, 'Phone Number already exists');
   } else if (error.name === 'ValidationError') {
@@ -136,11 +134,11 @@ const handleMongooseError = (error: any,leadData:any, next: Function) => {
 };
 
 leadSchema.post('save', function (error: any, doc: any, next: Function) {
-  handleMongooseError(error, doc,next);
+  handleMongooseError(error, doc, next);
 });
 
 leadSchema.post('findOneAndUpdate', function (error: any, doc: any, next: Function) {
-  handleMongooseError(error,doc, next);
+  handleMongooseError(error, doc, next);
 });
 
 const transformDates = (_: any, ret: any) => {

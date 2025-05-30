@@ -28,6 +28,8 @@ export interface IAllLeadFilter {
   startLTCDate?: string;
   endLTCDate?: string;
   source: string[];
+  startNextDueDate?: string;
+  endNextDueDate?: string;
 }
 
 export interface IAdminAnalyticsFilter {

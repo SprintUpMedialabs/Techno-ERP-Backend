@@ -49,6 +49,10 @@ const BaseMarketingUserWiseAnalyticsSchema = new Schema<IBaseMarketingUserWiseAn
         required: true,
         default : 0
     },
+    analyticsRemark: {
+        type: String,
+        default: ''
+    }
 }, { _id: false });
 
 
