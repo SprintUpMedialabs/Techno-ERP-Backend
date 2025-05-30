@@ -14,6 +14,7 @@ if (process.env.NODE_ENV === 'production') {
 dotenv.config({ path: path.resolve(__dirname, '../', envFile) });
 
 export const MONGODB_DATABASE_URL = process.env.MONGODB_DATABASE_URL!;
+export const MONGODB_PRODUCTION_DATABASE_URL = process.env.MONGODB_PRODUCTION_DATABASE_URL!;
 export const PORT = process.env.PORT!;
 export const NODEMAILER_HOST = process.env.NODEMAILER_HOST!;
 export const NODEMAILER_SENDER_ADDRESS = process.env.NODEMAILER_SENDER_ADDRESS!;
