@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getYellowLeadsAnalytics = exports.getFilteredYellowLeads = exports.updateYellowLead = void 0;
+exports.getYellowLeadsAnalyticsV1 = exports.getYellowLeadsAnalytics = exports.getFilteredYellowLeads = exports.updateYellowLead = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const http_errors_1 = __importDefault(require("http-errors"));
 const axiosInstance_1 = __importDefault(require("../../api/axiosInstance"));
@@ -194,6 +194,98 @@ exports.getYellowLeadsAnalytics = (0, express_async_handler_1.default)((req, res
                 }
             }
         },
+        {
+            $project: {
+                _id: 0,
+                allLeadsCount: 1,
+                campusVisitTrueCount: 1,
+                activeYellowLeadsCount: 1,
+                deadLeadCount: 1,
+                admissions: 1,
+                neutral: 1
+            }
+        }
+    ]);
+    const result = analytics.length > 0
+        ? analytics[0]
+        : {
+            allLeadsCount: 0,
+            campusVisitTrueCount: 0,
+            activeYellowLeadsCount: 0,
+            deadLeadCount: 0,
+            admissions: 0,
+            neutral: 0
+        };
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Yellow leads analytics fetched successfully', true, result);
+}));
+exports.getYellowLeadsAnalyticsV1 = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { query } = (0, parseFilter_1.parseFilter)(req);
+    query.leadType = constants_1.LeadType.ACTIVE;
+    const analytics = yield lead_1.LeadMaster.aggregate([
+        { $match: query },
+        // Group by name, phoneNumber, and source
+        {
+            $group: {
+                _id: {
+                    name: '$name',
+                    phoneNumber: '$phoneNumber',
+                    source: '$source'
+                },
+                finalConversions: { $addToSet: '$finalConversion' },
+                footFalls: { $addToSet: '$footFall' }
+            }
+        },
+        // Determine representative lead per group using priority logic
+        {
+            $project: {
+                _id: 0,
+                hasFootFall: {
+                    $in: [true, '$footFalls']
+                },
+                representativeFinalConversion: {
+                    $switch: {
+                        branches: [
+                            {
+                                case: { $in: [constants_1.FinalConversionType.ADMISSION, '$finalConversions'] },
+                                then: constants_1.FinalConversionType.ADMISSION
+                            },
+                            {
+                                case: { $in: [constants_1.FinalConversionType.NEUTRAL, '$finalConversions'] },
+                                then: constants_1.FinalConversionType.NEUTRAL
+                            },
+                            {
+                                case: { $in: [constants_1.FinalConversionType.NOT_INTERESTED, '$finalConversions'] },
+                                then: constants_1.FinalConversionType.NOT_INTERESTED
+                            }
+                        ],
+                        default: constants_1.FinalConversionType.NO_FOOTFALL
+                    }
+                }
+            }
+        },
+        // Group again to count different categories
+        {
+            $group: {
+                _id: null,
+                allLeadsCount: { $sum: 1 },
+                campusVisitTrueCount: {
+                    $sum: { $cond: [{ $eq: ['$hasFootFall', true] }, 1, 0] }
+                },
+                activeYellowLeadsCount: {
+                    $sum: { $cond: [{ $eq: ['$hasFootFall', false] }, 1, 0] }
+                },
+                deadLeadCount: {
+                    $sum: { $cond: [{ $eq: ['$representativeFinalConversion', constants_1.FinalConversionType.NOT_INTERESTED] }, 1, 0] }
+                },
+                admissions: {
+                    $sum: { $cond: [{ $eq: ['$representativeFinalConversion', constants_1.FinalConversionType.ADMISSION] }, 1, 0] }
+                },
+                neutral: {
+                    $sum: { $cond: [{ $eq: ['$representativeFinalConversion', constants_1.FinalConversionType.NEUTRAL] }, 1, 0] }
+                }
+            }
+        },
+        // Remove _id and keep only necessary fields
         {
             $project: {
                 _id: 0,

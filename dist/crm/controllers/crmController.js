@@ -12,11 +12,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.exportData = exports.logFollowUpChange = exports.updateData = exports.getAllLeadAnalytics = exports.getFilteredLeadData = exports.updateSource = exports.getAssignedSheets = exports.uploadData = void 0;
+exports.exportData = exports.logFollowUpChange = exports.updateData = exports.getAllLeadAnalyticsV1 = exports.getAllLeadAnalytics = exports.getFilteredLeadData = exports.updateSource = exports.getAssignedSheets = exports.uploadData = void 0;
 const exceljs_1 = __importDefault(require("exceljs"));
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const http_errors_1 = __importDefault(require("http-errors"));
 const moment_timezone_1 = __importDefault(require("moment-timezone"));
+const mongoose_1 = __importDefault(require("mongoose"));
 const axiosInstance_1 = __importDefault(require("../../api/axiosInstance"));
 const endPoints_1 = require("../../api/endPoints");
 const safeAxios_1 = require("../../api/safeAxios");
@@ -33,8 +34,6 @@ const lead_1 = require("../models/lead");
 const marketingFollowUp_1 = require("../models/marketingFollowUp");
 const marketingUserWiseAnalytics_1 = require("../models/marketingUserWiseAnalytics");
 const leads_1 = require("../validators/leads");
-const logger_1 = __importDefault(require("../../config/logger"));
-const mongoose_1 = __importDefault(require("mongoose"));
 exports.uploadData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id, name } = req.body;
     if (id && name) {
@@ -49,7 +48,6 @@ exports.getAssignedSheets = (0, express_async_handler_1.default)((req, res) => _
     var _a;
     const user = yield user_1.User.findById((_a = req.data) === null || _a === void 0 ? void 0 : _a.id);
     const marketingSheet = user === null || user === void 0 ? void 0 : user.marketingSheet;
-    logger_1.default.info(marketingSheet);
     return (0, formatResponse_1.formatResponse)(res, 200, 'Assigned sheets fetched successfully', true, marketingSheet);
 }));
 // THIS IS JUST TO UPDATE THE SOURCE OF THE LEADS | BE AWARE WHILE USING IT |
@@ -122,6 +120,77 @@ exports.getAllLeadAnalytics = (0, express_async_handler_1.default)((req, res) =>
         notInterestedLeads: (_k = (_j = analytics[0]) === null || _j === void 0 ? void 0 : _j.notInterestedLeads) !== null && _k !== void 0 ? _k : 0,
         neutralLeads: (_m = (_l = analytics[0]) === null || _l === void 0 ? void 0 : _l.neutralLeads) !== null && _m !== void 0 ? _m : 0
     });
+}));
+exports.getAllLeadAnalyticsV1 = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
+    const { query } = (0, parseFilter_1.parseFilter)(req);
+    const analytics = yield lead_1.LeadMaster.aggregate([
+        { $match: query }, // Step 1: Apply Filters
+        // Step 2: Group by unique identifier (name + phoneNumber + source)
+        {
+            $group: {
+                _id: {
+                    name: '$name',
+                    phoneNumber: '$phoneNumber',
+                    source: '$source',
+                },
+                leadTypes: { $addToSet: '$leadType' }
+            }
+        },
+        {
+            $project: {
+                _id: 0,
+                representativeLeadType: {
+                    $switch: {
+                        branches: [
+                            {
+                                case: { $in: [constants_1.LeadType.ACTIVE, '$leadTypes'] },
+                                then: constants_1.LeadType.ACTIVE
+                            },
+                            {
+                                case: { $in: [constants_1.LeadType.NEUTRAL, '$leadTypes'] },
+                                then: constants_1.LeadType.NEUTRAL
+                            },
+                            {
+                                case: { $in: [constants_1.LeadType.DID_NOT_PICK, '$leadTypes'] },
+                                then: constants_1.LeadType.DID_NOT_PICK
+                            },
+                            {
+                                case: { $in: [constants_1.LeadType.NOT_INTERESTED, '$leadTypes'] },
+                                then: constants_1.LeadType.NOT_INTERESTED
+                            },
+                            {
+                                case: { $in: [constants_1.LeadType.LEFT_OVER, '$leadTypes'] },
+                                then: constants_1.LeadType.LEFT_OVER
+                            }
+                        ],
+                        default: 'UNKNOWN'
+                    }
+                }
+            }
+        },
+        {
+            $group: {
+                _id: null,
+                totalLeads: { $sum: 1 },
+                activeLeads: { $sum: { $cond: [{ $eq: ['$representativeLeadType', constants_1.LeadType.ACTIVE] }, 1, 0] } },
+                neutralLeads: { $sum: { $cond: [{ $eq: ['$representativeLeadType', constants_1.LeadType.NEUTRAL] }, 1, 0] } },
+                didNotPickLeads: { $sum: { $cond: [{ $eq: ['$representativeLeadType', constants_1.LeadType.DID_NOT_PICK] }, 1, 0] } },
+                notInterestedLeads: { $sum: { $cond: [{ $eq: ['$representativeLeadType', constants_1.LeadType.NOT_INTERESTED] }, 1, 0] } },
+                leftOverLeads: { $sum: { $cond: [{ $eq: ['$representativeLeadType', constants_1.LeadType.LEFT_OVER] }, 1, 0] } }
+            }
+        }
+    ]);
+    // Step 6: Format output
+    const leadAnalytics = {
+        totalLeads: (_b = (_a = analytics[0]) === null || _a === void 0 ? void 0 : _a.totalLeads) !== null && _b !== void 0 ? _b : 0,
+        activeLeads: (_d = (_c = analytics[0]) === null || _c === void 0 ? void 0 : _c.activeLeads) !== null && _d !== void 0 ? _d : 0,
+        neutralLeads: (_f = (_e = analytics[0]) === null || _e === void 0 ? void 0 : _e.neutralLeads) !== null && _f !== void 0 ? _f : 0,
+        didNotPickLeads: (_h = (_g = analytics[0]) === null || _g === void 0 ? void 0 : _g.didNotPickLeads) !== null && _h !== void 0 ? _h : 0,
+        notInterestedLeads: (_k = (_j = analytics[0]) === null || _j === void 0 ? void 0 : _j.notInterestedLeads) !== null && _k !== void 0 ? _k : 0,
+        leftOverLeads: (_m = (_l = analytics[0]) === null || _l === void 0 ? void 0 : _l.leftOverLeads) !== null && _m !== void 0 ? _m : 0
+    };
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Lead analytics fetched successfully', true, leadAnalytics);
 }));
 exports.updateData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c, _d;

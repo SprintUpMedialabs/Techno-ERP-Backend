@@ -47,6 +47,7 @@ const logger_1 = __importDefault(require("./config/logger"));
 const validateEnv_1 = require("./config/validateEnv");
 const error_1 = require("./middleware/error");
 const route_1 = require("./route");
+const v1Router_1 = require("./v1Router");
 const secrets_1 = require("./secrets");
 const app = (0, express_1.default)();
 let envFile;
@@ -84,6 +85,7 @@ app.options('*', (0, cors_1.default)(corsOptions));
 (0, database_1.default)();
 (0, database_1.initializeDB)();
 app.use('/api', route_1.apiRouter);
+app.use('/api/v1', v1Router_1.v1Router);
 app.use((0, morgan_1.default)(':method :url :status :response-time ms', {
     stream: {
         write: (message) => logger_1.default.info(message.trim())
