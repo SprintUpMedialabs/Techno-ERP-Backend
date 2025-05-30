@@ -34,7 +34,7 @@ export const leadSchema = leadMasterSchema.omit({
   footFall: true,
 }).strict();
 
-export const yellowLeadSchema = leadMasterSchema.omit({ leadType: true, leadTypeModifiedDate: true }).strict();
+export const yellowLeadSchema = leadMasterSchema.omit({ leadType: true,assignedTo:true, leadTypeModifiedDate: true }).strict();
 
 export const leadRequestSchema = leadSchema.omit({ assignedTo: true }).extend({
   date: requestDateSchema,
