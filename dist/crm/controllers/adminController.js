@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getDurationBasedUserAnalytics = exports.getMarketingUserWiseAnalytics = exports.reiterateLeads = exports.initializeUserWiseAnalytics = exports.getMarketingSourceWiseAnalytics = exports.createMarketingSourceWiseAnalytics = exports.adminAnalytics = void 0;
+exports.getDurationBasedUserAnalytics = exports.getUserDailyAnalytics = exports.getMarketingUserWiseAnalytics = exports.reiterateLeads = exports.initializeUserWiseAnalytics = exports.getMarketingSourceWiseAnalytics = exports.createMarketingSourceWiseAnalytics = exports.adminAnalytics = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const constants_1 = require("../../config/constants");
 const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
@@ -253,14 +253,18 @@ exports.reiterateLeads = (0, express_async_handler_1.default)((req, res) => __aw
 }));
 exports.getMarketingUserWiseAnalytics = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const startIST = (0, getISTDate_1.getISTDate)(0);
-    const nextDayIST = (0, getISTDate_1.getISTDate)(1);
     const todayAnalytics = yield marketingUserWiseAnalytics_1.MarketingUserWiseAnalytics.findOne({
-        date: {
-            $gte: startIST,
-            $lt: nextDayIST,
-        },
+        date: startIST
     });
     return (0, formatResponse_1.formatResponse)(res, 200, "Marketing user wise analytics fetched successfully", true, todayAnalytics);
+}));
+exports.getUserDailyAnalytics = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const startIST = (0, getISTDate_1.getISTDate)(0);
+    const todayAnalytics = yield marketingUserWiseAnalytics_1.MarketingUserWiseAnalytics.findOne({
+        date: startIST,
+    });
+    const userAnalytics = todayAnalytics === null || todayAnalytics === void 0 ? void 0 : todayAnalytics.data.find(item => { var _a; return item.userId.toString() === ((_a = req.data) === null || _a === void 0 ? void 0 : _a.id); });
+    return (0, formatResponse_1.formatResponse)(res, 200, "User daily analytics fetched successfully", true, userAnalytics);
 }));
 exports.getDurationBasedUserAnalytics = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { startDate, endDate } = req.body;

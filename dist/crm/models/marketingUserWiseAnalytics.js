@@ -80,6 +80,10 @@ const BaseMarketingUserWiseAnalyticsSchema = new mongoose_1.Schema({
         required: true,
         default: 0
     },
+    analyticsRemark: {
+        type: String,
+        default: ''
+    }
 }, { _id: false });
 const MarketingUserWiseAnalyticsSchema = new mongoose_1.Schema({
     date: {

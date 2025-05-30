@@ -46,7 +46,7 @@ const leadsToBeInserted = (latestData, report, lastSavedIndex, citySet, sourceSe
                 report.rowsFailed++;
                 continue;
             }
-            let leadData = Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({}, (row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.Date]] && { date: row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.Date]] })), (row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.Source]] && { source: row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.Source]] })), (row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.Name]] && { name: row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.Name]] })), (row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.PhoneNumber]] && { phoneNumber: row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.PhoneNumber]] })), (row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.AltPhoneNumber]] && { altPhoneNumber: row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.AltPhoneNumber]] })), (row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.Email]] && { email: row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.Email]] })), { gender: constants_1.Gender.OTHER }), (row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.City]] && { city: row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.City]] })), (row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.LeadType]] && { leadType: row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.LeadType]] })), (row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.Remarks]] && { remarks: row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.Remarks]] })), (row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.SchoolName]] && { schoolName: row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.SchoolName]] })), (row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.Area]] && { area: row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.Area]] })), (row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.Course]] && { course: row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.Course]] })), { assignedTo: row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.AssignedTo]] });
+            let leadData = Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({}, (row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.Date]] && { date: row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.Date]] })), (row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.Source]] && { source: row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.Source]] })), (row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.Name]] && { name: row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.Name]] })), (row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.PhoneNumber]] && { phoneNumber: row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.PhoneNumber]] })), (row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.AltPhoneNumber]] && { altPhoneNumber: row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.AltPhoneNumber]] })), (row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.Email]] && { email: row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.Email]] })), { gender: constants_1.Gender.OTHER }), (row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.City]] && { city: row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.City]] })), (row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.LeadType]] && { leadType: row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.LeadType]] })), (row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.Remarks]] && { remarks: row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.Remarks]] })), (row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.SchoolName]] && { schoolName: row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.SchoolName]] })), (row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.Area]] && { area: row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.Area]] })), (row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.Course]] && { course: row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.Course]] })), { assignedTo: row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.AssignedTo]] }), (row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.Degree]] && { degree: row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.Degree]] }));
             row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.Gender]] = (_a = row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.Gender]]) === null || _a === void 0 ? void 0 : _a.toUpperCase();
             if (row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.Gender]] &&
                 constants_1.Gender[row[requiredColumnHeaders[marketingSheetHeader_1.MarketingsheetHeaders.Gender]]]) {
@@ -71,7 +71,6 @@ const leadsToBeInserted = (latestData, report, lastSavedIndex, citySet, sourceSe
                 if (leadDataValidation.data.course) {
                     courseSet.add((0, dropDownMetadataController_1.formatCapital)(leadDataValidation.data.course));
                 }
-                let assignedToIDs = [];
                 for (const assignedTo of leadDataValidation.data.assignedTo) {
                     let assignedToID = MarketingEmployees.get(assignedTo);
                     if (!assignedToID) {
@@ -87,13 +86,11 @@ const leadsToBeInserted = (latestData, report, lastSavedIndex, citySet, sourceSe
                             else {
                                 report.unauthorizedAssignedTo.push(correspondingSheetIndex);
                             }
-                            report.rowsFailed++;
                             continue;
                         }
                     }
-                    assignedToIDs.push(assignedToID);
+                    dataToInsert.push(Object.assign(Object.assign({}, leadDataValidation.data), { assignedTo: assignedToID }));
                 }
-                dataToInsert.push(Object.assign(Object.assign({}, leadDataValidation.data), { assignedTo: assignedToIDs }));
             }
             else {
                 report.rowsFailed++;
@@ -148,7 +145,7 @@ const saveDataToDb = (latestData, lastSavedIndex, sheetId, sheetName, requiredCo
     catch (error) {
         try {
             report.actullyProcessedRows = error.result.insertedCount;
-            error.writeErrors.map((e) => {
+            for (const e of error.writeErrors) {
                 report.rowsFailed++;
                 if (e.err.code === 11000) {
                     report.duplicateRowIds.push(e.err.index + lastSavedIndex + 1);
@@ -156,7 +153,7 @@ const saveDataToDb = (latestData, lastSavedIndex, sheetId, sheetName, requiredCo
                 else {
                     report.otherIssue.push({ rowId: e.err.index + lastSavedIndex + 1, issue: e.err.errmsg });
                 }
-            });
+            }
         }
         catch (error) {
             logger_1.default.error(`Error processing rows: ${JSON.stringify(error)}`);

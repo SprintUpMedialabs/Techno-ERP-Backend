@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.exportData = exports.logFollowUpChange = exports.updateData = exports.getAllLeadAnalytics = exports.getFilteredLeadData = exports.uploadData = void 0;
+exports.exportData = exports.logFollowUpChange = exports.updateData = exports.getAllLeadAnalytics = exports.getFilteredLeadData = exports.updateSource = exports.getAssignedSheets = exports.uploadData = void 0;
 const exceljs_1 = __importDefault(require("exceljs"));
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const http_errors_1 = __importDefault(require("http-errors"));
@@ -21,7 +21,6 @@ const axiosInstance_1 = __importDefault(require("../../api/axiosInstance"));
 const endPoints_1 = require("../../api/endPoints");
 const safeAxios_1 = require("../../api/safeAxios");
 const user_1 = require("../../auth/models/user");
-const getCurrentLoggedInUser_1 = require("../../auth/utils/getCurrentLoggedInUser");
 const constants_1 = require("../../config/constants");
 const dropDownMetadataController_1 = require("../../utilityModules/dropdown/dropDownMetadataController");
 const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
@@ -34,22 +33,38 @@ const lead_1 = require("../models/lead");
 const marketingFollowUp_1 = require("../models/marketingFollowUp");
 const marketingUserWiseAnalytics_1 = require("../models/marketingUserWiseAnalytics");
 const leads_1 = require("../validators/leads");
+const logger_1 = __importDefault(require("../../config/logger"));
+const mongoose_1 = __importDefault(require("mongoose"));
 exports.uploadData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id, name } = req.body;
+    if (id && name) {
+        const latestData = yield (0, googleSheetOperations_1.readFromGoogleSheet)(id, name);
+        if (latestData) {
+            yield (0, updateAndSaveToDb_1.saveDataToDb)(latestData.rowData, latestData.lastSavedIndex, id, name, latestData.requiredColumnHeaders);
+        }
+    }
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Data updated in Database!', true);
+}));
+exports.getAssignedSheets = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const user = yield user_1.User.findById((_a = req.data) === null || _a === void 0 ? void 0 : _a.id);
     const marketingSheet = user === null || user === void 0 ? void 0 : user.marketingSheet;
-    if (marketingSheet && marketingSheet.length > 0) {
-        for (const sheet of marketingSheet) {
-            const latestData = yield (0, googleSheetOperations_1.readFromGoogleSheet)(sheet.id, sheet.name);
-            if (latestData) {
-                yield (0, updateAndSaveToDb_1.saveDataToDb)(latestData.rowData, latestData.lastSavedIndex, sheet.id, sheet.name, latestData.requiredColumnHeaders);
-            }
-        }
-        return (0, formatResponse_1.formatResponse)(res, 200, 'Data updated in Database!', true);
+    logger_1.default.info(marketingSheet);
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Assigned sheets fetched successfully', true, marketingSheet);
+}));
+// THIS IS JUST TO UPDATE THE SOURCE OF THE LEADS | BE AWARE WHILE USING IT |
+exports.updateSource = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { currentSource, newSource } = req.body;
+    if (!currentSource || !newSource) {
+        return res.status(400).json({ message: 'Both currentSource and newSource are required' });
     }
-    else {
-        return (0, formatResponse_1.formatResponse)(res, 400, 'No data found in the sheet!', false);
-    }
+    const result = yield lead_1.LeadMaster.updateMany({ source: { $regex: `^${currentSource}$`, $options: 'i' } }, // case-insensitive exact match
+    { $set: { source: newSource } });
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Source updated successfully', true, {
+        message: `Updated ${result.modifiedCount} leads`,
+        matchedCount: result.matchedCount,
+        modifiedCount: result.modifiedCount,
+    });
 }));
 exports.getFilteredLeadData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
@@ -122,74 +137,72 @@ exports.updateData = (0, express_async_handler_1.default)((req, res) => __awaite
     let leadTypeModifiedDate = existingLead.leadTypeModifiedDate;
     const existingRemarkLength = ((_a = existingLead.remarks) === null || _a === void 0 ? void 0 : _a.length) || 0;
     const newRemarkLength = ((_b = leadRequestData.remarks) === null || _b === void 0 ? void 0 : _b.length) || 0;
-    const existingFollowUpCount = existingLead.followUpCount || 0;
-    const newFollowUpCount = leadRequestData.followUpCount || 0;
-    const isRemarkChanged = existingRemarkLength !== newRemarkLength;
-    const isFollowUpCountChanged = existingFollowUpCount !== newFollowUpCount;
-    if (isRemarkChanged && !isFollowUpCountChanged) {
+    const isRemarkChanged = existingRemarkLength < newRemarkLength;
+    if (isRemarkChanged) {
         leadRequestData.followUpCount = existingLead.followUpCount + 1;
     }
     if (leadRequestData.leadType && existingLead.leadType !== leadRequestData.leadType) {
         leadTypeModifiedDate = new Date();
     }
-    const currentLoggedInUser = (0, getCurrentLoggedInUser_1.getCurrentLoggedInUser)(req);
-    if (isRemarkChanged) {
-        const isActive = existingLead.isActiveLead;
-        const wasCalled = existingLead.isCalledToday;
-        const todayStart = (0, getISTDate_1.getISTDate)();
-        const userAnalyticsDoc = yield marketingUserWiseAnalytics_1.MarketingUserWiseAnalytics.findOne({
-            date: { $gte: todayStart },
-            data: { $elemMatch: { userId: currentLoggedInUser } },
-        });
-        if (!userAnalyticsDoc)
-            throw (0, http_errors_1.default)(404, 'User analytics not found.');
-        const userIndex = userAnalyticsDoc.data.findIndex((entry) => entry.userId.toString() === currentLoggedInUser.toString());
-        if (userIndex === -1)
-            throw (0, http_errors_1.default)(404, 'User not found in analytics data.');
-        let shouldMarkCalled = false;
-        const isFirstFollowUp = existingFollowUpCount === 0 && newFollowUpCount > 0;
-        if (isFirstFollowUp) {
-            userAnalyticsDoc.data[userIndex].newLeadCalls += 1;
-            if (!wasCalled) {
-                userAnalyticsDoc.data[userIndex].totalCalls += 1;
-                shouldMarkCalled = true;
+    const currentLoggedInUser = (_c = req.data) === null || _c === void 0 ? void 0 : _c.id;
+    const session = yield mongoose_1.default.startSession();
+    session.startTransaction();
+    try {
+        if (isRemarkChanged && !existingLead.isCalledToday) {
+            const isActive = existingLead.isActiveLead;
+            const todayStart = (0, getISTDate_1.getISTDate)();
+            const userAnalyticsDoc = yield marketingUserWiseAnalytics_1.MarketingUserWiseAnalytics.findOne({
+                date: todayStart,
+                data: { $elemMatch: { userId: currentLoggedInUser } },
+            });
+            if (!userAnalyticsDoc)
+                throw (0, http_errors_1.default)(404, 'User analytics not found.');
+            const userIndex = userAnalyticsDoc.data.findIndex((entry) => entry.userId.toString() === (currentLoggedInUser === null || currentLoggedInUser === void 0 ? void 0 : currentLoggedInUser.toString()));
+            if (userIndex === -1) {
+                throw (0, http_errors_1.default)(404, 'User not found in analytics data.');
             }
-        }
-        else if (!wasCalled) {
+            const isFirstFollowUp = newRemarkLength == 1;
             userAnalyticsDoc.data[userIndex].totalCalls += 1;
-            shouldMarkCalled = true;
+            if (isFirstFollowUp) {
+                userAnalyticsDoc.data[userIndex].newLeadCalls += 1;
+            }
             if (isActive) {
                 userAnalyticsDoc.data[userIndex].activeLeadCalls += 1;
             }
             else {
                 userAnalyticsDoc.data[userIndex].nonActiveLeadCalls += 1;
             }
-        }
-        if (shouldMarkCalled) {
             leadRequestData.isCalledToday = true;
+            yield userAnalyticsDoc.save({ session });
         }
-        yield userAnalyticsDoc.save();
+        const updatedData = yield lead_1.LeadMaster.findByIdAndUpdate(existingLead._id, Object.assign(Object.assign({}, leadRequestData), { leadTypeModifiedDate }), { new: true, runValidators: true, session });
+        // const updatedFollowUpCount = updatedData?.followUpCount ?? 0;
+        // if (updatedFollowUpCount > existingFollowUpCount) {
+        //   logFollowUpChange(existingLead._id, currentLoggedInUser, Actions.INCREAMENT);
+        // } else if (updatedFollowUpCount < existingFollowUpCount) {
+        //   logFollowUpChange(existingLead._id, currentLoggedInUser, Actions.DECREAMENT);
+        // }
+        (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.FIX_MARKETING_CITY, updatedData === null || updatedData === void 0 ? void 0 : updatedData.city);
+        (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.MARKETING_CITY, updatedData === null || updatedData === void 0 ? void 0 : updatedData.city);
+        (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.FIX_MARKETING_COURSE_CODE, updatedData === null || updatedData === void 0 ? void 0 : updatedData.course);
+        (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.MARKETING_COURSE_CODE, updatedData === null || updatedData === void 0 ? void 0 : updatedData.course);
+        (0, safeAxios_1.safeAxiosPost)(axiosInstance_1.default, `${endPoints_1.Endpoints.AuditLogService.MARKETING.SAVE_LEAD}`, {
+            documentId: updatedData === null || updatedData === void 0 ? void 0 : updatedData._id,
+            action: constants_1.RequestAction.POST,
+            payload: updatedData,
+            performedBy: (_d = req.data) === null || _d === void 0 ? void 0 : _d.id,
+            restEndpoint: '/api/edit/crm',
+        });
+        yield session.commitTransaction();
+        return (0, formatResponse_1.formatResponse)(res, 200, 'Data Updated Successfully!', true, updatedData);
     }
-    const updatedData = yield lead_1.LeadMaster.findByIdAndUpdate(existingLead._id, Object.assign(Object.assign({}, leadRequestData), { leadTypeModifiedDate }), { new: true, runValidators: true });
-    const updatedFollowUpCount = (_c = updatedData === null || updatedData === void 0 ? void 0 : updatedData.followUpCount) !== null && _c !== void 0 ? _c : 0;
-    if (updatedFollowUpCount > existingFollowUpCount) {
-        (0, exports.logFollowUpChange)(existingLead._id, currentLoggedInUser, constants_1.Actions.INCREAMENT);
+    catch (error) {
+        yield session.abortTransaction();
+        throw error;
     }
-    else if (updatedFollowUpCount < existingFollowUpCount) {
-        (0, exports.logFollowUpChange)(existingLead._id, currentLoggedInUser, constants_1.Actions.DECREAMENT);
+    finally {
+        yield session.endSession();
     }
-    (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.FIX_MARKETING_CITY, updatedData === null || updatedData === void 0 ? void 0 : updatedData.city);
-    (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.MARKETING_CITY, updatedData === null || updatedData === void 0 ? void 0 : updatedData.city);
-    (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.FIX_MARKETING_COURSE_CODE, updatedData === null || updatedData === void 0 ? void 0 : updatedData.course);
-    (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.MARKETING_COURSE_CODE, updatedData === null || updatedData === void 0 ? void 0 : updatedData.course);
-    (0, safeAxios_1.safeAxiosPost)(axiosInstance_1.default, `${endPoints_1.Endpoints.AuditLogService.MARKETING.SAVE_LEAD}`, {
-        documentId: updatedData === null || updatedData === void 0 ? void 0 : updatedData._id,
-        action: constants_1.RequestAction.POST,
-        payload: updatedData,
-        performedBy: (_d = req.data) === null || _d === void 0 ? void 0 : _d.id,
-        restEndpoint: '/api/edit/crm',
-    });
-    return (0, formatResponse_1.formatResponse)(res, 200, 'Data Updated Successfully!', true, updatedData);
 }));
 const logFollowUpChange = (leadId, userId, action) => {
     marketingFollowUp_1.MarketingFollowUpModel.create({
@@ -239,7 +252,7 @@ exports.exportData = (0, express_async_handler_1.default)((req, res) => __awaite
         path: 'assignedTo',
         select: 'firstName lastName'
     });
-    leads.forEach(lead => {
+    leads.forEach((lead) => {
         const rowData = {
             date: lead.date ? (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(lead.date) : '',
             name: lead.name || '',
@@ -260,9 +273,7 @@ exports.exportData = (0, express_async_handler_1.default)((req, res) => __awaite
             followUpCount: lead.followUpCount || 0,
         };
         if (isAdminOrLead) {
-            rowData.assignedTo = Array.isArray(lead.assignedTo)
-                ? lead.assignedTo.map((user) => { var _a, _b; return `${(_a = user.firstName) !== null && _a !== void 0 ? _a : ''} ${(_b = user.lastName) !== null && _b !== void 0 ? _b : ''}`.trim(); }).join(', ')
-                : '';
+            rowData.assignedTo = lead.assignedTo.firstName + ' ' + lead.assignedTo.lastName;
         }
         worksheet.addRow(rowData);
     });

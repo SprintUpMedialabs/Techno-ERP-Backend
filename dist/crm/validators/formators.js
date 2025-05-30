@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.normaliseText = exports.splitEmails = exports.extractLast10Digits = exports.formatAndValidateLeadType = exports.toTitleCase = exports.formatDate = void 0;
+exports.normaliseText = exports.splitEmails = exports.extractLast10Digits = exports.formatAndValidateLeadType = exports.formatSource = exports.toTitleCase = exports.formatDate = void 0;
 const constants_1 = require("../../config/constants");
 // Utility functions
 const formatDate = (date) => {
@@ -35,6 +35,75 @@ const toTitleCase = (text) => {
         .join(" ");
 };
 exports.toTitleCase = toTitleCase;
+const formatSource = (val) => {
+    if (!val)
+        return "Other";
+    val = val.trim().toLowerCase();
+    switch (val) {
+        // Board Exam
+        case "board":
+        case "board exam":
+            return "Board Exam";
+        // CUET / Entrance
+        case "entrance":
+        case "cuet entrance":
+        case "cuet":
+            return "CUET";
+        // Direct Call
+        case "call":
+        case "direct call":
+        case "digital - direct call":
+            return "Digital - Direct Call";
+        // Google Ads
+        case "google":
+        case "ads":
+        case "google ads":
+        case "digital - google ads":
+            return "Digital - Google Ads";
+        // WhatsApp
+        case "whatsapp":
+        case "whatapp":
+        case "digital - whatsapp":
+            return "Digital - WhatsApp";
+        // IVR
+        case "ivr":
+        case "digital - ivr":
+            return "Digital - IVR";
+        // Meta
+        case "fb":
+        case "insta":
+        case "meta":
+        case "digital - meta":
+            return "Digital - Meta";
+        // TawkTo
+        case "tawk to":
+        case "tawkto":
+        case "digital - tawkto":
+            return "Digital - TawkTo";
+        // Website
+        case "web":
+        case "website":
+        case "site":
+        case "digital - website":
+            return "Digital - Website";
+        // PG Data
+        case "pg":
+        case "pg data":
+            return "PG Data";
+        // UG Data
+        case "ug":
+        case "ug data":
+            return "UG Data";
+        // Other
+        case "other":
+        case "othr":
+        case "others":
+            return "Other";
+        default:
+            return (0, exports.toTitleCase)(val); // fallback if unknown
+    }
+};
+exports.formatSource = formatSource;
 const formatAndValidateLeadType = (val) => {
     const leadTypeValues = Object.values(constants_1.LeadType);
     let formatted = val === null || val === void 0 ? void 0 : val.trim().toUpperCase();

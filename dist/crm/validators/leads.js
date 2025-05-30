@@ -12,14 +12,14 @@ exports.leadMasterSchema = zod_1.z.object({
     schoolName: zod_1.z.string().optional(),
     name: zod_1.z.string().optional(),
     degree: zod_1.z.string().optional(),
-    phoneNumber: commonSchema_1.contactNumberSchema.optional(),
-    altPhoneNumber: commonSchema_1.contactNumberSchema.optional(),
+    phoneNumber: zod_1.z.string().optional(),
+    altPhoneNumber: zod_1.z.string().optional(),
     email: zod_1.z.string().email('Invalid Email Format').optional(),
     gender: zod_1.z.nativeEnum(constants_1.Gender).default(constants_1.Gender.OTHER),
     area: zod_1.z.string().optional(),
     city: zod_1.z.string().optional().default('Other'),
     course: zod_1.z.string().optional(),
-    assignedTo: commonSchema_1.objectIdSchema.array(),
+    assignedTo: commonSchema_1.objectIdSchema,
     leadType: zod_1.z.nativeEnum(constants_1.LeadType).default(constants_1.LeadType.LEFT_OVER),
     leadTypeModifiedDate: zod_1.z.date().optional(),
     nextDueDate: zod_1.z.date().optional(),
@@ -34,20 +34,21 @@ exports.leadSchema = exports.leadMasterSchema.omit({
     finalConversion: true,
     footFall: true,
 }).strict();
-exports.yellowLeadSchema = exports.leadMasterSchema.omit({ leadType: true, leadTypeModifiedDate: true }).strict();
-exports.leadRequestSchema = exports.leadSchema.extend({
+exports.yellowLeadSchema = exports.leadMasterSchema.omit({ leadType: true, assignedTo: true, leadTypeModifiedDate: true }).strict();
+exports.leadRequestSchema = exports.leadSchema.omit({ assignedTo: true }).extend({
     date: commonSchema_1.requestDateSchema,
     nextDueDate: commonSchema_1.requestDateSchema.optional()
 }).omit({ leadTypeModifiedDate: true });
 exports.leadSheetSchema = zod_1.z.object({
     date: zod_1.z.string().optional().transform(formators_1.formatDate),
-    source: zod_1.z.string().optional().transform(formators_1.toTitleCase),
+    source: zod_1.z.string().optional().transform(formators_1.formatSource),
     name: zod_1.z.string().optional().transform(formators_1.toTitleCase),
     phoneNumber: zod_1.z.string().optional().transform(formators_1.extractLast10Digits),
     altPhoneNumber: zod_1.z.string().optional().transform(formators_1.extractLast10Digits),
     email: zod_1.z.string().optional(),
     city: zod_1.z.string().optional().transform(formators_1.toTitleCase),
     assignedTo: zod_1.z.string().transform(formators_1.splitEmails),
+    degree: zod_1.z.string().optional(),
     gender: zod_1.z.string().optional().transform(val => val === null || val === void 0 ? void 0 : val.toUpperCase()),
     followUpCount: zod_1.z.number().optional().default(0),
     // temporary fields
@@ -63,17 +64,15 @@ exports.leadSheetSchema = zod_1.z.object({
 exports.updateLeadRequestSchema = exports.leadRequestSchema.extend({
     _id: commonSchema_1.objectIdSchema,
     date: commonSchema_1.requestDateSchema.optional(),
-    phoneNumber: commonSchema_1.contactNumberSchema.optional(),
+    phoneNumber: zod_1.z.string().optional(),
     gender: zod_1.z.nativeEnum(constants_1.Gender).optional(),
     leadType: zod_1.z.nativeEnum(constants_1.LeadType).optional(),
-    assignedTo: commonSchema_1.objectIdSchema.array().optional(),
     nextDueDate: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)).optional(),
 }).omit({ source: true }).strict(); // strict will restrict extra properties
 exports.yellowLeadUpdateSchema = exports.yellowLeadSchema.extend({
     _id: commonSchema_1.objectIdSchema,
     name: zod_1.z.string().optional(),
-    phoneNumber: commonSchema_1.contactNumberSchema.optional(),
-    assignedTo: commonSchema_1.objectIdSchema.array().optional(),
+    phoneNumber: zod_1.z.string().optional(),
     date: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)).optional(),
     nextDueDate: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)).optional(),
 }).strict();
