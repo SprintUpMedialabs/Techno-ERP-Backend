@@ -163,7 +163,7 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
       throw createHttpError(404, 'User not found in analytics data.');
 
     let shouldMarkCalled = false;
-    const isFirstFollowUp = existingFollowUpCount === 0 && newFollowUpCount > 0;
+    const isFirstFollowUp = newRemarkLength == 1;
 
     if (isFirstFollowUp) {
       userAnalyticsDoc.data[userIndex].newLeadCalls += 1;

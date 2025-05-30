@@ -147,7 +147,7 @@ exports.updateData = (0, express_async_handler_1.default)((req, res) => __awaite
         if (userIndex === -1)
             throw (0, http_errors_1.default)(404, 'User not found in analytics data.');
         let shouldMarkCalled = false;
-        const isFirstFollowUp = existingFollowUpCount === 0 && newFollowUpCount > 0;
+        const isFirstFollowUp = newRemarkLength == 1;
         if (isFirstFollowUp) {
             userAnalyticsDoc.data[userIndex].newLeadCalls += 1;
             if (!wasCalled) {
