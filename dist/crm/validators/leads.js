@@ -35,7 +35,7 @@ exports.leadSchema = exports.leadMasterSchema.omit({
     footFall: true,
 }).strict();
 exports.yellowLeadSchema = exports.leadMasterSchema.omit({ leadType: true, leadTypeModifiedDate: true }).strict();
-exports.leadRequestSchema = exports.leadSchema.extend({
+exports.leadRequestSchema = exports.leadSchema.omit({ assignedTo: true }).extend({
     date: commonSchema_1.requestDateSchema,
     nextDueDate: commonSchema_1.requestDateSchema.optional()
 }).omit({ leadTypeModifiedDate: true });
