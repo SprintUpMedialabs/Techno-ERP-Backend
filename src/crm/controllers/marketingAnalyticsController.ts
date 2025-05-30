@@ -7,13 +7,16 @@ import { formatResponse } from "../../utils/formatResponse";
 import expressAsyncHandler from "express-async-handler";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
 import { Response } from "express";
+import { MarketingUserWiseAnalytics } from "../models/marketingUserWiseAnalytics";
+import { getISTDate } from "../../utils/getISTDate";
+import createHttpError from "http-errors";
 
 export const createMarketingAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const session = await mongoose.startSession();
 
   try {
     session.startTransaction();
- 
+
     const marketingEmployees = await User.find({ roles: UserRoles.EMPLOYEE_MARKETING }).select('_id').session(session);
     const marketingEmployeeIds = marketingEmployees.map(user => user._id);
 
@@ -107,7 +110,6 @@ export const getCallAnalytics = expressAsyncHandler(async (req: AuthenticatedReq
   if (!callAnalytics || callAnalytics.details.length === 0) {
     return formatResponse(res, 200, "No analytics data found", true, {});
   }
-
   const latestEntry = callAnalytics.details[callAnalytics.details.length - 1];
   const userIds = latestEntry.data.map(item => item.userId);
 
@@ -131,3 +133,23 @@ export const getCallAnalytics = expressAsyncHandler(async (req: AuthenticatedReq
   return formatResponse(res, 200, "Analytics fetched successfully", true, response);
 });
 
+export const updateMarketingRemark = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const { analyticsRemark } = req.body;
+  const todayStart = getISTDate();
+  const userAnalyticsDoc = await MarketingUserWiseAnalytics.findOne({
+    date: { $gte: todayStart },
+    data: { $elemMatch: { userId: req.data?.id } },
+  });
+  if (!userAnalyticsDoc)
+    throw createHttpError(404, 'User analytics not found.');
+  const userIndex = userAnalyticsDoc.data.findIndex((entry) =>
+    entry.userId.toString() === req.data?.id.toString()
+  );
+
+  if (userIndex === -1)
+    throw createHttpError(404, 'User not found in analytics data.');
+  userAnalyticsDoc.data[userIndex].analyticsRemark = analyticsRemark;
+  await userAnalyticsDoc.save();
+
+  return formatResponse(res, 200, "Marketing remark updated successfully", true, null);
+});
