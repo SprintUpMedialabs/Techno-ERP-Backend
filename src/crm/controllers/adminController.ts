@@ -4,7 +4,7 @@ import createHttpError from "http-errors";
 import mongoose from 'mongoose';
 import { User } from '../../auth/models/user';
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
-import { FinalConversionType, LeadType, OFFLINE_SOURCES, offlineSources, ONLINE_SOURCES, onlineSources, onlineSources, PipelineName, UserRoles } from "../../config/constants";
+import { FinalConversionType, LeadType, offlineSources, onlineSources, PipelineName, UserRoles } from "../../config/constants";
 import { retryMechanism } from '../../config/retryMechanism';
 import { createPipeline } from '../../pipline/controller';
 import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
