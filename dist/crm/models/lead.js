@@ -51,19 +51,23 @@ const leadSchema = new mongoose_1.Schema({
     },
     source: {
         type: String,
+        trim: true,
     },
     schoolName: {
         type: String,
+        trim: true,
     },
     // Accepts only alphabets (both uppercase and lowercase) and spaces
     name: {
         type: String,
+        trim: true,
         // required: [true, 'Name is required'],
         // match: [/^[A-Za-z\s]+$/, 'Name can only contain alphabets and spaces'],
     },
     // Must be a unique Indian phone number (+91 followed by 10 digits)
     phoneNumber: {
         type: String,
+        trim: true,
         // required: [true, 'Phone Number is required'],
         // unique: [true, 'Phone Number already exists'],
         // match: [/^[1-9]\d{9}$/, 'Invalid contact number format. Expected: 1234567890'],
@@ -71,16 +75,19 @@ const leadSchema = new mongoose_1.Schema({
     // Optional alternate phone number; must follow the same format as phoneNumber
     altPhoneNumber: {
         type: String,
+        trim: true,
         // match: [/^[1-9]\d{9}$/, 'Invalid contact number format. Expected: 1234567890']
     },
     // Email validation using regex
     email: {
         type: String,
+        trim: true,
         // match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Invalid email format']
     },
     // Optional gender field that must be one of the predefined enum values
     gender: {
         type: String,
+        trim: true,
         enum: {
             values: Object.values(constants_1.Gender),
             message: 'Invalid gender value'
@@ -88,15 +95,19 @@ const leadSchema = new mongoose_1.Schema({
     },
     area: {
         type: String,
+        trim: true,
     },
     city: {
         type: String,
+        trim: true,
     },
     course: {
         type: String,
+        trim: true,
     },
     degree: {
         type: String,
+        trim: true,
     },
     // ✅ Modified from array to single ObjectId
     assignedTo: {
@@ -107,6 +118,7 @@ const leadSchema = new mongoose_1.Schema({
     // Must be one of the predefined lead types; defaults to "ORANGE"
     leadType: {
         type: String,
+        trim: true,
         enum: {
             values: Object.values(constants_1.LeadType),
             message: 'Invalid lead type'
@@ -142,10 +154,7 @@ const leadSchema = new mongoose_1.Schema({
         default: false
     }
 }, { timestamps: true });
-// leadSchema.index(
-//   { source: 1, name: 1, phoneNumber: 1 },
-//   { unique: true, name: 'unique_lead_combo' }
-// );
+leadSchema.index({ source: 1, name: 1, phoneNumber: 1, assignedTo: 1 }, { unique: true, name: 'unique_lead_combo' });
 const handleMongooseError = (error, leadData, next) => {
     if (error.code === 11000) {
         throw (0, http_errors_1.default)(400, 'Phone Number already exists');
