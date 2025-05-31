@@ -588,14 +588,12 @@ export const getDurationBasedUserAnalytics = expressAsyncHandler(async (req: Aut
     const mongoStartDate = convertToMongoDate(startDate);
     const mongoEndDate = convertToMongoDate(endDate);
 
-    console.log(mongoStartDate, mongoEndDate);
-
     const pipeline: any[] = [
         {
             $match: {
                 date: {
                     $gte: mongoStartDate,
-                    $lt: mongoEndDate,
+                    $lte: mongoEndDate,
                 },
             },
         },
