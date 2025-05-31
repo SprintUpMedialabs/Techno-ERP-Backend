@@ -4,7 +4,7 @@ import createHttpError from "http-errors";
 import mongoose from 'mongoose';
 import { User } from '../../auth/models/user';
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
-import { FinalConversionType, LeadType, OFFLINE_SOURCES, ONLINE_SOURCES, PipelineName, UserRoles } from "../../config/constants";
+import { FinalConversionType, LeadType, OFFLINE_SOURCES, offlineSources, ONLINE_SOURCES, onlineSources, onlineSources, PipelineName, UserRoles } from "../../config/constants";
 import { retryMechanism } from '../../config/retryMechanism';
 import { createPipeline } from '../../pipline/controller';
 import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
@@ -330,25 +330,10 @@ const updateLeadStats = (data: any, lead: any, field: string) => {
 };
 
 const checkIsOnline = (source: string) => {
-    const onlineSources = [
-        'Digital - Direct Call',
-        'Digital - Google Ads',
-        'Digital - WhatsApp',
-        'Digital - IVR',
-        'Digital - Meta',
-        'Digital - TawkTo',
-        'Digital - Website',
-    ];
     return onlineSources.map(s => s.toLowerCase()).includes(source.toLowerCase());
 }
 
 const checkIsOffline = (source: string) => {
-    const offlineSources = [
-        'Board Exam',
-        'CUET',
-        'PG Data',
-        'UG Data',
-    ];
     return offlineSources.map(s => s.toLowerCase()).includes(source.toLowerCase());
 }
 
@@ -440,7 +425,143 @@ export const createMarketingSourceWiseAnalyticsV1 = expressAsyncHandler(async (r
                 leadTypes: { $addToSet: '$leadType' }
             }
         },
+        {
+            $project: {
+                _id: 0,
+                source: '$_id.source',
+                hasFootFall: {
+                    $in: [true, '$footFalls']
+                },
+                representativeFinalConversion: {
+                    $switch: {
+                        branches: [
+                            {
+                                case: { $in: [FinalConversionType.ADMISSION, '$finalConversions'] },
+                                then: FinalConversionType.ADMISSION
+                            },
+                        ],
+                        default: FinalConversionType.NO_FOOTFALL
+                    }
+                },
+                representativeLeadType: {
+                    $switch: {
+                        branches: [
+                            {
+                                case: { $in: [LeadType.ACTIVE, '$leadTypes'] },
+                                then: LeadType.ACTIVE
+                            },
+                            {
+                                case: { $in: [LeadType.NEUTRAL, '$leadTypes'] },
+                                then: LeadType.NEUTRAL
+                            },
+                            {
+                                case: { $in: [LeadType.DID_NOT_PICK, '$leadTypes'] },
+                                then: LeadType.DID_NOT_PICK
+                            },
+                        ],
+                        default: 'OTHERS'
+                    }
+                }
+            }
+        },
+        {
+            $group: {
+                _id: '$source',
+                totalLeads: { $sum: 1 },
+                activeLeads: { $sum: { $cond: [{ $eq: ['$representativeLeadType', LeadType.ACTIVE] }, 1, 0] } },
+                neutralLeads: { $sum: { $cond: [{ $eq: ['$representativeLeadType', LeadType.NEUTRAL] }, 1, 0] } },
+                didNotPickLeads: { $sum: { $cond: [{ $eq: ['$representativeLeadType', LeadType.DID_NOT_PICK] }, 1, 0] } },
+                others: { $sum: { $cond: [{ $eq: ['$representativeLeadType', 'OTHERS'] }, 1, 0] } },
+                footFall: { $sum: { $cond: [{ $eq: ['$hasFootFall', true] }, 1, 0] } },
+                totalAdmissions: {
+                    $sum: { $cond: [{ $eq: ['$representativeFinalConversion', FinalConversionType.ADMISSION] }, 1, 0] }
+                },
+            }
+        },
+        {
+            $project: {
+                _id: 0,
+                source: '$_id',
+                totalLeads: 1,
+                activeLeads: 1,
+                neutralLeads: 1,
+                didNotPickLeads: 1,
+                others: 1,
+                footFall: 1,
+                totalAdmissions: 1,
+            }
+        }
     ]);
+    const offlineMap: Record<string, { source: string; data: any }> = {};
+    const onlineMap: Record<string, { source: string; data: any }> = {};
+
+    const totalOfflineData = createEmptyData();
+    const totalOnlineData = createEmptyData();
+    const totalOthersData = createEmptyData();
+
+    for (const item of data) {
+        const isOnline = checkIsOnline(item.source);
+        const isOffline = checkIsOffline(item.source);
+        if (isOnline) {
+            onlineMap[item.source] = { source: item.source, data: item };
+        } else if (isOffline) {
+            offlineMap[item.source] = { source: item.source, data: item };
+        }
+        if (isOnline) {
+            totalOnlineData.totalLeads += item.totalLeads;
+            totalOnlineData.activeLeads += item.activeLeads;
+            totalOnlineData.neutralLeads += item.neutralLeads;
+            totalOnlineData.didNotPickLeads += item.didNotPickLeads;
+            totalOnlineData.footFall += item.footFall;
+            totalOnlineData.totalAdmissions += item.totalAdmissions;
+        } else if (isOffline) {
+            totalOfflineData.totalLeads += item.totalLeads;
+            totalOfflineData.activeLeads += item.activeLeads;
+            totalOfflineData.neutralLeads += item.neutralLeads;
+            totalOfflineData.didNotPickLeads += item.didNotPickLeads;
+            totalOfflineData.footFall += item.footFall;
+            totalOfflineData.totalAdmissions += item.totalAdmissions;
+        } else {
+            totalOthersData.totalLeads += item.totalLeads;
+            totalOthersData.activeLeads += item.activeLeads;
+            totalOthersData.neutralLeads += item.neutralLeads;
+            totalOthersData.didNotPickLeads += item.didNotPickLeads;
+            totalOthersData.footFall += item.footFall;
+            totalOthersData.totalAdmissions += item.totalAdmissions;
+        }
+    }
+    onlineSources.forEach(source => {
+        if (!onlineMap[source]) {
+            onlineMap[source] = { source, data: createEmptyData() };
+        }
+    });
+    offlineSources.forEach(source => {
+        if (!offlineMap[source]) {
+            offlineMap[source] = { source, data: createEmptyData() };
+        }
+    });
+    const response = [
+        { type: 'offline-data', details: Object.values(offlineMap) },
+        { type: 'online-data', details: Object.values(onlineMap) },
+        {
+            type: 'all-leads',
+            details: [
+                { source: 'offline', data: totalOfflineData },
+                { source: 'online', data: totalOnlineData },
+                { source: 'others', data: totalOthersData },
+            ],
+        },
+    ];
+    // const bulkOps = response.map(item => ({
+    //     updateOne: {
+    //         filter: { type: item.type },
+    //         update: { $set: { type: item.type, details: item.details } },
+    //         upsert: true,
+    //     },
+    // }));
+
+    // await MarketingSourceWiseAnalytics.bulkWrite(bulkOps)
+    return formatResponse(res, 200, "Marketing Source Wise Analytics fetched successfully", true, response);
 });
 
 
