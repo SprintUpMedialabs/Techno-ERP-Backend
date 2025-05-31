@@ -329,6 +329,28 @@ const updateLeadStats = (data: any, lead: any, field: string) => {
         data.totalAdmissions++;
 };
 
+const checkIsOnline = (source: string) => {
+    const onlineSources = [
+        'Digital - Direct Call',
+        'Digital - Google Ads',
+        'Digital - WhatsApp',
+        'Digital - IVR',
+        'Digital - Meta',
+        'Digital - TawkTo',
+        'Digital - Website',
+    ];
+    return onlineSources.map(s => s.toLowerCase()).includes(source.toLowerCase());
+}
+
+const checkIsOffline = (source: string) => {
+    const offlineSources = [
+        'Board Exam',
+        'CUET',
+        'PG Data',
+        'UG Data',
+    ];
+    return offlineSources.map(s => s.toLowerCase()).includes(source.toLowerCase());
+}
 
 export const createMarketingSourceWiseAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
 
@@ -336,30 +358,30 @@ export const createMarketingSourceWiseAnalytics = expressAsyncHandler(async (req
 
     await retryMechanism(
         async (session) => {
-            const leads = await LeadMaster.find({}, 'source leadType footFall finalConversion').lean();
+            const cursor = LeadMaster.find({}, 'source leadType footFall finalConversion')
+                .lean()
+                .cursor();
 
-            const offlineMap: Record<string, any> = {};
-            const onlineMap: Record<string, any> = {};
+            const offlineMap: Record<string, { source: string; data: any }> = {};
+            const onlineMap: Record<string, { source: string; data: any }> = {};
 
             const totalOfflineData = createEmptyData();
             const totalOnlineData = createEmptyData();
             const totalOthersData = createEmptyData();
 
-            for (const lead of leads) {
+            for await (const lead of cursor) {
                 const source = lead.source || 'Unknown';
                 const field = mapLeadType(lead);
-                const isOnline = ONLINE_SOURCES.includes(source);
-                const isOffline = OFFLINE_SOURCES.includes(source);
+
+                const isOnline = checkIsOnline(source);
+                const isOffline = checkIsOffline(source);
 
                 if (isOnline || isOffline) {
                     const map = isOnline ? onlineMap : offlineMap;
                     const total = isOnline ? totalOnlineData : totalOfflineData;
 
                     if (!map[source]) {
-                        map[source] = {
-                            source,
-                            data: createEmptyData(),
-                        };
+                        map[source] = { source, data: createEmptyData() };
                     }
 
                     updateLeadStats(map[source].data, lead, field);
@@ -369,20 +391,22 @@ export const createMarketingSourceWiseAnalytics = expressAsyncHandler(async (req
                 }
             }
 
+            // Prepare final analytics data
             const response = [
-                { type: "offline-data", details: Object.values(offlineMap) },
-                { type: "online-data", details: Object.values(onlineMap) },
+                { type: 'offline-data', details: Object.values(offlineMap) },
+                { type: 'online-data', details: Object.values(onlineMap) },
                 {
-                    type: "all-leads",
+                    type: 'all-leads',
                     details: [
-                        { source: "offline", data: totalOfflineData },
-                        { source: "online", data: totalOnlineData },
-                        { source: "others", data: totalOthersData },
+                        { source: 'offline', data: totalOfflineData },
+                        { source: 'online', data: totalOnlineData },
+                        { source: 'others', data: totalOthersData },
                     ],
                 },
             ];
 
-            const bulkOps = response.map((item) => ({
+            // Perform efficient upsert in one bulk write
+            const bulkOps = response.map(item => ({
                 updateOne: {
                     filter: { type: item.type },
                     update: { $set: { type: item.type, details: item.details } },
@@ -391,6 +415,7 @@ export const createMarketingSourceWiseAnalytics = expressAsyncHandler(async (req
             }));
 
             await MarketingSourceWiseAnalytics.bulkWrite(bulkOps, { session });
+
         },
         "Marketing Source Analytics Retry Failed",
         "Final failure after multiple retry attempts in Marketing Source Analytics pipeline",
@@ -399,6 +424,23 @@ export const createMarketingSourceWiseAnalytics = expressAsyncHandler(async (req
     );
 
     return formatResponse(res, 200, "Marketing Source Wise Analytics Created.", true, null);
+});
+
+export const createMarketingSourceWiseAnalyticsV1 = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const data = await LeadMaster.aggregate([
+        {
+            $group: {
+                _id: {
+                    name: '$name',
+                    phoneNumber: '$phoneNumber',
+                    source: '$source'
+                },
+                finalConversions: { $addToSet: '$finalConversion' },
+                footFalls: { $addToSet: '$footFall' },
+                leadTypes: { $addToSet: '$leadType' }
+            }
+        },
+    ]);
 });
 
 
@@ -534,6 +576,8 @@ export const getUserDailyAnalytics = expressAsyncHandler(async (req: Authenticat
         date: startIST,
     });
     const userAnalytics = todayAnalytics?.data.find(item => item.userId.toString() === req.data?.id);
+    if (!userAnalytics)
+        throw createHttpError(404, "User daily analytics not found");
     return formatResponse(res, 200, "User daily analytics fetched successfully", true, userAnalytics);
 });
 
