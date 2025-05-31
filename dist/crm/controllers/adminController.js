@@ -19,7 +19,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getDurationBasedUserAnalytics = exports.getUserDailyAnalytics = exports.getMarketingUserWiseAnalytics = exports.reiterateLeads = exports.initializeUserWiseAnalytics = exports.getMarketingSourceWiseAnalytics = exports.createMarketingSourceWiseAnalytics = exports.adminAnalyticsV1 = exports.adminAnalytics = void 0;
+exports.getDurationBasedUserAnalytics = exports.getUserDailyAnalytics = exports.getMarketingUserWiseAnalytics = exports.reiterateLeads = exports.initializeUserWiseAnalytics = exports.getMarketingSourceWiseAnalytics = exports.createMarketingSourceWiseAnalyticsV1 = exports.createMarketingSourceWiseAnalytics = exports.adminAnalyticsV1 = exports.adminAnalytics = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const http_errors_1 = __importDefault(require("http-errors"));
 const mongoose_1 = __importDefault(require("mongoose"));
@@ -305,49 +305,84 @@ const updateLeadStats = (data, lead, field) => {
     if (lead.finalConversion === constants_1.FinalConversionType.ADMISSION)
         data.totalAdmissions++;
 };
+const checkIsOnline = (source) => {
+    const onlineSources = [
+        'Digital - Direct Call',
+        'Digital - Google Ads',
+        'Digital - WhatsApp',
+        'Digital - IVR',
+        'Digital - Meta',
+        'Digital - TawkTo',
+        'Digital - Website',
+    ];
+    return onlineSources.map(s => s.toLowerCase()).includes(source.toLowerCase());
+};
+const checkIsOffline = (source) => {
+    const offlineSources = [
+        'Board Exam',
+        'CUET',
+        'PG Data',
+        'UG Data',
+    ];
+    return offlineSources.map(s => s.toLowerCase()).includes(source.toLowerCase());
+};
 exports.createMarketingSourceWiseAnalytics = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const pipelineId = yield (0, controller_1.createPipeline)(constants_1.PipelineName.MARKETING_SOURCE_WISE_ANALYTICS);
     yield (0, retryMechanism_1.retryMechanism)((session) => __awaiter(void 0, void 0, void 0, function* () {
-        const leads = yield lead_1.LeadMaster.find({}, 'source leadType footFall finalConversion').lean();
+        var _a, e_1, _b, _c;
+        const cursor = lead_1.LeadMaster.find({}, 'source leadType footFall finalConversion')
+            .lean()
+            .cursor();
         const offlineMap = {};
         const onlineMap = {};
         const totalOfflineData = createEmptyData();
         const totalOnlineData = createEmptyData();
         const totalOthersData = createEmptyData();
-        for (const lead of leads) {
-            const source = lead.source || 'Unknown';
-            const field = mapLeadType(lead);
-            const isOnline = constants_1.ONLINE_SOURCES.includes(source);
-            const isOffline = constants_1.OFFLINE_SOURCES.includes(source);
-            if (isOnline || isOffline) {
-                const map = isOnline ? onlineMap : offlineMap;
-                const total = isOnline ? totalOnlineData : totalOfflineData;
-                if (!map[source]) {
-                    map[source] = {
-                        source,
-                        data: createEmptyData(),
-                    };
+        try {
+            for (var _d = true, cursor_1 = __asyncValues(cursor), cursor_1_1; cursor_1_1 = yield cursor_1.next(), _a = cursor_1_1.done, !_a; _d = true) {
+                _c = cursor_1_1.value;
+                _d = false;
+                const lead = _c;
+                const source = lead.source || 'Unknown';
+                const field = mapLeadType(lead);
+                const isOnline = checkIsOnline(source);
+                const isOffline = checkIsOffline(source);
+                if (isOnline || isOffline) {
+                    const map = isOnline ? onlineMap : offlineMap;
+                    const total = isOnline ? totalOnlineData : totalOfflineData;
+                    if (!map[source]) {
+                        map[source] = { source, data: createEmptyData() };
+                    }
+                    updateLeadStats(map[source].data, lead, field);
+                    updateLeadStats(total, lead, field);
                 }
-                updateLeadStats(map[source].data, lead, field);
-                updateLeadStats(total, lead, field);
-            }
-            else {
-                updateLeadStats(totalOthersData, lead, field);
+                else {
+                    updateLeadStats(totalOthersData, lead, field);
+                }
             }
         }
+        catch (e_1_1) { e_1 = { error: e_1_1 }; }
+        finally {
+            try {
+                if (!_d && !_a && (_b = cursor_1.return)) yield _b.call(cursor_1);
+            }
+            finally { if (e_1) throw e_1.error; }
+        }
+        // Prepare final analytics data
         const response = [
-            { type: "offline-data", details: Object.values(offlineMap) },
-            { type: "online-data", details: Object.values(onlineMap) },
+            { type: 'offline-data', details: Object.values(offlineMap) },
+            { type: 'online-data', details: Object.values(onlineMap) },
             {
-                type: "all-leads",
+                type: 'all-leads',
                 details: [
-                    { source: "offline", data: totalOfflineData },
-                    { source: "online", data: totalOnlineData },
-                    { source: "others", data: totalOthersData },
+                    { source: 'offline', data: totalOfflineData },
+                    { source: 'online', data: totalOnlineData },
+                    { source: 'others', data: totalOthersData },
                 ],
             },
         ];
-        const bulkOps = response.map((item) => ({
+        // Perform efficient upsert in one bulk write
+        const bulkOps = response.map(item => ({
             updateOne: {
                 filter: { type: item.type },
                 update: { $set: { type: item.type, details: item.details } },
@@ -357,6 +392,22 @@ exports.createMarketingSourceWiseAnalytics = (0, express_async_handler_1.default
         yield marketingSourceWiseAnalytics_1.MarketingSourceWiseAnalytics.bulkWrite(bulkOps, { session });
     }), "Marketing Source Analytics Retry Failed", "Final failure after multiple retry attempts in Marketing Source Analytics pipeline", pipelineId, constants_1.PipelineName.MARKETING_SOURCE_WISE_ANALYTICS);
     return (0, formatResponse_1.formatResponse)(res, 200, "Marketing Source Wise Analytics Created.", true, null);
+}));
+exports.createMarketingSourceWiseAnalyticsV1 = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const data = yield lead_1.LeadMaster.aggregate([
+        {
+            $group: {
+                _id: {
+                    name: '$name',
+                    phoneNumber: '$phoneNumber',
+                    source: '$source'
+                },
+                finalConversions: { $addToSet: '$finalConversion' },
+                footFalls: { $addToSet: '$footFall' },
+                leadTypes: { $addToSet: '$leadType' }
+            }
+        },
+    ]);
 }));
 exports.getMarketingSourceWiseAnalytics = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const data = yield marketingSourceWiseAnalytics_1.MarketingSourceWiseAnalytics.find({});
@@ -404,14 +455,14 @@ exports.reiterateLeads = (0, express_async_handler_1.default)((req, res) => __aw
     if (!pipelineId)
         throw (0, http_errors_1.default)(400, "Pipeline creation failed");
     yield (0, retryMechanism_1.retryMechanism)((session) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a, e_1, _b, _c;
+        var _a, e_2, _b, _c;
         const BATCH_SIZE = 1000; // Tune batch size as per memory limits
         const cursor = lead_1.LeadMaster.find({}, null, { lean: true }).cursor({ session });
         let bulkOps = [];
         let updatedCount = 0;
         try {
-            for (var _d = true, cursor_1 = __asyncValues(cursor), cursor_1_1; cursor_1_1 = yield cursor_1.next(), _a = cursor_1_1.done, !_a; _d = true) {
-                _c = cursor_1_1.value;
+            for (var _d = true, cursor_2 = __asyncValues(cursor), cursor_2_1; cursor_2_1 = yield cursor_2.next(), _a = cursor_2_1.done, !_a; _d = true) {
+                _c = cursor_2_1.value;
                 _d = false;
                 const lead = _c;
                 bulkOps.push({
@@ -430,12 +481,12 @@ exports.reiterateLeads = (0, express_async_handler_1.default)((req, res) => __aw
                 }
             }
         }
-        catch (e_1_1) { e_1 = { error: e_1_1 }; }
+        catch (e_2_1) { e_2 = { error: e_2_1 }; }
         finally {
             try {
-                if (!_d && !_a && (_b = cursor_1.return)) yield _b.call(cursor_1);
+                if (!_d && !_a && (_b = cursor_2.return)) yield _b.call(cursor_2);
             }
-            finally { if (e_1) throw e_1.error; }
+            finally { if (e_2) throw e_2.error; }
         }
         // Process any remaining operations
         if (bulkOps.length > 0) {
@@ -458,19 +509,20 @@ exports.getUserDailyAnalytics = (0, express_async_handler_1.default)((req, res) 
         date: startIST,
     });
     const userAnalytics = todayAnalytics === null || todayAnalytics === void 0 ? void 0 : todayAnalytics.data.find(item => { var _a; return item.userId.toString() === ((_a = req.data) === null || _a === void 0 ? void 0 : _a.id); });
+    if (!userAnalytics)
+        throw (0, http_errors_1.default)(404, "User daily analytics not found");
     return (0, formatResponse_1.formatResponse)(res, 200, "User daily analytics fetched successfully", true, userAnalytics);
 }));
 exports.getDurationBasedUserAnalytics = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { startDate, endDate } = req.body;
     const mongoStartDate = (0, convertDateToFormatedDate_1.convertToMongoDate)(startDate);
     const mongoEndDate = (0, convertDateToFormatedDate_1.convertToMongoDate)(endDate);
-    console.log(mongoStartDate, mongoEndDate);
     const pipeline = [
         {
             $match: {
                 date: {
                     $gte: mongoStartDate,
-                    $lt: mongoEndDate,
+                    $lte: mongoEndDate,
                 },
             },
         },
