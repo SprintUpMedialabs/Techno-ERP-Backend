@@ -5,7 +5,7 @@ import { getAllLeadAnalyticsV1 } from "../controllers/crmController";
 
 import { Router } from "express";
 import { getYellowLeadsAnalyticsV1 } from "../controllers/yellowLeadController";
-import { adminAnalyticsV1 } from "../controllers/adminController";
+import { adminAnalyticsV1, createMarketingSourceWiseAnalyticsV1 } from "../controllers/adminController";
 
 
 export const crmV1Routes = Router();
@@ -30,3 +30,11 @@ crmV1Routes.post(
     authorize([UserRoles.ADMIN]),
     adminAnalyticsV1
 );
+
+crmV1Routes.get(
+    '/source-analytics',
+    authenticate,
+    authorize([UserRoles.ADMIN]),
+    createMarketingSourceWiseAnalyticsV1
+);
+
