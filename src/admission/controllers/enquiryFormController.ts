@@ -156,7 +156,6 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
 
   try {
     const enquiry = await Enquiry.findById(id).session(session);
-    console.log("Enquiry is  : ", enquiry);
     if (!enquiry || enquiry.applicationStatus != ApplicationStatus.STEP_4) {
       throw createHttpError(404, 'Please create the enquiry first!');
     }
@@ -196,8 +195,6 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
 
     const enquiryData = approvedEnquiry?.toObject();
 
-    console.log("Approved ENquiry is : ", enquiryData);
-
     const studentData = {
       // "studentName" : approvedEnquiry?.studentName,
       // "studentPhoneNumber" : approvedEnquiry?.studentPhoneNumber,
@@ -211,29 +208,15 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
       "collegeName": getCollegeNameFromFormNo(enquiryData?.formNo)
     }
 
-
-
-    console.log("Student Data : ", studentData);
-
     const studentValidation = CreateStudentSchema.safeParse(studentData);
-
-    console.log("create student schema : ", studentValidation.data);
-
-    console.log("Student Validation Errors : ", studentValidation.error);
 
     if (!studentValidation.success)
       throw createHttpError(400, studentValidation.error.errors[0]);
 
     const { transactionAmount, ...student } = await createStudent(req.data?.id, studentValidation.data);
     
-    console.log("Transaction Amount is : ", transactionAmount);
     const studentCreateValidation = StudentSchema.safeParse(student);
 
-
-    console.log("Student to be created : ", student);
-
-    console.log("Student create validation errors : ", studentCreateValidation.error);
-    console.log(studentCreateValidation.data);
     if (!studentCreateValidation.success) {
       throw createHttpError(400, studentCreateValidation.error.errors[0]);
     }
@@ -254,9 +237,6 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
       });
     }
 
-    console.log("Transaction Amount : ", transactionAmount);
-    console.log("Transaction Settlement History : ", transactionSettlementHistory);
-
     const createTransaction = await CollegeTransaction.create([{
       studentId: enquiry._id,
       dateTime: new Date(),
@@ -276,8 +256,6 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
       ...studentCreateValidation.data,
       transactionHistory: [createTransaction[0]._id]
     }], { session });
-
-    console.log("Created student is : ", createdStudent);
 
     incrementAdmissionAnalytics(student.courseCode);
     await session.commitTransaction();

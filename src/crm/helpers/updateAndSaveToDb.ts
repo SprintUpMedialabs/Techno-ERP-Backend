@@ -91,7 +91,7 @@ const leadsToBeInserted = async (
           citySet.add(formatDropdownValue(leadDataValidation.data.city));
         }
         if (leadDataValidation.data.source) {
-          sourceSet.add(formatDropdownValue(leadDataValidation.data.source));
+          sourceSet.add(leadDataValidation.data.source);
         }
         if (leadDataValidation.data.course) {
           courseSet.add(formatCapital(leadDataValidation.data.course));
