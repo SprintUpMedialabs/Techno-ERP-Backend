@@ -147,7 +147,6 @@ exports.approveEnquiry = (0, express_async_handler_1.default)((0, functionLevelL
     session.startTransaction();
     try {
         const enquiry = yield enquiry_1.Enquiry.findById(id).session(session);
-        console.log("Enquiry is  : ", enquiry);
         if (!enquiry || enquiry.applicationStatus != constants_1.ApplicationStatus.STEP_4) {
             throw (0, http_errors_1.default)(404, 'Please create the enquiry first!');
         }
@@ -166,20 +165,12 @@ exports.approveEnquiry = (0, express_async_handler_1.default)((0, functionLevelL
         }, { runValidators: true, new: true, projection: { createdAt: 0, updatedAt: 0, __v: 0 }, session });
         // const studentValidation = studentSchema.safeParse(approvedEnquiry);
         const enquiryData = approvedEnquiry === null || approvedEnquiry === void 0 ? void 0 : approvedEnquiry.toObject();
-        console.log("Approved ENquiry is : ", enquiryData);
         const studentData = Object.assign(Object.assign({}, enquiryData), { "courseCode": approvedEnquiry === null || approvedEnquiry === void 0 ? void 0 : approvedEnquiry.course, "feeId": approvedEnquiry === null || approvedEnquiry === void 0 ? void 0 : approvedEnquiry.studentFee, "dateOfAdmission": approvedEnquiry === null || approvedEnquiry === void 0 ? void 0 : approvedEnquiry.dateOfAdmission, "collegeName": getCollegeNameFromFormNo(enquiryData === null || enquiryData === void 0 ? void 0 : enquiryData.formNo) });
-        console.log("Student Data : ", studentData);
         const studentValidation = studentSchema_1.CreateStudentSchema.safeParse(studentData);
-        console.log("create student schema : ", studentValidation.data);
-        console.log("Student Validation Errors : ", studentValidation.error);
         if (!studentValidation.success)
             throw (0, http_errors_1.default)(400, studentValidation.error.errors[0]);
         const _c = yield (0, studentController_1.createStudent)((_a = req.data) === null || _a === void 0 ? void 0 : _a.id, studentValidation.data), { transactionAmount } = _c, student = __rest(_c, ["transactionAmount"]);
-        console.log("Transaction Amount is : ", transactionAmount);
         const studentCreateValidation = studentSchema_1.StudentSchema.safeParse(student);
-        console.log("Student to be created : ", student);
-        console.log("Student create validation errors : ", studentCreateValidation.error);
-        console.log(studentCreateValidation.data);
         if (!studentCreateValidation.success) {
             throw (0, http_errors_1.default)(400, studentCreateValidation.error.errors[0]);
         }
@@ -196,8 +187,6 @@ exports.approveEnquiry = (0, express_async_handler_1.default)((0, functionLevelL
                 }
             });
         }
-        console.log("Transaction Amount : ", transactionAmount);
-        console.log("Transaction Settlement History : ", transactionSettlementHistory);
         const createTransaction = yield collegeTransactionHistory_1.CollegeTransaction.create([{
                 studentId: enquiry._id,
                 dateTime: new Date(),
@@ -212,7 +201,6 @@ exports.approveEnquiry = (0, express_async_handler_1.default)((0, functionLevelL
                 courseYear: (0, getCourseYearFromSemNumber_1.getCourseYearFromSemNumber)(student.currentSemester)
             }], { session });
         const createdStudent = yield student_1.Student.create([Object.assign(Object.assign({ _id: enquiry._id }, studentCreateValidation.data), { transactionHistory: [createTransaction[0]._id] })], { session });
-        console.log("Created student is : ", createdStudent);
         (0, admissionAnalyticsController_1.incrementAdmissionAnalytics)(student.courseCode);
         yield session.commitTransaction();
         session.endSession();

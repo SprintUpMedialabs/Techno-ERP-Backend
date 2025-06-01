@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"},{"v":{"$numberInt":"2"},"key":{"type":{"$numberInt":"1"},"date":{"$numberInt":"1"},"courseCode":{"$numberInt":"1"}},"name":"type_1_date_1_courseCode_1","background":true,"unique":true}],"uuid":"30ad4c034f844803bc6465f3b160a704","collectionName":"admissionanalytics","type":"collection"}
