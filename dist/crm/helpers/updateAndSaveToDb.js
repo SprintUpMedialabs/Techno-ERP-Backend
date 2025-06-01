@@ -66,7 +66,7 @@ const leadsToBeInserted = (latestData, report, lastSavedIndex, citySet, sourceSe
                     citySet.add((0, dropDownMetadataController_1.formatDropdownValue)(leadDataValidation.data.city));
                 }
                 if (leadDataValidation.data.source) {
-                    sourceSet.add((0, dropDownMetadataController_1.formatDropdownValue)(leadDataValidation.data.source));
+                    sourceSet.add(leadDataValidation.data.source);
                 }
                 if (leadDataValidation.data.course) {
                     courseSet.add((0, dropDownMetadataController_1.formatCapital)(leadDataValidation.data.course));
