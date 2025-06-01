@@ -93,8 +93,8 @@ exports.StudentSchema = zod_1.z.object({
     totalSemester: zod_1.z.number({ required_error: "Total Number of Semesters is Required." }).nonnegative("Total number of semesters must be non-negative"),
     semester: zod_1.z.array(exports.SemesterSchema),
     feeStatus: zod_1.z.nativeEnum(constants_1.FeeStatus).default(constants_1.FeeStatus.DUE),
-    extraBalance: zod_1.z.number(),
-    prevTotalDueAtSemStart: zod_1.z.number(),
+    extraBalance: zod_1.z.number().default(0),
+    prevTotalDueAtSemStart: zod_1.z.number().default(0),
     transactionHistory: zod_1.z.array(commonSchema_1.objectIdSchema).optional()
 });
 exports.CreateStudentSchema = zod_1.z.object({
