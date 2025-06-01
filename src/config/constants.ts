@@ -441,6 +441,22 @@ export const OFFLINE_SOURCES = [
   'Technoligence',
 ];
 
+export const offlineSources = [
+  'Board Exam',
+  'CUET',
+  'PG Data',
+  'UG Data',
+];
+
+export const onlineSources = [
+  'Digital - Direct Call',
+  'Digital - Google Ads',
+  'Digital - WhatsApp',
+  'Digital - IVR',
+  'Digital - Meta',
+  'Digital - TawkTo',
+  'Digital - Website',
+];
 
 export enum AdmissionAggregationType {
   DATE_WISE = 'totalAdmissionDateWise',
