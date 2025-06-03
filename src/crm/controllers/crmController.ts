@@ -339,6 +339,7 @@ export const exportData = expressAsyncHandler(async (req: AuthenticatedRequest, 
   // Define headers
   const baseColumns = [
     { header: 'Date', key: 'date' },
+    { header: 'Source', key: 'source' },
     { header: 'Name', key: 'name' },
     { header: 'Phone Number', key: 'phoneNumber' },
     { header: 'Alt Phone Number', key: 'altPhoneNumber' },
@@ -372,6 +373,7 @@ export const exportData = expressAsyncHandler(async (req: AuthenticatedRequest, 
   leads.forEach((lead: any) => {
     const rowData: any = {
       date: lead.date ? convertToDDMMYYYY(lead.date) : '',
+      source: lead.source || '',
       name: lead.name || '',
       phoneNumber: lead.phoneNumber || '',
       altPhoneNumber: lead.altPhoneNumber || '',
