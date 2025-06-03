@@ -30,7 +30,7 @@ exports.enquirySchema = zod_1.z.object({
     dateOfEnquiry: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)).optional(),
     gender: zod_1.z.nativeEnum(constants_1.Gender).default(constants_1.Gender.OTHER),
     previousCollegeData: previousCollegeDataSchema_1.previousCollegeDataSchema.optional(),
-    stateOfDomicile: zod_1.z.nativeEnum(constants_1.StatesOfIndia).default(constants_1.StatesOfIndia.UTTAR_PRADESH),
+    stateOfDomicile: zod_1.z.string().default(constants_1.StatesOfIndia.UTTAR_PRADESH),
     areaType: zod_1.z.nativeEnum(constants_1.AreaType).optional(),
     nationality: zod_1.z.string().default('INDIAN'),
     entranceExamDetails: entranceExamDetailSchema_1.entranceExamDetailSchema.optional(),

@@ -478,6 +478,7 @@ exports.createMarketingSourceWiseAnalyticsV1 = (0, express_async_handler_1.defau
             totalOnlineData.activeLeads += item.activeLeads;
             totalOnlineData.neutralLeads += item.neutralLeads;
             totalOnlineData.didNotPickLeads += item.didNotPickLeads;
+            totalOnlineData.others += item.others;
             totalOnlineData.footFall += item.footFall;
             totalOnlineData.totalAdmissions += item.totalAdmissions;
         }
@@ -486,6 +487,7 @@ exports.createMarketingSourceWiseAnalyticsV1 = (0, express_async_handler_1.defau
             totalOfflineData.activeLeads += item.activeLeads;
             totalOfflineData.neutralLeads += item.neutralLeads;
             totalOfflineData.didNotPickLeads += item.didNotPickLeads;
+            totalOfflineData.others += item.others;
             totalOfflineData.footFall += item.footFall;
             totalOfflineData.totalAdmissions += item.totalAdmissions;
         }
@@ -494,6 +496,7 @@ exports.createMarketingSourceWiseAnalyticsV1 = (0, express_async_handler_1.defau
             totalOthersData.activeLeads += item.activeLeads;
             totalOthersData.neutralLeads += item.neutralLeads;
             totalOthersData.didNotPickLeads += item.didNotPickLeads;
+            totalOthersData.others += item.others;
             totalOthersData.footFall += item.footFall;
             totalOthersData.totalAdmissions += item.totalAdmissions;
         }

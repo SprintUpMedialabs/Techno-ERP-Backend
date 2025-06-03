@@ -170,10 +170,6 @@ const StudentBaseInfoSchema = new mongoose_1.Schema({
     },
     stateOfDomicile: {
         type: String,
-        enum: {
-            values: Object.values(constants_1.StatesOfIndia),
-            message: 'Invalid state of domicile value'
-        }
     },
     areaType: {
         type: String,

@@ -25,38 +25,38 @@ const controller_1 = require("../../pipline/controller");
 const mongoose_1 = __importDefault(require("mongoose"));
 // DACHECK: This function should be robust enough so that if it get failed then it retries by its own until it get success and also should send mails upon 5th attempt failure
 // TEST: this function is going to be tested with the time
-const incrementAdmissionAnalytics = (courseCode) => __awaiter(void 0, void 0, void 0, function* () {
+const incrementAdmissionAnalytics = (courseName) => __awaiter(void 0, void 0, void 0, function* () {
     const now = (0, moment_timezone_1.default)().tz('Asia/Kolkata');
     const updates = [
         {
             type: constants_1.AdmissionAggregationType.DATE_WISE,
             date: now.clone().startOf('day').toDate(), // exact IST date
-            courseCode: 'ALL',
+            courseName: 'ALL',
         },
         {
             type: constants_1.AdmissionAggregationType.MONTH_WISE,
             date: now.clone().startOf('month').toDate(), // 01/MM/YYYY
-            courseCode: 'ALL',
+            courseName: 'ALL',
         },
         {
             type: constants_1.AdmissionAggregationType.MONTH_AND_COURSE_WISE,
             date: now.clone().startOf('month').toDate(), // 01/MM/YYYY
-            courseCode: courseCode,
+            courseName: courseName,
         },
         {
             type: constants_1.AdmissionAggregationType.YEAR_AND_COURSE_WISE,
             date: now.clone().startOf('year').toDate(), // 01/01/YYYY
-            courseCode: courseCode,
+            courseName: courseName,
         },
     ];
-    const updatePromises = updates.map(({ type, date, courseCode }) => admissionAnalytics_1.AdmissionAnalyticsModel.findOneAndUpdate({ type, date, courseCode }, { $inc: { count: 1 } }, { upsert: true, new: true }));
+    const updatePromises = updates.map(({ type, date, courseName }) => admissionAnalytics_1.AdmissionAnalyticsModel.findOneAndUpdate({ type, date, courseName }, { $inc: { count: 1 } }, { upsert: true, new: true }));
     yield Promise.all(updatePromises);
 });
 exports.incrementAdmissionAnalytics = incrementAdmissionAnalytics;
 exports.assignBaseValueToAdmissionAnalytics = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { type } = req.query;
-    const courseList = yield courseMetadata_1.CourseMetaData.find().select('courseCode courseName');
-    const courseCodeList = courseList.map(course => ({ courseCode: course.courseCode, courseName: course.courseName }));
+    const courseList = yield courseMetadata_1.CourseMetaData.find().select('courseName');
+    const courseNameList = courseList.map(course => ({ courseName: course.courseName }));
     const now = (0, moment_timezone_1.default)().tz('Asia/Kolkata');
     if (!Object.values(constants_1.AdmissionAggregationType).includes(type)) {
         throw (0, http_errors_1.default)(400, 'Invalid type');
@@ -71,7 +71,7 @@ exports.assignBaseValueToAdmissionAnalytics = (0, express_async_handler_1.defaul
             yield admissionAnalytics_1.AdmissionAnalyticsModel.create([{
                     type,
                     date: now.clone().startOf('day').toDate(),
-                    courseCode: 'ALL',
+                    courseName: 'ALL',
                     count: 0,
                 }], { session });
         }
@@ -79,26 +79,26 @@ exports.assignBaseValueToAdmissionAnalytics = (0, express_async_handler_1.defaul
             yield admissionAnalytics_1.AdmissionAnalyticsModel.create([{
                     type,
                     date: now.clone().startOf('month').toDate(),
-                    courseCode: 'ALL',
+                    courseName: 'ALL',
                     count: 0,
                 }], { session });
         }
         else if (type === constants_1.AdmissionAggregationType.MONTH_AND_COURSE_WISE) {
-            yield Promise.all(courseCodeList.map((course) => __awaiter(void 0, void 0, void 0, function* () {
+            yield Promise.all(courseNameList.map((course) => __awaiter(void 0, void 0, void 0, function* () {
                 return yield admissionAnalytics_1.AdmissionAnalyticsModel.create([{
                         type,
                         date: now.clone().startOf('month').toDate(),
-                        courseCode: course.courseCode,
+                        courseName: course.courseName,
                         count: 0,
                     }], { session });
             })));
         }
         else if (type === constants_1.AdmissionAggregationType.YEAR_AND_COURSE_WISE) {
-            yield Promise.all(courseCodeList.map((course) => __awaiter(void 0, void 0, void 0, function* () {
+            yield Promise.all(courseNameList.map((course) => __awaiter(void 0, void 0, void 0, function* () {
                 return yield admissionAnalytics_1.AdmissionAnalyticsModel.create([{
                         type,
                         date: now.clone().startOf('year').toDate(),
-                        courseCode: course.courseCode,
+                        courseName: course.courseName,
                         count: 0,
                     }], { session });
             })));
@@ -130,27 +130,27 @@ exports.getAdmissionStats = (0, express_async_handler_1.default)((req, res) => _
     if (type === constants_1.AdmissionAggregationType.DATE_WISE) {
         for (let i = 0; i < 5; i++) {
             const d = baseDate.clone().subtract(i, 'days');
-            if (d.month() === baseDate.month()) {
-                queryFilters.push({ type, date: d.toDate() });
-            }
+            // if (d.month() === baseDate.month()) {
+            queryFilters.push({ type, date: d.toDate() });
+            // }
         }
     }
     else if (type === constants_1.AdmissionAggregationType.MONTH_WISE) {
         for (let i = 0; i < 5; i++) {
             const d = baseDate.clone().subtract(i, 'months');
-            if (d.year() === baseDate.year()) {
-                queryFilters.push({ type, date: d.startOf('month').toDate() });
-            }
+            // if (d.year() === baseDate.year()) {
+            queryFilters.push({ type, date: d.startOf('month').toDate() });
+            // }
         }
     }
     else if (type === constants_1.AdmissionAggregationType.YEAR_AND_COURSE_WISE) {
         for (let i = 0; i < 5; i++) {
             const d = baseDate.clone().subtract(i, 'years');
-            queryFilters.push({ type, date: d.startOf('year').toDate(), courseCode: { $ne: 'ALL' } });
+            queryFilters.push({ type, date: d.startOf('year').toDate(), courseName: { $ne: 'ALL' } });
         }
     }
     else if (type === constants_1.AdmissionAggregationType.MONTH_AND_COURSE_WISE) {
-        queryFilters.push({ type, date: baseDate.toDate(), courseCode: { $ne: 'ALL' } });
+        queryFilters.push({ type, date: baseDate.toDate(), courseName: { $ne: 'ALL' } });
     }
     else {
         throw (0, http_errors_1.default)(400, 'Invalid type');
@@ -166,7 +166,7 @@ exports.getAdmissionStats = (0, express_async_handler_1.default)((req, res) => _
             }
             groupedData[dateStr].courseWise.push({
                 count: item.count,
-                courseCode: item.courseCode,
+                courseName: item.courseName,
             });
         });
         const formattedData = Object.values(groupedData);

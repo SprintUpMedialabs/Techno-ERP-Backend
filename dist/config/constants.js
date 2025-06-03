@@ -95,6 +95,8 @@ var DropDownType;
     DropDownType["MARKETING_SOURCE"] = "MARKETING_SOURCE";
     DropDownType["MARKETING_COURSE_CODE"] = "MARKETING_COURSE_CODE";
     DropDownType["FIX_MARKETING_COURSE_CODE"] = "FIX_MARKETING_COURSE_CODE";
+    DropDownType["TELECALLER"] = "TELECALLER";
+    DropDownType["COUNSELOR"] = "COUNSELOR";
 })(DropDownType || (exports.DropDownType = DropDownType = {}));
 var PhysicalDocumentNoteStatus;
 (function (PhysicalDocumentNoteStatus) {

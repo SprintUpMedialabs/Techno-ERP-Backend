@@ -70,7 +70,17 @@ exports.updateEnquiryStep3ById = (0, express_async_handler_1.default)((0, functi
         throw (0, http_errors_1.default)(400, 'Enquiry not found');
     }
     const updatedData = yield enquiry_1.Enquiry.findByIdAndUpdate(id, Object.assign(Object.assign({}, data), { applicationStatus: constants_1.ApplicationStatus.STEP_3 }), { new: true, runValidators: true });
-    yield (0, otpController_1.sendOTP)(updatedData.emailId);
+    yield (0, otpController_1.sendOTP)(updatedData.emailId, "Techno Admission - OTP Verification", (otp) => `
+  Hi,
+  
+  Your One-Time Password (OTP) for verifying your admission process is: ${otp} 
+  Please enter this OTP to proceed. This code is valid for the next 10 minutes.
+  
+  If you didn’t request this, please ignore this email.
+  
+  Best regards,  
+  Techno Admissions Team
+  `);
     (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.DISTRICT, (_a = updatedData === null || updatedData === void 0 ? void 0 : updatedData.address) === null || _a === void 0 ? void 0 : _a.district);
     return (0, formatResponse_1.formatResponse)(res, 200, 'Enquiry data updated successfully', true, updatedData);
 })));

@@ -16,7 +16,7 @@ exports.validateOTP = exports.sendOTP = void 0;
 const http_errors_1 = __importDefault(require("http-errors"));
 const otp_1 = require("./otp");
 const mailer_1 = require("../config/mailer");
-const sendOTP = (email) => __awaiter(void 0, void 0, void 0, function* () {
+const sendOTP = (email, subject, getBody) => __awaiter(void 0, void 0, void 0, function* () {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const otpExpiry = new Date();
     otpExpiry.setMinutes(otpExpiry.getMinutes() + 10);
@@ -25,7 +25,7 @@ const sendOTP = (email) => __awaiter(void 0, void 0, void 0, function* () {
         otp,
         otpExpiry
     };
-    yield (0, mailer_1.sendEmail)(email, 'OTP', otp);
+    yield (0, mailer_1.sendEmail)(email, subject, getBody(otp));
     yield otp_1.OtpModel.create(otpData);
     return true;
 });
