@@ -294,6 +294,7 @@ exports.exportData = (0, express_async_handler_1.default)((req, res) => __awaite
     // Define headers
     const baseColumns = [
         { header: 'Date', key: 'date' },
+        { header: 'Source', key: 'source' },
         { header: 'Name', key: 'name' },
         { header: 'Phone Number', key: 'phoneNumber' },
         { header: 'Alt Phone Number', key: 'altPhoneNumber' },
@@ -324,6 +325,7 @@ exports.exportData = (0, express_async_handler_1.default)((req, res) => __awaite
     leads.forEach((lead) => {
         const rowData = {
             date: lead.date ? (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(lead.date) : '',
+            source: lead.source || '',
             name: lead.name || '',
             phoneNumber: lead.phoneNumber || '',
             altPhoneNumber: lead.altPhoneNumber || '',
