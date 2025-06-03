@@ -125,53 +125,15 @@ export const enquiryDraftSchema = new Schema<IEnquiryDraftDocument>(
             required: false
         },
         counsellor: {
-            type: [Schema.Types.Mixed], // Allows ObjectId or String
-            validate: {
-                validator: function (values) {
-                    if (!Array.isArray(values)) return false; // Ensure it's an array
-
-                    return values.every(value => {
-                        // Allow null or undefined
-                        if (value === null || value === undefined) return true;
-
-                        // Check for valid ObjectId
-                        const isObjectId = mongoose.Types.ObjectId.isValid(value);
-
-                        // Allow string 'Other'
-                        const isOther = value === 'Other';
-
-                        return isObjectId || isOther;
-                    });
-                },
-                message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'Other')`
-            },
-            required: false,
+            type: [String],
+            default: []
         },
         physicalDocumentNote: {
             type: [physicalDocumentNoteSchema]
         },
         telecaller: {
-            type: [Schema.Types.Mixed], // Allows ObjectId or String
-            validate: {
-                validator: function (values) {
-                    if (!Array.isArray(values)) return false; // Ensure it's an array
-
-                    return values.every(value => {
-                        // Allow null or undefined
-                        if (value === null || value === undefined) return true;
-
-                        // Check for valid ObjectId
-                        const isObjectId = mongoose.Types.ObjectId.isValid(value);
-
-                        // Allow string 'Other'
-                        const isOther = value === 'Other';
-
-                        return isObjectId || isOther;
-                    });
-                },
-                message: props => `'${props.value}' contains an invalid telecaller (must be ObjectId or 'Other')`
-            },
-            required: false,
+            type: [String], // Allows ObjectId or String
+            default: []
         },
         remarks: {
             type: String
