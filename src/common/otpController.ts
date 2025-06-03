@@ -2,7 +2,7 @@ import createHttpError from "http-errors";
 import { OtpModel } from "./otp";
 import { sendEmail } from "../config/mailer";
 
-export const sendOTP = async (email: string) => {
+export const sendOTP = async (email: string,subject:string,getBody:(otp:string)=>string) => {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const otpExpiry = new Date();
     otpExpiry.setMinutes(otpExpiry.getMinutes() + 10);
@@ -13,7 +13,7 @@ export const sendOTP = async (email: string) => {
         otpExpiry
     }
 
-    await sendEmail(email, 'OTP', otp);
+    await sendEmail(email, subject, getBody(otp));
 
     await OtpModel.create(otpData);
 

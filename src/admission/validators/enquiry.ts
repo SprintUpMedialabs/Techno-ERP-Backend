@@ -52,7 +52,7 @@ export const enquirySchema = z.object({
 
   previousCollegeData: previousCollegeDataSchema.optional(),
 
-  stateOfDomicile: z.nativeEnum(StatesOfIndia).default(StatesOfIndia.UTTAR_PRADESH),
+  stateOfDomicile: z.string().default(StatesOfIndia.UTTAR_PRADESH),
   areaType: z.nativeEnum(AreaType).optional(),
   nationality: z.string().default('INDIAN'),
 
