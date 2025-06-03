@@ -58,8 +58,8 @@ export const enquirySchema = z.object({
 
   entranceExamDetails: entranceExamDetailSchema.optional(),
 
-  counsellor: z.array(z.union([objectIdSchema, z.enum(['Other'])])).optional(),
-  telecaller: z.array(z.union([objectIdSchema, z.enum(['Other'])])).optional(),
+  counsellor: z.array(z.string()).default([]),
+  telecaller: z.array(z.string()).default([]),
   remarks: z.string().optional(),
 
   applicationStatus: z
@@ -112,8 +112,8 @@ export const enquiryDraftStep3Schema = enquiryStep3UpdateRequestSchema
     academicDetails: z.array(academicDetailSchema.partial()).optional(),
     studentName: z.string({ required_error: "Student Name is required", }).nonempty('Student Name is required'),
     studentPhoneNumber: contactNumberSchema,
-    counsellor: z.array(z.union([objectIdSchema, z.enum(['Other'])])).optional(),
-    telecaller: z.array(z.union([objectIdSchema, z.enum(['Other'])])).optional(),
+    counsellor: z.array(z.string()).optional(),
+    telecaller: z.array(z.string()).optional(),
     dateOfAdmission: requestDateSchema
       .transform((date) => convertToMongoDate(date) as Date)
       .optional(),
@@ -132,8 +132,8 @@ export const enquiryDraftStep1RequestSchema = enquiryStep1RequestSchema
   .extend({
     studentName: z.string({ required_error: "Student Name is required", }).nonempty('Student Name is required'),
     studentPhoneNumber: contactNumberSchema,
-    counsellor: z.array(z.union([objectIdSchema, z.enum(['Other'])])).optional(),
-    telecaller: z.array(z.union([objectIdSchema, z.enum(['Other'])])).optional(),
+    counsellor: z.array(z.string()).optional(),
+    telecaller: z.array(z.string()).optional(),
     address: addressSchema.partial().optional(),
     academicDetails: z.array(academicDetailSchema.partial()).optional(),
   }).omit({ id: true }).partial().strict();

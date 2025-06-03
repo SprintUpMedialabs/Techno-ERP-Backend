@@ -21,6 +21,7 @@ import { LeadMaster } from '../models/lead';
 import { MarketingFollowUpModel } from '../models/marketingFollowUp';
 import { MarketingUserWiseAnalytics } from '../models/marketingUserWiseAnalytics';
 import { IUpdateLeadRequestSchema, updateLeadRequestSchema } from '../validators/leads';
+import logger from '../../config/logger';
 
 export const uploadData = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const { id, name } = req.body;
