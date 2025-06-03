@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import { z } from 'zod';
-import { Countries, StatesOfIndia, UserRoles } from '../config/constants';
+import { Countries, UserRoles } from '../config/constants';
 
 export const objectIdSchema = z.custom<mongoose.Types.ObjectId>(
   (id) => {
@@ -30,7 +30,7 @@ export const addressSchema = z.object({
   pincode: z
     .string()
     .regex(/^[1-9][0-9]{5}$/, 'Pincode must be a 6-digit number starting with a non-zero digit'),
-  state: z.nativeEnum(StatesOfIndia),
+  state: z.string(),
   country: z.nativeEnum(Countries)
 });
 
