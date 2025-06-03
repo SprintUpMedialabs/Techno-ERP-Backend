@@ -37,9 +37,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AdmissionAnalyticsModel = void 0;
+const moment_timezone_1 = __importDefault(require("moment-timezone"));
 const mongoose_1 = __importStar(require("mongoose"));
 const constants_1 = require("../../config/constants");
-const moment_timezone_1 = __importDefault(require("moment-timezone"));
 const admissionAnalyticsSchema = new mongoose_1.Schema({
     type: {
         type: String,
@@ -55,13 +55,13 @@ const admissionAnalyticsSchema = new mongoose_1.Schema({
         required: true,
         default: 0,
     },
-    courseCode: {
+    courseName: {
         type: String,
         required: true,
     },
 }, { timestamps: true });
-// Optional compound index if you're querying often by (type + date + courseCode)
-admissionAnalyticsSchema.index({ type: 1, date: 1, courseCode: 1 }, { unique: true });
+// Optional compound index if you're querying often by (type + date + courseName)
+admissionAnalyticsSchema.index({ type: 1, date: 1, courseName: 1 }, { unique: true });
 const transformDates = (_, ret) => {
     ['date'].forEach((key) => {
         ret[key] = (0, moment_timezone_1.default)(ret[key]).tz('Asia/Kolkata').format('DD/MM/YYYY');
