@@ -1,13 +1,13 @@
 import { z } from "zod";
-import { addressSchema, contactNumberSchema, objectIdSchema, requestDateSchema } from "../../validators/commonSchema";
-import { AdmissionReference, AdmittedThrough, AreaType, BloodGroup, Category, Course, CourseYears, FeeStatus, Gender, Religion, StatesOfIndia } from "../../config/constants";
-import { FeeSchema } from "./feeSchema";
-import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
 import { academicDetailsArraySchema } from "../../admission/validators/academicDetailSchema";
-import { previousCollegeDataSchema } from "../../admission/validators/previousCollegeDataSchema";
-import { singleDocumentSchema } from "../../admission/validators/singleDocumentSchema";
 import { entranceExamDetailSchema } from "../../admission/validators/entranceExamDetailSchema";
 import { physicalDocumentNoteRequestSchema, physicalDocumentNoteSchema } from "../../admission/validators/physicalDocumentNoteSchema";
+import { previousCollegeDataSchema } from "../../admission/validators/previousCollegeDataSchema";
+import { singleDocumentSchema } from "../../admission/validators/singleDocumentSchema";
+import { AdmissionReference, AdmittedThrough, AreaType, BloodGroup, Category, CourseYears, FeeStatus, Gender, Religion } from "../../config/constants";
+import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
+import { addressSchema, contactNumberSchema, objectIdSchema, requestDateSchema } from "../../validators/commonSchema";
+import { FeeSchema } from "./feeSchema";
 
 export const BaseExamSchema = z.object({
     type: z.string().optional(),
