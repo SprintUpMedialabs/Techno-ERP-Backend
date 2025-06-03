@@ -137,27 +137,8 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
       required: false
     },
     telecaller: {
-      type: [Schema.Types.Mixed], // Allows ObjectId or String
-      validate: {
-        validator: function (values) {
-          if (!Array.isArray(values)) return false; // Ensure it's an array
-
-          return values.every(value => {
-            // Allow null or undefined
-            if (value === null || value === undefined) return true;
-
-            // Check for valid ObjectId
-            const isObjectId = mongoose.Types.ObjectId.isValid(value);
-
-            // Allow string 'Other'
-            const isOther = value === 'Other';
-
-            return isObjectId || isOther;
-          });
-        },
-        message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'Other')`
-      },
-      required: true,
+      type: [String],
+      default:[]
     },
     remarks: {
       type: String
@@ -237,26 +218,8 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
       required: true
     },
     counsellor: {
-      type: [Schema.Types.Mixed],
-      validate: {
-        validator: function (values) {
-          if (!Array.isArray(values)) return false; // Ensure it's an array
-
-          return values.every(value => {
-            // Allow null or undefined
-            if (value === null || value === undefined) return true;
-
-            // Check for valid ObjectId
-            const isObjectId = mongoose.Types.ObjectId.isValid(value);
-
-            // Allow string 'Other' 
-            const isOther = value === 'Other';
-
-            return isObjectId || isOther;
-          });
-        },
-        message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'Other')`
-      },
+      type: [String],
+      default:[]
     },
     religion: {
       type: String,
