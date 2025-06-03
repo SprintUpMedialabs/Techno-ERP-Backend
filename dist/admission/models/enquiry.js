@@ -175,25 +175,8 @@ exports.enquirySchema = new mongoose_1.Schema({
         required: false
     },
     telecaller: {
-        type: [mongoose_1.Schema.Types.Mixed], // Allows ObjectId or String
-        validate: {
-            validator: function (values) {
-                if (!Array.isArray(values))
-                    return false; // Ensure it's an array
-                return values.every(value => {
-                    // Allow null or undefined
-                    if (value === null || value === undefined)
-                        return true;
-                    // Check for valid ObjectId
-                    const isObjectId = mongoose_1.default.Types.ObjectId.isValid(value);
-                    // Allow string 'Other'
-                    const isOther = value === 'Other';
-                    return isObjectId || isOther;
-                });
-            },
-            message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'Other')`
-        },
-        required: true,
+        type: [String],
+        default: []
     },
     remarks: {
         type: String
@@ -270,24 +253,8 @@ exports.enquirySchema = new mongoose_1.Schema({
         required: true
     },
     counsellor: {
-        type: [mongoose_1.Schema.Types.Mixed],
-        validate: {
-            validator: function (values) {
-                if (!Array.isArray(values))
-                    return false; // Ensure it's an array
-                return values.every(value => {
-                    // Allow null or undefined
-                    if (value === null || value === undefined)
-                        return true;
-                    // Check for valid ObjectId
-                    const isObjectId = mongoose_1.default.Types.ObjectId.isValid(value);
-                    // Allow string 'Other' 
-                    const isOther = value === 'Other';
-                    return isObjectId || isOther;
-                });
-            },
-            message: props => `'${props.value}' contains an invalid counsellor (must be ObjectId or 'Other')`
-        },
+        type: [String],
+        default: []
     },
     religion: {
         type: String,
