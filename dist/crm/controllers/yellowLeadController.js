@@ -151,7 +151,8 @@ exports.getFilteredYellowLeads = (0, express_async_handler_1.default)((req, res)
             {
                 $or: [
                     { name: { $regex: search, $options: 'i' } }, // Case-insensitive search
-                    { phoneNumber: { $regex: search, $options: 'i' } }
+                    { phoneNumber: { $regex: search, $options: 'i' } },
+                    { altPhoneNumber: { $regex: search, $options: 'i' } }
                 ]
             }
         ];
