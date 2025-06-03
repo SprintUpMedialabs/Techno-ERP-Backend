@@ -71,7 +71,8 @@ export const getFilteredLeadData = expressAsyncHandler(
         {
           $or: [
             { name: { $regex: search, $options: 'i' } },
-            { phoneNumber: { $regex: search, $options: 'i' } }
+            { phoneNumber: { $regex: search, $options: 'i' } },
+            { altPhoneNumber: { $regex: search, $options: 'i' } }
           ]
         }
       ];
