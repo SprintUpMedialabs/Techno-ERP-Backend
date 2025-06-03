@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { FinanceFeeSchedule, FinanceFeeType } from "../../config/constants";
-import { convertToMongoDate } from "../../utils/convertDateToFormatedDate";
-import { objectIdSchema, requestDateSchema } from "../../validators/commonSchema";
+import { objectIdSchema } from "../../validators/commonSchema";
 
 export const FeeUpdateHistorySchema = z.object({
     updatedAt : z.date(),
