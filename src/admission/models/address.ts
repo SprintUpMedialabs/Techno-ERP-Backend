@@ -1,6 +1,6 @@
 import { Schema } from "mongoose";
+import { Countries } from "../../config/constants";
 import { IAddressSchema } from "../../validators/commonSchema";
-import { Countries, StatesOfIndia } from "../../config/constants";
 
 export interface IAddressDocument extends IAddressSchema, Document { }
 
@@ -19,10 +19,6 @@ export const addressSchema = new Schema<IAddressDocument>({
   },
   state: {
     type: String,
-    enum: {
-      values: Object.values(StatesOfIndia),
-      message: 'Invalid State value'
-    },
   },
   country: {
     type: String,
