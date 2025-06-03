@@ -40,8 +40,8 @@ export const feesRequestSchema = studentFeesSchema.extend({
         convertToMongoDate(date) as Date
     ),
     reference: z.nativeEnum(AdmissionReference).optional(),
-    counsellor: z.array(z.union([objectIdSchema, z.enum(['Other'])])).optional(),
-    telecaller: z.array(z.union([objectIdSchema, z.enum(['Other'])])).optional(),
+    counsellor: z.array(z.string()).optional(),
+    telecaller: z.array(z.string()).optional(),
 }).strict();
 
 export const feesUpdateSchema = feesRequestSchema.extend({
