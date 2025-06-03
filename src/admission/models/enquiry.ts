@@ -196,10 +196,6 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
     },
     stateOfDomicile: {
       type: String,
-      enum: {
-        values: Object.values(StatesOfIndia),
-        message: 'Invalid state of domicile value'
-      }
     },
     areaType: {
       type: String,
