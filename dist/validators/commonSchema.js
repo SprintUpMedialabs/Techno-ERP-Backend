@@ -27,7 +27,7 @@ exports.addressSchema = zod_1.z.object({
     pincode: zod_1.z
         .string()
         .regex(/^[1-9][0-9]{5}$/, 'Pincode must be a 6-digit number starting with a non-zero digit'),
-    state: zod_1.z.nativeEnum(constants_1.StatesOfIndia),
+    state: zod_1.z.string(),
     country: zod_1.z.nativeEnum(constants_1.Countries)
 });
 exports.roleSchema = zod_1.z.nativeEnum(constants_1.UserRoles);

@@ -18,10 +18,6 @@ exports.addressSchema = new mongoose_1.Schema({
     },
     state: {
         type: String,
-        enum: {
-            values: Object.values(constants_1.StatesOfIndia),
-            message: 'Invalid State value'
-        },
     },
     country: {
         type: String,
