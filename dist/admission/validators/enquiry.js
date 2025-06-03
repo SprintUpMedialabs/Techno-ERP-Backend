@@ -34,8 +34,8 @@ exports.enquirySchema = zod_1.z.object({
     areaType: zod_1.z.nativeEnum(constants_1.AreaType).optional(),
     nationality: zod_1.z.string().default('INDIAN'),
     entranceExamDetails: entranceExamDetailSchema_1.entranceExamDetailSchema.optional(),
-    counsellor: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['Other'])])).optional(),
-    telecaller: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['Other'])])).optional(),
+    counsellor: zod_1.z.array(zod_1.z.string()).default([]),
+    telecaller: zod_1.z.array(zod_1.z.string()).default([]),
     remarks: zod_1.z.string().optional(),
     applicationStatus: zod_1.z
         .nativeEnum(constants_1.ApplicationStatus)
@@ -73,8 +73,8 @@ exports.enquiryDraftStep3Schema = exports.enquiryStep3UpdateRequestSchema
     academicDetails: zod_1.z.array(academicDetailSchema_1.academicDetailSchema.partial()).optional(),
     studentName: zod_1.z.string({ required_error: "Student Name is required", }).nonempty('Student Name is required'),
     studentPhoneNumber: commonSchema_1.contactNumberSchema,
-    counsellor: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['Other'])])).optional(),
-    telecaller: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['Other'])])).optional(),
+    counsellor: zod_1.z.array(zod_1.z.string()).optional(),
+    telecaller: zod_1.z.array(zod_1.z.string()).optional(),
     dateOfAdmission: commonSchema_1.requestDateSchema
         .transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date))
         .optional(),
@@ -90,8 +90,8 @@ exports.enquiryDraftStep1RequestSchema = exports.enquiryStep1RequestSchema
     .extend({
     studentName: zod_1.z.string({ required_error: "Student Name is required", }).nonempty('Student Name is required'),
     studentPhoneNumber: commonSchema_1.contactNumberSchema,
-    counsellor: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['Other'])])).optional(),
-    telecaller: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['Other'])])).optional(),
+    counsellor: zod_1.z.array(zod_1.z.string()).optional(),
+    telecaller: zod_1.z.array(zod_1.z.string()).optional(),
     address: commonSchema_1.addressSchema.partial().optional(),
     academicDetails: zod_1.z.array(academicDetailSchema_1.academicDetailSchema.partial()).optional(),
 }).omit({ id: true }).partial().strict();
