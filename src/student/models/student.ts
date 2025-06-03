@@ -6,7 +6,7 @@ import { entranceExamDetailSchema } from "../../admission/models/entranceExamDet
 import { physicalDocumentNoteSchema } from "../../admission/models/physicalDocumentNoteSchema";
 import { previousCollegeDataSchema } from "../../admission/models/previousCollegeData";
 import { singleDocumentSchema } from "../../admission/models/singleDocument";
-import { AdmissionReference, AdmittedThrough, AreaType, BloodGroup, Category, COLLECTION_NAMES, CourseYears, FeeStatus, Gender, Religion, StatesOfIndia } from "../../config/constants";
+import { AdmissionReference, AdmittedThrough, AreaType, BloodGroup, Category, COLLECTION_NAMES, CourseYears, FeeStatus, Gender, Religion } from "../../config/constants";
 import { convertToDDMMYYYY, convertToMongoDate } from "../../utils/convertDateToFormatedDate";
 import { contactNumberSchema, emailSchema } from "../../validators/commonSchema";
 import { IAttendanceSchema, IBaseAttendanceSchema, IBaseExamSchema, IExamSchema, ISemesterSchema, IStudentBaseInfoSchema, IStudentSchema, ISubjectSchema } from "../validators/studentSchema";
