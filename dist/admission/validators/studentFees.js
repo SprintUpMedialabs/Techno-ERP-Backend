@@ -32,8 +32,8 @@ exports.feesRequestSchema = studentFeesSchema.extend({
     enquiryId: commonSchema_1.objectIdSchema,
     feesClearanceDate: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)),
     reference: zod_1.z.nativeEnum(constants_1.AdmissionReference).optional(),
-    counsellor: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['Other'])])).optional(),
-    telecaller: zod_1.z.array(zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['Other'])])).optional(),
+    counsellor: zod_1.z.array(zod_1.z.string()).optional(),
+    telecaller: zod_1.z.array(zod_1.z.string()).optional(),
 }).strict();
 exports.feesUpdateSchema = exports.feesRequestSchema.extend({
     id: commonSchema_1.objectIdSchema,
