@@ -2,15 +2,15 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateStudentDetailsRequestSchema = exports.CreateStudentSchema = exports.StudentSchema = exports.StudentBaseInfoSchema = exports.SemesterSchema = exports.SubjectSchema = exports.AttendanceSchema = exports.baseAttendanceSchema = exports.ExamsSchema = exports.BaseExamSchema = void 0;
 const zod_1 = require("zod");
-const commonSchema_1 = require("../../validators/commonSchema");
-const constants_1 = require("../../config/constants");
-const feeSchema_1 = require("./feeSchema");
-const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
 const academicDetailSchema_1 = require("../../admission/validators/academicDetailSchema");
-const previousCollegeDataSchema_1 = require("../../admission/validators/previousCollegeDataSchema");
-const singleDocumentSchema_1 = require("../../admission/validators/singleDocumentSchema");
 const entranceExamDetailSchema_1 = require("../../admission/validators/entranceExamDetailSchema");
 const physicalDocumentNoteSchema_1 = require("../../admission/validators/physicalDocumentNoteSchema");
+const previousCollegeDataSchema_1 = require("../../admission/validators/previousCollegeDataSchema");
+const singleDocumentSchema_1 = require("../../admission/validators/singleDocumentSchema");
+const constants_1 = require("../../config/constants");
+const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
+const commonSchema_1 = require("../../validators/commonSchema");
+const feeSchema_1 = require("./feeSchema");
 exports.BaseExamSchema = zod_1.z.object({
     type: zod_1.z.string().optional(),
     marks: zod_1.z.number().optional()
