@@ -83,7 +83,7 @@ export const StudentBaseInfoSchema = z.object({
     previousCollegeData: previousCollegeDataSchema.optional(),
     documents: z.array(singleDocumentSchema.extend({ dueBy: z.date().optional() })).optional(),
     physicalDocumentNote: z.array(physicalDocumentNoteSchema).optional(),
-    stateOfDomicile: z.nativeEnum(StatesOfIndia).optional(),
+    stateOfDomicile: z.string().optional(),
     areaType: z.nativeEnum(AreaType).optional(),
     nationality: z.string().optional(),
     entranceExamDetails: entranceExamDetailSchema.optional(),
@@ -148,7 +148,7 @@ export const CreateStudentSchema = z.object({
     previousCollegeData: previousCollegeDataSchema.optional(),
     documents: z.array(singleDocumentSchema.extend({ dueBy: z.date().optional() })).optional(),
     physicalDocumentNote: z.array(physicalDocumentNoteRequestSchema).optional(),
-    stateOfDomicile: z.nativeEnum(StatesOfIndia).optional(),
+    stateOfDomicile: z.string().optional(),
     areaType: z.nativeEnum(AreaType).optional(),
     nationality: z.string().optional(),
     entranceExamDetails: entranceExamDetailSchema.optional(),
@@ -184,7 +184,7 @@ export const updateStudentDetailsRequestSchema = z.object({
     bloodGroup: z.nativeEnum(BloodGroup).optional(),
     aadharNumber: z.string().regex(/^\d{12}$/, 'Aadhar Number must be exactly 12 digits').optional(),
 
-    stateOfDomicile: z.nativeEnum(StatesOfIndia).optional(),
+    stateOfDomicile: z.string().optional(),
     areaType: z.nativeEnum(AreaType).optional(),
     nationality: z.string().optional(),
 

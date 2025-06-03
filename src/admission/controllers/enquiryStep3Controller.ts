@@ -64,7 +64,21 @@ export const updateEnquiryStep3ById = expressAsyncHandler(functionLevelLogger(as
   }
 
   const updatedData = await Enquiry.findByIdAndUpdate(id, { ...data, applicationStatus: ApplicationStatus.STEP_3 }, { new: true, runValidators: true });
-  await sendOTP(updatedData!.emailId);
+  await sendOTP(
+    updatedData!.emailId,
+    "Techno Admission - OTP Verification",
+    (otp: string) => `
+  Hi,
+  
+  Your One-Time Password (OTP) for verifying your admission process is: ${otp} 
+  Please enter this OTP to proceed. This code is valid for the next 10 minutes.
+  
+  If you didn’t request this, please ignore this email.
+  
+  Best regards,  
+  Techno Admissions Team
+  `);
+
 
   updateOnlyOneValueInDropDown(DropDownType.DISTRICT, updatedData?.address?.district);
   return formatResponse(res, 200, 'Enquiry data updated successfully', true, updatedData);

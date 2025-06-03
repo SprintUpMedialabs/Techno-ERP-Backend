@@ -14,35 +14,35 @@ import mongoose from 'mongoose';
 
 // DACHECK: This function should be robust enough so that if it get failed then it retries by its own until it get success and also should send mails upon 5th attempt failure
 // TEST: this function is going to be tested with the time
-export const incrementAdmissionAnalytics = async (courseCode: string) => {
+export const incrementAdmissionAnalytics = async (courseName: string) => {
     const now = moment().tz('Asia/Kolkata');
 
     const updates = [
         {
             type: AdmissionAggregationType.DATE_WISE,
             date: now.clone().startOf('day').toDate(), // exact IST date
-            courseCode: 'ALL',
+            courseName: 'ALL',
         },
         {
             type: AdmissionAggregationType.MONTH_WISE,
             date: now.clone().startOf('month').toDate(), // 01/MM/YYYY
-            courseCode: 'ALL',
+            courseName: 'ALL',
         },
         {
             type: AdmissionAggregationType.MONTH_AND_COURSE_WISE,
             date: now.clone().startOf('month').toDate(), // 01/MM/YYYY
-            courseCode: courseCode,
+            courseName: courseName,
         },
         {
             type: AdmissionAggregationType.YEAR_AND_COURSE_WISE,
             date: now.clone().startOf('year').toDate(), // 01/01/YYYY
-            courseCode: courseCode,
+            courseName: courseName,
         },
     ];
 
-    const updatePromises = updates.map(({ type, date, courseCode }) =>
+    const updatePromises = updates.map(({ type, date, courseName }) =>
         AdmissionAnalyticsModel.findOneAndUpdate(
-            { type, date, courseCode },
+            { type, date, courseName },
             { $inc: { count: 1 } },
             { upsert: true, new: true }
         )
@@ -53,8 +53,8 @@ export const incrementAdmissionAnalytics = async (courseCode: string) => {
 
 export const assignBaseValueToAdmissionAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { type } = req.query;
-    const courseList = await CourseMetaData.find().select('courseCode courseName');
-    const courseCodeList = courseList.map(course => ({ courseCode: course.courseCode, courseName: course.courseName }));
+    const courseList = await CourseMetaData.find().select('courseName');
+    const courseNameList = courseList.map(course => ({  courseName: course.courseName }));
     const now = moment().tz('Asia/Kolkata');
     if (!Object.values(AdmissionAggregationType).includes(type as AdmissionAggregationType)) {
         throw createHttpError(400, 'Invalid type');
@@ -70,31 +70,31 @@ export const assignBaseValueToAdmissionAnalytics = expressAsyncHandler(async (re
             await AdmissionAnalyticsModel.create([{
                 type,
                 date: now.clone().startOf('day').toDate(),
-                courseCode: 'ALL',
+                courseName: 'ALL',
                 count: 0,
             }], { session });
         } else if (type === AdmissionAggregationType.MONTH_WISE) {
             await AdmissionAnalyticsModel.create([{
                 type,
                 date: now.clone().startOf('month').toDate(),
-                courseCode: 'ALL',
+                courseName: 'ALL',
                 count: 0,
             }], { session });
         } else if (type === AdmissionAggregationType.MONTH_AND_COURSE_WISE) {
-            await Promise.all(courseCodeList.map(async course =>
+            await Promise.all(courseNameList.map(async course =>
                 await AdmissionAnalyticsModel.create([{
                     type,
                     date: now.clone().startOf('month').toDate(),
-                    courseCode: course.courseCode,
+                    courseName: course.courseName,
                     count: 0,
                 }], { session })
             ));
         } else if (type === AdmissionAggregationType.YEAR_AND_COURSE_WISE) {
-            await Promise.all(courseCodeList.map(async course =>
+            await Promise.all(courseNameList.map(async course =>
                 await AdmissionAnalyticsModel.create([{
                     type,
                     date: now.clone().startOf('year').toDate(),
-                    courseCode: course.courseCode,
+                    courseName: course.courseName,
                     count: 0,
                 }], { session })
             ));
@@ -134,24 +134,24 @@ export const getAdmissionStats = expressAsyncHandler(async (req: AuthenticatedRe
     if (type === AdmissionAggregationType.DATE_WISE) {
         for (let i = 0; i < 5; i++) {
             const d = baseDate.clone().subtract(i, 'days');
-            if (d.month() === baseDate.month()) {
+            // if (d.month() === baseDate.month()) {
                 queryFilters.push({ type, date: d.toDate() });
-            }
+            // }
         }
     } else if (type === AdmissionAggregationType.MONTH_WISE) {
         for (let i = 0; i < 5; i++) {
             const d = baseDate.clone().subtract(i, 'months');
-            if (d.year() === baseDate.year()) {
+            // if (d.year() === baseDate.year()) {
                 queryFilters.push({ type, date: d.startOf('month').toDate() });
-            }
+            // }
         }
     } else if (type === AdmissionAggregationType.YEAR_AND_COURSE_WISE) {
         for (let i = 0; i < 5; i++) {
             const d = baseDate.clone().subtract(i, 'years');
-            queryFilters.push({ type, date: d.startOf('year').toDate(), courseCode: { $ne: 'ALL' } });
+            queryFilters.push({ type, date: d.startOf('year').toDate(), courseName: { $ne: 'ALL' } });
         }
     } else if (type === AdmissionAggregationType.MONTH_AND_COURSE_WISE) {
-        queryFilters.push({ type, date: baseDate.toDate(), courseCode: { $ne: 'ALL' } });
+        queryFilters.push({ type, date: baseDate.toDate(), courseName: { $ne: 'ALL' } });
     } else {
         throw createHttpError(400, 'Invalid type');
     }
@@ -160,7 +160,7 @@ export const getAdmissionStats = expressAsyncHandler(async (req: AuthenticatedRe
 
     if (type === AdmissionAggregationType.MONTH_AND_COURSE_WISE || type === AdmissionAggregationType.YEAR_AND_COURSE_WISE) {
         // Group data by date
-        const groupedData: Record<string, { date: string, courseWise: { count: number; courseCode: string }[] }> = {};
+        const groupedData: Record<string, { date: string, courseWise: { count: number; courseName: string }[] }> = {};
 
         data.forEach(item => {
             const dateStr = moment(item.date).tz('Asia/Kolkata').format('DD/MM/YYYY');
@@ -171,7 +171,7 @@ export const getAdmissionStats = expressAsyncHandler(async (req: AuthenticatedRe
 
             groupedData[dateStr].courseWise.push({
                 count: item.count,
-                courseCode: item.courseCode,
+                courseName: item.courseName,
             });
         });
 
