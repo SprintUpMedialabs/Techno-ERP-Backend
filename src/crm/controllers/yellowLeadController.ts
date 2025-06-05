@@ -66,6 +66,7 @@ export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedReq
 
   if (isRemarkChanged) {
     updateData.followUpCount = existingLead.followUpCount + 1;
+    updateData.remarkUpdatedAt = getISTDate();
   }
 
   const currentLoggedInUser = req.data?.id;
