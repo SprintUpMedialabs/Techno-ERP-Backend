@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AdmissionMode, AdmissionReference, AdmittedThrough, ApplicationStatus, AreaType, BloodGroup, Category, Course, Gender, Religion, StatesOfIndia } from '../../config/constants';
+import { AdmissionMode, AdmissionReference, ApplicationStatus, AreaType, BloodGroup, Category, Gender, Religion, StatesOfIndia } from '../../config/constants';
 import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import {
   addressSchema,
@@ -8,10 +8,10 @@ import {
   requestDateSchema
 } from '../../validators/commonSchema';
 import { academicDetailsArraySchema, academicDetailSchema } from './academicDetailSchema';
-import { previousCollegeDataSchema } from './previousCollegeDataSchema';
-import { singleDocumentSchema } from './singleDocumentSchema';
 import { entranceExamDetailSchema } from './entranceExamDetailSchema';
 import { physicalDocumentNoteRequestSchema, physicalDocumentNoteSchema } from './physicalDocumentNoteSchema';
+import { previousCollegeDataSchema } from './previousCollegeDataSchema';
+import { singleDocumentSchema } from './singleDocumentSchema';
 
 
 export const enquirySchema = z.object({
@@ -37,7 +37,7 @@ export const enquirySchema = z.object({
 
   category: z.nativeEnum(Category),
   course: z.string().nonempty('Course can not be empty'),
-  reference: z.nativeEnum(AdmissionReference),
+  references: z.array(z.nativeEnum(AdmissionReference)),
 
 
   address: addressSchema,
