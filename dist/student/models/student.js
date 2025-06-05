@@ -132,8 +132,8 @@ const StudentBaseInfoSchema = new mongoose_1.Schema({
         },
         required: true
     },
-    reference: {
-        type: String,
+    references: {
+        type: [String],
         enum: {
             values: Object.values(constants_1.AdmissionReference),
             message: 'Invalid Admission Reference value'

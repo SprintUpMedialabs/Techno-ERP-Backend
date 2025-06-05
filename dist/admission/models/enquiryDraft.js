@@ -138,13 +138,13 @@ exports.enquiryDraftSchema = new mongoose_1.Schema({
         // },
         required: false
     },
-    reference: {
-        type: String,
+    references: {
+        type: [String],
         enum: {
             values: Object.values(constants_1.AdmissionReference),
             message: 'Invalid Admission Reference value'
         },
-        required: false
+        default: []
     },
     address: {
         type: address_1.addressSchema,

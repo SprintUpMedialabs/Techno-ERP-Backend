@@ -150,13 +150,13 @@ exports.enquirySchema = new mongoose_1.Schema({
         type: String,
         required: true
     },
-    reference: {
-        type: String,
+    references: {
+        type: [String],
         enum: {
             values: Object.values(constants_1.AdmissionReference),
             message: 'Invalid Admission Reference value'
         },
-        required: true
+        default: []
     },
     aadharNumber: {
         type: String,

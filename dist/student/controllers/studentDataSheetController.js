@@ -73,7 +73,7 @@ const getStudentState = (createdAt, updatedAt) => {
     }
 };
 const mapStudentToRow = (student, index) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3;
     const info = student.studentInfo;
     const enquiry = yield enquiry_1.Enquiry.findById(student._id);
     const academicDetails = info.academicDetails;
@@ -118,7 +118,7 @@ const mapStudentToRow = (student, index) => __awaiter(void 0, void 0, void 0, fu
         "Caste": getPhysicalDocumentNote("Caste Certificate (If Applicable)", physicalDocumentNote !== null && physicalDocumentNote !== void 0 ? physicalDocumentNote : []),
         "Gap Affidavit": getPhysicalDocumentNote("Gap Affidavit (If Applicable)", physicalDocumentNote !== null && physicalDocumentNote !== void 0 ? physicalDocumentNote : []),
         "Signature": getDocument("Signature", documents !== null && documents !== void 0 ? documents : []),
-        "Ref": (_2 = info.reference) !== null && _2 !== void 0 ? _2 : '',
+        "References": (_3 = (_2 = enquiry === null || enquiry === void 0 ? void 0 : enquiry.references) === null || _2 === void 0 ? void 0 : _2.join(", ")) !== null && _3 !== void 0 ? _3 : '',
         "Remarks": ""
     };
 });
