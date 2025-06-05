@@ -68,8 +68,8 @@ export const updateFeeDetails = async (applicationStatusList: ApplicationStatus[
     enquiryUpdatePayload.telecaller = studentFeesData.telecaller;
   }
 
-  if (validation.data.reference != null) {
-    enquiryUpdatePayload.reference = validation.data.reference;
+  if (validation.data.references != null) {
+    enquiryUpdatePayload.references = validation.data.references;
   }
 
   if(validation.data.remarks !=null){

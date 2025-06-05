@@ -128,7 +128,7 @@ const mapStudentToRow = async (student: IStudentSchema & { _id: ObjectId, create
         "Caste": getPhysicalDocumentNote("Caste Certificate (If Applicable)", physicalDocumentNote ?? []),
         "Gap Affidavit": getPhysicalDocumentNote("Gap Affidavit (If Applicable)", physicalDocumentNote ?? []),
         "Signature": getDocument("Signature", documents ?? []),
-        "Ref": info.reference ?? '',
+        "References": enquiry?.references?.join(", ") ?? '',
         "Remarks": ""
     };
 };

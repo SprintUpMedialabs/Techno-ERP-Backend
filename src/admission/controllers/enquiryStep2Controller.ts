@@ -88,8 +88,8 @@ export const createEnquiryStep2 = expressAsyncHandler(functionLevelLogger(async 
       enquiryUpdatePayload.telecaller = data.telecaller;
     }
 
-    if (data.reference != null) {
-      enquiryUpdatePayload.reference = data.reference;
+    if (data.references != null) {
+      enquiryUpdatePayload.references = data.references;
     }
     if(data.remarks!=null){
       enquiryUpdatePayload.remarks = data.remarks
