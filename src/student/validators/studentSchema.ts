@@ -74,6 +74,7 @@ export const StudentBaseInfoSchema = z.object({
     }),
     category: z.nativeEnum(Category),
     references: z.array(z.nativeEnum(AdmissionReference)),
+    srAmount: z.number().optional(),
 
     aadharNumber: z.string().regex(/^\d{12}$/, 'Aadhar Number must be exactly 12 digits').optional(),
     address: addressSchema,
@@ -140,6 +141,7 @@ export const CreateStudentSchema = z.object({
     category: z.nativeEnum(Category),
     course: z.string(),
     references: z.array(z.nativeEnum(AdmissionReference)),
+    srAmount: z.number().optional(),
 
     aadharNumber: z.string().regex(/^\d{12}$/, 'Aadhar Number must be exactly 12 digits').optional(),
     address: addressSchema,
@@ -194,6 +196,7 @@ export const updateStudentDetailsRequestSchema = z.object({
     entranceExamDetails: entranceExamDetailSchema.optional(),
 
     references: z.array(z.nativeEnum(AdmissionReference)),
+    srAmount: z.number().optional(),
 }).strict();
 
 

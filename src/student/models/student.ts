@@ -113,6 +113,9 @@ const StudentBaseInfoSchema = new Schema<IStudentBasicInfoDocument>({
         },
         required: true
     },
+    srAmount: {
+        type: Number
+    },
     aadharNumber: {
         type: String,
         validate: {

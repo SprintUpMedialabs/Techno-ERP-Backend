@@ -38,7 +38,7 @@ export const enquirySchema = z.object({
   category: z.nativeEnum(Category),
   course: z.string().nonempty('Course can not be empty'),
   references: z.array(z.nativeEnum(AdmissionReference)),
-
+  srAmount: z.number().optional(),
 
   address: addressSchema,
 

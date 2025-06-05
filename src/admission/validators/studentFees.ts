@@ -40,13 +40,13 @@ export const feesRequestSchema = studentFeesSchema.extend({
         convertToMongoDate(date) as Date
     ),
     references: z.array(z.nativeEnum(AdmissionReference)).optional(),
+    srAmount: z.number().optional(),
     counsellor: z.array(z.string()).optional(),
     telecaller: z.array(z.string()).optional(),
 }).strict();
 
 export const feesUpdateSchema = feesRequestSchema.extend({
     id: objectIdSchema,
-    references: z.array(z.nativeEnum(AdmissionReference)).optional()
 }).omit({ enquiryId: true }).strict();
 
 
@@ -56,7 +56,6 @@ export const feesDraftRequestSchema = feesRequestSchema.extend({
     feesClearanceDate: requestDateSchema.transform((date) =>
         convertToMongoDate(date) as Date
     ).optional(),
-    references: z.array(z.nativeEnum(AdmissionReference)).optional()
 }).strict();
 
 
