@@ -40,6 +40,10 @@ const leadSchema = new Schema<ILeadMasterDocument>(
       // match: [/^[1-9]\d{9}$/, 'Invalid contact number format. Expected: 1234567890'],
     },
     // Optional alternate phone number; must follow the same format as phoneNumber
+    remarkUpdatedAt: {
+      type: Date,
+      default: null
+    },
     altPhoneNumber: {
       type: String,
       trim: true,
@@ -163,10 +167,20 @@ const transformDates = (_: any, ret: any) => {
       ret[key] = convertToDDMMYYYY(ret[key]);
     }
   });
+  if (ret.remarkUpdatedAt) {
+    ret.isOlderThan7Days = isOlderThan7Days(ret.remarkUpdatedAt);
+  } else {
+    ret.isOlderThan7Days = true;
+  }
   delete ret.createdAt;
   delete ret.__v;
   return ret;
 };
+
+export function isOlderThan7Days(remarkUpdatedAt: Date): boolean {
+  const sevenDaysAgo = moment.tz('Asia/Kolkata').subtract(7, 'days').startOf('day');
+  return moment(remarkUpdatedAt).isBefore(sevenDaysAgo);
+}
 
 leadSchema.set('toJSON', { transform: transformDates });
 leadSchema.set('toObject', { transform: transformDates });
