@@ -114,6 +114,9 @@ export const enquiryDraftSchema = new Schema<IEnquiryDraftDocument>(
             },
             default: []
         },
+        srAmount: {
+            type: Number,
+        },
         address: {
             type: addressSchema,
             minlength: [5, 'Address must be at least 5 characters long'],

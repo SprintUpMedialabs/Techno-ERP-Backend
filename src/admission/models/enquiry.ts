@@ -120,6 +120,9 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
       },
       default: []
     },
+    srAmount: {
+      type: Number,
+    },
     aadharNumber: {
       type: String,
       validate: {
@@ -165,7 +168,6 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
       type: Date,
       required: false
     },
-
     previousCollegeData: {
       type: previousCollegeDataSchema
     },

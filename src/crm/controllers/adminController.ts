@@ -648,8 +648,11 @@ export const reiterateLeads = expressAsyncHandler(async (req: AuthenticatedReque
                     updateOne: {
                         filter: { _id: lead._id },
                         update: {
-                            isCalledToday: false,
-                            isActiveLead: lead.leadType === LeadType.ACTIVE,
+                            $set: {
+                                isCalledToday: false,
+                                isActiveLead: lead.leadType === LeadType.ACTIVE,
+                            },
+                            $currentDate: { updatedAt: false },
                         },
                     },
                 });

@@ -72,6 +72,10 @@ export const updateFeeDetails = async (applicationStatusList: ApplicationStatus[
     enquiryUpdatePayload.references = validation.data.references;
   }
 
+  if(validation.data.srAmount != null){
+    enquiryUpdatePayload.srAmount = validation.data.srAmount;
+  }
+
   if(validation.data.remarks !=null){
     enquiryUpdatePayload.remarks = validation.data.remarks;
   }

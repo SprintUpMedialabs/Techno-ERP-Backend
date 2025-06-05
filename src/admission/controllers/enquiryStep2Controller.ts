@@ -91,6 +91,9 @@ export const createEnquiryStep2 = expressAsyncHandler(functionLevelLogger(async 
     if (data.references != null) {
       enquiryUpdatePayload.references = data.references;
     }
+    if( data.srAmount != null ) {
+      enquiryUpdatePayload.srAmount = data.srAmount;
+    }
     if(data.remarks!=null){
       enquiryUpdatePayload.remarks = data.remarks
     }

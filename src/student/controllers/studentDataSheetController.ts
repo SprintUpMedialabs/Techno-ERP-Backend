@@ -129,6 +129,7 @@ const mapStudentToRow = async (student: IStudentSchema & { _id: ObjectId, create
         "Gap Affidavit": getPhysicalDocumentNote("Gap Affidavit (If Applicable)", physicalDocumentNote ?? []),
         "Signature": getDocument("Signature", documents ?? []),
         "References": enquiry?.references?.join(", ") ?? '',
+        "SR Amount": enquiry?.srAmount ?? '',
         "Remarks": ""
     };
 };

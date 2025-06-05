@@ -78,6 +78,10 @@ export const createFeeDraft = expressAsyncHandler(functionLevelLogger(async (req
       enquiryDataUpdate.references = data.references;
     }
 
+    if( data.srAmount != null ) {
+      enquiryDataUpdate.srAmount = data.srAmount;
+    }
+
     if(data.remarks != null)
       enquiryDataUpdate.remarks = data.remarks;
 
@@ -163,6 +167,9 @@ export const updateFeeDraft = expressAsyncHandler(functionLevelLogger(async (req
     const enquiryData: any = { counsellor, telecaller };
     if (data.references != null) {
       enquiryData.references = data.references;
+    }
+    if(data.srAmount != null){
+      enquiryData.srAmount = data.srAmount;
     }
     if(validation.data.remarks != null){
       enquiryData.remarks = validation.data.remarks;
