@@ -140,6 +140,9 @@ const StudentBaseInfoSchema = new mongoose_1.Schema({
         },
         required: true
     },
+    srAmount: {
+        type: Number
+    },
     aadharNumber: {
         type: String,
         validate: {

@@ -593,8 +593,11 @@ exports.reiterateLeads = (0, express_async_handler_1.default)((req, res) => __aw
                     updateOne: {
                         filter: { _id: lead._id },
                         update: {
-                            isCalledToday: false,
-                            isActiveLead: lead.leadType === constants_1.LeadType.ACTIVE,
+                            $set: {
+                                isCalledToday: false,
+                                isActiveLead: lead.leadType === constants_1.LeadType.ACTIVE,
+                            },
+                            $currentDate: { updatedAt: false },
                         },
                     },
                 });

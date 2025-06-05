@@ -32,18 +32,17 @@ exports.feesRequestSchema = studentFeesSchema.extend({
     enquiryId: commonSchema_1.objectIdSchema,
     feesClearanceDate: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)),
     references: zod_1.z.array(zod_1.z.nativeEnum(constants_1.AdmissionReference)).optional(),
+    srAmount: zod_1.z.number().optional(),
     counsellor: zod_1.z.array(zod_1.z.string()).optional(),
     telecaller: zod_1.z.array(zod_1.z.string()).optional(),
 }).strict();
 exports.feesUpdateSchema = exports.feesRequestSchema.extend({
     id: commonSchema_1.objectIdSchema,
-    references: zod_1.z.array(zod_1.z.nativeEnum(constants_1.AdmissionReference)).optional()
 }).omit({ enquiryId: true }).strict();
 exports.feesDraftRequestSchema = exports.feesRequestSchema.extend({
     otherFees: zod_1.z.array(exports.otherFeesSchema.partial()).optional(),
     semWiseFees: zod_1.z.array(exports.singleSemSchema.partial()).optional(),
     feesClearanceDate: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)).optional(),
-    references: zod_1.z.array(zod_1.z.nativeEnum(constants_1.AdmissionReference)).optional()
 }).strict();
 exports.feesDraftUpdateSchema = exports.feesDraftRequestSchema.extend({
     id: commonSchema_1.objectIdSchema,

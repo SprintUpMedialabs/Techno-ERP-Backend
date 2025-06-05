@@ -66,6 +66,7 @@ exports.StudentBaseInfoSchema = zod_1.z.object({
     }),
     category: zod_1.z.nativeEnum(constants_1.Category),
     references: zod_1.z.array(zod_1.z.nativeEnum(constants_1.AdmissionReference)),
+    srAmount: zod_1.z.number().optional(),
     aadharNumber: zod_1.z.string().regex(/^\d{12}$/, 'Aadhar Number must be exactly 12 digits').optional(),
     address: commonSchema_1.addressSchema,
     academicDetails: academicDetailSchema_1.academicDetailsArraySchema.optional(),
@@ -119,6 +120,7 @@ exports.CreateStudentSchema = zod_1.z.object({
     category: zod_1.z.nativeEnum(constants_1.Category),
     course: zod_1.z.string(),
     references: zod_1.z.array(zod_1.z.nativeEnum(constants_1.AdmissionReference)),
+    srAmount: zod_1.z.number().optional(),
     aadharNumber: zod_1.z.string().regex(/^\d{12}$/, 'Aadhar Number must be exactly 12 digits').optional(),
     address: commonSchema_1.addressSchema,
     academicDetails: academicDetailSchema_1.academicDetailsArraySchema.optional(),
@@ -158,4 +160,5 @@ exports.updateStudentDetailsRequestSchema = zod_1.z.object({
     academicDetails: academicDetailSchema_1.academicDetailsArraySchema.optional(),
     entranceExamDetails: entranceExamDetailSchema_1.entranceExamDetailSchema.optional(),
     references: zod_1.z.array(zod_1.z.nativeEnum(constants_1.AdmissionReference)),
+    srAmount: zod_1.z.number().optional(),
 }).strict();

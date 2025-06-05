@@ -67,6 +67,9 @@ const updateFeeDetails = (applicationStatusList, studentFeesData) => __awaiter(v
     if (validation.data.references != null) {
         enquiryUpdatePayload.references = validation.data.references;
     }
+    if (validation.data.srAmount != null) {
+        enquiryUpdatePayload.srAmount = validation.data.srAmount;
+    }
     if (validation.data.remarks != null) {
         enquiryUpdatePayload.remarks = validation.data.remarks;
     }

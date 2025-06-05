@@ -25,6 +25,7 @@ exports.enquirySchema = zod_1.z.object({
     category: zod_1.z.nativeEnum(constants_1.Category),
     course: zod_1.z.string().nonempty('Course can not be empty'),
     references: zod_1.z.array(zod_1.z.nativeEnum(constants_1.AdmissionReference)),
+    srAmount: zod_1.z.number().optional(),
     address: commonSchema_1.addressSchema,
     academicDetails: academicDetailSchema_1.academicDetailsArraySchema.optional(),
     dateOfEnquiry: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)).optional(),

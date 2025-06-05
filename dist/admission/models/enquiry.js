@@ -158,6 +158,9 @@ exports.enquirySchema = new mongoose_1.Schema({
         },
         default: []
     },
+    srAmount: {
+        type: Number,
+    },
     aadharNumber: {
         type: String,
         validate: {

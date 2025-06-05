@@ -146,6 +146,9 @@ exports.enquiryDraftSchema = new mongoose_1.Schema({
         },
         default: []
     },
+    srAmount: {
+        type: Number,
+    },
     address: {
         type: address_1.addressSchema,
         minlength: [5, 'Address must be at least 5 characters long'],
