@@ -118,7 +118,7 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
         values: Object.values(AdmissionReference),
         message: 'Invalid Admission Reference value'
       },
-      required: true
+      default: []
     },
     aadharNumber: {
       type: String,
