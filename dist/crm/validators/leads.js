@@ -12,6 +12,7 @@ exports.leadMasterSchema = zod_1.z.object({
     schoolName: zod_1.z.string().optional(),
     name: zod_1.z.string().optional(),
     degree: zod_1.z.string().optional(),
+    remarkUpdatedAt: zod_1.z.date().optional(),
     phoneNumber: zod_1.z.string().optional(),
     altPhoneNumber: zod_1.z.string().optional(),
     email: zod_1.z.string().email('Invalid Email Format').optional(),

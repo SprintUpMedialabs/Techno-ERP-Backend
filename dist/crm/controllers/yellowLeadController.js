@@ -68,6 +68,7 @@ exports.updateYellowLead = (0, express_async_handler_1.default)((req, res) => __
     const isRemarkChanged = existingRemarkLength < yellowLeadRequestDataRemarkLength;
     if (isRemarkChanged) {
         updateData.followUpCount = existingLead.followUpCount + 1;
+        updateData.remarkUpdatedAt = (0, getISTDate_1.getISTDate)();
     }
     const currentLoggedInUser = (_d = req.data) === null || _d === void 0 ? void 0 : _d.id;
     const todayStart = (0, getISTDate_1.getISTDate)();
