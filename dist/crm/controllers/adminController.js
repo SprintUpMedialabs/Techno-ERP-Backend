@@ -597,7 +597,6 @@ exports.reiterateLeads = (0, express_async_handler_1.default)((req, res) => __aw
                                 isCalledToday: false,
                                 isActiveLead: lead.leadType === constants_1.LeadType.ACTIVE,
                             },
-                            $currentDate: { updatedAt: false },
                         },
                     },
                 });

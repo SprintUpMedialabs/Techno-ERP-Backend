@@ -25,6 +25,7 @@ const lead_1 = require("../models/lead");
 const leads_1 = require("../validators/leads");
 const formatReport_1 = require("./formatReport");
 const googleSheetOperations_1 = require("./googleSheetOperations");
+const formators_1 = require("../validators/formators");
 const leadsToBeInserted = (latestData, report, lastSavedIndex, citySet, sourceSet, courseSet, requiredColumnHeaders) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     let MarketingEmployees = new Map();
@@ -66,7 +67,7 @@ const leadsToBeInserted = (latestData, report, lastSavedIndex, citySet, sourceSe
                     citySet.add((0, dropDownMetadataController_1.formatDropdownValue)(leadDataValidation.data.city));
                 }
                 if (leadDataValidation.data.source) {
-                    sourceSet.add(leadDataValidation.data.source);
+                    sourceSet.add((0, formators_1.formatSource)(leadDataValidation.data.source));
                 }
                 if (leadDataValidation.data.course) {
                     courseSet.add((0, dropDownMetadataController_1.formatCapital)(leadDataValidation.data.course));
