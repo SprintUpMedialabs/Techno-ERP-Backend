@@ -106,13 +106,16 @@ export const enquiryDraftSchema = new Schema<IEnquiryDraftDocument>(
             // },
             required: false
         },
-        reference: {
-            type: String,
+        references: {
+            type: [String],
             enum: {
                 values: Object.values(AdmissionReference),
                 message: 'Invalid Admission Reference value'
             },
-            required: false
+            default: []
+        },
+        srAmount: {
+            type: Number,
         },
         address: {
             type: addressSchema,

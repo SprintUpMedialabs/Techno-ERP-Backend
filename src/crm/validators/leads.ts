@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { FinalConversionType, Gender, LeadType } from '../../config/constants';
 import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
-import { contactNumberSchema, objectIdSchema, requestDateSchema } from '../../validators/commonSchema';
+import { objectIdSchema, requestDateSchema } from '../../validators/commonSchema';
 import { extractLast10Digits, formatAndValidateLeadType, formatDate, formatSource, splitEmails, toTitleCase } from './formators';
 
 export const leadMasterSchema = z.object({
@@ -10,6 +10,7 @@ export const leadMasterSchema = z.object({
   schoolName: z.string().optional(),
   name: z.string().optional(),
   degree: z.string().optional(),
+  remarkUpdatedAt: z.date().optional(),
   phoneNumber: z.string().optional(),
   altPhoneNumber: z.string().optional(),
   email: z.string().email('Invalid Email Format').optional(),

@@ -12,6 +12,7 @@ import { IMarketingSpreadsheetProcessReport } from '../types/marketingSpreadshee
 import { leadSheetSchema } from '../validators/leads';
 import { formatReport } from './formatReport';
 import { updateStatusForMarketingSheet } from './googleSheetOperations';
+import { formatSource } from '../validators/formators';
 
 const leadsToBeInserted = async (
   latestData: any[],
@@ -91,12 +92,12 @@ const leadsToBeInserted = async (
           citySet.add(formatDropdownValue(leadDataValidation.data.city));
         }
         if (leadDataValidation.data.source) {
-          sourceSet.add(leadDataValidation.data.source);
+          sourceSet.add(formatSource(leadDataValidation.data.source));
         }
         if (leadDataValidation.data.course) {
           courseSet.add(formatCapital(leadDataValidation.data.course));
         }
-        
+
         for (const assignedTo of leadDataValidation.data.assignedTo) {
           let assignedToID = MarketingEmployees.get(assignedTo);
 

@@ -3,18 +3,19 @@ import { EducationLevel } from '../../config/constants';
 
 export const academicDetailSchema = z.object({
   educationLevel: z.nativeEnum(EducationLevel), // Only allows fixed values
-  schoolCollegeName: z.string().min(1, 'School/College Name is required'),
-  universityBoardName: z.string().min(1, 'University/Board Name is required'),
+  schoolCollegeName: z.string().optional(),
+  universityBoardName: z.string().optional(),
   passingYear: z
     .number()
     .int()
     .refine((year) => year.toString().length === 4, {
       message: 'Passing Year must be a valid 4-digit year'
-    }),
+    }).optional(),
   percentageObtained: z
     .number()
     .min(0, 'Percentage must be at least 0')
-    .max(100, 'Percentage cannot exceed 100'),
+    .max(100, 'Percentage cannot exceed 100')
+    .optional(),
   subjects: z.string().optional(),
 });
 // Array schema

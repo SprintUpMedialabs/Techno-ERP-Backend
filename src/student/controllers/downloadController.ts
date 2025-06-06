@@ -32,13 +32,14 @@ export const getTransactionSlipData = async (studentId : string, transactionId :
     const collegeMetaData = await CollegeMetaData.findOne({ name : student?.collegeName })
     const responseObj = {
         collegeName : collegeMetaData?.fullCollegeName,
+        affiliationName: collegeMetaData?.fullAffiliation,
         collegeEmail : collegeMetaData?.collegeEmail,
         collegeContactNumber : collegeMetaData?.collegeContact,
         recieptNumber : collegeTransaction?.transactionID,
         studentName : student?.studentInfo.studentName,
         fatherName : student?.studentInfo.fatherName,
         course : student?.courseName,
-        date : convertToDDMMYYYY(collegeTransaction?.dateTime!),
+        date : convertToDDMMYYYY(collegeTransaction?.dateTime),
         category : student?.studentInfo.category,
         session : student?.currentAcademicYear,
         particulars : collegeTransaction?.transactionSettlementHistory,

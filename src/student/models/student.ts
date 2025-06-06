@@ -105,13 +105,16 @@ const StudentBaseInfoSchema = new Schema<IStudentBasicInfoDocument>({
         },
         required: true
     },
-    reference: {
-        type: String,
+    references: {
+        type: [String],
         enum: {
-            values: Object.values(AdmissionReference),
-            message: 'Invalid Admission Reference value'
+          values: Object.values(AdmissionReference),
+          message: 'Invalid Admission Reference value'
         },
         required: true
+    },
+    srAmount: {
+        type: Number
     },
     aadharNumber: {
         type: String,
