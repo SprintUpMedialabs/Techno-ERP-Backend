@@ -18,6 +18,8 @@ import { EnquiryDraft } from '../models/enquiryDraft';
 import { EnquiryApplicationId } from '../models/enquiryIdMetaDataSchema';
 import { StudentFeesModel } from '../models/studentFees';
 import { incrementAdmissionAnalytics } from './admissionAnalyticsController';
+import { CourseMetaData } from '../../course/models/courseMetadata';
+import { CollegeMetaData } from '../models/collegeMetaData';
 
 
 export const getEnquiryData = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
@@ -109,16 +111,19 @@ export const getEnquiryById = expressAsyncHandler(functionLevelLogger(async (req
   }
 
   let enquiry = await Enquiry.findById(id).populate('studentFee').populate('studentFeeDraft');
+  const course = await CourseMetaData.findOne({ courseCode: enquiry?.course });
+  const collegeMetaData = await CollegeMetaData.findOne({ collegeName: course?.collegeName });
 
   if (!enquiry) {
     const enquiryDraft = await EnquiryDraft.findById(id);
     if (enquiryDraft) {
-      const course = enquiryDraft.course;
 
       const enquiryPayload = {
         ...enquiryDraft.toObject(),
-        collegeName: course ? getCollegeName(course as Course) : null,
-        affiliation: course ? getAffiliation(course as Course) : null,
+        collegeName: collegeMetaData?.fullCollegeName ?? null,
+        affiliation: collegeMetaData?.fullAffiliation ?? null,
+        clgContactNumber: collegeMetaData?.collegeContact ?? null,
+        clgEmail: collegeMetaData?.collegeEmail ?? null,
       };
 
       return formatResponse(res, 200, 'Enquiry draft details', true, enquiryPayload);
@@ -130,8 +135,11 @@ export const getEnquiryById = expressAsyncHandler(functionLevelLogger(async (req
 
     const enquiryPayload = {
       ...enquiry.toObject(),
-      collegeName: course ? getCollegeName(course as Course) : null,
-      affiliation: course ? getAffiliation(course as Course) : null,
+      collegeName: collegeMetaData?.fullCollegeName ?? null,
+      affiliation: collegeMetaData?.fullAffiliation ?? null,
+      clgContactNumber: collegeMetaData?.collegeContact ?? null,
+      clgEmail: collegeMetaData?.collegeEmail ?? null,
+
     };
 
     return formatResponse(res, 200, 'Enquiry details', true, enquiryPayload);
@@ -141,7 +149,7 @@ export const getEnquiryById = expressAsyncHandler(functionLevelLogger(async (req
 
 
 export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
-  const { id, transactionType,transactionRemark } = req.body;
+  const { id, transactionType, transactionRemark } = req.body;
 
   const validation = objectIdSchema.safeParse(id);
 
@@ -214,7 +222,7 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
       throw createHttpError(400, studentValidation.error.errors[0]);
 
     const { transactionAmount, ...student } = await createStudent(req.data?.id, studentValidation.data);
-    
+
     const studentCreateValidation = StudentSchema.safeParse(student);
 
     if (!studentCreateValidation.success) {
@@ -245,7 +253,7 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
       txnType: transactionType ?? TransactionTypes.CASH,
       actionedBy: req?.data?.id,
       transactionSettlementHistory: transactionSettlementHistory,
-      remark : transactionRemark,
+      remark: transactionRemark,
       courseCode: student.courseCode,
       courseName: student.courseName,
       courseYear: getCourseYearFromSemNumber(student.currentSemester)
