@@ -33,9 +33,13 @@ function retryMechanism(handler_1, emailSubject_1, emailMessage_1, pipelineId_1,
             catch (error) {
                 yield session.abortTransaction();
                 session.endSession();
-                yield (0, mailer_1.sendEmail)(secrets_1.DEVELOPER_EMAIL, `Attempt ${attempt} : ` + emailSubject + ` ${process.env.NODE_ENV}`, error.message);
+                if (process.env.NODE_ENV) {
+                    yield (0, mailer_1.sendEmail)(secrets_1.DEVELOPER_EMAIL, `Attempt ${attempt} : ` + emailSubject + ` ${process.env.NODE_ENV}`, error.message);
+                }
                 if (attempt == maxRetries) {
-                    yield (0, mailer_1.sendEmail)(secrets_1.DEVELOPER_EMAIL, emailSubject + ` ${process.env.NODE_ENV}`, emailMessage);
+                    if (process.env.NODE_ENV) {
+                        yield (0, mailer_1.sendEmail)(secrets_1.DEVELOPER_EMAIL, emailSubject + ` ${process.env.NODE_ENV}`, emailMessage);
+                    }
                     yield (0, controller_1.markFailed)(pipelineId, error.message);
                     throw (0, http_errors_1.default)(400, error.message);
                 }

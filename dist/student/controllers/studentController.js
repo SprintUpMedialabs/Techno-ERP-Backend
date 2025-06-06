@@ -43,8 +43,6 @@ const createStudent = (id, studentData) => __awaiter(void 0, void 0, void 0, fun
     const studentBaseInformation = Object.assign({}, studentData);
     const course = yield course_1.Course.findOne({ courseCode: courseCode, startingYear: dateOfAdmission.getFullYear() });
     const feesCourse = yield studentFees_1.StudentFeesModel.findOne({ _id: feeId });
-    console.log("Fees course : ", feesCourse);
-    console.log("Semwise fee : ", feesCourse === null || feesCourse === void 0 ? void 0 : feesCourse.semWiseFees);
     const semSubjectIds = yield course_1.Course.aggregate([
         {
             $match: {
@@ -246,10 +244,7 @@ const createSemesterFee = (id, semesterNumber, feesCourse) => {
     });
     const semFeeInfo = semWiseFees[semesterNumber - 1] || null;
     if (semFeeInfo) {
-        console.log("Init AMount for transaction : ", amountForTransaction);
-        console.log("Sem fees info : ", semFeeInfo.feesPaid);
         amountForTransaction = semesterNumber === 1 ? (amountForTransaction + (semFeeInfo.feesPaid || 0)) : 0;
-        console.log("Final AMount for transaction : ", amountForTransaction);
         details.push({
             type: constants_1.FinanceFeeType.SEMESTERFEE,
             schedule: (_a = constants_1.FinanceFeeSchedule[constants_1.FinanceFeeType.SEMESTERFEE]) !== null && _a !== void 0 ? _a : "YEARLY",
@@ -301,7 +296,6 @@ exports.getStudentDataBySearch = (0, express_async_handler_1.default)((req, res)
             matchStage.currentSemester = { $in: semRange };
         }
     }
-    console.log("Match Stage : ", matchStage);
     if (search) {
         matchStage.$or = [
             { 'studentInfo.universityId': { $regex: search, $options: 'i' } },

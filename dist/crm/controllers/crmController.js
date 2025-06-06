@@ -210,6 +210,7 @@ exports.updateData = (0, express_async_handler_1.default)((req, res) => __awaite
     const isRemarkChanged = existingRemarkLength < newRemarkLength;
     if (isRemarkChanged) {
         leadRequestData.followUpCount = existingLead.followUpCount + 1;
+        leadRequestData.remarkUpdatedAt = (0, getISTDate_1.getISTDate)();
     }
     if (leadRequestData.leadType && existingLead.leadType !== leadRequestData.leadType) {
         leadTypeModifiedDate = new Date();

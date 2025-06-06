@@ -37,6 +37,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LeadMaster = void 0;
+exports.isOlderThan7Days = isOlderThan7Days;
 const http_errors_1 = __importDefault(require("http-errors"));
 const moment_timezone_1 = __importDefault(require("moment-timezone"));
 const mongoose_1 = __importStar(require("mongoose"));
@@ -73,6 +74,10 @@ const leadSchema = new mongoose_1.Schema({
         // match: [/^[1-9]\d{9}$/, 'Invalid contact number format. Expected: 1234567890'],
     },
     // Optional alternate phone number; must follow the same format as phoneNumber
+    remarkUpdatedAt: {
+        type: Date,
+        default: null
+    },
     altPhoneNumber: {
         type: String,
         trim: true,
@@ -187,10 +192,22 @@ const transformDates = (_, ret) => {
             ret[key] = (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(ret[key]);
         }
     });
+    if (ret.remarkUpdatedAt) {
+        ret.isOlderThan7Days = isOlderThan7Days(ret.remarkUpdatedAt);
+        ret.lastCallDate = (0, moment_timezone_1.default)(ret.remarkUpdatedAt).tz('Asia/Kolkata').format('DD/MM/YYYY | HH:mm');
+    }
+    else {
+        ret.isOlderThan7Days = true;
+        ret.lastCallDate = null;
+    }
     delete ret.createdAt;
     delete ret.__v;
     return ret;
 };
+function isOlderThan7Days(remarkUpdatedAt) {
+    const sevenDaysAgo = moment_timezone_1.default.tz('Asia/Kolkata').subtract(7, 'days').startOf('day');
+    return (0, moment_timezone_1.default)(remarkUpdatedAt).isBefore(sevenDaysAgo);
+}
 leadSchema.set('toJSON', { transform: transformDates });
 leadSchema.set('toObject', { transform: transformDates });
 exports.LeadMaster = mongoose_1.default.model(constants_1.COLLECTION_NAMES.LEAD, leadSchema);
