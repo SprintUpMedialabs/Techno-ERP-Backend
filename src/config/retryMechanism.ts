@@ -19,9 +19,13 @@ export async function retryMechanism(handler: (session: mongoose.ClientSession) 
         catch (error: any) {
             await session.abortTransaction();
             session.endSession();
-            await sendEmail(DEVELOPER_EMAIL, `Attempt ${attempt} : ` + emailSubject + ` ${process.env.NODE_ENV}`, error.message);
+            if (process.env.NODE_ENV) {
+                await sendEmail(DEVELOPER_EMAIL, `Attempt ${attempt} : ` + emailSubject + ` ${process.env.NODE_ENV}`, error.message);
+            }
             if (attempt == maxRetries) {
-                await sendEmail(DEVELOPER_EMAIL, emailSubject + ` ${process.env.NODE_ENV}`, emailMessage);
+                if (process.env.NODE_ENV) {
+                    await sendEmail(DEVELOPER_EMAIL, emailSubject + ` ${process.env.NODE_ENV}`, emailMessage);
+                }
                 await markFailed(pipelineId, error.message);
                 throw createHttpError(400, error.message);
             } else {

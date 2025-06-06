@@ -74,8 +74,12 @@ export const createFeeDraft = expressAsyncHandler(functionLevelLogger(async (req
       studentFeeDraft: feesDraft._id, counsellor, telecaller
     }
 
-    if (data.reference != null) {
-      enquiryDataUpdate.reference = data.reference;
+    if (data.references != null) {
+      enquiryDataUpdate.references = data.references;
+    }
+
+    if( data.srAmount != null ) {
+      enquiryDataUpdate.srAmount = data.srAmount;
     }
 
     if(data.remarks != null)
@@ -161,8 +165,11 @@ export const updateFeeDraft = expressAsyncHandler(functionLevelLogger(async (req
       { new: true, runValidators: true, session }
     );
     const enquiryData: any = { counsellor, telecaller };
-    if (data.reference != null) {
-      enquiryData.reference = data.reference;
+    if (data.references != null) {
+      enquiryData.references = data.references;
+    }
+    if(data.srAmount != null){
+      enquiryData.srAmount = data.srAmount;
     }
     if(validation.data.remarks != null){
       enquiryData.remarks = validation.data.remarks;

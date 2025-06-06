@@ -112,13 +112,16 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
       type: String,
       required: true
     },
-    reference: {
-      type: String,
+    references: {
+      type: [String],
       enum: {
         values: Object.values(AdmissionReference),
         message: 'Invalid Admission Reference value'
       },
-      required: true
+      default: []
+    },
+    srAmount: {
+      type: Number,
     },
     aadharNumber: {
       type: String,
@@ -165,7 +168,6 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
       type: Date,
       required: false
     },
-
     previousCollegeData: {
       type: previousCollegeDataSchema
     },
