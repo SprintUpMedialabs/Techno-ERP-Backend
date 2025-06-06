@@ -652,7 +652,6 @@ export const reiterateLeads = expressAsyncHandler(async (req: AuthenticatedReque
                                 isCalledToday: false,
                                 isActiveLead: lead.leadType === LeadType.ACTIVE,
                             },
-                            $currentDate: { updatedAt: false },
                         },
                     },
                 });
