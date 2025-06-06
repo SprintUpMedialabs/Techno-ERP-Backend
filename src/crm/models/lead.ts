@@ -169,8 +169,10 @@ const transformDates = (_: any, ret: any) => {
   });
   if (ret.remarkUpdatedAt) {
     ret.isOlderThan7Days = isOlderThan7Days(ret.remarkUpdatedAt);
+    ret.lastCallDate = moment(ret.remarkUpdatedAt).tz('Asia/Kolkata').format('DD/MM/YYYY | HH:mm');
   } else {
     ret.isOlderThan7Days = true;
+    ret.lastCallDate = null;
   }
   delete ret.createdAt;
   delete ret.__v;

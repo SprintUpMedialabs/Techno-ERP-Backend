@@ -448,6 +448,7 @@ export const offlineSources = [
   'CUET',
   'PG Data',
   'UG Data',
+  'Student Reference',
 ];
 
 export const onlineSources = [
