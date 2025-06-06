@@ -21,7 +21,7 @@ export const downloadAdmissionForm = expressAsyncHandler(async (req : Authentica
     const student = await Student.findById(studentId);
     const enquiry = await Enquiry.findById(studentId);
     const course = await CourseMetaData.findOne({ courseCode : student?.courseCode });
-    const collegeMetaData = await CollegeMetaData.findOne({ collegeName : course?.collegeName })
+    const collegeMetaData = await CollegeMetaData.findOne({ collegeName : course?.collegeName });
     const responseObj = {
         fullCollegeName : collegeMetaData?.fullCollegeName,
         affiliationName : collegeMetaData?.fullAffiliation,
