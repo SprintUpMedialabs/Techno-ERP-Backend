@@ -227,6 +227,7 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
 
   if (isRemarkChanged) {
     leadRequestData.followUpCount = existingLead.followUpCount + 1;
+    leadRequestData.remarkUpdatedAt = getISTDate();
   }
 
   if (leadRequestData.leadType && existingLead.leadType !== leadRequestData.leadType) {
