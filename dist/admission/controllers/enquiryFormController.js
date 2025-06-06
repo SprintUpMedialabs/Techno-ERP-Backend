@@ -42,6 +42,8 @@ const enquiryDraft_1 = require("../models/enquiryDraft");
 const enquiryIdMetaDataSchema_1 = require("../models/enquiryIdMetaDataSchema");
 const studentFees_1 = require("../models/studentFees");
 const admissionAnalyticsController_1 = require("./admissionAnalyticsController");
+const courseMetadata_1 = require("../../course/models/courseMetadata");
+const collegeMetaData_1 = require("../models/collegeMetaData");
 exports.getEnquiryData = (0, express_async_handler_1.default)((0, functionLevelLogging_1.functionLevelLogger)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let { search, applicationStatus } = req.body;
     search !== null && search !== void 0 ? search : (search = '');
@@ -113,16 +115,18 @@ exports.getEnquiryData = (0, express_async_handler_1.default)((0, functionLevelL
     }
 })));
 exports.getEnquiryById = (0, express_async_handler_1.default)((0, functionLevelLogging_1.functionLevelLogger)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c, _d, _e, _f, _g, _h;
     const { id } = req.params;
     if (!mongoose_1.default.Types.ObjectId.isValid(id)) {
         throw (0, http_errors_1.default)(400, 'Invalid enquiry ID');
     }
     let enquiry = yield enquiry_1.Enquiry.findById(id).populate('studentFee').populate('studentFeeDraft');
+    const course = yield courseMetadata_1.CourseMetaData.findOne({ courseCode: enquiry === null || enquiry === void 0 ? void 0 : enquiry.course });
+    const collegeMetaData = yield collegeMetaData_1.CollegeMetaData.findOne({ collegeName: course === null || course === void 0 ? void 0 : course.collegeName });
     if (!enquiry) {
         const enquiryDraft = yield enquiryDraft_1.EnquiryDraft.findById(id);
         if (enquiryDraft) {
-            const course = enquiryDraft.course;
-            const enquiryPayload = Object.assign(Object.assign({}, enquiryDraft.toObject()), { collegeName: course ? getCollegeName(course) : null, affiliation: course ? getAffiliation(course) : null });
+            const enquiryPayload = Object.assign(Object.assign({}, enquiryDraft.toObject()), { collegeName: (_a = collegeMetaData === null || collegeMetaData === void 0 ? void 0 : collegeMetaData.fullCollegeName) !== null && _a !== void 0 ? _a : null, affiliation: (_b = collegeMetaData === null || collegeMetaData === void 0 ? void 0 : collegeMetaData.fullAffiliation) !== null && _b !== void 0 ? _b : null, clgContactNumber: (_c = collegeMetaData === null || collegeMetaData === void 0 ? void 0 : collegeMetaData.collegeContact) !== null && _c !== void 0 ? _c : null, clgEmail: (_d = collegeMetaData === null || collegeMetaData === void 0 ? void 0 : collegeMetaData.collegeEmail) !== null && _d !== void 0 ? _d : null });
             return (0, formatResponse_1.formatResponse)(res, 200, 'Enquiry draft details', true, enquiryPayload);
         }
         else {
@@ -131,7 +135,7 @@ exports.getEnquiryById = (0, express_async_handler_1.default)((0, functionLevelL
     }
     else {
         const course = enquiry.course;
-        const enquiryPayload = Object.assign(Object.assign({}, enquiry.toObject()), { collegeName: course ? getCollegeName(course) : null, affiliation: course ? getAffiliation(course) : null });
+        const enquiryPayload = Object.assign(Object.assign({}, enquiry.toObject()), { collegeName: (_e = collegeMetaData === null || collegeMetaData === void 0 ? void 0 : collegeMetaData.fullCollegeName) !== null && _e !== void 0 ? _e : null, affiliation: (_f = collegeMetaData === null || collegeMetaData === void 0 ? void 0 : collegeMetaData.fullAffiliation) !== null && _f !== void 0 ? _f : null, clgContactNumber: (_g = collegeMetaData === null || collegeMetaData === void 0 ? void 0 : collegeMetaData.collegeContact) !== null && _g !== void 0 ? _g : null, clgEmail: (_h = collegeMetaData === null || collegeMetaData === void 0 ? void 0 : collegeMetaData.collegeEmail) !== null && _h !== void 0 ? _h : null });
         return (0, formatResponse_1.formatResponse)(res, 200, 'Enquiry details', true, enquiryPayload);
     }
 })));

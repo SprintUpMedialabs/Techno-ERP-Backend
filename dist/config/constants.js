@@ -427,6 +427,7 @@ exports.offlineSources = [
     'CUET',
     'PG Data',
     'UG Data',
+    'Student Reference',
 ];
 exports.onlineSources = [
     'Digital - Direct Call',

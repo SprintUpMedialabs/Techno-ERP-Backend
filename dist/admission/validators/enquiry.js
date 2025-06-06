@@ -6,10 +6,10 @@ const constants_1 = require("../../config/constants");
 const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
 const commonSchema_1 = require("../../validators/commonSchema");
 const academicDetailSchema_1 = require("./academicDetailSchema");
-const previousCollegeDataSchema_1 = require("./previousCollegeDataSchema");
-const singleDocumentSchema_1 = require("./singleDocumentSchema");
 const entranceExamDetailSchema_1 = require("./entranceExamDetailSchema");
 const physicalDocumentNoteSchema_1 = require("./physicalDocumentNoteSchema");
+const previousCollegeDataSchema_1 = require("./previousCollegeDataSchema");
+const singleDocumentSchema_1 = require("./singleDocumentSchema");
 exports.enquirySchema = zod_1.z.object({
     admissionMode: zod_1.z.nativeEnum(constants_1.AdmissionMode).default(constants_1.AdmissionMode.OFFLINE),
     studentName: zod_1.z.string({ required_error: "Student Name is required", }).nonempty('Student Name is required'),
@@ -24,7 +24,8 @@ exports.enquirySchema = zod_1.z.object({
     dateOfBirth: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)),
     category: zod_1.z.nativeEnum(constants_1.Category),
     course: zod_1.z.string().nonempty('Course can not be empty'),
-    reference: zod_1.z.nativeEnum(constants_1.AdmissionReference),
+    references: zod_1.z.array(zod_1.z.nativeEnum(constants_1.AdmissionReference)).optional(),
+    srAmount: zod_1.z.number().optional(),
     address: commonSchema_1.addressSchema,
     academicDetails: academicDetailSchema_1.academicDetailsArraySchema.optional(),
     dateOfEnquiry: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)).optional(),

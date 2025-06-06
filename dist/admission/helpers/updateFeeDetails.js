@@ -64,8 +64,11 @@ const updateFeeDetails = (applicationStatusList, studentFeesData) => __awaiter(v
     if (studentFeesData.telecaller) {
         enquiryUpdatePayload.telecaller = studentFeesData.telecaller;
     }
-    if (validation.data.reference != null) {
-        enquiryUpdatePayload.reference = validation.data.reference;
+    if (validation.data.references != null) {
+        enquiryUpdatePayload.references = validation.data.references;
+    }
+    if (validation.data.srAmount != null) {
+        enquiryUpdatePayload.srAmount = validation.data.srAmount;
     }
     if (validation.data.remarks != null) {
         enquiryUpdatePayload.remarks = validation.data.remarks;

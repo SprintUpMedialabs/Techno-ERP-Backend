@@ -65,7 +65,8 @@ exports.StudentBaseInfoSchema = zod_1.z.object({
         return (0, convertDateToFormatedDate_1.convertToMongoDate)(date);
     }),
     category: zod_1.z.nativeEnum(constants_1.Category),
-    reference: zod_1.z.nativeEnum(constants_1.AdmissionReference),
+    references: zod_1.z.array(zod_1.z.nativeEnum(constants_1.AdmissionReference)),
+    srAmount: zod_1.z.number().optional(),
     aadharNumber: zod_1.z.string().regex(/^\d{12}$/, 'Aadhar Number must be exactly 12 digits').optional(),
     address: commonSchema_1.addressSchema,
     academicDetails: academicDetailSchema_1.academicDetailsArraySchema.optional(),
@@ -118,7 +119,8 @@ exports.CreateStudentSchema = zod_1.z.object({
     dateOfBirth: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)),
     category: zod_1.z.nativeEnum(constants_1.Category),
     course: zod_1.z.string(),
-    reference: zod_1.z.nativeEnum(constants_1.AdmissionReference),
+    references: zod_1.z.array(zod_1.z.nativeEnum(constants_1.AdmissionReference)),
+    srAmount: zod_1.z.number().optional(),
     aadharNumber: zod_1.z.string().regex(/^\d{12}$/, 'Aadhar Number must be exactly 12 digits').optional(),
     address: commonSchema_1.addressSchema,
     academicDetails: academicDetailSchema_1.academicDetailsArraySchema.optional(),
@@ -157,5 +159,6 @@ exports.updateStudentDetailsRequestSchema = zod_1.z.object({
     address: commonSchema_1.addressSchema,
     academicDetails: academicDetailSchema_1.academicDetailsArraySchema.optional(),
     entranceExamDetails: entranceExamDetailSchema_1.entranceExamDetailSchema.optional(),
-    reference: zod_1.z.nativeEnum(constants_1.AdmissionReference),
+    references: zod_1.z.array(zod_1.z.nativeEnum(constants_1.AdmissionReference)),
+    srAmount: zod_1.z.number().optional(),
 }).strict();

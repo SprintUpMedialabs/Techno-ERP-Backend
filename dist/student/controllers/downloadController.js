@@ -41,6 +41,7 @@ const getTransactionSlipData = (studentId, transactionId, isAdmissionTransaction
     const collegeMetaData = yield collegeMetaData_1.CollegeMetaData.findOne({ name: student === null || student === void 0 ? void 0 : student.collegeName });
     const responseObj = {
         collegeName: collegeMetaData === null || collegeMetaData === void 0 ? void 0 : collegeMetaData.fullCollegeName,
+        affiliationName: collegeMetaData === null || collegeMetaData === void 0 ? void 0 : collegeMetaData.fullAffiliation,
         collegeEmail: collegeMetaData === null || collegeMetaData === void 0 ? void 0 : collegeMetaData.collegeEmail,
         collegeContactNumber: collegeMetaData === null || collegeMetaData === void 0 ? void 0 : collegeMetaData.collegeContact,
         recieptNumber: collegeTransaction === null || collegeTransaction === void 0 ? void 0 : collegeTransaction.transactionID,
