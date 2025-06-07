@@ -182,16 +182,20 @@ exports.enquirySchema = new mongoose_1.Schema({
         default: []
     },
     enquiryRemark: {
-        type: String
+        type: String,
+        default: ''
     },
     feeDetailsRemark: {
-        type: String
+        type: String,
+        default: ''
     },
     registarOfficeRemark: {
-        type: String
+        type: String,
+        default: ''
     },
     financeOfficeRemark: {
-        type: String
+        type: String,
+        default: ''
     },
     admittedBy: {
         type: mongoose_1.Schema.Types.Mixed, // Allows ObjectId or String
