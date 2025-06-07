@@ -60,7 +60,10 @@ export const enquirySchema = z.object({
 
   counsellor: z.array(z.string()).default([]),
   telecaller: z.array(z.string()).default([]),
-  remarks: z.string().optional(),
+  enquiryRemark: z.string().optional(),
+  feeDetailsRemark: z.string().optional(),
+  registarOfficeRemark: z.string().optional(),
+  financeOfficeRemark: z.string().optional(),
 
   applicationStatus: z
     .nativeEnum(ApplicationStatus)

@@ -28,7 +28,8 @@ const studentFeesSchema = z.object({
     feesClearanceDate: requestDateSchema.transform((date) =>
         convertToMongoDate(date) as Date
     ),
-    remarks: z.string().optional(),
+    feeDetailsRemark: z.string().optional(),
+    financeOfficeRemark: z.string().optional(),
     isFeeApplicable : z.boolean().default(true)
 });
 
