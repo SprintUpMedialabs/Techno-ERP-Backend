@@ -181,7 +181,16 @@ exports.enquirySchema = new mongoose_1.Schema({
         type: [String],
         default: []
     },
-    remarks: {
+    enquiryRemark: {
+        type: String
+    },
+    feeDetailsRemark: {
+        type: String
+    },
+    registarOfficeRemark: {
+        type: String
+    },
+    financeOfficeRemark: {
         type: String
     },
     admittedBy: {

@@ -55,10 +55,7 @@ const StudentFeesSchema = new mongoose_1.Schema({
     },
     feesClearanceDate: {
         type: Date
-    },
-    // remarks : {
-    //     type : String
-    // }
+    }
 }, { timestamps: true });
 const handleMongooseError = (error, next) => {
     if (error.name === 'ValidationError') {
