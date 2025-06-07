@@ -20,13 +20,13 @@ admissionRoute.get('/assign-base-value',
     assignBaseValueToAdmissionAnalytics
 );
 
-admissionRoute.get('/recent-enquiry-excel-sheet-data',
+admissionRoute.get('/enquiry-excel-sheet-data',
     authenticate,
     authorize([UserRoles.BASIC_USER]),
     getRecentEnquiryExcelSheetData
 );
 
-admissionRoute.get('/recent-admission-excel-sheet-data',
+admissionRoute.get('/admission-excel-sheet-data',
     authenticate,
     authorize([UserRoles.BASIC_USER]),
     getRecentAdmissionExcelSheetData
