@@ -82,8 +82,8 @@ export const createFeeDraft = expressAsyncHandler(functionLevelLogger(async (req
       enquiryDataUpdate.srAmount = data.srAmount;
     }
 
-    if(data.remarks != null)
-      enquiryDataUpdate.remarks = data.remarks;
+    if(data.feeDetailsRemark != null)
+      enquiryDataUpdate.feeDetailsRemark = data.feeDetailsRemark;
 
     if(data.isFeeApplicable != null)
       enquiryDataUpdate.isFeeApplicable = data.isFeeApplicable;
@@ -171,8 +171,11 @@ export const updateFeeDraft = expressAsyncHandler(functionLevelLogger(async (req
     if(data.srAmount != null){
       enquiryData.srAmount = data.srAmount;
     }
-    if(validation.data.remarks != null){
-      enquiryData.remarks = validation.data.remarks;
+    if(validation.data.feeDetailsRemark != null){
+      enquiryData.feeDetailsRemark = validation.data.feeDetailsRemark;
+    }
+    if(validation.data.financeOfficeRemark != null){
+      enquiryData.financeOfficeRemark = validation.data.financeOfficeRemark;
     }
 
     if(validation.data.isFeeApplicable != null){

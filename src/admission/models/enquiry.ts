@@ -143,7 +143,16 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
       type: [String],
       default:[]
     },
-    remarks: {
+    enquiryRemark: {
+      type: String
+    },
+    feeDetailsRemark: {
+      type: String
+    },
+    registarOfficeRemark: {
+      type: String
+    },
+    financeOfficeRemark: {
       type: String
     },
     admittedBy: {

@@ -24,7 +24,11 @@ export const downloadAdmissionTransactionSlip = expressAsyncHandler(async (req :
 
 export const getTransactionSlipData = async (studentId : string, transactionId : string, isAdmissionTransactionSlip: boolean) => {
     const student = await Student.findById(studentId);
-
+    student?.semester.forEach(semester => {
+        console.log(semester.semesterNumber)
+        console.log(semester.fees)
+        console.log('===============================================')
+    })
     if(isAdmissionTransactionSlip)
         transactionId = student?.transactionHistory?.at(0)?.toString() ?? '';
 

@@ -76,10 +76,13 @@ export const updateFeeDetails = async (applicationStatusList: ApplicationStatus[
     enquiryUpdatePayload.srAmount = validation.data.srAmount;
   }
 
-  if(validation.data.remarks !=null){
-    enquiryUpdatePayload.remarks = validation.data.remarks;
+  if(validation.data.feeDetailsRemark !=null){
+    enquiryUpdatePayload.feeDetailsRemark = validation.data.feeDetailsRemark;
   }
 
+  if(validation.data.financeOfficeRemark !=null){
+    enquiryUpdatePayload.financeOfficeRemark = validation.data.financeOfficeRemark;
+  }
   if(validation.data.isFeeApplicable !=null){
     enquiryUpdatePayload.isFeeApplicable = validation.data.isFeeApplicable;
   }
