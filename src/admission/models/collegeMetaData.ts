@@ -8,7 +8,9 @@ export const collegeMetaDataSchema = new Schema({
     fullAffiliation: { type: String },
     websiteLink: { type: String },
     collegeEmail: { type: String },
-    collegeContact: { type: String }
+    collegeContact: { type: String },
+    collegeFeeEmail: { type: String },
+    collegeFeeContact: { type: String }
 });
 
 export const CollegeMetaData = mongoose.model(COLLECTION_NAMES.COLLEGE_META_DATA, collegeMetaDataSchema);
