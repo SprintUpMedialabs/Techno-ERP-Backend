@@ -9,7 +9,7 @@ import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest
 import { DropDownType, FinalConversionType, LeadType, RequestAction } from '../../config/constants';
 import { updateOnlyOneValueInDropDown } from '../../utilityModules/dropdown/dropDownMetadataController';
 import { formatResponse } from '../../utils/formatResponse';
-import { getISTDate } from '../../utils/getISTDate';
+import { getISTDate, getISTDateWithTime } from '../../utils/getISTDate';
 import { parseFilter } from '../helpers/parseFilter';
 import { LeadMaster } from '../models/lead';
 import { MarketingUserWiseAnalytics } from '../models/marketingUserWiseAnalytics';
@@ -66,7 +66,7 @@ export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedReq
 
   if (isRemarkChanged) {
     updateData.followUpCount = existingLead.followUpCount + 1;
-    updateData.remarkUpdatedAt = getISTDate();
+    updateData.remarkUpdatedAt = getISTDateWithTime();
   }
 
   const currentLoggedInUser = req.data?.id;

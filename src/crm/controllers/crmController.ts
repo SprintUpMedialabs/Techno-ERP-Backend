@@ -13,7 +13,7 @@ import { Actions, DropDownType, LeadType, RequestAction, UserRoles } from '../..
 import { updateOnlyOneValueInDropDown } from '../../utilityModules/dropdown/dropDownMetadataController';
 import { convertToDDMMYYYY } from '../../utils/convertDateToFormatedDate';
 import { formatResponse } from '../../utils/formatResponse';
-import { getISTDate } from '../../utils/getISTDate';
+import { getISTDate, getISTDateWithTime } from '../../utils/getISTDate';
 import { readFromGoogleSheet } from '../helpers/googleSheetOperations';
 import { parseFilter } from '../helpers/parseFilter';
 import { saveDataToDb } from '../helpers/updateAndSaveToDb';
@@ -227,7 +227,7 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
 
   if (isRemarkChanged) {
     leadRequestData.followUpCount = existingLead.followUpCount + 1;
-    leadRequestData.remarkUpdatedAt = getISTDate();
+    leadRequestData.remarkUpdatedAt = getISTDateWithTime();
   }
 
   if (leadRequestData.leadType && existingLead.leadType !== leadRequestData.leadType) {
