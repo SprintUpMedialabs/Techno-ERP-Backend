@@ -1,13 +1,13 @@
+import { Response } from "express";
 import expressAsyncHandler from "express-async-handler";
-import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
-import { response, Response } from "express";
-import { Student } from "../models/student";
-import { CollegeTransaction } from "../models/collegeTransactionHistory";
-import { CollegeMetaData } from "../../admission/models/collegeMetaData";
-import { convertToDDMMYYYY } from "../../utils/convertDateToFormatedDate";
 import { toWords } from 'number-to-words';
-import { formatResponse } from "../../utils/formatResponse";
+import { CollegeMetaData } from "../../admission/models/collegeMetaData";
+import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
 import { toTitleCase } from "../../crm/validators/formators";
+import { convertToDDMMYYYY } from "../../utils/convertDateToFormatedDate";
+import { formatResponse } from "../../utils/formatResponse";
+import { CollegeTransaction } from "../models/collegeTransactionHistory";
+import { Student } from "../models/student";
 
 export const downloadTransactionSlip = expressAsyncHandler(async (req : AuthenticatedRequest, res : Response)=>{
     const { studentId, transactionId } = req.body; 
@@ -37,8 +37,8 @@ export const getTransactionSlipData = async (studentId : string, transactionId :
     const responseObj = {
         collegeName : collegeMetaData?.fullCollegeName,
         affiliationName: collegeMetaData?.fullAffiliation,
-        collegeEmail : collegeMetaData?.collegeEmail,
-        collegeContactNumber : collegeMetaData?.collegeContact,
+        collegeFeeEmail : collegeMetaData?.collegeFeeEmail,
+        collegeFeeContactNumber : collegeMetaData?.collegeFeeContact,
         recieptNumber : collegeTransaction?.transactionID,
         studentName : student?.studentInfo.studentName,
         fatherName : student?.studentInfo.fatherName,
