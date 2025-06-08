@@ -37,7 +37,10 @@ exports.enquirySchema = zod_1.z.object({
     entranceExamDetails: entranceExamDetailSchema_1.entranceExamDetailSchema.optional(),
     counsellor: zod_1.z.array(zod_1.z.string()).default([]),
     telecaller: zod_1.z.array(zod_1.z.string()).default([]),
-    remarks: zod_1.z.string().optional(),
+    enquiryRemark: zod_1.z.string().optional(),
+    feeDetailsRemark: zod_1.z.string().optional(),
+    registarOfficeRemark: zod_1.z.string().optional(),
+    financeOfficeRemark: zod_1.z.string().optional(),
     applicationStatus: zod_1.z
         .nativeEnum(constants_1.ApplicationStatus)
         .default(constants_1.ApplicationStatus.STEP_1),
