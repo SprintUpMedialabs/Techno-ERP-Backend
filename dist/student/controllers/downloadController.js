@@ -14,13 +14,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getTransactionSlipData = exports.downloadAdmissionTransactionSlip = exports.downloadTransactionSlip = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
-const student_1 = require("../models/student");
-const collegeTransactionHistory_1 = require("../models/collegeTransactionHistory");
-const collegeMetaData_1 = require("../../admission/models/collegeMetaData");
-const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
 const number_to_words_1 = require("number-to-words");
-const formatResponse_1 = require("../../utils/formatResponse");
+const collegeMetaData_1 = require("../../admission/models/collegeMetaData");
 const formators_1 = require("../../crm/validators/formators");
+const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDate");
+const formatResponse_1 = require("../../utils/formatResponse");
+const collegeTransactionHistory_1 = require("../models/collegeTransactionHistory");
+const student_1 = require("../models/student");
 exports.downloadTransactionSlip = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { studentId, transactionId } = req.body;
     const responseObj = yield (0, exports.getTransactionSlipData)(studentId, transactionId, false);
@@ -47,8 +47,8 @@ const getTransactionSlipData = (studentId, transactionId, isAdmissionTransaction
     const responseObj = {
         collegeName: collegeMetaData === null || collegeMetaData === void 0 ? void 0 : collegeMetaData.fullCollegeName,
         affiliationName: collegeMetaData === null || collegeMetaData === void 0 ? void 0 : collegeMetaData.fullAffiliation,
-        collegeEmail: collegeMetaData === null || collegeMetaData === void 0 ? void 0 : collegeMetaData.collegeEmail,
-        collegeContactNumber: collegeMetaData === null || collegeMetaData === void 0 ? void 0 : collegeMetaData.collegeContact,
+        collegeFeeEmail: collegeMetaData === null || collegeMetaData === void 0 ? void 0 : collegeMetaData.collegeFeeEmail,
+        collegeFeeContactNumber: collegeMetaData === null || collegeMetaData === void 0 ? void 0 : collegeMetaData.collegeFeeContact,
         recieptNumber: collegeTransaction === null || collegeTransaction === void 0 ? void 0 : collegeTransaction.transactionID,
         studentName: student === null || student === void 0 ? void 0 : student.studentInfo.studentName,
         fatherName: student === null || student === void 0 ? void 0 : student.studentInfo.fatherName,
