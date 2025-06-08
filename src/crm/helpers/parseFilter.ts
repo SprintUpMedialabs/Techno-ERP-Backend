@@ -10,8 +10,6 @@ export const parseFilter = (req: AuthenticatedRequest) => {
   const {
     startDate,
     endDate,
-    startLTCDate,// related to yellow lead table
-    endLTCDate,// related to yellow lead table
     startNextDueDate,
     endNextDueDate,
     leadType = [],
@@ -35,8 +33,6 @@ export const parseFilter = (req: AuthenticatedRequest) => {
     course,
     city,
     assignedTo,
-    startLTCDate,
-    endLTCDate,
     source,
     startNextDueDate,
     endNextDueDate,
@@ -92,15 +88,6 @@ export const parseFilter = (req: AuthenticatedRequest) => {
     }
   }
 
-  if (filters.startLTCDate || filters.endLTCDate) {
-    query.createdAt = {};
-    if (filters.startLTCDate) {
-      query.createdAt.$gte = convertToMongoDate(filters.startLTCDate);
-    }
-    if (filters.endLTCDate) {
-      query.createdAt.$lte = convertToMongoDate(filters.endLTCDate);
-    }
-  }
 
   if (filters.startNextDueDate || filters.endNextDueDate) {
     query.nextDueDate = {};
@@ -119,13 +106,7 @@ export const parseFilter = (req: AuthenticatedRequest) => {
 
   reversedSortBy.forEach((field, index) => {
     const direction = reversedOrderBy[index] === OrderBy.DESC ? -1 : 1;
-
-    if (field === SortableFields.LTC_DATE) {
-      sort['leadTypeModifiedDate'] = direction;
-    }
-    else {
-      sort[field] = direction;
-    }
+    sort[field] = direction;
     sort['_id'] = 1;
   });
 

@@ -25,8 +25,6 @@ export interface IAllLeadFilter {
   endDate?: string; // Date range end
   leadType: LeadType[]; // Lead Type Enum
   finalConversionType: FinalConversionType[];
-  startLTCDate?: string;
-  endLTCDate?: string;
   source: string[];
   startNextDueDate?: string;
   endNextDueDate?: string;
@@ -35,6 +33,7 @@ export interface IAllLeadFilter {
 export interface IAdminAnalyticsFilter {
   city: Locations[]; // Array for multiple locations
   assignedTo: Types.ObjectId[]; // Array for multiple assigned users | TODO: need to test this
+  school: string[];
   startDate?: string; // Date range start
   endDate?: string; // Date range end
   source?: string[];
