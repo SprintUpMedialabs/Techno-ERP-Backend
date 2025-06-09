@@ -143,8 +143,21 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
       type: [String],
       default:[]
     },
-    remarks: {
-      type: String
+    enquiryRemark: {
+      type: String,
+      default: ''
+    },
+    feeDetailsRemark: {
+      type: String,
+      default: ''
+    },
+    registarOfficeRemark: {
+      type: String,
+      default: ''
+    },
+    financeOfficeRemark: {
+      type: String,
+      default: ''
     },
     admittedBy: {
       type: Schema.Types.Mixed, // Allows ObjectId or String

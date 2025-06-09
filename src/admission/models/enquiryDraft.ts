@@ -138,7 +138,7 @@ export const enquiryDraftSchema = new Schema<IEnquiryDraftDocument>(
             type: [String], // Allows ObjectId or String
             default: []
         },
-        remarks: {
+        enquiryRemark: {
             type: String
         },
 
