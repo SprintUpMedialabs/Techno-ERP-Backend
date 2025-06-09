@@ -113,7 +113,7 @@ export const createStudent = async (id: any, studentData: ICreateStudentSchema) 
       fees: fees
     })
   };
-
+  
   const allSemestersSettled = semesterArray.every(
     (sem: any) => {
       if (!sem.fees?.dueDate)
@@ -154,7 +154,7 @@ const createSemesterFee = (id: any, semesterNumber: number, feesCourse: any): an
 
   if (semesterNumber === 1) {
     requiredFeeTypes = [
-      FinanceFeeType.HOSTEL,
+      FinanceFeeType.HOSTELYEARLY,
       FinanceFeeType.HOSTELCAUTIONMONEY,
       FinanceFeeType.HOSTELMAINTENANCE,
       FinanceFeeType.TRANSPORT,
@@ -168,7 +168,7 @@ const createSemesterFee = (id: any, semesterNumber: number, feesCourse: any): an
     ];
   } else if (semesterNumber % 2 === 1) {
     requiredFeeTypes = [
-      FinanceFeeType.HOSTEL,
+      FinanceFeeType.HOSTELYEARLY,
       FinanceFeeType.HOSTELMAINTENANCE,
       FinanceFeeType.TRANSPORT,
       FinanceFeeType.STUDENTWELFARE,
@@ -205,7 +205,7 @@ const createSemesterFee = (id: any, semesterNumber: number, feesCourse: any): an
     if (feeDetail) {
       if (semesterNumber % 2 === 0) {
         if (
-          type === FinanceFeeType.HOSTEL ||
+          type === FinanceFeeType.HOSTELYEARLY ||
           type === FinanceFeeType.TRANSPORT ||
           type === FinanceFeeType.PROSPECTUS ||
           type === FinanceFeeType.STUDENTID ||
@@ -255,7 +255,7 @@ const createSemesterFee = (id: any, semesterNumber: number, feesCourse: any): an
     details.push({
       type: FinanceFeeType.SEMESTERFEE,
       schedule: FinanceFeeSchedule[FinanceFeeType.SEMESTERFEE] ?? "YEARLY",
-      actualFee: semFeeInfo.actualFee || 0,
+      actualFee: semFeeInfo.feeAmount || 0,
       finalFee: semFeeInfo.finalFee || 0,
       paidAmount: semesterNumber == 1 ? getFeeDetail("SEM1FEE").feesDepositedTOA || 0 : 0,
       remark: "",
