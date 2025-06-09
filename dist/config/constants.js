@@ -371,6 +371,8 @@ var TransactionTypes;
 })(TransactionTypes || (exports.TransactionTypes = TransactionTypes = {}));
 var FinanceFeeType;
 (function (FinanceFeeType) {
+    FinanceFeeType["HOSTELCAUTIONMONEY"] = "HOSTELCAUTIONMONEY";
+    FinanceFeeType["HOSTELMAINTENANCE"] = "HOSTELMAINTENANCE";
     FinanceFeeType["HOSTEL"] = "HOSTEL";
     FinanceFeeType["TRANSPORT"] = "TRANSPORT";
     FinanceFeeType["PROSPECTUS"] = "PROSPECTUS";
@@ -385,6 +387,8 @@ var FinanceFeeType;
 var FinanceFeeSchedule;
 (function (FinanceFeeSchedule) {
     FinanceFeeSchedule["HOSTEL"] = "YEARLY";
+    FinanceFeeSchedule["HOSTELCAUTIONMONEY"] = "ONETIME";
+    FinanceFeeSchedule["HOSTELMAINTENANCE"] = "YEARLY";
     FinanceFeeSchedule["TRANSPORT"] = "YEARLY";
     FinanceFeeSchedule["PROSPECTUS"] = "ONETIME";
     FinanceFeeSchedule["STUDENTID"] = "ONETIME";

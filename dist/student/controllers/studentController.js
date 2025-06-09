@@ -160,6 +160,8 @@ const createSemesterFee = (id, semesterNumber, feesCourse) => {
     if (semesterNumber === 1) {
         requiredFeeTypes = [
             constants_1.FinanceFeeType.HOSTEL,
+            constants_1.FinanceFeeType.HOSTELCAUTIONMONEY,
+            constants_1.FinanceFeeType.HOSTELMAINTENANCE,
             constants_1.FinanceFeeType.TRANSPORT,
             constants_1.FinanceFeeType.PROSPECTUS,
             constants_1.FinanceFeeType.STUDENTID,
@@ -173,6 +175,7 @@ const createSemesterFee = (id, semesterNumber, feesCourse) => {
     else if (semesterNumber % 2 === 1) {
         requiredFeeTypes = [
             constants_1.FinanceFeeType.HOSTEL,
+            constants_1.FinanceFeeType.HOSTELMAINTENANCE,
             constants_1.FinanceFeeType.TRANSPORT,
             constants_1.FinanceFeeType.STUDENTWELFARE,
             constants_1.FinanceFeeType.BOOKBANK,
