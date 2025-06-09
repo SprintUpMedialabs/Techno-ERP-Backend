@@ -373,7 +373,7 @@ var FinanceFeeType;
 (function (FinanceFeeType) {
     FinanceFeeType["HOSTELCAUTIONMONEY"] = "HOSTELCAUTIONMONEY";
     FinanceFeeType["HOSTELMAINTENANCE"] = "HOSTELMAINTENANCE";
-    FinanceFeeType["HOSTEL"] = "HOSTEL";
+    FinanceFeeType["HOSTELYEARLY"] = "HOSTELYEARLY";
     FinanceFeeType["TRANSPORT"] = "TRANSPORT";
     FinanceFeeType["PROSPECTUS"] = "PROSPECTUS";
     FinanceFeeType["STUDENTID"] = "STUDENTID";
@@ -386,7 +386,7 @@ var FinanceFeeType;
 })(FinanceFeeType || (exports.FinanceFeeType = FinanceFeeType = {}));
 var FinanceFeeSchedule;
 (function (FinanceFeeSchedule) {
-    FinanceFeeSchedule["HOSTEL"] = "YEARLY";
+    FinanceFeeSchedule["HOSTELYEARLY"] = "YEARLY";
     FinanceFeeSchedule["HOSTELCAUTIONMONEY"] = "ONETIME";
     FinanceFeeSchedule["HOSTELMAINTENANCE"] = "YEARLY";
     FinanceFeeSchedule["TRANSPORT"] = "YEARLY";

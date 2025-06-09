@@ -52,7 +52,7 @@ const updateFeeDetails = (applicationStatusList, studentFeesData) => __awaiter(v
             return ({
                 finalFee: semFee.finalFee,
                 // feeAmount: (semWiseFee?.fee[index]) ?? 0
-                feeAmount: (_a = (semWiseFee[index].amount)) !== null && _a !== void 0 ? _a : 0,
+                feeAmount: (_a = (semWiseFee[index])) !== null && _a !== void 0 ? _a : 0,
                 feesPaid: index === 0 ? sem1FeeDepositedTOA : 0
             });
         }) });

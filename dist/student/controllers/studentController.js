@@ -159,7 +159,7 @@ const createSemesterFee = (id, semesterNumber, feesCourse) => {
     let requiredFeeTypes = [];
     if (semesterNumber === 1) {
         requiredFeeTypes = [
-            constants_1.FinanceFeeType.HOSTEL,
+            constants_1.FinanceFeeType.HOSTELYEARLY,
             constants_1.FinanceFeeType.HOSTELCAUTIONMONEY,
             constants_1.FinanceFeeType.HOSTELMAINTENANCE,
             constants_1.FinanceFeeType.TRANSPORT,
@@ -174,7 +174,7 @@ const createSemesterFee = (id, semesterNumber, feesCourse) => {
     }
     else if (semesterNumber % 2 === 1) {
         requiredFeeTypes = [
-            constants_1.FinanceFeeType.HOSTEL,
+            constants_1.FinanceFeeType.HOSTELYEARLY,
             constants_1.FinanceFeeType.HOSTELMAINTENANCE,
             constants_1.FinanceFeeType.TRANSPORT,
             constants_1.FinanceFeeType.STUDENTWELFARE,
@@ -206,7 +206,7 @@ const createSemesterFee = (id, semesterNumber, feesCourse) => {
         const feeUpdateHistory = [];
         if (feeDetail) {
             if (semesterNumber % 2 === 0) {
-                if (type === constants_1.FinanceFeeType.HOSTEL ||
+                if (type === constants_1.FinanceFeeType.HOSTELYEARLY ||
                     type === constants_1.FinanceFeeType.TRANSPORT ||
                     type === constants_1.FinanceFeeType.PROSPECTUS ||
                     type === constants_1.FinanceFeeType.STUDENTID ||
@@ -251,7 +251,7 @@ const createSemesterFee = (id, semesterNumber, feesCourse) => {
         details.push({
             type: constants_1.FinanceFeeType.SEMESTERFEE,
             schedule: (_a = constants_1.FinanceFeeSchedule[constants_1.FinanceFeeType.SEMESTERFEE]) !== null && _a !== void 0 ? _a : "YEARLY",
-            actualFee: semFeeInfo.actualFee || 0,
+            actualFee: semFeeInfo.feeAmount || 0,
             finalFee: semFeeInfo.finalFee || 0,
             paidAmount: semesterNumber == 1 ? getFeeDetail("SEM1FEE").feesDepositedTOA || 0 : 0,
             remark: "",
