@@ -23,18 +23,20 @@ export const getRecentEnquiryExcelSheetData = expressAsyncHandler(functionLevelL
 export const getRecentAdmissionExcelSheetData = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
     const admissionData = await Student.find({
         startingYear: moment().year()
-    });
+    }).lean();
     const studentData = admissionData.map((student) => {
+        console.log(student.semester[0].fees.details);
         const applicableFee = student.semester[0].fees.details.reduce((acc, fee) => acc + fee.actualFee, 0);
         const totalApplicableFee = student.semester.reduce((acc, sem) => acc + sem.fees.details.reduce((acc, fee) => acc + fee.actualFee, 0), 0);
         const finalFee = student.semester[0].fees.totalFinalFee;
         const totalFinalFee = student.semester.reduce((acc, sem) => acc + sem.fees.totalFinalFee, 0);
+        console.log(applicableFee, totalApplicableFee, finalFee, totalFinalFee);
         return {
-            ...student,
+            ...student.studentInfo,
             applicableFee,
-            totalApplicableFee,
             finalFee,
-            totalFinalFee
+            discountApplicable: applicableFee - finalFee,
+            totalDiscountApplicable: totalApplicableFee - totalFinalFee,
         }
     });
     return formatResponse(res, 200, 'Recent admission excel sheet data fetched successfully', true, studentData);
