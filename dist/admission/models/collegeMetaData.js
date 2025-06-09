@@ -43,6 +43,8 @@ exports.collegeMetaDataSchema = new mongoose_1.Schema({
     fullAffiliation: { type: String },
     websiteLink: { type: String },
     collegeEmail: { type: String },
-    collegeContact: { type: String }
+    collegeContact: { type: String },
+    collegeFeeEmail: { type: String },
+    collegeFeeContact: { type: String }
 });
 exports.CollegeMetaData = mongoose_1.default.model(constants_1.COLLECTION_NAMES.COLLEGE_META_DATA, exports.collegeMetaDataSchema);

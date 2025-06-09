@@ -170,7 +170,7 @@ exports.enquiryDraftSchema = new mongoose_1.Schema({
         type: [String], // Allows ObjectId or String
         default: []
     },
-    remarks: {
+    enquiryRemark: {
         type: String
     },
     gender: {

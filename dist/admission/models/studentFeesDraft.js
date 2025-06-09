@@ -26,9 +26,6 @@ const StudentFeesDraftSchema = new mongoose_1.Schema({
         type: Date,
         required: false
     },
-    // remarks: {
-    //   type: String
-    // }
 }, { timestamps: true });
 const handleMongooseError = (error, next) => {
     if (error.name === 'ValidationError') {

@@ -84,8 +84,8 @@ exports.createFeeDraft = (0, express_async_handler_1.default)((0, functionLevelL
         if (data.srAmount != null) {
             enquiryDataUpdate.srAmount = data.srAmount;
         }
-        if (data.remarks != null)
-            enquiryDataUpdate.remarks = data.remarks;
+        if (data.feeDetailsRemark != null)
+            enquiryDataUpdate.feeDetailsRemark = data.feeDetailsRemark;
         if (data.isFeeApplicable != null)
             enquiryDataUpdate.isFeeApplicable = data.isFeeApplicable;
         yield enquiry_1.Enquiry.findByIdAndUpdate(data.enquiryId, { $set: enquiryDataUpdate }, { session });
@@ -145,8 +145,11 @@ exports.updateFeeDraft = (0, express_async_handler_1.default)((0, functionLevelL
         if (data.srAmount != null) {
             enquiryData.srAmount = data.srAmount;
         }
-        if (validation.data.remarks != null) {
-            enquiryData.remarks = validation.data.remarks;
+        if (validation.data.feeDetailsRemark != null) {
+            enquiryData.feeDetailsRemark = validation.data.feeDetailsRemark;
+        }
+        if (validation.data.financeOfficeRemark != null) {
+            enquiryData.financeOfficeRemark = validation.data.financeOfficeRemark;
         }
         if (validation.data.isFeeApplicable != null) {
             enquiryData.isFeeApplicable = validation.data.isFeeApplicable;

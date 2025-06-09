@@ -10,9 +10,7 @@ const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDa
 // We need to add here one for LTC of yellow leads for allowing analytics of yellow leads table on that => createdAt pe kaam kar raha hai ab
 const parseFilter = (req) => {
     var _a, _b, _c, _d, _e;
-    const { startDate, endDate, startLTCDate, // related to yellow lead table
-    endLTCDate, // related to yellow lead table
-    startNextDueDate, endNextDueDate, leadType = [], finalConversionType = [], // related to yellow lead table
+    const { startDate, endDate, startNextDueDate, endNextDueDate, leadType = [], finalConversionType = [], // related to yellow lead table
     course = [], city = [], assignedTo = [], page = 1, limit = 10, sortBy = [], orderBy = [], search = '', source = [] } = req.body;
     const filters = {
         startDate,
@@ -22,8 +20,6 @@ const parseFilter = (req) => {
         course,
         city,
         assignedTo,
-        startLTCDate,
-        endLTCDate,
         source,
         startNextDueDate,
         endNextDueDate,
@@ -65,15 +61,6 @@ const parseFilter = (req) => {
             query.date.$lte = (0, convertDateToFormatedDate_1.convertToMongoDate)(filters.endDate);
         }
     }
-    if (filters.startLTCDate || filters.endLTCDate) {
-        query.createdAt = {};
-        if (filters.startLTCDate) {
-            query.createdAt.$gte = (0, convertDateToFormatedDate_1.convertToMongoDate)(filters.startLTCDate);
-        }
-        if (filters.endLTCDate) {
-            query.createdAt.$lte = (0, convertDateToFormatedDate_1.convertToMongoDate)(filters.endLTCDate);
-        }
-    }
     if (filters.startNextDueDate || filters.endNextDueDate) {
         query.nextDueDate = {};
         if (filters.startNextDueDate) {
@@ -88,12 +75,7 @@ const parseFilter = (req) => {
     let sort = {};
     reversedSortBy.forEach((field, index) => {
         const direction = reversedOrderBy[index] === "desc" /* OrderBy.DESC */ ? -1 : 1;
-        if (field === "startLTCDate" /* SortableFields.LTC_DATE */) {
-            sort['leadTypeModifiedDate'] = direction;
-        }
-        else {
-            sort[field] = direction;
-        }
+        sort[field] = direction;
         sort['_id'] = 1;
     });
     return {
