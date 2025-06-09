@@ -74,7 +74,7 @@ export const fetchCourseFeeByCourse = async (courseCode: String) => {
     courseFee.forEach((fee) => {
         if(fee.type == FeeType.EDUCATION)
             feeAmt = fee.fees;
-    })
+    });
     return feeAmt || null;
 };
 
