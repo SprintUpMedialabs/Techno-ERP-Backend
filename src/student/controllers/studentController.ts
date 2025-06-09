@@ -155,6 +155,8 @@ const createSemesterFee = (id: any, semesterNumber: number, feesCourse: any): an
   if (semesterNumber === 1) {
     requiredFeeTypes = [
       FinanceFeeType.HOSTEL,
+      FinanceFeeType.HOSTELCAUTIONMONEY,
+      FinanceFeeType.HOSTELMAINTENANCE,
       FinanceFeeType.TRANSPORT,
       FinanceFeeType.PROSPECTUS,
       FinanceFeeType.STUDENTID,
@@ -167,6 +169,7 @@ const createSemesterFee = (id: any, semesterNumber: number, feesCourse: any): an
   } else if (semesterNumber % 2 === 1) {
     requiredFeeTypes = [
       FinanceFeeType.HOSTEL,
+      FinanceFeeType.HOSTELMAINTENANCE,
       FinanceFeeType.TRANSPORT,
       FinanceFeeType.STUDENTWELFARE,
       FinanceFeeType.BOOKBANK,

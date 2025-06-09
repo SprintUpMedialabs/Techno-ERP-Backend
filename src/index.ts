@@ -9,8 +9,8 @@ import logger from './config/logger';
 import { validateEnvVariables } from './config/validateEnv';
 import { errorHandler } from './middleware/error';
 import { apiRouter } from './route';
-import { v1Router } from './v1Router';
 import { PORT } from './secrets';
+import { v1Router } from './v1Router';
 
 const app = express();
 
