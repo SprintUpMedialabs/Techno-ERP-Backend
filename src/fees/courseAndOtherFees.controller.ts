@@ -96,7 +96,7 @@ export const fetchOtherFees = async (courseCode : String) => {
     })
     
     const bookBankAmt : IFeeItem = {
-        type: "Book Bank",
+        type: "BOOKBANK",
         amount: feeAmt[0]
     }
 
