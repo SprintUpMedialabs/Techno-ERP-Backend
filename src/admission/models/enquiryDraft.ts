@@ -64,8 +64,7 @@ export const enquiryDraftSchema = new Schema<IEnquiryDraftDocument>(
             required: false
         },
         fatherOccupation: {
-            type: String,
-            required: false
+            type: String
         },
         motherName: {
             type: String,
@@ -80,8 +79,7 @@ export const enquiryDraftSchema = new Schema<IEnquiryDraftDocument>(
             required: false
         },
         motherOccupation: {
-            type: String,
-            required: false
+            type: String
         },
         dateOfBirth: {
             type: Date,
