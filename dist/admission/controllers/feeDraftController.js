@@ -1,0 +1,167 @@
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.updateFeeDraft = exports.createFeeDraft = void 0;
+const express_async_handler_1 = __importDefault(require("express-async-handler"));
+const http_errors_1 = __importDefault(require("http-errors"));
+const mongoose_1 = __importDefault(require("mongoose"));
+const constants_1 = require("../../config/constants");
+const functionLevelLogging_1 = require("../../config/functionLevelLogging");
+const courseAndOtherFees_controller_1 = require("../../fees/courseAndOtherFees.controller");
+const formatResponse_1 = require("../../utils/formatResponse");
+const enquiry_1 = require("../models/enquiry");
+const studentFeesDraft_1 = require("../models/studentFeesDraft");
+const studentFees_1 = require("../validators/studentFees");
+exports.createFeeDraft = (0, express_async_handler_1.default)((0, functionLevelLogging_1.functionLevelLogger)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c, _d, _e;
+    const data = req.body;
+    const validation = studentFees_1.feesDraftRequestSchema.safeParse(data);
+    if (!validation.success) {
+        throw (0, http_errors_1.default)(400, validation.error.errors[0].message);
+    }
+    const enquiry = yield enquiry_1.Enquiry.findOne({
+        _id: data.enquiryId,
+        applicationStatus: constants_1.ApplicationStatus.STEP_2
+    }, { course: 1 })
+        .lean();
+    if (!enquiry) {
+        throw (0, http_errors_1.default)(400, 'Valid enquiry does not exist. Please complete step 1 first!');
+    }
+    const otherFees = yield (0, courseAndOtherFees_controller_1.fetchOtherFees)(enquiry.course);
+    const semWiseFee = yield (0, courseAndOtherFees_controller_1.fetchCourseFeeByCourse)(enquiry.course);
+    if (!semWiseFee) {
+        throw (0, http_errors_1.default)(500, 'Semester-wise fee structure not found for the course');
+    }
+    const _f = validation.data, { counsellor, telecaller } = _f, feeRelatedData = __rest(_f, ["counsellor", "telecaller"]);
+    const sem1FeeDepositedTOA = (_c = (_b = (_a = feeRelatedData.otherFees) === null || _a === void 0 ? void 0 : _a.find(fee => fee.type === 'SEM1FEE')) === null || _b === void 0 ? void 0 : _b.feesDepositedTOA) !== null && _c !== void 0 ? _c : 0;
+    const feeData = Object.assign(Object.assign({}, feeRelatedData), { otherFees: ((_d = feeRelatedData.otherFees) === null || _d === void 0 ? void 0 : _d.map(fee => {
+            var _a, _b, _c, _d;
+            let feeAmount = fee.feeAmount;
+            // feeAmount = feeAmount ?? otherFees?.find(otherFee => otherFee.type === fee.type)?.fee ?? 0;
+            feeAmount = (_b = (_a = otherFees === null || otherFees === void 0 ? void 0 : otherFees.find(otherFee => otherFee.type === fee.type)) === null || _a === void 0 ? void 0 : _a.amount) !== null && _b !== void 0 ? _b : 0;
+            return Object.assign(Object.assign({}, fee), { feeAmount, finalFee: (_c = fee.finalFee) !== null && _c !== void 0 ? _c : 0, feesDepositedTOA: (_d = fee.feesDepositedTOA) !== null && _d !== void 0 ? _d : 0 });
+        })) || [], semWiseFees: ((_e = feeRelatedData.semWiseFees) === null || _e === void 0 ? void 0 : _e.map((semFee, index) => {
+            var _a, _b, _c;
+            return ({
+                feeAmount: (_b = (_a = semFee.feeAmount) !== null && _a !== void 0 ? _a : semWiseFee[index]) !== null && _b !== void 0 ? _b : 0,
+                finalFee: (_c = semFee.finalFee) !== null && _c !== void 0 ? _c : 0,
+                feesPaid: index === 0 ? sem1FeeDepositedTOA : 0
+            });
+        })) || [] });
+    const session = yield mongoose_1.default.startSession();
+    session.startTransaction();
+    try {
+        const feesDraftList = yield studentFeesDraft_1.StudentFeesDraftModel.create([feeData], { session });
+        const feesDraft = feesDraftList[0];
+        const enquiryDataUpdate = {
+            studentFeeDraft: feesDraft._id, counsellor, telecaller
+        };
+        if (data.references != null) {
+            enquiryDataUpdate.references = data.references;
+        }
+        if (data.srAmount != null) {
+            enquiryDataUpdate.srAmount = data.srAmount;
+        }
+        if (data.feeDetailsRemark != null)
+            enquiryDataUpdate.feeDetailsRemark = data.feeDetailsRemark;
+        if (data.isFeeApplicable != null)
+            enquiryDataUpdate.isFeeApplicable = data.isFeeApplicable;
+        yield enquiry_1.Enquiry.findByIdAndUpdate(data.enquiryId, { $set: enquiryDataUpdate }, { session });
+        yield session.commitTransaction();
+        session.endSession();
+        return (0, formatResponse_1.formatResponse)(res, 201, 'Fees Draft created successfully', true, feesDraft);
+    }
+    catch (error) {
+        yield session.abortTransaction();
+        session.endSession();
+        throw (0, http_errors_1.default)(error);
+    }
+})));
+exports.updateFeeDraft = (0, express_async_handler_1.default)((0, functionLevelLogging_1.functionLevelLogger)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    let data = req.body;
+    const validation = studentFees_1.feesDraftUpdateSchema.safeParse(data);
+    if (!validation.success) {
+        throw (0, http_errors_1.default)(400, validation.error.errors[0].message);
+    }
+    const enquiry = yield enquiry_1.Enquiry.findOne({
+        _id: data.enquiryId,
+        applicationStatus: constants_1.ApplicationStatus.STEP_2
+    }, { course: 1 })
+        .lean();
+    if (!enquiry) {
+        throw (0, http_errors_1.default)(404, 'Not a valid enquiry');
+    }
+    const otherFees = yield (0, courseAndOtherFees_controller_1.fetchOtherFees)(enquiry.course);
+    const semWiseFee = yield (0, courseAndOtherFees_controller_1.fetchCourseFeeByCourse)(enquiry.course);
+    if (!semWiseFee) {
+        throw (0, http_errors_1.default)(500, 'Semester-wise fee structure not found for the course');
+    }
+    const _c = validation.data, { counsellor, telecaller } = _c, feeRelatedData = __rest(_c, ["counsellor", "telecaller"]);
+    const updateData = Object.assign(Object.assign({}, feeRelatedData), { otherFees: ((_a = feeRelatedData.otherFees) === null || _a === void 0 ? void 0 : _a.map(fee => {
+            var _a, _b, _c, _d;
+            let feeAmount = fee.feeAmount;
+            // feeAmount = otherFees?.find(otherFee => otherFee.type === fee.type)?.amount ?? 0;
+            feeAmount = (_b = (_a = otherFees === null || otherFees === void 0 ? void 0 : otherFees.find(otherFee => otherFee.type === fee.type)) === null || _a === void 0 ? void 0 : _a.amount) !== null && _b !== void 0 ? _b : 0;
+            return Object.assign(Object.assign({}, fee), { feeAmount, finalFee: (_c = fee.finalFee) !== null && _c !== void 0 ? _c : 0, feesDepositedTOA: (_d = fee.feesDepositedTOA) !== null && _d !== void 0 ? _d : 0 });
+        })) || [], semWiseFees: ((_b = feeRelatedData.semWiseFees) === null || _b === void 0 ? void 0 : _b.map((semFee, index) => {
+            var _a, _b, _c;
+            return ({
+                // feeAmount: semFee.feeAmount ?? semWiseFee?.fee[index] ?? 0,
+                feeAmount: (_b = (_a = semFee.feeAmount) !== null && _a !== void 0 ? _a : semWiseFee[index]) !== null && _b !== void 0 ? _b : 0,
+                finalFee: (_c = semFee.finalFee) !== null && _c !== void 0 ? _c : 0
+            });
+        })) || [] });
+    const session = yield mongoose_1.default.startSession();
+    session.startTransaction();
+    try {
+        const updatedDraft = yield studentFeesDraft_1.StudentFeesDraftModel.findByIdAndUpdate(data.id, { $set: updateData }, { new: true, runValidators: true, session });
+        const enquiryData = { counsellor, telecaller };
+        if (data.references != null) {
+            enquiryData.references = data.references;
+        }
+        if (data.srAmount != null) {
+            enquiryData.srAmount = data.srAmount;
+        }
+        if (validation.data.feeDetailsRemark != null) {
+            enquiryData.feeDetailsRemark = validation.data.feeDetailsRemark;
+        }
+        if (validation.data.financeOfficeRemark != null) {
+            enquiryData.financeOfficeRemark = validation.data.financeOfficeRemark;
+        }
+        if (validation.data.isFeeApplicable != null) {
+            enquiryData.isFeeApplicable = validation.data.isFeeApplicable;
+        }
+        yield enquiry_1.Enquiry.findByIdAndUpdate(data.enquiryId, { $set: enquiryData }, { session });
+        yield session.commitTransaction();
+        session.endSession();
+        return (0, formatResponse_1.formatResponse)(res, 200, 'Fees Draft updated successfully', true, updatedDraft);
+    }
+    catch (error) {
+        yield session.abortTransaction();
+        session.endSession();
+        throw (0, http_errors_1.default)(error);
+    }
+})));
