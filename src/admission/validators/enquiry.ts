@@ -24,11 +24,11 @@ export const enquirySchema = z.object({
 
   fatherName: z.string({ required_error: "Father Name is required", }).nonempty("Father's Name is required"),
   fatherPhoneNumber: contactNumberSchema,
-  fatherOccupation: z.string({ required_error: "Father occupation is required", }).nonempty('Father occupation is required'),
+  fatherOccupation: z.string().optional(),
 
   motherName: z.string({ required_error: "Mother's Name is required", }).nonempty("Mother's Name is required"),
   motherPhoneNumber: contactNumberSchema.optional(),
-  motherOccupation: z.string({ required_error: "Mother occupation is required", }).nonempty('Mother occupation is required'),
+  motherOccupation: z.string().optional(),
 
 
   dateOfBirth: requestDateSchema.transform((date) =>

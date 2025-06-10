@@ -55,10 +55,8 @@ const StudentBaseInfoSchema = new Schema<IStudentBasicInfoDocument>({
         }
     },
     fatherOccupation: {
-        type: String,
-        required: [true, 'Father occupation is required']
+        type: String
     },
-
     motherName: {
         type: String,
         required: [true, "Mother's Name is required"]
@@ -74,8 +72,7 @@ const StudentBaseInfoSchema = new Schema<IStudentBasicInfoDocument>({
         }
     },
     motherOccupation: {
-        type: String,
-        required: [true, 'Mother occupation is required']
+        type: String
     },
 
     emailId: {
