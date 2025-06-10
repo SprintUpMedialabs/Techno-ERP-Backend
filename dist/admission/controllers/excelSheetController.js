@@ -34,16 +34,16 @@ exports.getRecentEnquiryExcelSheetData = (0, express_async_handler_1.default)((0
 exports.getRecentAdmissionExcelSheetData = (0, express_async_handler_1.default)((0, functionLevelLogging_1.functionLevelLogger)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const admissionData = yield student_1.Student.find({
         startingYear: (0, moment_timezone_1.default)().year()
-    });
+    }).lean();
     const studentData = admissionData.map((student) => {
+        console.log(student.semester[0].fees.details);
         const applicableFee = student.semester[0].fees.details.reduce((acc, fee) => acc + fee.actualFee, 0);
         const totalApplicableFee = student.semester.reduce((acc, sem) => acc + sem.fees.details.reduce((acc, fee) => acc + fee.actualFee, 0), 0);
         const finalFee = student.semester[0].fees.totalFinalFee;
         const totalFinalFee = student.semester.reduce((acc, sem) => acc + sem.fees.totalFinalFee, 0);
-        return Object.assign(Object.assign({}, student), { applicableFee,
-            totalApplicableFee,
-            finalFee,
-            totalFinalFee });
+        console.log(applicableFee, totalApplicableFee, finalFee, totalFinalFee);
+        return Object.assign(Object.assign({}, student.studentInfo), { applicableFee,
+            finalFee, discountApplicable: applicableFee - finalFee, totalDiscountApplicable: totalApplicableFee - totalFinalFee });
     });
     return (0, formatResponse_1.formatResponse)(res, 200, 'Recent admission excel sheet data fetched successfully', true, studentData);
 })));
