@@ -25,12 +25,10 @@ export const getRecentAdmissionExcelSheetData = expressAsyncHandler(functionLeve
         startingYear: moment().year()
     }).lean();
     const studentData = admissionData.map((student) => {
-        console.log(student.semester[0].fees.details);
         const applicableFee = student.semester[0].fees.details.reduce((acc, fee) => acc + fee.actualFee, 0);
         const totalApplicableFee = student.semester.reduce((acc, sem) => acc + sem.fees.details.reduce((acc, fee) => acc + fee.actualFee, 0), 0);
         const finalFee = student.semester[0].fees.totalFinalFee;
         const totalFinalFee = student.semester.reduce((acc, sem) => acc + sem.fees.totalFinalFee, 0);
-        console.log(applicableFee, totalApplicableFee, finalFee, totalFinalFee);
         return {
             ...student.studentInfo,
             applicableFee,

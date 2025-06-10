@@ -131,8 +131,7 @@ export const getEnquiryById = expressAsyncHandler(functionLevelLogger(async (req
       throw createHttpError(404, 'Enquiry not found');
     }
   } else {
-    const course = enquiry.course;
-
+    console.log(enquiry)
     const enquiryPayload = {
       ...enquiry.toObject(),
       collegeName: collegeMetaData?.fullCollegeName ?? null,
