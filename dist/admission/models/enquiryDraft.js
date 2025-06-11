@@ -171,6 +171,13 @@ exports.enquiryDraftSchema = new mongoose_1.Schema({
     enquiryRemark: {
         type: String
     },
+    dateOfAdmission: {
+        type: Date,
+        set: (value) => {
+            return (0, convertDateToFormatedDate_1.convertToMongoDate)(value);
+        },
+        required: false
+    },
     gender: {
         type: String,
         enum: {
@@ -204,7 +211,7 @@ exports.enquiryDraftSchema.post('findOneAndUpdate', function (error, doc, next) 
     handleDraftMongooseError(error, next);
 });
 const transformDates = (_, ret) => {
-    ['dateOfEnquiry', 'dateOfBirth'].forEach((key) => {
+    ['dateOfEnquiry', 'dateOfBirth', 'dateOfAdmission'].forEach((key) => {
         if (ret[key]) {
             ret[key] = (0, convertDateToFormatedDate_1.convertToDDMMYYYY)(ret[key]);
         }

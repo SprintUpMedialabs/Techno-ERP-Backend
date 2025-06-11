@@ -76,7 +76,7 @@ exports.getRecentAdmissionExcelSheetData = (0, express_async_handler_1.default)(
         const finalFee = ((_h = (_g = (_f = student.semester) === null || _f === void 0 ? void 0 : _f[0]) === null || _g === void 0 ? void 0 : _g.fees) === null || _h === void 0 ? void 0 : _h.totalFinalFee) || 0;
         const totalFinalFee = ((_j = student.semester) === null || _j === void 0 ? void 0 : _j.reduce((acc, sem) => acc + sem.fees.totalFinalFee, 0)) || 0;
         return Object.assign(Object.assign({}, student.studentInfo), { applicableFee,
-            finalFee, discountApplicable: applicableFee - finalFee, totalDiscountApplicable: totalApplicableFee - totalFinalFee, telecaller: student.telecaller || [], counsellor: student.counsellor || [], enquiryRemark: student.enquiryRemark || '', feeDetailsRemark: student.feeDetailsRemark || '', registarOfficeRemark: student.registarOfficeRemark || '', financeOfficeRemark: student.financeOfficeRemark || '' });
+            finalFee, discountApplicable: applicableFee - finalFee, totalDiscountApplicable: totalApplicableFee - totalFinalFee, telecaller: student.telecaller || [], dateOfAdmission: student.dateOfAdmission, course: student.course, counsellor: student.counsellor || [], enquiryRemark: student.enquiryRemark || '', feeDetailsRemark: student.feeDetailsRemark || '', registarOfficeRemark: student.registarOfficeRemark || '', financeOfficeRemark: student.financeOfficeRemark || '' });
     });
     return (0, formatResponse_1.formatResponse)(res, 200, 'Recent admission excel sheet data fetched successfully', true, formattedData);
 })));
