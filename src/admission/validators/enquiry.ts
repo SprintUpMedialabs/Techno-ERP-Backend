@@ -88,7 +88,7 @@ export const enquirySchema = z.object({
 
 // Final schema for request (omitting feesDraftId and making it strict)
 export const enquiryStep1RequestSchema = enquirySchema
-  .omit({ studentFee: true, studentFeeDraft: true, dateOfAdmission: true, bloodGroup: true, aadharNumber: true, religion: true, previousCollegeData: true, documents: true, applicationStatus: true, entranceExamDetails: true, nationality: true, stateOfDomicile: true, areaType: true, admittedBy: true })
+  .omit({ studentFee: true, studentFeeDraft: true, bloodGroup: true, aadharNumber: true, religion: true, previousCollegeData: true, documents: true, applicationStatus: true, entranceExamDetails: true, nationality: true, stateOfDomicile: true, areaType: true, admittedBy: true })
   .extend({ id: objectIdSchema.optional() })
   .strict();
 
