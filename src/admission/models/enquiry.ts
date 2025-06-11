@@ -16,7 +16,6 @@ export interface IEnquiryDocument extends IEnquirySchema, Document {
   date: Date;
   photoNo: number;
   universityId: string;
-  admittedThrough: string;
 }
 
 export const enquirySchema = new Schema<IEnquiryDocument>(

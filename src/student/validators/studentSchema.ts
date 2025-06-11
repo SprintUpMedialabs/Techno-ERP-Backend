@@ -195,7 +195,7 @@ export const updateStudentDetailsRequestSchema = z.object({
     academicDetails: academicDetailsArraySchema.optional(),
     entranceExamDetails: entranceExamDetailSchema.optional(),
 
-    references: z.array(z.nativeEnum(AdmissionReference)),
+    references: z.array(z.nativeEnum(AdmissionReference)).optional(),
     srAmount: z.number().optional(),
 }).strict();
 

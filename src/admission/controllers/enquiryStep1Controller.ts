@@ -23,8 +23,6 @@ export const createEnquiry = expressAsyncHandler(functionLevelLogger(async (req:
     throw createHttpError(400, validation.error.errors[0]);
   }
 
-  const admittedThrough = enquiryData.course === Course.BED ? AdmittedThrough.COUNSELLING : AdmittedThrough.DIRECT;
-
   const enquiry = await Enquiry.findById(id);
   if (enquiry) {
     throw createHttpError(400, 'Enquiry already exists');
@@ -40,7 +38,7 @@ export const createEnquiry = expressAsyncHandler(functionLevelLogger(async (req:
         throw formatResponse(res, 404, 'Error occurred while deleting the enquiry draft', true);
       }
     }
-    const savedResult = await Enquiry.create([{ ...enquiryData, _id: id, admittedThrough, applicationStatus: ApplicationStatus.STEP_2 }], { session });
+    const savedResult = await Enquiry.create([{ ...enquiryData, _id: id, applicationStatus: ApplicationStatus.STEP_2 }], { session });
     const enquiry = savedResult[0];
 
     updateOnlyOneValueInDropDown(DropDownType.DISTRICT, enquiry.address?.district);
