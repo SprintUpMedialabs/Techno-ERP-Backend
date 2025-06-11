@@ -94,6 +94,8 @@ export const getRecentAdmissionExcelSheetData = expressAsyncHandler(functionLeve
             discountApplicable: applicableFee - finalFee,
             totalDiscountApplicable: totalApplicableFee - totalFinalFee,
             telecaller: student.telecaller || [],
+            dateOfAdmission: student.dateOfAdmission,
+            course: student.course,
             counsellor: student.counsellor || [],
             enquiryRemark: student.enquiryRemark || '',
             feeDetailsRemark: student.feeDetailsRemark || '',
