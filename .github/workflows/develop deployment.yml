@@ -33,6 +33,12 @@ jobs:
           source: "dist/*"
           target: "/home/ubuntu/ERP"
 
+      - name: Debug current directory and files
+        run: |
+          echo "Current working directory: $(pwd)"
+          ls -la
+
+
       - name: Upload package files to EC2
         uses: appleboy/scp-action@v0.1.4
         with:
