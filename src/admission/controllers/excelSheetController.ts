@@ -96,7 +96,7 @@ export const getRecentAdmissionExcelSheetData = expressAsyncHandler(functionLeve
             telecaller: student.telecaller || [],
             dateOfAdmission: student.dateOfAdmission,
             course: student.course,
-            counsellor: student.counsellor || [],
+             counsellor: student.counsellor || [],
             enquiryRemark: student.enquiryRemark || '',
             feeDetailsRemark: student.feeDetailsRemark || '',
             registarOfficeRemark: student.registarOfficeRemark || '',
