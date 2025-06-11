@@ -59,6 +59,8 @@ exports.getRecentAdmissionExcelSheetData = (0, express_async_handler_1.default)(
                 "studentInfo": 1,
                 "semester": 1,
                 "telecaller": "$enquiry.telecaller",
+                "course": "$enquiry.course",
+                "dateOfAdmission": "$enquiry.dateOfAdmission",
                 "counsellor": "$enquiry.counsellor",
                 "enquiryRemark": "$enquiry.enquiryRemark",
                 "feeDetailsRemark": "$enquiry.feeDetailsRemark",

@@ -159,6 +159,6 @@ exports.updateStudentDetailsRequestSchema = zod_1.z.object({
     address: commonSchema_1.addressSchema,
     academicDetails: academicDetailSchema_1.academicDetailsArraySchema.optional(),
     entranceExamDetails: entranceExamDetailSchema_1.entranceExamDetailSchema.optional(),
-    references: zod_1.z.array(zod_1.z.nativeEnum(constants_1.AdmissionReference)),
+    references: zod_1.z.array(zod_1.z.nativeEnum(constants_1.AdmissionReference)).optional(),
     srAmount: zod_1.z.number().optional(),
 }).strict();

@@ -193,7 +193,7 @@ exports.approveEnquiry = (0, express_async_handler_1.default)((0, functionLevelL
         }
         const createTransaction = yield collegeTransactionHistory_1.CollegeTransaction.create([{
                 studentId: enquiry._id,
-                dateTime: new Date(),
+                dateTime: enquiry.dateOfAdmission,
                 feeAction: constants_1.FeeActions.DEPOSIT,
                 amount: transactionAmount,
                 txnType: transactionType !== null && transactionType !== void 0 ? transactionType : constants_1.TransactionTypes.CASH,

@@ -53,11 +53,12 @@ exports.enquirySchema = zod_1.z.object({
     religion: zod_1.z.nativeEnum(constants_1.Religion).optional(),
     bloodGroup: zod_1.z.nativeEnum(constants_1.BloodGroup).optional(),
     admittedBy: zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['Other'])]).optional(),
-    isFeeApplicable: zod_1.z.boolean().default(true)
+    isFeeApplicable: zod_1.z.boolean().default(true),
+    admittedThrough: zod_1.z.nativeEnum(constants_1.AdmittedThrough).default(constants_1.AdmittedThrough.DIRECT).optional()
 });
 // Final schema for request (omitting feesDraftId and making it strict)
 exports.enquiryStep1RequestSchema = exports.enquirySchema
-    .omit({ studentFee: true, studentFeeDraft: true, dateOfAdmission: true, bloodGroup: true, aadharNumber: true, religion: true, previousCollegeData: true, documents: true, applicationStatus: true, entranceExamDetails: true, nationality: true, stateOfDomicile: true, areaType: true, admittedBy: true })
+    .omit({ studentFee: true, studentFeeDraft: true, bloodGroup: true, aadharNumber: true, religion: true, previousCollegeData: true, documents: true, applicationStatus: true, entranceExamDetails: true, nationality: true, stateOfDomicile: true, areaType: true, admittedBy: true })
     .extend({ id: commonSchema_1.objectIdSchema.optional() })
     .strict();
 exports.enquiryStep1UpdateRequestSchema = exports.enquiryStep1RequestSchema.extend({
