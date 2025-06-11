@@ -1,4 +1,4 @@
-name: Develop Deploy to EC2
+name: Deploy to EC2 from develop-data-upload
 
 on:
   push:
@@ -6,16 +6,39 @@ on:
       - develop-data-upload
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: SSH into EC2 and deploy
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.16.0'
+
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Build project
+        run: npm run build
+
+      - name: Upload built files to EC2
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "dist/*"        # or whatever your build output is
+          target: "/home/ubuntu/ERP/dist"
+
+      - name: Restart app on EC2 via SSH
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd Techno-ERP-Backend
-            git switch develop-data-upload
-            pm2 restart 2
+            cd /home/ubuntu/ERP
+            pm2 start dist/index.js   # or specific index/file
