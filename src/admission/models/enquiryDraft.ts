@@ -139,7 +139,13 @@ export const enquiryDraftSchema = new Schema<IEnquiryDraftDocument>(
         enquiryRemark: {
             type: String
         },
-
+        dateOfAdmission: {
+            type: Date,
+            set: (value: string) => {
+                return convertToMongoDate(value);
+            },
+            required: false
+        },
         gender: {
             type: String,
             enum: {
@@ -179,7 +185,7 @@ enquiryDraftSchema.post('findOneAndUpdate', function (error: any, doc: any, next
 
 
 const transformDates = (_: any, ret: any) => {
-    ['dateOfEnquiry', 'dateOfBirth'].forEach((key) => {
+    ['dateOfEnquiry', 'dateOfBirth', 'dateOfAdmission'].forEach((key) => {
         if (ret[key]) {
             ret[key] = convertToDDMMYYYY(ret[key]);
         }
