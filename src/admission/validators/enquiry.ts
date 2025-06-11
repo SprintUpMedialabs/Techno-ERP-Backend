@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AdmissionMode, AdmissionReference, ApplicationStatus, AreaType, BloodGroup, Category, Gender, Religion, StatesOfIndia } from '../../config/constants';
+import { AdmissionMode, AdmissionReference, AdmittedThrough, ApplicationStatus, AreaType, BloodGroup, Category, Gender, Religion, StatesOfIndia } from '../../config/constants';
 import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import {
   addressSchema,
@@ -81,7 +81,8 @@ export const enquirySchema = z.object({
   religion: z.nativeEnum(Religion).optional(),
   bloodGroup: z.nativeEnum(BloodGroup).optional(),
   admittedBy: z.union([objectIdSchema, z.enum(['Other'])]).optional(),
-  isFeeApplicable : z.boolean().default(true)
+  isFeeApplicable : z.boolean().default(true),
+  admittedThrough: z.nativeEnum(AdmittedThrough).default(AdmittedThrough.DIRECT).optional()
 });
 
 
