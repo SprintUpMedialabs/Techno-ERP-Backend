@@ -51,7 +51,13 @@ export const getEnquiryData = expressAsyncHandler(functionLevelLogger(async (req
     {
       $project: {
         _id: 1,
-        dateOfEnquiry: { $dateToString: { format: "%d-%m-%Y", date: "$dateOfEnquiry" } },
+        dateOfEnquiry: {
+          $dateToString: {
+            format: "%d/%m/%Y",
+            date: "$dateOfEnquiry",
+            timezone: "Asia/Kolkata"
+          }
+        },        
         studentName: 1,
         studentPhoneNumber: 1,
         gender: 1,
@@ -72,7 +78,13 @@ export const getEnquiryData = expressAsyncHandler(functionLevelLogger(async (req
           {
             $project: {
               _id: 1,
-              dateOfEnquiry: { $dateToString: { format: "%d-%m-%Y", date: "$dateOfEnquiry" } },
+              dateOfEnquiry: {
+                $dateToString: {
+                  format: "%d/%m/%Y",
+                  date: "$dateOfEnquiry",
+                  timezone: "Asia/Kolkata"
+                }
+              },              
               studentName: 1,
               studentPhoneNumber: 1,
               gender: 1,
