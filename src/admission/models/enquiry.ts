@@ -138,7 +138,7 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
     },
     telecaller: {
       type: [String],
-      default:[]
+      default: []
     },
     enquiryRemark: {
       type: String,
@@ -176,6 +176,9 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
     },
     dateOfAdmission: {
       type: Date,
+      set: (value: string) => {
+        return convertToMongoDate(value);
+      },
       required: false
     },
     previousCollegeData: {
@@ -231,7 +234,7 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
     },
     counsellor: {
       type: [String],
-      default:[]
+      default: []
     },
     religion: {
       type: String,
@@ -251,9 +254,9 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
     formNo: {
       type: String,
     },
-    isFeeApplicable : {
-      type : Boolean,
-      default : true
+    isFeeApplicable: {
+      type: Boolean,
+      default: true
     }
   },
 
