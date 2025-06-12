@@ -46,5 +46,5 @@ jobs:
             cd /home/ubuntu/ERP
             rm -rf dist node_modules
             tar -xzf deploy.tar.gz
-            cd /home
+            cd ..
             pm2 start ecosystem.config.js --only techno-development
