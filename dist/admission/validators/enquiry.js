@@ -59,13 +59,15 @@ exports.enquirySchema = zod_1.z.object({
 // Final schema for request (omitting feesDraftId and making it strict)
 exports.enquiryStep1RequestSchema = exports.enquirySchema
     .omit({ studentFee: true, studentFeeDraft: true, bloodGroup: true, aadharNumber: true, religion: true, previousCollegeData: true, documents: true, applicationStatus: true, entranceExamDetails: true, nationality: true, stateOfDomicile: true, areaType: true, admittedBy: true })
-    .extend({ id: commonSchema_1.objectIdSchema.optional() })
+    .extend({ id: commonSchema_1.objectIdSchema.optional(), emailId: zod_1.z.string().email('Invalid email format').optional() })
     .strict();
 exports.enquiryStep1UpdateRequestSchema = exports.enquiryStep1RequestSchema.extend({
-    id: commonSchema_1.objectIdSchema
+    id: commonSchema_1.objectIdSchema,
+    emailId: zod_1.z.string().email('Invalid email format').optional()
 }).strict();
 exports.enquiryStep3UpdateRequestSchema = exports.enquirySchema.omit({ documents: true, studentFee: true }).extend({
     id: commonSchema_1.objectIdSchema,
+    emailId: zod_1.z.string().email('Invalid email format'),
     physicalDocumentNote: zod_1.z.array(physicalDocumentNoteSchema_1.physicalDocumentNoteRequestSchema).optional()
 }).strict();
 exports.otpSchemaForStep3 = zod_1.z.object({
@@ -96,6 +98,7 @@ exports.enquiryDraftStep1RequestSchema = exports.enquiryStep1RequestSchema
     studentName: zod_1.z.string({ required_error: "Student Name is required", }).nonempty('Student Name is required'),
     studentPhoneNumber: commonSchema_1.contactNumberSchema,
     counsellor: zod_1.z.array(zod_1.z.string()).optional(),
+    emailId: zod_1.z.string().email('Invalid email format').optional(),
     telecaller: zod_1.z.array(zod_1.z.string()).optional(),
     address: commonSchema_1.addressSchema.partial().optional(),
     academicDetails: zod_1.z.array(academicDetailSchema_1.academicDetailSchema.partial()).optional(),

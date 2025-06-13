@@ -213,6 +213,9 @@ exports.enquirySchema = new mongoose_1.Schema({
     },
     dateOfAdmission: {
         type: Date,
+        set: (value) => {
+            return (0, convertDateToFormatedDate_1.convertToMongoDate)(value);
+        },
         required: false
     },
     previousCollegeData: {

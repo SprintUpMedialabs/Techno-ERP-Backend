@@ -68,7 +68,13 @@ exports.getEnquiryData = (0, express_async_handler_1.default)((0, functionLevelL
         {
             $project: {
                 _id: 1,
-                dateOfEnquiry: { $dateToString: { format: "%d-%m-%Y", date: "$dateOfEnquiry" } },
+                dateOfEnquiry: {
+                    $dateToString: {
+                        format: "%d/%m/%Y",
+                        date: "$dateOfEnquiry",
+                        timezone: "Asia/Kolkata"
+                    }
+                },
                 studentName: 1,
                 studentPhoneNumber: 1,
                 gender: 1,
@@ -89,7 +95,13 @@ exports.getEnquiryData = (0, express_async_handler_1.default)((0, functionLevelL
                     {
                         $project: {
                             _id: 1,
-                            dateOfEnquiry: { $dateToString: { format: "%d-%m-%Y", date: "$dateOfEnquiry" } },
+                            dateOfEnquiry: {
+                                $dateToString: {
+                                    format: "%d/%m/%Y",
+                                    date: "$dateOfEnquiry",
+                                    timezone: "Asia/Kolkata"
+                                }
+                            },
                             studentName: 1,
                             studentPhoneNumber: 1,
                             gender: 1,
@@ -97,7 +109,7 @@ exports.getEnquiryData = (0, express_async_handler_1.default)((0, functionLevelL
                             course: 1,
                             applicationStatus: 1,
                             fatherPhoneNumber: 1,
-                            motherPhoneNumber: 1,
+                            fatherName: 1,
                             updatedAt: 1,
                             source: { $literal: 'enquiryDraft' }
                         }
