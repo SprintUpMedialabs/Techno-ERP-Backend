@@ -3,7 +3,7 @@ import expressAsyncHandler from "express-async-handler";
 import createHttpError from "http-errors";
 import mongoose from "mongoose";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
-import { AdmittedThrough, ApplicationStatus, Course, DropDownType } from "../../config/constants";
+import { ApplicationStatus, DropDownType } from "../../config/constants";
 import { functionLevelLogger } from "../../config/functionLevelLogging";
 import { updateOnlyOneValueInDropDown } from "../../utilityModules/dropdown/dropDownMetadataController";
 import { formatResponse } from "../../utils/formatResponse";
