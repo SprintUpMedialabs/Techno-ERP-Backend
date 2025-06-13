@@ -20,7 +20,7 @@ export const enquirySchema = z.object({
 
   studentName: z.string({ required_error: "Student Name is required", }).nonempty('Student Name is required'),
   studentPhoneNumber: contactNumberSchema,
-  emailId: z.string().email('Invalid email format').optional(),
+  emailId: z.string().email('Invalid email format'),
 
   fatherName: z.string({ required_error: "Father Name is required", }).nonempty("Father's Name is required"),
   fatherPhoneNumber: contactNumberSchema,
@@ -89,18 +89,20 @@ export const enquirySchema = z.object({
 // Final schema for request (omitting feesDraftId and making it strict)
 export const enquiryStep1RequestSchema = enquirySchema
   .omit({ studentFee: true, studentFeeDraft: true, bloodGroup: true, aadharNumber: true, religion: true, previousCollegeData: true, documents: true, applicationStatus: true, entranceExamDetails: true, nationality: true, stateOfDomicile: true, areaType: true, admittedBy: true })
-  .extend({ id: objectIdSchema.optional() })
+  .extend({ id: objectIdSchema.optional(), emailId: z.string().email('Invalid email format').optional() })
   .strict();
 
 
 export const enquiryStep1UpdateRequestSchema = enquiryStep1RequestSchema.extend({
-  id: objectIdSchema
+  id: objectIdSchema,
+  emailId: z.string().email('Invalid email format').optional()
 }).strict();
 
 
 
 export const enquiryStep3UpdateRequestSchema = enquirySchema.omit({ documents: true, studentFee: true }).extend({
   id: objectIdSchema,
+  emailId: z.string().email('Invalid email format'),
   physicalDocumentNote: z.array(physicalDocumentNoteRequestSchema).optional()
 }).strict();
 
@@ -137,6 +139,7 @@ export const enquiryDraftStep1RequestSchema = enquiryStep1RequestSchema
     studentName: z.string({ required_error: "Student Name is required", }).nonempty('Student Name is required'),
     studentPhoneNumber: contactNumberSchema,
     counsellor: z.array(z.string()).optional(),
+    emailId: z.string().email('Invalid email format').optional(),
     telecaller: z.array(z.string()).optional(),
     address: addressSchema.partial().optional(),
     academicDetails: z.array(academicDetailSchema.partial()).optional(),
