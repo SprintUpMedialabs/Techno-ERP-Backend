@@ -92,7 +92,6 @@ export const getEnquiryData = expressAsyncHandler(functionLevelLogger(async (req
               course: 1,
               applicationStatus: 1,
               fatherPhoneNumber: 1,
-              motherPhoneNumber: 1,
               fatherName: 1,
               updatedAt: 1,
               source: { $literal: 'enquiryDraft' }

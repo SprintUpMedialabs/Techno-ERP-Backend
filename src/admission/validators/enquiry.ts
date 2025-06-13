@@ -20,7 +20,7 @@ export const enquirySchema = z.object({
 
   studentName: z.string({ required_error: "Student Name is required", }).nonempty('Student Name is required'),
   studentPhoneNumber: contactNumberSchema,
-  emailId: z.string().email('Invalid email format'),
+  emailId: z.string().email('Invalid email format').optional(),
 
   fatherName: z.string({ required_error: "Father Name is required", }).nonempty("Father's Name is required"),
   fatherPhoneNumber: contactNumberSchema,
