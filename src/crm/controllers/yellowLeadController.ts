@@ -15,7 +15,7 @@ import { LeadMaster } from '../models/lead';
 import { MarketingUserWiseAnalytics } from '../models/marketingUserWiseAnalytics';
 import { IYellowLeadUpdate, yellowLeadUpdateSchema } from '../validators/leads';
 import mongoose from 'mongoose';
-import { SQS_MARKETING_ANALYTICS_QUEUE_URL } from '../../secrets';
+import { SQS_MARKETING_ANALYTICS_QUEUE_URL, SQS_MARKETING_ANALYTICS_QUEUE_URL_YELLOW_LEAD } from '../../secrets';
 import { sendMessageToQueue } from '../../sqs/sqsProducer';
 
 export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
@@ -221,7 +221,7 @@ export const updateYellowLeadV1 = expressAsyncHandler(async (req: AuthenticatedR
   const currentLoggedInUser = req.data?.id;
   if (isRemarkChanged && !existingLead?.isCalledToday) {
     updateData.isCalledToday = true;
-    sendMessageToQueue(SQS_MARKETING_ANALYTICS_QUEUE_URL, { currentLoggedInUser,isCalledToday:existingLead.isCalledToday,isRemarkChanged,isActiveLead: existingLead.isActiveLead,isFinalConversionChangedToAdmission,isFinalConversionChangedFromAdmission,isCampusVisitChangedToYes,isCampusVisitChangedToNo});
+    sendMessageToQueue(SQS_MARKETING_ANALYTICS_QUEUE_URL_YELLOW_LEAD, { currentLoggedInUser,isCalledToday:existingLead.isCalledToday,isRemarkChanged,isActiveLead: existingLead.isActiveLead,isFinalConversionChangedToAdmission,isFinalConversionChangedFromAdmission,isCampusVisitChangedToYes,isCampusVisitChangedToNo});
   }
 
   const session = await mongoose.startSession();
@@ -305,6 +305,8 @@ export const marketingAnalyticsSQSHandlerYellowLead = expressAsyncHandler(async 
   }
 
   await userAnalyticsDoc.save();
+
+  return formatResponse(res, 200, 'Marketing analytics updated successfully', true);
 });
 
 export const getFilteredYellowLeads = expressAsyncHandler(

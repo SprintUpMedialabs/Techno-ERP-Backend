@@ -137,7 +137,7 @@ export const getAllLeadAnalyticsV1 = expressAsyncHandler(async (req: Authenticat
   const { query } = parseFilter(req);
   const analytics = await LeadMaster.aggregate([
     { $match: query }, // Step 1: Apply Filters
-  
+
     // Step 2: Group by unique identifier (name + phoneNumber + source)
     {
       $group: {
@@ -149,7 +149,7 @@ export const getAllLeadAnalyticsV1 = expressAsyncHandler(async (req: Authenticat
         leadTypes: { $addToSet: '$leadType' }
       }
     },
-  
+
     {
       $project: {
         _id: 0,
@@ -157,23 +157,23 @@ export const getAllLeadAnalyticsV1 = expressAsyncHandler(async (req: Authenticat
           $switch: {
             branches: [
               {
-                case: {$in:[LeadType.ACTIVE, '$leadTypes']},
+                case: { $in: [LeadType.ACTIVE, '$leadTypes'] },
                 then: LeadType.ACTIVE
               },
               {
-                case: {$in:[LeadType.NEUTRAL, '$leadTypes']},
+                case: { $in: [LeadType.NEUTRAL, '$leadTypes'] },
                 then: LeadType.NEUTRAL
               },
               {
-                case: {$in:[LeadType.DID_NOT_PICK, '$leadTypes']},
+                case: { $in: [LeadType.DID_NOT_PICK, '$leadTypes'] },
                 then: LeadType.DID_NOT_PICK
               },
               {
-                case: {$in:[LeadType.NOT_INTERESTED, '$leadTypes']},
+                case: { $in: [LeadType.NOT_INTERESTED, '$leadTypes'] },
                 then: LeadType.NOT_INTERESTED
               },
               {
-                case: {$in:[LeadType.LEFT_OVER, '$leadTypes']},
+                case: { $in: [LeadType.LEFT_OVER, '$leadTypes'] },
                 then: LeadType.LEFT_OVER
               }
             ],
@@ -205,7 +205,7 @@ export const getAllLeadAnalyticsV1 = expressAsyncHandler(async (req: Authenticat
     leftOverLeads: analytics[0]?.leftOverLeads ?? 0
   };
 
-  return formatResponse(res, 200, 'Lead analytics fetched successfully', true, leadAnalytics);  
+  return formatResponse(res, 200, 'Lead analytics fetched successfully', true, leadAnalytics);
 });
 
 export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
@@ -281,21 +281,21 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
     const updatedData = await LeadMaster.findByIdAndUpdate(
       existingLead._id,
       { ...leadRequestData, leadTypeModifiedDate },
-      { new: true, runValidators: true,session }
+      { new: true, runValidators: true, session }
     );
-    
+
     // const updatedFollowUpCount = updatedData?.followUpCount ?? 0;
     // if (updatedFollowUpCount > existingFollowUpCount) {
     //   logFollowUpChange(existingLead._id, currentLoggedInUser, Actions.INCREAMENT);
     // } else if (updatedFollowUpCount < existingFollowUpCount) {
     //   logFollowUpChange(existingLead._id, currentLoggedInUser, Actions.DECREAMENT);
     // }
-    
+
     updateOnlyOneValueInDropDown(DropDownType.FIX_MARKETING_CITY, updatedData?.city);
     updateOnlyOneValueInDropDown(DropDownType.MARKETING_CITY, updatedData?.city);
     updateOnlyOneValueInDropDown(DropDownType.FIX_MARKETING_COURSE_CODE, updatedData?.course);
     updateOnlyOneValueInDropDown(DropDownType.MARKETING_COURSE_CODE, updatedData?.course);
-  
+
     safeAxiosPost(axiosInstance, `${Endpoints.AuditLogService.MARKETING.SAVE_LEAD}`, {
       documentId: updatedData?._id,
       action: RequestAction.POST,
@@ -307,10 +307,10 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
     await session.commitTransaction();
 
     return formatResponse(res, 200, 'Data Updated Successfully!', true, updatedData);
-  }catch(error){
+  } catch (error) {
     await session.abortTransaction();
     throw error;
-  }finally{
+  } finally {
     await session.endSession();
   }
 });
@@ -350,27 +350,20 @@ export const updateDataV1 = expressAsyncHandler(async (req: AuthenticatedRequest
   try {
     if (isRemarkChanged && !existingLead.isCalledToday) {
       leadRequestData.isCalledToday = true;
-      sendMessageToQueue(SQS_MARKETING_ANALYTICS_QUEUE_URL, {isActiveLead: existingLead.isActiveLead, currentLoggedInUser, newRemarkLength});
+      sendMessageToQueue(SQS_MARKETING_ANALYTICS_QUEUE_URL, { isActiveLead: existingLead.isActiveLead, currentLoggedInUser, newRemarkLength });
     }
 
     const updatedData = await LeadMaster.findByIdAndUpdate(
       existingLead._id,
       { ...leadRequestData, leadTypeModifiedDate },
-      { new: true, runValidators: true,session }
+      { new: true, runValidators: true, session }
     );
-    
-    // const updatedFollowUpCount = updatedData?.followUpCount ?? 0;
-    // if (updatedFollowUpCount > existingFollowUpCount) {
-    //   logFollowUpChange(existingLead._id, currentLoggedInUser, Actions.INCREAMENT);
-    // } else if (updatedFollowUpCount < existingFollowUpCount) {
-    //   logFollowUpChange(existingLead._id, currentLoggedInUser, Actions.DECREAMENT);
-    // }
-    
+
     updateOnlyOneValueInDropDown(DropDownType.FIX_MARKETING_CITY, updatedData?.city);
     updateOnlyOneValueInDropDown(DropDownType.MARKETING_CITY, updatedData?.city);
     updateOnlyOneValueInDropDown(DropDownType.FIX_MARKETING_COURSE_CODE, updatedData?.course);
     updateOnlyOneValueInDropDown(DropDownType.MARKETING_COURSE_CODE, updatedData?.course);
-  
+
     safeAxiosPost(axiosInstance, `${Endpoints.AuditLogService.MARKETING.SAVE_LEAD}`, {
       documentId: updatedData?._id,
       action: RequestAction.POST,
@@ -382,49 +375,48 @@ export const updateDataV1 = expressAsyncHandler(async (req: AuthenticatedRequest
     await session.commitTransaction();
 
     return formatResponse(res, 200, 'Data Updated Successfully!', true, updatedData);
-  }catch(error){
+  } catch (error) {
     await session.abortTransaction();
     throw error;
-  }finally{
+  } finally {
     await session.endSession();
   }
 });
 
-export const marketingAnalyticsSQSHandler = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response)=>{
-  const { isActiveLead, currentLoggedInUser, newRemarkLength} = req.body;
+export const marketingAnalyticsSQSHandler = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const { isActiveLead, currentLoggedInUser, newRemarkLength } = req.body;
 
-    const todayStart = getISTDate();
+  const todayStart = getISTDate();
 
-    const userAnalyticsDoc = await MarketingUserWiseAnalytics.findOne({
-      date: todayStart,
-      data: { $elemMatch: { userId: currentLoggedInUser } },
-    });
+  const userAnalyticsDoc = await MarketingUserWiseAnalytics.findOne({
+    date: todayStart,
+    data: { $elemMatch: { userId: currentLoggedInUser } },
+  });
 
-    if (!userAnalyticsDoc)
-      throw createHttpError(404, 'User analytics not found.');
+  if (!userAnalyticsDoc)
+    throw createHttpError(404, 'User analytics not found.');
 
-    const userIndex = userAnalyticsDoc.data.findIndex((entry) =>
-      entry.userId.toString() === currentLoggedInUser?.toString()
-    );
+  const userIndex = userAnalyticsDoc.data.findIndex((entry) =>
+    entry.userId.toString() === currentLoggedInUser?.toString()
+  );
 
-    if (userIndex === -1) {
-      throw createHttpError(404, 'User not found in analytics data.');
-    }
+  if (userIndex === -1) {
+    throw createHttpError(404, 'User not found in analytics data.');
+  }
 
-    const isFirstFollowUp = newRemarkLength == 1;
-    userAnalyticsDoc.data[userIndex].totalCalls += 1;
+  const isFirstFollowUp = newRemarkLength == 1;
+  userAnalyticsDoc.data[userIndex].totalCalls += 1;
 
-    if (isFirstFollowUp) {
-      userAnalyticsDoc.data[userIndex].newLeadCalls += 1;
-    }
-    if (isActiveLead) {
-      userAnalyticsDoc.data[userIndex].activeLeadCalls += 1;
-    } else {
-      userAnalyticsDoc.data[userIndex].nonActiveLeadCalls += 1;
-    }
-
-    await userAnalyticsDoc.save();
-  
+  if (isFirstFollowUp) {
+    userAnalyticsDoc.data[userIndex].newLeadCalls += 1;
+  }
+  if (isActiveLead) {
+    userAnalyticsDoc.data[userIndex].activeLeadCalls += 1;
+  } else {
+    userAnalyticsDoc.data[userIndex].nonActiveLeadCalls += 1;
+  }
+  await userAnalyticsDoc.save();
+  return formatResponse(res, 200, 'Marketing analytics updated successfully', true);
 });
 
 
