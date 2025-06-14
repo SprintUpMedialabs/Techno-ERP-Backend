@@ -15,8 +15,6 @@ exports.academicDetailSchema = zod_1.z.object({
     }).optional(),
     percentageObtained: zod_1.z
         .number()
-        .min(0, 'Percentage must be at least 0')
-        .max(100, 'Percentage cannot exceed 100')
         .optional(),
     subjects: zod_1.z.string().optional(),
 });

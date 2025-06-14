@@ -12,7 +12,7 @@ const jwtAuthenticationMiddleware_1 = require("../../middleware/jwtAuthenticatio
 const excelSheetController_1 = require("../controllers/excelSheetController");
 exports.admissionRoute = express_1.default.Router();
 exports.admissionRoute.use('/enquiry', enquiryFormRoute_1.enquiryRoute);
-exports.admissionRoute.get('/analytics', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER]), admissionAnalyticsController_1.getAdmissionStats);
+exports.admissionRoute.get('/analytics', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.ADMIN]), admissionAnalyticsController_1.getAdmissionStats);
 exports.admissionRoute.get('/assign-base-value', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.SYSTEM_ADMIN]), admissionAnalyticsController_1.assignBaseValueToAdmissionAnalytics);
 exports.admissionRoute.get('/enquiry-excel-sheet-data', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER]), excelSheetController_1.getRecentEnquiryExcelSheetData);
 exports.admissionRoute.get('/admission-excel-sheet-data', jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([constants_1.UserRoles.BASIC_USER]), excelSheetController_1.getRecentAdmissionExcelSheetData);

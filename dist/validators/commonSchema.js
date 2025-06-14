@@ -22,7 +22,7 @@ exports.emailSchema = zod_1.z
     .email();
 exports.addressSchema = zod_1.z.object({
     addressLine1: zod_1.z.string().min(5, 'Permanent address must be at least 5 characters'),
-    addressLine2: zod_1.z.string().min(5, 'Permanent address must be at least 5 characters'),
+    addressLine2: zod_1.z.string().optional(),
     district: zod_1.z.string(),
     pincode: zod_1.z
         .string()

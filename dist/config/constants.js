@@ -16,6 +16,8 @@ var UserRoles;
     UserRoles["INSTRUCTOR"] = "INSTRUCTOR";
     UserRoles["SYSTEM_ADMIN"] = "SYSTEM_ADMIN";
     UserRoles["STUDENT"] = "STUDENT";
+    UserRoles["FINANCE"] = "FINANCE";
+    UserRoles["FRONT_DESK"] = "FRONT_DESK";
 })(UserRoles || (exports.UserRoles = UserRoles = {}));
 var PipelineStatus;
 (function (PipelineStatus) {

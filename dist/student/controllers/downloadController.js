@@ -21,6 +21,8 @@ const convertDateToFormatedDate_1 = require("../../utils/convertDateToFormatedDa
 const formatResponse_1 = require("../../utils/formatResponse");
 const collegeTransactionHistory_1 = require("../models/collegeTransactionHistory");
 const student_1 = require("../models/student");
+const http_errors_1 = __importDefault(require("http-errors"));
+const constants_1 = require("../../config/constants");
 exports.downloadTransactionSlip = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { studentId, transactionId } = req.body;
     const responseObj = yield (0, exports.getTransactionSlipData)(studentId, transactionId, false);
@@ -32,13 +34,50 @@ exports.downloadAdmissionTransactionSlip = (0, express_async_handler_1.default)(
     console.log("Response Object : ", responseObj);
     return (0, formatResponse_1.formatResponse)(res, 200, "Admission Transaction Slip Data fetched successfully", true, responseObj);
 }));
+const formateFeeType = (feeType) => {
+    switch (feeType) {
+        case constants_1.FinanceFeeType.HOSTELCAUTIONMONEY:
+            return "Hostel Caution Money";
+        case constants_1.FinanceFeeType.HOSTELMAINTENANCE:
+            return "Hostel Maintenance";
+        case constants_1.FinanceFeeType.HOSTELYEARLY:
+            return "Hostel Yearly";
+        case constants_1.FinanceFeeType.TRANSPORT:
+            return "Transport";
+        case constants_1.FinanceFeeType.PROSPECTUS:
+            return "Prospectus";
+        case constants_1.FinanceFeeType.STUDENTID:
+            return "Student ID";
+        case constants_1.FinanceFeeType.UNIFORM:
+            return "Uniform";
+        case constants_1.FinanceFeeType.STUDENTWELFARE:
+            return "Student Welfare";
+        case constants_1.FinanceFeeType.BOOKBANK:
+            return "Book Bank";
+        case constants_1.FinanceFeeType.EXAMFEES:
+            return "Exam Fees";
+        case constants_1.FinanceFeeType.MISCELLANEOUS:
+            return "Miscellaneous";
+        case constants_1.FinanceFeeType.SEMESTERFEE:
+            return "Semester Fee";
+        default:
+            return feeType;
+    }
+};
 const getTransactionSlipData = (studentId, transactionId, isAdmissionTransactionSlip) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c;
     const student = yield student_1.Student.findById(studentId);
+    if (!student)
+        throw (0, http_errors_1.default)(400, "Student not found");
+    const dues = [];
     student === null || student === void 0 ? void 0 : student.semester.forEach(semester => {
-        console.log(semester.semesterNumber);
-        console.log(semester.fees);
-        console.log('===============================================');
+        if (semester.fees.dueDate) {
+            semester.fees.details.forEach(fee => {
+                if (fee.paidAmount != fee.finalFee) {
+                    dues.push({ label: `Sem ${semester.semesterNumber} - ${formateFeeType(fee.type)}`, amount: fee.finalFee - fee.paidAmount });
+                }
+            });
+        }
     });
     if (isAdmissionTransactionSlip)
         transactionId = (_c = (_b = (_a = student === null || student === void 0 ? void 0 : student.transactionHistory) === null || _a === void 0 ? void 0 : _a.at(0)) === null || _b === void 0 ? void 0 : _b.toString()) !== null && _c !== void 0 ? _c : '';
@@ -59,7 +98,8 @@ const getTransactionSlipData = (studentId, transactionId, isAdmissionTransaction
         particulars: collegeTransaction === null || collegeTransaction === void 0 ? void 0 : collegeTransaction.transactionSettlementHistory,
         remarks: collegeTransaction === null || collegeTransaction === void 0 ? void 0 : collegeTransaction.remark,
         amountInWords: (0, formators_1.toTitleCase)((0, number_to_words_1.toWords)(collegeTransaction === null || collegeTransaction === void 0 ? void 0 : collegeTransaction.amount)) + " Rupees Only",
-        transactionType: collegeTransaction === null || collegeTransaction === void 0 ? void 0 : collegeTransaction.txnType
+        transactionType: collegeTransaction === null || collegeTransaction === void 0 ? void 0 : collegeTransaction.txnType,
+        dues: dues
     };
     return responseObj;
 });

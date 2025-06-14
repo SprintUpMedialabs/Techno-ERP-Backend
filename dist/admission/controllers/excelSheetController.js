@@ -32,18 +32,51 @@ exports.getRecentEnquiryExcelSheetData = (0, express_async_handler_1.default)((0
     return (0, formatResponse_1.formatResponse)(res, 200, 'Recent enquiry excel sheet data fetched successfully', true, allEnquiryData);
 })));
 exports.getRecentAdmissionExcelSheetData = (0, express_async_handler_1.default)((0, functionLevelLogging_1.functionLevelLogger)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const admissionData = yield student_1.Student.find({
-        startingYear: (0, moment_timezone_1.default)().year()
-    }).lean();
-    const studentData = admissionData.map((student) => {
-        console.log(student.semester[0].fees.details);
-        const applicableFee = student.semester[0].fees.details.reduce((acc, fee) => acc + fee.actualFee, 0);
-        const totalApplicableFee = student.semester.reduce((acc, sem) => acc + sem.fees.details.reduce((acc, fee) => acc + fee.actualFee, 0), 0);
-        const finalFee = student.semester[0].fees.totalFinalFee;
-        const totalFinalFee = student.semester.reduce((acc, sem) => acc + sem.fees.totalFinalFee, 0);
-        console.log(applicableFee, totalApplicableFee, finalFee, totalFinalFee);
+    const currentYear = (0, moment_timezone_1.default)().year();
+    const studentData = yield student_1.Student.aggregate([
+        {
+            $match: {
+                startingYear: currentYear
+            }
+        },
+        {
+            $lookup: {
+                from: "enquiries", // Ensure this matches the actual collection name in MongoDB (pluralized by default)
+                localField: "_id",
+                foreignField: "_id",
+                as: "enquiry"
+            }
+        },
+        {
+            $unwind: {
+                path: "$enquiry",
+                preserveNullAndEmptyArrays: true
+            }
+        },
+        {
+            $project: {
+                _id: 1,
+                "studentInfo": 1,
+                "semester": 1,
+                "telecaller": "$enquiry.telecaller",
+                "course": "$enquiry.course",
+                "dateOfAdmission": "$enquiry.dateOfAdmission",
+                "counsellor": "$enquiry.counsellor",
+                "enquiryRemark": "$enquiry.enquiryRemark",
+                "feeDetailsRemark": "$enquiry.feeDetailsRemark",
+                "registarOfficeRemark": "$enquiry.registarOfficeRemark",
+                "financeOfficeRemark": "$enquiry.financeOfficeRemark",
+            }
+        }
+    ]);
+    const formattedData = studentData.map(student => {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+        const applicableFee = ((_d = (_c = (_b = (_a = student.semester) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.fees) === null || _c === void 0 ? void 0 : _c.details) === null || _d === void 0 ? void 0 : _d.reduce((acc, fee) => acc + fee.actualFee, 0)) || 0;
+        const totalApplicableFee = ((_e = student.semester) === null || _e === void 0 ? void 0 : _e.reduce((acc, sem) => acc + sem.fees.details.reduce((acc, fee) => acc + fee.actualFee, 0), 0)) || 0;
+        const finalFee = ((_h = (_g = (_f = student.semester) === null || _f === void 0 ? void 0 : _f[0]) === null || _g === void 0 ? void 0 : _g.fees) === null || _h === void 0 ? void 0 : _h.totalFinalFee) || 0;
+        const totalFinalFee = ((_j = student.semester) === null || _j === void 0 ? void 0 : _j.reduce((acc, sem) => acc + sem.fees.totalFinalFee, 0)) || 0;
         return Object.assign(Object.assign({}, student.studentInfo), { applicableFee,
-            finalFee, discountApplicable: applicableFee - finalFee, totalDiscountApplicable: totalApplicableFee - totalFinalFee });
+            finalFee, discountApplicable: applicableFee - finalFee, totalDiscountApplicable: totalApplicableFee - totalFinalFee, telecaller: student.telecaller || [], dateOfAdmission: student.dateOfAdmission, course: student.course, counsellor: student.counsellor || [], enquiryRemark: student.enquiryRemark || '', feeDetailsRemark: student.feeDetailsRemark || '', registarOfficeRemark: student.registarOfficeRemark || '', financeOfficeRemark: student.financeOfficeRemark || '' });
     });
-    return (0, formatResponse_1.formatResponse)(res, 200, 'Recent admission excel sheet data fetched successfully', true, studentData);
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Recent admission excel sheet data fetched successfully', true, formattedData);
 })));

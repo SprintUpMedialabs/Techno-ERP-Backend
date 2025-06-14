@@ -82,8 +82,7 @@ const StudentBaseInfoSchema = new mongoose_1.Schema({
         }
     },
     fatherOccupation: {
-        type: String,
-        required: [true, 'Father occupation is required']
+        type: String
     },
     motherName: {
         type: String,
@@ -101,8 +100,7 @@ const StudentBaseInfoSchema = new mongoose_1.Schema({
         }
     },
     motherOccupation: {
-        type: String,
-        required: [true, 'Mother occupation is required']
+        type: String
     },
     emailId: {
         type: String,
