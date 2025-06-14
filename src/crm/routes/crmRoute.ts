@@ -7,7 +7,9 @@ import {
   getAllLeadAnalytics,
   getAssignedSheets,
   getFilteredLeadData,
+  marketingAnalyticsSQSHandler,
   updateData,
+  updateDataV1,
   updateSource,
   uploadData
 } from '../controllers/crmController';
@@ -15,7 +17,9 @@ import { createMarketingAnalytics, getCallAnalytics, updateMarketingRemark } fro
 import {
   getFilteredYellowLeads,
   getYellowLeadsAnalytics,
-  updateYellowLead
+  marketingAnalyticsSQSHandlerYellowLead,
+  updateYellowLead,
+  updateYellowLeadV1
 } from '../controllers/yellowLeadController';
 
 export const crmRoute = express.Router();
@@ -53,6 +57,20 @@ crmRoute.put(
   updateData
 );
 
+crmRoute.put(
+  '/edit/v1',
+  authenticate,
+  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING]),
+  updateDataV1
+);
+
+crmRoute.post(
+  '/marketing-analytics-sqs-handler',
+  authenticate,
+  authorize([UserRoles.LAMBDA_FUNCTION]),
+  marketingAnalyticsSQSHandler
+);
+
 crmRoute.post(
   '/fetch-data',
   authenticate,
@@ -79,6 +97,20 @@ crmRoute.put(
   authenticate,
   authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING]),
   updateYellowLead
+);
+
+crmRoute.put(
+  '/update-yellow-lead/v1',
+  authenticate,
+  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING]),
+  updateYellowLeadV1
+);
+
+crmRoute.post(
+  '/marketing-analytics-sqs-handler-yellow-lead',
+  authenticate,
+  authorize([UserRoles.LAMBDA_FUNCTION]),
+  marketingAnalyticsSQSHandlerYellowLead
 );
 
 //This is no longer the request endpoint, it is used as internal function

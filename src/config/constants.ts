@@ -14,6 +14,7 @@ export enum UserRoles {
   STUDENT = 'STUDENT',
   FINANCE = 'FINANCE',
   FRONT_DESK = 'FRONT_DESK'
+  LAMBDA_FUNCTION = 'LAMBDA_FUNCTION'
 }
 
 export enum PipelineStatus {
