@@ -74,7 +74,7 @@ export const fetchCourseFeeByCourse = async (courseCode: String) => {
     courseFee.forEach((fee) => {
         if(fee.type == FeeType.EDUCATION)
             feeAmt = fee.fees;
-    })
+    });
     return feeAmt || null;
 };
 
@@ -96,7 +96,7 @@ export const fetchOtherFees = async (courseCode : String) => {
     })
     
     const bookBankAmt : IFeeItem = {
-        type: "Book Bank",
+        type: "BOOKBANK",
         amount: feeAmt[0]
     }
 
