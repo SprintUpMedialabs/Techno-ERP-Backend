@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AdmissionMode, AdmissionReference, ApplicationStatus, AreaType, BloodGroup, Category, Gender, Religion, StatesOfIndia } from '../../config/constants';
+import { AdmissionMode, AdmissionReference, AdmittedThrough, ApplicationStatus, AreaType, BloodGroup, Category, Gender, Religion, StatesOfIndia } from '../../config/constants';
 import { convertToMongoDate } from '../../utils/convertDateToFormatedDate';
 import {
   addressSchema,
@@ -24,11 +24,11 @@ export const enquirySchema = z.object({
 
   fatherName: z.string({ required_error: "Father Name is required", }).nonempty("Father's Name is required"),
   fatherPhoneNumber: contactNumberSchema,
-  fatherOccupation: z.string({ required_error: "Father occupation is required", }).nonempty('Father occupation is required'),
+  fatherOccupation: z.string().optional(),
 
   motherName: z.string({ required_error: "Mother's Name is required", }).nonempty("Mother's Name is required"),
   motherPhoneNumber: contactNumberSchema.optional(),
-  motherOccupation: z.string({ required_error: "Mother occupation is required", }).nonempty('Mother occupation is required'),
+  motherOccupation: z.string().optional(),
 
 
   dateOfBirth: requestDateSchema.transform((date) =>
@@ -81,19 +81,21 @@ export const enquirySchema = z.object({
   religion: z.nativeEnum(Religion).optional(),
   bloodGroup: z.nativeEnum(BloodGroup).optional(),
   admittedBy: z.union([objectIdSchema, z.enum(['Other'])]).optional(),
-  isFeeApplicable : z.boolean().default(true)
+  isFeeApplicable : z.boolean().default(true),
+  admittedThrough: z.nativeEnum(AdmittedThrough).default(AdmittedThrough.DIRECT).optional()
 });
 
 
 // Final schema for request (omitting feesDraftId and making it strict)
 export const enquiryStep1RequestSchema = enquirySchema
   .omit({ studentFee: true, studentFeeDraft: true, dateOfAdmission: true, bloodGroup: true, aadharNumber: true, religion: true, previousCollegeData: true, documents: true, applicationStatus: true, entranceExamDetails: true, nationality: true, stateOfDomicile: true, areaType: true, admittedBy: true })
-  .extend({ id: objectIdSchema.optional() })
+  .extend({ id: objectIdSchema.optional(), emailId: z.string().email('Invalid email format').optional() })
   .strict();
 
 
 export const enquiryStep1UpdateRequestSchema = enquiryStep1RequestSchema.extend({
-  id: objectIdSchema
+  id: objectIdSchema,
+  emailId: z.string().email('Invalid email format').optional()
 }).strict();
 
 
@@ -137,6 +139,7 @@ export const enquiryDraftStep1RequestSchema = enquiryStep1RequestSchema
     studentPhoneNumber: contactNumberSchema,
     counsellor: z.array(z.string()).optional(),
     telecaller: z.array(z.string()).optional(),
+    emailId: z.string().email('Invalid email format').optional(),
     address: addressSchema.partial().optional(),
     academicDetails: z.array(academicDetailSchema.partial()).optional(),
   }).omit({ id: true }).partial().strict();

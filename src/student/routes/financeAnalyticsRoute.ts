@@ -13,12 +13,12 @@ financeAnalyticsRoute.post('/create',
 
 financeAnalyticsRoute.post('/daywise',
     authenticate,
-    authorize([UserRoles.BASIC_USER, UserRoles.SYSTEM_ADMIN]),
+    authorize([UserRoles.ADMIN, UserRoles.SYSTEM_ADMIN]),
     fetchDayWiseAnalytics
 );
 
 financeAnalyticsRoute.post('/monthwise',
     authenticate,
-    authorize([UserRoles.BASIC_USER]),
+    authorize([UserRoles.ADMIN]),
     fetchMonthWiseAnalytics
 );

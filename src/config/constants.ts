@@ -11,7 +11,9 @@ export enum UserRoles {
   HOD = 'HOD',
   INSTRUCTOR = 'INSTRUCTOR',
   SYSTEM_ADMIN = 'SYSTEM_ADMIN',
-  STUDENT = 'STUDENT'
+  STUDENT = 'STUDENT',
+  FINANCE = 'FINANCE',
+  FRONT_DESK = 'FRONT_DESK'
 }
 
 export enum PipelineStatus {
