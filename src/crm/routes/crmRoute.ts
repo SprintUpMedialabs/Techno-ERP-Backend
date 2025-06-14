@@ -56,21 +56,21 @@ crmRoute.put(
 crmRoute.post(
   '/fetch-data',
   authenticate,
-  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING]),
+  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING,UserRoles.FRONT_DESK]),
   getFilteredLeadData
 );
 
 crmRoute.post(
   '/analytics',
   authenticate,
-  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING]),
+  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING,UserRoles.FRONT_DESK]),
   getAllLeadAnalytics
 );
 
 crmRoute.post(
   '/yellow-lead',
   authenticate,
-  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING]),
+  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING,UserRoles.FRONT_DESK]),
   getFilteredYellowLeads
 );
 
@@ -87,26 +87,26 @@ crmRoute.put(
 crmRoute.post(
   '/yellow-lead-analytics',
   authenticate,
-  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING]),
+  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING,UserRoles.FRONT_DESK]),
   getYellowLeadsAnalytics
 );
 
 crmRoute.post('/admin/analytics', 
   authenticate, 
-  authorize([UserRoles.ADMIN]), 
+  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING]), 
   adminAnalytics
 );
 
 
 crmRoute.get('/marketing-analytics', 
   authenticate, 
-  authorize([UserRoles.ADMIN]), 
+  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING]), 
   createMarketingAnalytics
 );
 
 crmRoute.get('/call-analytics', 
   authenticate, 
-  authorize([UserRoles.ADMIN]), 
+  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING]), 
   getCallAnalytics
 );
 
@@ -136,7 +136,7 @@ crmRoute.get('/user-wise-analytics-daily',
 
 crmRoute.get('/user-daily-analytics', 
   authenticate, 
-  authorize([UserRoles.EMPLOYEE_MARKETING]), 
+  authorize([UserRoles.EMPLOYEE_MARKETING, UserRoles.LEAD_MARKETING, UserRoles.ADMIN]), 
   getUserDailyAnalytics
 );
 

@@ -313,6 +313,113 @@ export const updateData = expressAsyncHandler(async (req: AuthenticatedRequest, 
   }
 });
 
+export const updateDataV1 = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const leadRequestData: IUpdateLeadRequestSchema = req.body;
+
+  const validation = updateLeadRequestSchema.safeParse(leadRequestData);
+  if (!validation.success) {
+    throw createHttpError(400, validation.error.errors[0]);
+  }
+
+  const existingLead = await LeadMaster.findById(leadRequestData._id);
+  if (!existingLead) {
+    throw createHttpError(404, 'Lead does not found with the given ID.');
+  }
+
+  let leadTypeModifiedDate = existingLead.leadTypeModifiedDate;
+  const existingRemarkLength = existingLead.remarks?.length || 0;
+  const newRemarkLength = leadRequestData.remarks?.length || 0;
+
+  const isRemarkChanged = existingRemarkLength < newRemarkLength;
+
+  if (isRemarkChanged) {
+    leadRequestData.followUpCount = existingLead.followUpCount + 1;
+    leadRequestData.remarkUpdatedAt = getISTDateWithTime();
+  }
+
+  if (leadRequestData.leadType && existingLead.leadType !== leadRequestData.leadType) {
+    leadTypeModifiedDate = new Date();
+  }
+
+  const currentLoggedInUser = req.data?.id;
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    if (isRemarkChanged && !existingLead.isCalledToday) {
+      const isActive = existingLead.isActiveLead;
+
+      const todayStart = getISTDate();
+
+      const userAnalyticsDoc = await MarketingUserWiseAnalytics.findOne({
+        date: todayStart,
+        data: { $elemMatch: { userId: currentLoggedInUser } },
+      });
+
+      if (!userAnalyticsDoc)
+        throw createHttpError(404, 'User analytics not found.');
+
+      const userIndex = userAnalyticsDoc.data.findIndex((entry) =>
+        entry.userId.toString() === currentLoggedInUser?.toString()
+      );
+
+      if (userIndex === -1) {
+        throw createHttpError(404, 'User not found in analytics data.');
+      }
+
+      const isFirstFollowUp = newRemarkLength == 1;
+      userAnalyticsDoc.data[userIndex].totalCalls += 1;
+
+      if (isFirstFollowUp) {
+        userAnalyticsDoc.data[userIndex].newLeadCalls += 1;
+      }
+      if (isActive) {
+        userAnalyticsDoc.data[userIndex].activeLeadCalls += 1;
+      } else {
+        userAnalyticsDoc.data[userIndex].nonActiveLeadCalls += 1;
+      }
+      leadRequestData.isCalledToday = true;
+
+      await userAnalyticsDoc.save({ session });
+    }
+
+    const updatedData = await LeadMaster.findByIdAndUpdate(
+      existingLead._id,
+      { ...leadRequestData, leadTypeModifiedDate },
+      { new: true, runValidators: true,session }
+    );
+    
+    // const updatedFollowUpCount = updatedData?.followUpCount ?? 0;
+    // if (updatedFollowUpCount > existingFollowUpCount) {
+    //   logFollowUpChange(existingLead._id, currentLoggedInUser, Actions.INCREAMENT);
+    // } else if (updatedFollowUpCount < existingFollowUpCount) {
+    //   logFollowUpChange(existingLead._id, currentLoggedInUser, Actions.DECREAMENT);
+    // }
+    
+    updateOnlyOneValueInDropDown(DropDownType.FIX_MARKETING_CITY, updatedData?.city);
+    updateOnlyOneValueInDropDown(DropDownType.MARKETING_CITY, updatedData?.city);
+    updateOnlyOneValueInDropDown(DropDownType.FIX_MARKETING_COURSE_CODE, updatedData?.course);
+    updateOnlyOneValueInDropDown(DropDownType.MARKETING_COURSE_CODE, updatedData?.course);
+  
+    safeAxiosPost(axiosInstance, `${Endpoints.AuditLogService.MARKETING.SAVE_LEAD}`, {
+      documentId: updatedData?._id,
+      action: RequestAction.POST,
+      payload: updatedData,
+      performedBy: req.data?.id,
+      restEndpoint: '/api/edit/crm',
+    });
+
+    await session.commitTransaction();
+
+    return formatResponse(res, 200, 'Data Updated Successfully!', true, updatedData);
+  }catch(error){
+    await session.abortTransaction();
+    throw error;
+  }finally{
+    await session.endSession();
+  }
+});
+
 
 
 
