@@ -16,6 +16,9 @@ var UserRoles;
     UserRoles["INSTRUCTOR"] = "INSTRUCTOR";
     UserRoles["SYSTEM_ADMIN"] = "SYSTEM_ADMIN";
     UserRoles["STUDENT"] = "STUDENT";
+    UserRoles["FINANCE"] = "FINANCE";
+    UserRoles["FRONT_DESK"] = "FRONT_DESK";
+    UserRoles["LAMBDA_FUNCTION"] = "LAMBDA_FUNCTION";
 })(UserRoles || (exports.UserRoles = UserRoles = {}));
 var PipelineStatus;
 (function (PipelineStatus) {
@@ -371,7 +374,9 @@ var TransactionTypes;
 })(TransactionTypes || (exports.TransactionTypes = TransactionTypes = {}));
 var FinanceFeeType;
 (function (FinanceFeeType) {
-    FinanceFeeType["HOSTEL"] = "HOSTEL";
+    FinanceFeeType["HOSTELCAUTIONMONEY"] = "HOSTELCAUTIONMONEY";
+    FinanceFeeType["HOSTELMAINTENANCE"] = "HOSTELMAINTENANCE";
+    FinanceFeeType["HOSTELYEARLY"] = "HOSTELYEARLY";
     FinanceFeeType["TRANSPORT"] = "TRANSPORT";
     FinanceFeeType["PROSPECTUS"] = "PROSPECTUS";
     FinanceFeeType["STUDENTID"] = "STUDENTID";
@@ -384,7 +389,9 @@ var FinanceFeeType;
 })(FinanceFeeType || (exports.FinanceFeeType = FinanceFeeType = {}));
 var FinanceFeeSchedule;
 (function (FinanceFeeSchedule) {
-    FinanceFeeSchedule["HOSTEL"] = "YEARLY";
+    FinanceFeeSchedule["HOSTELYEARLY"] = "YEARLY";
+    FinanceFeeSchedule["HOSTELCAUTIONMONEY"] = "ONETIME";
+    FinanceFeeSchedule["HOSTELMAINTENANCE"] = "YEARLY";
     FinanceFeeSchedule["TRANSPORT"] = "YEARLY";
     FinanceFeeSchedule["PROSPECTUS"] = "ONETIME";
     FinanceFeeSchedule["STUDENTID"] = "ONETIME";

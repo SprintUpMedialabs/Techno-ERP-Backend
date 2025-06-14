@@ -110,7 +110,6 @@ exports.enquirySchema = new mongoose_1.Schema({
     },
     fatherOccupation: {
         type: String,
-        required: [true, 'Father occupation is required']
     },
     motherName: {
         type: String,
@@ -129,7 +128,6 @@ exports.enquirySchema = new mongoose_1.Schema({
     },
     motherOccupation: {
         type: String,
-        required: [true, 'Mother occupation is required']
     },
     dateOfBirth: {
         type: Date,

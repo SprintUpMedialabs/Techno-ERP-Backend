@@ -57,8 +57,6 @@ exports.createEnquiryStep2 = (0, express_async_handler_1.default)((0, functionLe
     try {
         const otherFees = yield (0, courseAndOtherFees_controller_1.fetchOtherFees)(enquiry === null || enquiry === void 0 ? void 0 : enquiry.course);
         const semWiseFee = yield (0, courseAndOtherFees_controller_1.fetchCourseFeeByCourse)(enquiry === null || enquiry === void 0 ? void 0 : enquiry.course);
-        // console.log("Other fees is : ", otherFees);
-        // console.log("Semwise fee is : ", semWiseFee);
         if (!semWiseFee) {
             throw (0, http_errors_1.default)(500, 'Semester-wise fee structure not found for the course');
         }
@@ -73,7 +71,7 @@ exports.createEnquiryStep2 = (0, express_async_handler_1.default)((0, functionLe
                 var _a;
                 return ({
                     finalFee: semFee.finalFee,
-                    feeAmount: (_a = semWiseFee[index].amount) !== null && _a !== void 0 ? _a : 0,
+                    feeAmount: (_a = semWiseFee[index]) !== null && _a !== void 0 ? _a : 0,
                     feesPaid: index === 0 ? sem1FeeDepositedTOA : 0,
                 });
             }) });
