@@ -42,9 +42,6 @@ export const createEnquiryStep2 = expressAsyncHandler(functionLevelLogger(async 
     const otherFees = await fetchOtherFees(enquiry?.course as String);
     const semWiseFee = await fetchCourseFeeByCourse(enquiry?.course as String);
 
-    // console.log("Other fees is : ", otherFees);
-    // console.log("Semwise fee is : ", semWiseFee);
-
     if (!semWiseFee) {
       throw createHttpError(500, 'Semester-wise fee structure not found for the course');
     }
@@ -52,7 +49,7 @@ export const createEnquiryStep2 = expressAsyncHandler(functionLevelLogger(async 
     const { counsellor, telecaller, ...feeRelatedData } = validation.data;
 
     const sem1FeeDepositedTOA = feeRelatedData.otherFees?.find(fee => fee.type === 'SEM1FEE')?.feesDepositedTOA ?? 0;
-
+    
     const feeData: IStudentFeesSchema = {
       ...feeRelatedData,
       otherFees: feeRelatedData.otherFees?.map(fee => {
@@ -67,11 +64,11 @@ export const createEnquiryStep2 = expressAsyncHandler(functionLevelLogger(async 
       }) || [],
       semWiseFees: feeRelatedData.semWiseFees.map((semFee, index: number) => ({
         finalFee: semFee.finalFee,
-        feeAmount: semWiseFee[index].amount ?? 0,
+        feeAmount: semWiseFee[index] ?? 0,
         feesPaid: index === 0 ? sem1FeeDepositedTOA : 0, 
       })),
     };
-
+    
     const feesDraftList = await StudentFeesModel.create([feeData], { session });
     const feesDraft = feesDraftList[0];
 

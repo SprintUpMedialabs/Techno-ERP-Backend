@@ -7,7 +7,9 @@ import {
   getAllLeadAnalytics,
   getAssignedSheets,
   getFilteredLeadData,
+  marketingAnalyticsSQSHandler,
   updateData,
+  updateDataV1,
   updateSource,
   uploadData
 } from '../controllers/crmController';
@@ -15,7 +17,9 @@ import { createMarketingAnalytics, getCallAnalytics, updateMarketingRemark } fro
 import {
   getFilteredYellowLeads,
   getYellowLeadsAnalytics,
-  updateYellowLead
+  marketingAnalyticsSQSHandlerYellowLead,
+  updateYellowLead,
+  updateYellowLeadV1
 } from '../controllers/yellowLeadController';
 
 export const crmRoute = express.Router();
@@ -53,24 +57,38 @@ crmRoute.put(
   updateData
 );
 
+crmRoute.put(
+  '/edit/v1',
+  authenticate,
+  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING]),
+  updateDataV1
+);
+
+crmRoute.post(
+  '/marketing-analytics-sqs-handler',
+  authenticate,
+  authorize([UserRoles.LAMBDA_FUNCTION]),
+  marketingAnalyticsSQSHandler
+);
+
 crmRoute.post(
   '/fetch-data',
   authenticate,
-  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING]),
+  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING,UserRoles.FRONT_DESK]),
   getFilteredLeadData
 );
 
 crmRoute.post(
   '/analytics',
   authenticate,
-  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING]),
+  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING,UserRoles.FRONT_DESK]),
   getAllLeadAnalytics
 );
 
 crmRoute.post(
   '/yellow-lead',
   authenticate,
-  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING]),
+  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING,UserRoles.FRONT_DESK]),
   getFilteredYellowLeads
 );
 
@@ -81,32 +99,46 @@ crmRoute.put(
   updateYellowLead
 );
 
+crmRoute.put(
+  '/update-yellow-lead/v1',
+  authenticate,
+  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING]),
+  updateYellowLeadV1
+);
+
+crmRoute.post(
+  '/marketing-analytics-sqs-handler-yellow-lead',
+  authenticate,
+  authorize([UserRoles.LAMBDA_FUNCTION]),
+  marketingAnalyticsSQSHandlerYellowLead
+);
+
 //This is no longer the request endpoint, it is used as internal function
 // crmRoute.post('/yellow-lead', createYellowLead);
 
 crmRoute.post(
   '/yellow-lead-analytics',
   authenticate,
-  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING]),
+  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING,UserRoles.FRONT_DESK]),
   getYellowLeadsAnalytics
 );
 
 crmRoute.post('/admin/analytics', 
   authenticate, 
-  authorize([UserRoles.ADMIN]), 
+  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING]), 
   adminAnalytics
 );
 
 
 crmRoute.get('/marketing-analytics', 
   authenticate, 
-  authorize([UserRoles.ADMIN]), 
+  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING]), 
   createMarketingAnalytics
 );
 
 crmRoute.get('/call-analytics', 
   authenticate, 
-  authorize([UserRoles.ADMIN]), 
+  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING]), 
   getCallAnalytics
 );
 
@@ -136,7 +168,7 @@ crmRoute.get('/user-wise-analytics-daily',
 
 crmRoute.get('/user-daily-analytics', 
   authenticate, 
-  authorize([UserRoles.EMPLOYEE_MARKETING]), 
+  authorize([UserRoles.EMPLOYEE_MARKETING, UserRoles.LEAD_MARKETING, UserRoles.ADMIN]), 
   getUserDailyAnalytics
 );
 

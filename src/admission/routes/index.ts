@@ -3,14 +3,14 @@ import { enquiryRoute } from './enquiryFormRoute';
 import { assignBaseValueToAdmissionAnalytics, getAdmissionStats } from '../controllers/admissionAnalyticsController';
 import { UserRoles } from '../../config/constants';
 import { authenticate, authorize } from '../../middleware/jwtAuthenticationMiddleware';
-import { getRecentAdmissionExcelSheetData, getRecentEnquiryExcelSheetData } from '../controllers/excelSheetData';
+import { getRecentAdmissionExcelSheetData, getRecentEnquiryExcelSheetData } from '../controllers/excelSheetController';
 export const admissionRoute = express.Router();
 
 admissionRoute.use('/enquiry', enquiryRoute);
 
 admissionRoute.get('/analytics',
     authenticate,
-    authorize([UserRoles.BASIC_USER]),
+    authorize([UserRoles.ADMIN]),
     getAdmissionStats
 );
 

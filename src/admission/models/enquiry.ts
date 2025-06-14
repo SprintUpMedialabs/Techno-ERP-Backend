@@ -16,7 +16,6 @@ export interface IEnquiryDocument extends IEnquirySchema, Document {
   date: Date;
   photoNo: number;
   universityId: string;
-  admittedThrough: string;
 }
 
 export const enquirySchema = new Schema<IEnquiryDocument>(
@@ -73,7 +72,6 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
     },
     fatherOccupation: {
       type: String,
-      required: [true, 'Father occupation is required']
     },
     motherName: {
       type: String,
@@ -91,7 +89,6 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
     },
     motherOccupation: {
       type: String,
-      required: [true, 'Mother occupation is required']
     },
     dateOfBirth: {
       type: Date,

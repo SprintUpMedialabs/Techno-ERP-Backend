@@ -13,28 +13,27 @@ export const crmV1Routes = Router();
 crmV1Routes.post(
     '/analytics',
     authenticate,
-    authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING]),
+    authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING, UserRoles.FRONT_DESK]),
     getAllLeadAnalyticsV1
 );
 
 crmV1Routes.post(
     '/yellow-lead-analytics',
     authenticate,
-    authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING]),
+    authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING, UserRoles.FRONT_DESK]),
     getYellowLeadsAnalyticsV1
 );
 
 crmV1Routes.post(
     '/admin/analytics',
     authenticate,
-    authorize([UserRoles.ADMIN]),
+    authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.FRONT_DESK]),
     adminAnalyticsV1
 );
 
 crmV1Routes.get(
     '/source-analytics',
     authenticate,
-    authorize([UserRoles.ADMIN]),
+    authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.FRONT_DESK]),
     createMarketingSourceWiseAnalyticsV1
 );
-
