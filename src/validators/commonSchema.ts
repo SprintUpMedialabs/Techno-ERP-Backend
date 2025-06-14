@@ -25,7 +25,7 @@ export const emailSchema = z
 
 export const addressSchema = z.object({
   addressLine1: z.string().min(5, 'Permanent address must be at least 5 characters'),
-  addressLine2: z.string().min(5, 'Permanent address must be at least 5 characters'),
+  addressLine2: z.string().optional(),
   district: z.string(),
   pincode: z
     .string()

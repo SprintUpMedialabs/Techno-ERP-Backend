@@ -13,8 +13,6 @@ export const academicDetailSchema = z.object({
     }).optional(),
   percentageObtained: z
     .number()
-    .min(0, 'Percentage must be at least 0')
-    .max(100, 'Percentage cannot exceed 100')
     .optional(),
   subjects: z.string().optional(),
 });
