@@ -9,15 +9,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendAnalyticsEvent = void 0;
+exports.sendMessageToQueue = void 0;
 // src/sqs/sqsProducer.ts
 const client_sqs_1 = require("@aws-sdk/client-sqs");
-const REGION = "ap-south-1"; // Update to your region
-const QUEUE_URL = 'https://sqs.ap-south-1.amazonaws.com/061051259770/marketing-admin-analytics';
-const sqsClient = new client_sqs_1.SQSClient({ region: REGION });
-const sendAnalyticsEvent = (payload) => __awaiter(void 0, void 0, void 0, function* () {
+const secrets_1 = require("../secrets");
+const sqsClient = new client_sqs_1.SQSClient({ region: secrets_1.AWS_SQS_REGION });
+const sendMessageToQueue = (queueUrl, payload) => __awaiter(void 0, void 0, void 0, function* () {
     const command = new client_sqs_1.SendMessageCommand({
-        QueueUrl: QUEUE_URL,
+        QueueUrl: queueUrl,
         MessageBody: JSON.stringify(payload),
     });
     try {
@@ -28,4 +27,4 @@ const sendAnalyticsEvent = (payload) => __awaiter(void 0, void 0, void 0, functi
         console.error("Failed to send message to SQS", err);
     }
 });
-exports.sendAnalyticsEvent = sendAnalyticsEvent;
+exports.sendMessageToQueue = sendMessageToQueue;
