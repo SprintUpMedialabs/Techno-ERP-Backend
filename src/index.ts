@@ -59,7 +59,7 @@ initializeDB();
 
 app.use('/api', apiRouter);
 app.use('/api/v1', v1Router);
-app.get('/test', (req, res) => {
+app.get('/test1', (req, res) => {
   res.send('Hello World');
 });
 
