@@ -65,7 +65,7 @@ exports.createFeeDraft = (0, express_async_handler_1.default)((0, functionLevelL
         })) || [], semWiseFees: ((_e = feeRelatedData.semWiseFees) === null || _e === void 0 ? void 0 : _e.map((semFee, index) => {
             var _a, _b, _c;
             return ({
-                feeAmount: (_b = (_a = semFee.feeAmount) !== null && _a !== void 0 ? _a : semWiseFee[index].amount) !== null && _b !== void 0 ? _b : 0,
+                feeAmount: (_b = (_a = semFee.feeAmount) !== null && _a !== void 0 ? _a : semWiseFee[index]) !== null && _b !== void 0 ? _b : 0,
                 finalFee: (_c = semFee.finalFee) !== null && _c !== void 0 ? _c : 0,
                 feesPaid: index === 0 ? sem1FeeDepositedTOA : 0
             });
@@ -130,7 +130,7 @@ exports.updateFeeDraft = (0, express_async_handler_1.default)((0, functionLevelL
             var _a, _b, _c;
             return ({
                 // feeAmount: semFee.feeAmount ?? semWiseFee?.fee[index] ?? 0,
-                feeAmount: (_b = (_a = semFee.feeAmount) !== null && _a !== void 0 ? _a : semWiseFee[index].amount) !== null && _b !== void 0 ? _b : 0,
+                feeAmount: (_b = (_a = semFee.feeAmount) !== null && _a !== void 0 ? _a : semWiseFee[index]) !== null && _b !== void 0 ? _b : 0,
                 finalFee: (_c = semFee.finalFee) !== null && _c !== void 0 ? _c : 0
             });
         })) || [] });

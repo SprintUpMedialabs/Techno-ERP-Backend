@@ -16,6 +16,7 @@ exports.authorize = exports.authenticate = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const http_errors_1 = __importDefault(require("http-errors"));
 const authenticatedRequest_1 = require("../auth/validators/authenticatedRequest");
+const constants_1 = require("../config/constants");
 const jwtHelper_1 = require("../utils/jwtHelper");
 exports.authenticate = (0, express_async_handler_1.default)((req, _, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
@@ -33,6 +34,7 @@ const authorize = (allowedRoles) => (0, express_async_handler_1.default)((req, r
         throw (0, http_errors_1.default)(401, 'Unauthorized. Please log in again');
     }
     const { roles } = req.data;
+    allowedRoles.push(constants_1.UserRoles.ADMIN);
     if (!roles || !Array.isArray(roles) || roles.length === 0) {
         throw (0, http_errors_1.default)(403, 'Forbidden: You do not have any assigned roles.');
     }

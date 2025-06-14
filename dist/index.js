@@ -47,8 +47,8 @@ const logger_1 = __importDefault(require("./config/logger"));
 const validateEnv_1 = require("./config/validateEnv");
 const error_1 = require("./middleware/error");
 const route_1 = require("./route");
-const v1Router_1 = require("./v1Router");
 const secrets_1 = require("./secrets");
+const v1Router_1 = require("./v1Router");
 const app = (0, express_1.default)();
 let envFile;
 if (process.env.NODE_ENV === 'production') {

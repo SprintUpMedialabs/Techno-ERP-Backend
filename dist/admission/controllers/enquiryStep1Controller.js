@@ -43,7 +43,6 @@ exports.createEnquiry = (0, express_async_handler_1.default)((0, functionLevelLo
     if (!validation.success) {
         throw (0, http_errors_1.default)(400, validation.error.errors[0]);
     }
-    const admittedThrough = enquiryData.course === constants_1.Course.BED ? constants_1.AdmittedThrough.COUNSELLING : constants_1.AdmittedThrough.DIRECT;
     const enquiry = yield enquiry_1.Enquiry.findById(id);
     if (enquiry) {
         throw (0, http_errors_1.default)(400, 'Enquiry already exists');
@@ -58,7 +57,7 @@ exports.createEnquiry = (0, express_async_handler_1.default)((0, functionLevelLo
                 throw (0, formatResponse_1.formatResponse)(res, 404, 'Error occurred while deleting the enquiry draft', true);
             }
         }
-        const savedResult = yield enquiry_1.Enquiry.create([Object.assign(Object.assign({}, enquiryData), { _id: id, admittedThrough, applicationStatus: constants_1.ApplicationStatus.STEP_2 })], { session });
+        const savedResult = yield enquiry_1.Enquiry.create([Object.assign(Object.assign({}, enquiryData), { _id: id, applicationStatus: constants_1.ApplicationStatus.STEP_2 })], { session });
         const enquiry = savedResult[0];
         (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.DISTRICT, (_a = enquiry.address) === null || _a === void 0 ? void 0 : _a.district);
         yield session.commitTransaction();

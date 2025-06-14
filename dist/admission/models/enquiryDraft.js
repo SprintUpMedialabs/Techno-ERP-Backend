@@ -96,8 +96,7 @@ exports.enquiryDraftSchema = new mongoose_1.Schema({
         required: false
     },
     fatherOccupation: {
-        type: String,
-        required: false
+        type: String
     },
     motherName: {
         type: String,
@@ -112,8 +111,7 @@ exports.enquiryDraftSchema = new mongoose_1.Schema({
         required: false
     },
     motherOccupation: {
-        type: String,
-        required: false
+        type: String
     },
     dateOfBirth: {
         type: Date,

@@ -17,10 +17,10 @@ exports.enquirySchema = zod_1.z.object({
     emailId: zod_1.z.string().email('Invalid email format'),
     fatherName: zod_1.z.string({ required_error: "Father Name is required", }).nonempty("Father's Name is required"),
     fatherPhoneNumber: commonSchema_1.contactNumberSchema,
-    fatherOccupation: zod_1.z.string({ required_error: "Father occupation is required", }).nonempty('Father occupation is required'),
+    fatherOccupation: zod_1.z.string().optional(),
     motherName: zod_1.z.string({ required_error: "Mother's Name is required", }).nonempty("Mother's Name is required"),
     motherPhoneNumber: commonSchema_1.contactNumberSchema.optional(),
-    motherOccupation: zod_1.z.string({ required_error: "Mother occupation is required", }).nonempty('Mother occupation is required'),
+    motherOccupation: zod_1.z.string().optional(),
     dateOfBirth: commonSchema_1.requestDateSchema.transform((date) => (0, convertDateToFormatedDate_1.convertToMongoDate)(date)),
     category: zod_1.z.nativeEnum(constants_1.Category),
     course: zod_1.z.string().nonempty('Course can not be empty'),
@@ -53,15 +53,17 @@ exports.enquirySchema = zod_1.z.object({
     religion: zod_1.z.nativeEnum(constants_1.Religion).optional(),
     bloodGroup: zod_1.z.nativeEnum(constants_1.BloodGroup).optional(),
     admittedBy: zod_1.z.union([commonSchema_1.objectIdSchema, zod_1.z.enum(['Other'])]).optional(),
-    isFeeApplicable: zod_1.z.boolean().default(true)
+    isFeeApplicable: zod_1.z.boolean().default(true),
+    admittedThrough: zod_1.z.nativeEnum(constants_1.AdmittedThrough).default(constants_1.AdmittedThrough.DIRECT).optional()
 });
 // Final schema for request (omitting feesDraftId and making it strict)
 exports.enquiryStep1RequestSchema = exports.enquirySchema
     .omit({ studentFee: true, studentFeeDraft: true, dateOfAdmission: true, bloodGroup: true, aadharNumber: true, religion: true, previousCollegeData: true, documents: true, applicationStatus: true, entranceExamDetails: true, nationality: true, stateOfDomicile: true, areaType: true, admittedBy: true })
-    .extend({ id: commonSchema_1.objectIdSchema.optional() })
+    .extend({ id: commonSchema_1.objectIdSchema.optional(), emailId: zod_1.z.string().email('Invalid email format').optional() })
     .strict();
 exports.enquiryStep1UpdateRequestSchema = exports.enquiryStep1RequestSchema.extend({
-    id: commonSchema_1.objectIdSchema
+    id: commonSchema_1.objectIdSchema,
+    emailId: zod_1.z.string().email('Invalid email format').optional()
 }).strict();
 exports.enquiryStep3UpdateRequestSchema = exports.enquirySchema.omit({ documents: true, studentFee: true }).extend({
     id: commonSchema_1.objectIdSchema,
@@ -96,6 +98,7 @@ exports.enquiryDraftStep1RequestSchema = exports.enquiryStep1RequestSchema
     studentPhoneNumber: commonSchema_1.contactNumberSchema,
     counsellor: zod_1.z.array(zod_1.z.string()).optional(),
     telecaller: zod_1.z.array(zod_1.z.string()).optional(),
+    emailId: zod_1.z.string().email('Invalid email format').optional(),
     address: commonSchema_1.addressSchema.partial().optional(),
     academicDetails: zod_1.z.array(academicDetailSchema_1.academicDetailSchema.partial()).optional(),
 }).omit({ id: true }).partial().strict();

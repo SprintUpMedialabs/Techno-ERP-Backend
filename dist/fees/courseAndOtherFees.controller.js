@@ -91,7 +91,7 @@ const fetchOtherFees = (courseCode) => __awaiter(void 0, void 0, void 0, functio
             feeAmt = fee.fees;
     });
     const bookBankAmt = {
-        type: "Book Bank",
+        type: "BOOKBANK",
         amount: feeAmt[0]
     };
     const yearlyFee = record.fee.yearlyFee || [];
