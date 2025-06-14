@@ -21,6 +21,8 @@ import { LeadMaster } from '../models/lead';
 import { MarketingFollowUpModel } from '../models/marketingFollowUp';
 import { MarketingUserWiseAnalytics } from '../models/marketingUserWiseAnalytics';
 import { IUpdateLeadRequestSchema, updateLeadRequestSchema } from '../validators/leads';
+import { sendMessageToQueue } from '../../sqs/sqsProducer';
+import { SQS_MARKETING_ANALYTICS_QUEUE_URL } from '../../secrets';
 
 export const uploadData = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const { id, name } = req.body;
@@ -347,40 +349,8 @@ export const updateDataV1 = expressAsyncHandler(async (req: AuthenticatedRequest
   session.startTransaction();
   try {
     if (isRemarkChanged && !existingLead.isCalledToday) {
-      const isActive = existingLead.isActiveLead;
-
-      const todayStart = getISTDate();
-
-      const userAnalyticsDoc = await MarketingUserWiseAnalytics.findOne({
-        date: todayStart,
-        data: { $elemMatch: { userId: currentLoggedInUser } },
-      });
-
-      if (!userAnalyticsDoc)
-        throw createHttpError(404, 'User analytics not found.');
-
-      const userIndex = userAnalyticsDoc.data.findIndex((entry) =>
-        entry.userId.toString() === currentLoggedInUser?.toString()
-      );
-
-      if (userIndex === -1) {
-        throw createHttpError(404, 'User not found in analytics data.');
-      }
-
-      const isFirstFollowUp = newRemarkLength == 1;
-      userAnalyticsDoc.data[userIndex].totalCalls += 1;
-
-      if (isFirstFollowUp) {
-        userAnalyticsDoc.data[userIndex].newLeadCalls += 1;
-      }
-      if (isActive) {
-        userAnalyticsDoc.data[userIndex].activeLeadCalls += 1;
-      } else {
-        userAnalyticsDoc.data[userIndex].nonActiveLeadCalls += 1;
-      }
       leadRequestData.isCalledToday = true;
-
-      await userAnalyticsDoc.save({ session });
+      sendMessageToQueue(SQS_MARKETING_ANALYTICS_QUEUE_URL, {isActiveLead: existingLead.isActiveLead, currentLoggedInUser, newRemarkLength});
     }
 
     const updatedData = await LeadMaster.findByIdAndUpdate(
@@ -420,7 +390,42 @@ export const updateDataV1 = expressAsyncHandler(async (req: AuthenticatedRequest
   }
 });
 
+export const marketingAnalyticsSQSHandler = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response)=>{
+  const { isActiveLead, currentLoggedInUser, newRemarkLength} = req.body;
 
+    const todayStart = getISTDate();
+
+    const userAnalyticsDoc = await MarketingUserWiseAnalytics.findOne({
+      date: todayStart,
+      data: { $elemMatch: { userId: currentLoggedInUser } },
+    });
+
+    if (!userAnalyticsDoc)
+      throw createHttpError(404, 'User analytics not found.');
+
+    const userIndex = userAnalyticsDoc.data.findIndex((entry) =>
+      entry.userId.toString() === currentLoggedInUser?.toString()
+    );
+
+    if (userIndex === -1) {
+      throw createHttpError(404, 'User not found in analytics data.');
+    }
+
+    const isFirstFollowUp = newRemarkLength == 1;
+    userAnalyticsDoc.data[userIndex].totalCalls += 1;
+
+    if (isFirstFollowUp) {
+      userAnalyticsDoc.data[userIndex].newLeadCalls += 1;
+    }
+    if (isActiveLead) {
+      userAnalyticsDoc.data[userIndex].activeLeadCalls += 1;
+    } else {
+      userAnalyticsDoc.data[userIndex].nonActiveLeadCalls += 1;
+    }
+
+    await userAnalyticsDoc.save();
+  
+});
 
 
 export const logFollowUpChange = (leadId: any, userId: any, action: Actions) => {
