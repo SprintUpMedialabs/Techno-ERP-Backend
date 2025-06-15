@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MarketingUserWiseAnalytics = void 0;
+exports.MarketingUserWiseAnalyticsV1 = exports.MarketingUserWiseAnalytics = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 const constants_1 = require("../../config/constants");
 const BaseMarketingUserWiseAnalyticsSchema = new mongoose_1.Schema({
@@ -96,3 +96,4 @@ const MarketingUserWiseAnalyticsSchema = new mongoose_1.Schema({
     },
 }, { timestamps: true });
 exports.MarketingUserWiseAnalytics = (0, mongoose_1.model)(constants_1.COLLECTION_NAMES.MARKETING_USER_WISE_ANALYTICS, MarketingUserWiseAnalyticsSchema);
+exports.MarketingUserWiseAnalyticsV1 = (0, mongoose_1.model)(constants_1.COLLECTION_NAMES.MARKETING_USER_WISE_ANALYTICS_V1, MarketingUserWiseAnalyticsSchema, constants_1.COLLECTION_NAMES.MARKETING_USER_WISE_ANALYTICS_V1);
