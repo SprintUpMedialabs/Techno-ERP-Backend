@@ -1,15 +1,15 @@
-import mongoose, { Schema } from "mongoose";
-import { User } from "../../auth/models/user";
-import { Actions, MarketingAnalyticsEnum, UserRoles } from "../../config/constants";
-import { MarketingFollowUpModel } from "../models/marketingFollowUp";
-import { MarketingAnalyticsModel } from "../models/marketingAnalytics";
-import { formatResponse } from "../../utils/formatResponse";
-import expressAsyncHandler from "express-async-handler";
-import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
 import { Response } from "express";
-import { MarketingUserWiseAnalytics } from "../models/marketingUserWiseAnalytics";
-import { getISTDate } from "../../utils/getISTDate";
+import expressAsyncHandler from "express-async-handler";
 import createHttpError from "http-errors";
+import mongoose from "mongoose";
+import { User } from "../../auth/models/user";
+import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
+import { Actions, MarketingAnalyticsEnum, UserRoles } from "../../config/constants";
+import { formatResponse } from "../../utils/formatResponse";
+import { getISTDate } from "../../utils/getISTDate";
+import { MarketingAnalyticsModel } from "../models/marketingAnalytics";
+import { MarketingFollowUpModel } from "../models/marketingFollowUp";
+import { MarketingUserWiseAnalytics } from "../models/marketingUserWiseAnalytics";
 
 export const createMarketingAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const session = await mongoose.startSession();

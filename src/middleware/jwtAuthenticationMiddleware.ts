@@ -12,7 +12,7 @@ export const authenticate = expressAsyncHandler(
     if (!token) {
       throw createHttpError(401, 'Unauthorized. Please log in again');
     }
-
+    
     const decoded = jwtHelper.verifyToken(token);
     const parsedUser = UserPayloadSchema.parse(decoded);
     req.data = parsedUser;
