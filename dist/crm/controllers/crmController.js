@@ -12,15 +12,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.exportData = exports.logFollowUpChange = exports.marketingAnalyticsSQSHandler = exports.updateDataV1 = exports.updateData = exports.getAllLeadAnalyticsV1 = exports.getAllLeadAnalytics = exports.getFilteredLeadData = exports.updateSource = exports.getAssignedSheets = exports.uploadData = void 0;
+exports.exportData = exports.logFollowUpChange = exports.marketingAnalyticsSQSHandler = exports.updateData = exports.getAllLeadAnalyticsV1 = exports.getAllLeadAnalytics = exports.getFilteredLeadData = exports.updateSource = exports.getAssignedSheets = exports.uploadData = void 0;
 const exceljs_1 = __importDefault(require("exceljs"));
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const http_errors_1 = __importDefault(require("http-errors"));
 const moment_timezone_1 = __importDefault(require("moment-timezone"));
 const mongoose_1 = __importDefault(require("mongoose"));
-const axiosInstance_1 = __importDefault(require("../../api/axiosInstance"));
-const endPoints_1 = require("../../api/endPoints");
-const safeAxios_1 = require("../../api/safeAxios");
 const user_1 = require("../../auth/models/user");
 const constants_1 = require("../../config/constants");
 const dropDownMetadataController_1 = require("../../utilityModules/dropdown/dropDownMetadataController");
@@ -196,7 +193,7 @@ exports.getAllLeadAnalyticsV1 = (0, express_async_handler_1.default)((req, res) 
     return (0, formatResponse_1.formatResponse)(res, 200, 'Lead analytics fetched successfully', true, leadAnalytics);
 }));
 exports.updateData = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d;
+    var _a, _b, _c;
     const leadRequestData = req.body;
     const validation = leads_1.updateLeadRequestSchema.safeParse(leadRequestData);
     if (!validation.success) {
@@ -247,84 +244,20 @@ exports.updateData = (0, express_async_handler_1.default)((req, res) => __awaite
             }
             leadRequestData.isCalledToday = true;
             yield userAnalyticsDoc.save({ session });
-        }
-        const updatedData = yield lead_1.LeadMaster.findByIdAndUpdate(existingLead._id, Object.assign(Object.assign({}, leadRequestData), { leadTypeModifiedDate }), { new: true, runValidators: true, session });
-        // const updatedFollowUpCount = updatedData?.followUpCount ?? 0;
-        // if (updatedFollowUpCount > existingFollowUpCount) {
-        //   logFollowUpChange(existingLead._id, currentLoggedInUser, Actions.INCREAMENT);
-        // } else if (updatedFollowUpCount < existingFollowUpCount) {
-        //   logFollowUpChange(existingLead._id, currentLoggedInUser, Actions.DECREAMENT);
-        // }
-        (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.FIX_MARKETING_CITY, updatedData === null || updatedData === void 0 ? void 0 : updatedData.city);
-        (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.MARKETING_CITY, updatedData === null || updatedData === void 0 ? void 0 : updatedData.city);
-        (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.FIX_MARKETING_COURSE_CODE, updatedData === null || updatedData === void 0 ? void 0 : updatedData.course);
-        (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.MARKETING_COURSE_CODE, updatedData === null || updatedData === void 0 ? void 0 : updatedData.course);
-        (0, safeAxios_1.safeAxiosPost)(axiosInstance_1.default, `${endPoints_1.Endpoints.AuditLogService.MARKETING.SAVE_LEAD}`, {
-            documentId: updatedData === null || updatedData === void 0 ? void 0 : updatedData._id,
-            action: constants_1.RequestAction.POST,
-            payload: updatedData,
-            performedBy: (_d = req.data) === null || _d === void 0 ? void 0 : _d.id,
-            restEndpoint: '/api/edit/crm',
-        });
-        yield session.commitTransaction();
-        return (0, formatResponse_1.formatResponse)(res, 200, 'Data Updated Successfully!', true, updatedData);
-    }
-    catch (error) {
-        yield session.abortTransaction();
-        throw error;
-    }
-    finally {
-        yield session.endSession();
-    }
-}));
-exports.updateDataV1 = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d;
-    const leadRequestData = req.body;
-    const validation = leads_1.updateLeadRequestSchema.safeParse(leadRequestData);
-    if (!validation.success) {
-        throw (0, http_errors_1.default)(400, validation.error.errors[0]);
-    }
-    const existingLead = yield lead_1.LeadMaster.findById(leadRequestData._id);
-    if (!existingLead) {
-        throw (0, http_errors_1.default)(404, 'Lead does not found with the given ID.');
-    }
-    let leadTypeModifiedDate = existingLead.leadTypeModifiedDate;
-    const existingRemarkLength = ((_a = existingLead.remarks) === null || _a === void 0 ? void 0 : _a.length) || 0;
-    const newRemarkLength = ((_b = leadRequestData.remarks) === null || _b === void 0 ? void 0 : _b.length) || 0;
-    const isRemarkChanged = existingRemarkLength < newRemarkLength;
-    if (isRemarkChanged) {
-        leadRequestData.followUpCount = existingLead.followUpCount + 1;
-        leadRequestData.remarkUpdatedAt = (0, getISTDate_1.getISTDateWithTime)();
-    }
-    if (leadRequestData.leadType && existingLead.leadType !== leadRequestData.leadType) {
-        leadTypeModifiedDate = new Date();
-    }
-    const currentLoggedInUser = (_c = req.data) === null || _c === void 0 ? void 0 : _c.id;
-    const session = yield mongoose_1.default.startSession();
-    session.startTransaction();
-    try {
-        if (isRemarkChanged && !existingLead.isCalledToday) {
-            leadRequestData.isCalledToday = true;
             (0, sqsProducer_1.sendMessageToQueue)(secrets_1.SQS_MARKETING_ANALYTICS_QUEUE_URL, { isActiveLead: existingLead.isActiveLead, currentLoggedInUser, newRemarkLength });
         }
         const updatedData = yield lead_1.LeadMaster.findByIdAndUpdate(existingLead._id, Object.assign(Object.assign({}, leadRequestData), { leadTypeModifiedDate }), { new: true, runValidators: true, session });
-        // const updatedFollowUpCount = updatedData?.followUpCount ?? 0;
-        // if (updatedFollowUpCount > existingFollowUpCount) {
-        //   logFollowUpChange(existingLead._id, currentLoggedInUser, Actions.INCREAMENT);
-        // } else if (updatedFollowUpCount < existingFollowUpCount) {
-        //   logFollowUpChange(existingLead._id, currentLoggedInUser, Actions.DECREAMENT);
-        // }
         (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.FIX_MARKETING_CITY, updatedData === null || updatedData === void 0 ? void 0 : updatedData.city);
         (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.MARKETING_CITY, updatedData === null || updatedData === void 0 ? void 0 : updatedData.city);
         (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.FIX_MARKETING_COURSE_CODE, updatedData === null || updatedData === void 0 ? void 0 : updatedData.course);
         (0, dropDownMetadataController_1.updateOnlyOneValueInDropDown)(constants_1.DropDownType.MARKETING_COURSE_CODE, updatedData === null || updatedData === void 0 ? void 0 : updatedData.course);
-        (0, safeAxios_1.safeAxiosPost)(axiosInstance_1.default, `${endPoints_1.Endpoints.AuditLogService.MARKETING.SAVE_LEAD}`, {
-            documentId: updatedData === null || updatedData === void 0 ? void 0 : updatedData._id,
-            action: constants_1.RequestAction.POST,
-            payload: updatedData,
-            performedBy: (_d = req.data) === null || _d === void 0 ? void 0 : _d.id,
-            restEndpoint: '/api/edit/crm',
-        });
+        // safeAxiosPost(axiosInstance, `${Endpoints.AuditLogService.MARKETING.SAVE_LEAD}`, {
+        //   documentId: updatedData?._id,
+        //   action: RequestAction.POST,
+        //   payload: updatedData,
+        //   performedBy: req.data?.id,
+        //   restEndpoint: '/api/edit/crm',
+        // });
         yield session.commitTransaction();
         return (0, formatResponse_1.formatResponse)(res, 200, 'Data Updated Successfully!', true, updatedData);
     }
@@ -339,7 +272,7 @@ exports.updateDataV1 = (0, express_async_handler_1.default)((req, res) => __awai
 exports.marketingAnalyticsSQSHandler = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { isActiveLead, currentLoggedInUser, newRemarkLength } = req.body;
     const todayStart = (0, getISTDate_1.getISTDate)();
-    const userAnalyticsDoc = yield marketingUserWiseAnalytics_1.MarketingUserWiseAnalytics.findOne({
+    const userAnalyticsDoc = yield marketingUserWiseAnalytics_1.MarketingUserWiseAnalyticsV1.findOne({
         date: todayStart,
         data: { $elemMatch: { userId: currentLoggedInUser } },
     });
@@ -361,6 +294,7 @@ exports.marketingAnalyticsSQSHandler = (0, express_async_handler_1.default)((req
         userAnalyticsDoc.data[userIndex].nonActiveLeadCalls += 1;
     }
     yield userAnalyticsDoc.save();
+    return (0, formatResponse_1.formatResponse)(res, 200, 'Marketing analytics updated successfully', true);
 }));
 const logFollowUpChange = (leadId, userId, action) => {
     marketingFollowUp_1.MarketingFollowUpModel.create({

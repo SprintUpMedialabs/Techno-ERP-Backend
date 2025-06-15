@@ -13,16 +13,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateMarketingRemark = exports.getCallAnalytics = exports.createMarketingAnalytics = void 0;
+const express_async_handler_1 = __importDefault(require("express-async-handler"));
+const http_errors_1 = __importDefault(require("http-errors"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const user_1 = require("../../auth/models/user");
 const constants_1 = require("../../config/constants");
-const marketingFollowUp_1 = require("../models/marketingFollowUp");
-const marketingAnalytics_1 = require("../models/marketingAnalytics");
 const formatResponse_1 = require("../../utils/formatResponse");
-const express_async_handler_1 = __importDefault(require("express-async-handler"));
-const marketingUserWiseAnalytics_1 = require("../models/marketingUserWiseAnalytics");
 const getISTDate_1 = require("../../utils/getISTDate");
-const http_errors_1 = __importDefault(require("http-errors"));
+const marketingAnalytics_1 = require("../models/marketingAnalytics");
+const marketingFollowUp_1 = require("../models/marketingFollowUp");
+const marketingUserWiseAnalytics_1 = require("../models/marketingUserWiseAnalytics");
 exports.createMarketingAnalytics = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const session = yield mongoose_1.default.startSession();
