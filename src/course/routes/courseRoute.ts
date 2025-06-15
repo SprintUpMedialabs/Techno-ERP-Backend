@@ -9,13 +9,13 @@ export const courseRoute = express.Router()
 
 courseRoute.post('/',
     authenticate,
-    authorize([UserRoles.BASIC_USER]),
+    authorize([UserRoles.SYSTEM_ADMIN]),
     createCourse
 );
 
 courseRoute.put('/',
     authenticate,
-    authorize([UserRoles.BASIC_USER]),
+    authorize([UserRoles.SYSTEM_ADMIN]),
     updateCourse
 );
 

@@ -8,19 +8,19 @@ export const subjectRoute = express.Router()
 
 subjectRoute.post('/',
     authenticate,
-    authorize([UserRoles.BASIC_USER]),
+    authorize([UserRoles.SYSTEM_ADMIN]),
     createSubject
 );
 
 subjectRoute.put('/',
     authenticate,
-    authorize([UserRoles.BASIC_USER]),
+    authorize([UserRoles.SYSTEM_ADMIN]),
     updateSubject
 );
 
 subjectRoute.delete('/',
     authenticate,
-    authorize([UserRoles.BASIC_USER]),
+    authorize([UserRoles.SYSTEM_ADMIN]),
     deleteSubject
 );
 
