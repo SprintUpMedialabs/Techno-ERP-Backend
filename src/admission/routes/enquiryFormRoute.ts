@@ -14,24 +14,24 @@ export const enquiryRoute = express.Router();
 
 enquiryRoute.post('/step-1',
     authenticate,
-    authorize([UserRoles.REGISTAR, UserRoles.FINANCE]),
+    authorize([UserRoles.REGISTAR, UserRoles.FINANCE,UserRoles.FRONT_DESK]),
     createEnquiry
 );
 
 enquiryRoute.put('/step-1',
     authenticate,
-    authorize([UserRoles.REGISTAR, UserRoles.FINANCE]),
+    authorize([UserRoles.REGISTAR, UserRoles.FINANCE,UserRoles.FRONT_DESK]),
     updateEnquiryStep1ById
 );
 
 enquiryRoute.post('/step-2',
     authenticate,
-    authorize([UserRoles.REGISTAR, UserRoles.FINANCE]),
+    authorize([UserRoles.REGISTAR, UserRoles.FINANCE,UserRoles.FRONT_DESK]),
     createEnquiryStep2
 );
 
 enquiryRoute.put('/step-2', authenticate,
-    authorize([UserRoles.REGISTAR, UserRoles.FINANCE]),
+    authorize([UserRoles.REGISTAR, UserRoles.FINANCE,UserRoles.FRONT_DESK]),
     updateEnquiryStep2ById
 );
 
@@ -77,25 +77,25 @@ enquiryRoute.post('/approve-enquiry',
 
 enquiryRoute.post('/create-draft-step-1',
     authenticate,
-    authorize([UserRoles.REGISTAR, UserRoles.FINANCE]),
+    authorize([UserRoles.REGISTAR, UserRoles.FINANCE,UserRoles.FRONT_DESK]),
     createEnquiryDraftStep1
 );
 
 enquiryRoute.put('/update-draft-step-1',
     authenticate,
-    authorize([UserRoles.REGISTAR, UserRoles.FINANCE]),
+    authorize([UserRoles.REGISTAR, UserRoles.FINANCE,UserRoles.FRONT_DESK]),
     updateEnquiryDraftStep1
 );
 
 enquiryRoute.post('/create-draft-step-2',
     authenticate,
-    authorize([UserRoles.REGISTAR, UserRoles.FINANCE]),
+    authorize([UserRoles.REGISTAR, UserRoles.FINANCE,UserRoles.FRONT_DESK]),
     createFeeDraft
 );
 
 enquiryRoute.put('/update-draft-step-2',
     authenticate,
-    authorize([UserRoles.REGISTAR, UserRoles.FINANCE]),
+    authorize([UserRoles.REGISTAR, UserRoles.FINANCE,UserRoles.FRONT_DESK]),
     updateFeeDraft
 );
 
