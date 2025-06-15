@@ -315,6 +315,7 @@ var COLLECTION_NAMES;
     COLLECTION_NAMES["FINANCE_ANALYTICS"] = "financeanalytics";
     COLLECTION_NAMES["MARKETING_SOURCE_WISE_ANALYTICS"] = "marketingsourcewiseanalytics";
     COLLECTION_NAMES["MARKETING_USER_WISE_ANALYTICS"] = "marketinguserwiseanalytics";
+    COLLECTION_NAMES["MARKETING_USER_WISE_ANALYTICS_V1"] = "marketinguserwiseanalyticsv1";
     COLLECTION_NAMES["OTP"] = "otps";
     COLLECTION_NAMES["ADMISSION_ANALYTICS"] = "admissionanalytics";
 })(COLLECTION_NAMES || (exports.COLLECTION_NAMES = COLLECTION_NAMES = {}));
