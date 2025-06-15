@@ -13,7 +13,7 @@ export const sendMessageToQueue = async (queueUrl: string, payload: any) => {
 
     try {
         await sqsClient.send(command);
-        logger.info('Message sent to SQS queueUrl: ', queueUrl, ' | payload: ', payload);
+        logger.info(`Message sent to SQS queueUrl: ${queueUrl} | payload: ${JSON.stringify(payload)}`);
     } catch (err) {
         logger.error("Failed to send message to SQS", err);
     }
