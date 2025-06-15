@@ -1,4 +1,4 @@
-name: Deploy to EC2 from develop-data-upload
+name: Deploy to EC2 from develop
 
 on:
   push:
