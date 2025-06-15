@@ -9,7 +9,6 @@ import {
   getFilteredLeadData,
   marketingAnalyticsSQSHandler,
   updateData,
-  updateDataV1,
   updateSource,
   uploadData
 } from '../controllers/crmController';
@@ -18,8 +17,7 @@ import {
   getFilteredYellowLeads,
   getYellowLeadsAnalytics,
   marketingAnalyticsSQSHandlerYellowLead,
-  updateYellowLead,
-  updateYellowLeadV1
+  updateYellowLead
 } from '../controllers/yellowLeadController';
 
 export const crmRoute = express.Router();
@@ -57,13 +55,6 @@ crmRoute.put(
   updateData
 );
 
-crmRoute.put(
-  '/edit/v1',
-  authenticate,
-  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING]),
-  updateDataV1
-);
-
 crmRoute.post(
   '/marketing-analytics-sqs-handler',
   authenticate,
@@ -97,13 +88,6 @@ crmRoute.put(
   authenticate,
   authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING]),
   updateYellowLead
-);
-
-crmRoute.put(
-  '/update-yellow-lead/v1',
-  authenticate,
-  authorize([UserRoles.ADMIN, UserRoles.LEAD_MARKETING, UserRoles.EMPLOYEE_MARKETING]),
-  updateYellowLeadV1
 );
 
 crmRoute.post(
