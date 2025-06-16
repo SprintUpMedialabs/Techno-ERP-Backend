@@ -20,6 +20,7 @@ import { StudentFeesModel } from '../models/studentFees';
 import { incrementAdmissionAnalytics } from './admissionAnalyticsController';
 import { CourseMetaData } from '../../course/models/courseMetadata';
 import { CollegeMetaData } from '../models/collegeMetaData';
+import moment from 'moment-timezone';
 
 
 export const getEnquiryData = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
@@ -143,7 +144,6 @@ export const getEnquiryById = expressAsyncHandler(functionLevelLogger(async (req
       throw createHttpError(404, 'Enquiry not found');
     }
   } else {
-    console.log(enquiry)
     const enquiryPayload = {
       ...enquiry.toObject(),
       collegeName: collegeMetaData?.fullCollegeName ?? null,
@@ -205,21 +205,15 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
           photoNo: photoSerial!.lastSerialNumber,
           universityId: universityId,
           applicationStatus: ApplicationStatus.CONFIRMED,
+          dateOfAdmission: moment().tz('Asia/Kolkata').toDate()
         },
       },
       { runValidators: true, new: true, projection: { createdAt: 0, updatedAt: 0, __v: 0 }, session }
     );
 
-    // const studentValidation = studentSchema.safeParse(approvedEnquiry);
-
     const enquiryData = approvedEnquiry?.toObject();
 
     const studentData = {
-      // "studentName" : approvedEnquiry?.studentName,
-      // "studentPhoneNumber" : approvedEnquiry?.studentPhoneNumber,
-      // "fatherName" : approvedEnquiry?.fatherName,
-      // "fatherPhoneNumber" : approvedEnquiry?.fatherPhoneNumber,
-      // "studentId" : approvedEnquiry?.universityId,
       ...enquiryData,
       "courseCode": approvedEnquiry?.course,
       "feeId": approvedEnquiry?.studentFee,
@@ -276,7 +270,7 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
       transactionHistory: [createTransaction[0]._id]
     }], { session });
 
-    incrementAdmissionAnalytics(student.courseCode);
+    incrementAdmissionAnalytics(student.courseCode,approvedEnquiry!.dateOfAdmission!);
     await session.commitTransaction();
     session.endSession();
 

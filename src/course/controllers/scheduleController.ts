@@ -48,8 +48,6 @@ export const createPlan = expressAsyncHandler(async (req: AuthenticatedRequest, 
 
   planInformation.instructor = instructorId;
 
-  console.log(planInformation);
-
   const createdSchedule = await Course.findByIdAndUpdate(
     courseId,
     {
@@ -72,11 +70,8 @@ export const createPlan = expressAsyncHandler(async (req: AuthenticatedRequest, 
 
 export const batchUpdatePlan = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const planData: IUpdatePlanSchema = req.body;
-  console.log(planData.data)
   const validation = updatePlanSchema.safeParse(planData);
-  console.log(validation.error)
 
-  console.log(planData.data);
   if (!validation.success)
     throw createHttpError(400, validation.error.errors[0]);
 
@@ -90,7 +85,6 @@ export const batchUpdatePlan = expressAsyncHandler(async (req: AuthenticatedRequ
   subjectId = new mongoose.Types.ObjectId(subjectId);
   instructorId = new mongoose.Types.ObjectId(instructorId);
 
-  console.log("Data to be updated", data);
   const updateResult = await Course.updateOne(
     {
       _id: courseId,
@@ -110,7 +104,6 @@ export const batchUpdatePlan = expressAsyncHandler(async (req: AuthenticatedRequ
     }
   );
 
-  console.log(updateResult.modifiedCount);
   return formatResponse(res, 200, config.updateSuccessMessage, true, null);
 })
 

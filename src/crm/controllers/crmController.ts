@@ -20,6 +20,7 @@ import { MarketingUserWiseAnalytics, MarketingUserWiseAnalyticsV1 } from '../mod
 import { IUpdateLeadRequestSchema, updateLeadRequestSchema } from '../validators/leads';
 import { sendMessageToQueue } from '../../sqs/sqsProducer';
 import { SQS_MARKETING_ANALYTICS_QUEUE_URL } from '../../secrets';
+import logger from '../../config/logger';
 
 export const uploadData = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const { id, name } = req.body;
@@ -349,8 +350,7 @@ export const logFollowUpChange = (leadId: any, userId: any, action: Actions) => 
     leadId,
     action
   })
-    .then(() => console.log(`Follow-up ${action.toLowerCase()} logged for lead ${leadId} by ${userId}.`))
-    .catch(err => console.error(`Error for lead ${leadId} by ${userId}. Error logging follow-up ${action.toLowerCase()}:`, err));
+    .catch(err => logger.error(`Error for lead ${leadId} by ${userId}. Error logging follow-up ${action.toLowerCase()}:`, err));
 };
 
 

@@ -136,12 +136,8 @@ const mapStudentToRow = async (student: IStudentSchema & { _id: ObjectId, create
 
 
 export const exportStudentData = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    console.log("In student export data");
     const user = await User.findById(req.data?.id);
-    console.log("Logged in user is : ", user);
     const students = await Student.find({}) as (IStudentSchema & { _id: ObjectId, createdAt: Date, updatedAt: Date })[];
-
-    console.log("Students are : ", students);
 
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Students");

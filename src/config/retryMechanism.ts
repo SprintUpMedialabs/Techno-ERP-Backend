@@ -1,9 +1,7 @@
-import mongoose from "mongoose";
-import { sendEmail } from "./mailer";
-import { DEVELOPER_EMAIL } from "../secrets";
 import createHttpError from "http-errors";
-import { PipelineName } from "./constants";
+import mongoose from "mongoose";
 import { incrementAttempt, markCompleted, markFailed } from "../pipline/controller";
+import { PipelineName } from "./constants";
 
 export async function retryMechanism(handler: (session: mongoose.ClientSession) => Promise<void>, emailSubject: any, emailMessage: any, pipelineId: string, pipelineName: PipelineName, maxRetries = 5, delayMs = 500) {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -19,13 +17,7 @@ export async function retryMechanism(handler: (session: mongoose.ClientSession) 
         catch (error: any) {
             await session.abortTransaction();
             session.endSession();
-            if (process.env.NODE_ENV) {
-                await sendEmail(DEVELOPER_EMAIL, `Attempt ${attempt} : ` + emailSubject + ` ${process.env.NODE_ENV}`, error.message);
-            }
             if (attempt == maxRetries) {
-                if (process.env.NODE_ENV) {
-                    await sendEmail(DEVELOPER_EMAIL, emailSubject + ` ${process.env.NODE_ENV}`, emailMessage);
-                }
                 await markFailed(pipelineId, error.message);
                 throw createHttpError(400, error.message);
             } else {
