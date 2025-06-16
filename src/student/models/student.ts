@@ -41,7 +41,9 @@ const StudentBaseInfoSchema = new Schema<IStudentBasicInfoDocument>({
     studentPhoneNumber: {
         type: String
     },
-
+    dateOfAdmission: {
+        type: Date
+    },
     fatherName: {
         type: String,
         required: [true, "Father's Name is required"]
