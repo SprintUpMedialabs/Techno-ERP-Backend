@@ -276,7 +276,7 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
       transactionHistory: [createTransaction[0]._id]
     }], { session });
 
-    incrementAdmissionAnalytics(student.courseCode);
+    incrementAdmissionAnalytics(student.courseCode, approvedEnquiry!.dateOfAdmission!);
     await session.commitTransaction();
     session.endSession();
 
