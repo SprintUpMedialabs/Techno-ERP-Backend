@@ -1,14 +1,15 @@
+import { Response } from 'express';
+import expressAsyncHandler from 'express-async-handler';
 import createHttpError from 'http-errors';
 import moment from 'moment-timezone';
-import { PipelineRunLog, IPipelineRunLogDocument } from './pipelineRunLog ';
+import { AuthenticatedRequest } from '../auth/validators/authenticatedRequest';
 import { PipelineStatus } from '../config/constants';
 import logger from '../config/logger';
 import { sendEmail } from '../config/mailer';
 import { DEVELOPER_EMAIL } from '../secrets';
-import expressAsyncHandler from 'express-async-handler';
-import { Response } from 'express';
-import { AuthenticatedRequest } from '../auth/validators/authenticatedRequest';
 import { formatResponse } from '../utils/formatResponse';
+import { IPipelineRunLogDocument, PipelineRunLog } from './pipelineRunLog ';
+import { ErrorLog } from '../utilityModules/ErrorLogModel';
 
 /**
  * 1. Create a new pipeline log and return its ID.
@@ -26,10 +27,8 @@ export const createPipeline = async (name: string): Promise<string | undefined> 
             durationInSeconds: 0,
             startedAt: now.toDate(),
         });
-        console.log("New pipeline is : ", newPipeline);
         return newPipeline.id.toString();
     } catch (error: any) {
-        await sendEmail(DEVELOPER_EMAIL, "Error in creating pipeline : ", error.message);
         logger.error("Error in creating pipeline : ", error);
         throw createHttpError(400, error.message);
     }
@@ -48,7 +47,11 @@ export const incrementAttempt = async (id: string, errorMessage?: string): Promi
 
         await PipelineRunLog.findByIdAndUpdate(id, update);
     } catch (error: any) {
-        await sendEmail(DEVELOPER_EMAIL, "Error in incrementing attempt : ", error.message);
+        await ErrorLog.create({
+            message: "Error in incrementing attempt error message : "+ error.message,
+            statusCode: 400,
+            date: moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss'),
+        });
         logger.error("Error in incrementing attempt : ", error);
     }
 };
@@ -72,7 +75,11 @@ export const markFailed = async (id: string, errorMessage?: string): Promise<voi
 
         await PipelineRunLog.findByIdAndUpdate(id, update);
     } catch (error: any) {
-        await sendEmail(DEVELOPER_EMAIL, "Error in marking pipeline as failed : ", error.message);
+        await ErrorLog.create({
+            message: "Error in marking pipeline as failed : "+ error.message,
+            statusCode: 400,
+            date: moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss'),
+        });
         logger.error("Error in marking pipeline as failed : ", error);
     }
 };
@@ -90,7 +97,11 @@ export const addErrorMessage = async (id: string, errorMessage: string): Promise
             $push: { errorMessages: errorMessage },
         });
     } catch (error: any) {
-        await sendEmail(DEVELOPER_EMAIL, "Error in adding error message to pipeline : ", error.message);
+        await ErrorLog.create({
+            message: "Error in adding error message to pipeline : "+ error.message,
+            statusCode: 400,
+            date: moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss'),
+        });
         logger.error("Error in adding error message to pipeline : ", error);
     }
 };
@@ -111,7 +122,11 @@ export const markCompleted = async (id: string): Promise<void | undefined> => {
             durationInSeconds: Math.round(duration),
         });
     } catch (error: any) {
-        await sendEmail(DEVELOPER_EMAIL, "Error in marking pipeline as completed : ", error.message);
+        await ErrorLog.create({
+            message: "Error in marking pipeline as completed : "+ error.message,
+            statusCode: 400,
+            date: moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss'),
+        });
         logger.error("Error in marking pipeline as completed : ", error);
     }
 };

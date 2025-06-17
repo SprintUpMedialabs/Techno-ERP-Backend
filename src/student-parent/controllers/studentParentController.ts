@@ -6,7 +6,6 @@ import { CourseMetaData } from "../../course/models/courseMetadata";
 import mongoose from "mongoose";
 import { formatResponse } from "../../utils/formatResponse";
 import { Course } from "../../course/models/course";
-import { IScheduleSchema } from "../../course/validators/scheduleSchema";
 import { User } from "../../auth/models/user";
 import createHttpError from "http-errors";
 import { convertToDDMMYYYY } from "../../utils/convertDateToFormatedDate";
@@ -42,9 +41,7 @@ export const getStudentInformation = expressAsyncHandler(async (req: Authenticat
 
   const courseId = student?.courseId;
 
-  console.log("Student id : ", student?._id);
   const { semesterId, id, ...matchedSubjects } = await getEnrolledSubjectsForStudent(student?._id)
-  console.log("Matched subjects : ", matchedSubjects);
 
 
   const responseObject = {
@@ -402,7 +399,6 @@ export const getScheduleInformation = expressAsyncHandler(async (req: Authentica
     documents
   };
 
-  console.log("Response Object : ", responseObject);
   return formatResponse(res, 200, "Attendance fetched successfully", true, responseObject)
 
 })

@@ -137,7 +137,6 @@ export const getCourseDuesByDate = expressAsyncHandler(async (req: Authenticated
 
 
     const targetDate = convertToMongoDate(date);
-    console.log(targetDate)
 
     const dues = await CourseDues.find({ date: targetDate, ...collegeFilter });
 

@@ -21,11 +21,9 @@ const yearMap: Record<number, string> = {
 };
 
 export const getCourseYrFromSemNum = (semesterNumber: number): string => {
-    console.log(semesterNumber);
     if (semesterNumber < 1) return "Unknown";
 
     const yearNumber = Math.ceil(semesterNumber / 2);
 
-    console.log(yearNumber);
     return yearMap[yearNumber] || "Unknown";
 };

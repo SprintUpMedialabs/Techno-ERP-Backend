@@ -29,7 +29,7 @@ export const createFinanceAnalytics = expressAsyncHandler(async (req: Authentica
     currentMonth >= 6
       ? `${currentYear}-${currentYear + 1}`
       : `${currentYear - 1}-${currentYear}`;
-  const newAdmissionAcademicYear = `${currentYear}-${currentYear + 1}`;
+  const newAdmissionAcademicYear = currentMonth >= 6 ? `${currentYear+1}-${currentYear + 2}` : `${currentYear}-${currentYear + 1}`;
 
   const courseList = await CourseMetaData.find(
     {},
@@ -95,7 +95,7 @@ export const createFinanceAnalytics = expressAsyncHandler(async (req: Authentica
 
 // TODO: pass out student handling
 //       remaining dues
-//       prevTotalDueAtSemStart => create cron job for this
+//       prevTotalDueAtSemStart => create cron job for this        
 
         const revenueResult = await Student.aggregate([
           {
@@ -152,7 +152,11 @@ export const createFinanceAnalytics = expressAsyncHandler(async (req: Authentica
         const totalExpectedRevenueCourseYearWise = revenueResult[0]?.totalDueSum || 0;
 
         const yesterday = getPreviousDayDateTime();
-        const collectionResult = await CollegeTransaction.aggregate([
+        let collectionResult: any[] = [];
+        if( courseYear=="Zero" ){
+          collectionResult = [];
+        }else{
+          collectionResult = await CollegeTransaction.aggregate([
           {
             $match: {
               courseCode,
@@ -170,7 +174,7 @@ export const createFinanceAnalytics = expressAsyncHandler(async (req: Authentica
             }
           }
         ]).session(session);
-
+        }
         const totalCollectionCourseYearWise = collectionResult[0]?.totalCollection ?? 0;
 
         courseYearDetail.totalCollection = totalCollectionCourseYearWise;

@@ -38,7 +38,6 @@ export const getAdmissoinDocumentListByCourseCode = expressAsyncHandler(async (r
 
 export const getCourseFeeByCourseCodee = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { courseCode } = req.params;
-    console.log(courseCode)
     const courseFee = await CourseMetaData.findOne({ courseCode }).select('fee');
     if (!courseFee) {
         throw createHttpError(404, 'Course metadata not found');

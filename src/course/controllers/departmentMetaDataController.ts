@@ -97,7 +97,6 @@ export const fetchInstructors = expressAsyncHandler(async (req: AuthenticatedReq
     );
 
     const filteredInstructors = instructors.filter((instructor) => instructor !== null);
-    console.log("Filtered Instructors are : ", filteredInstructors);
     return formatResponse(res, 200, 'Instructors fetched successfully', true, filteredInstructors);
 })
 

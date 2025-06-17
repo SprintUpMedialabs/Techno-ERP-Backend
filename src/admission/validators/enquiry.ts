@@ -100,7 +100,7 @@ export const enquiryStep1UpdateRequestSchema = enquiryStep1RequestSchema.extend(
 
 
 
-export const enquiryStep3UpdateRequestSchema = enquirySchema.omit({ documents: true, studentFee: true }).extend({
+export const enquiryStep3UpdateRequestSchema = enquirySchema.omit({ documents: true, studentFee: true, dateOfAdmission: true }).extend({
   id: objectIdSchema,
   physicalDocumentNote: z.array(physicalDocumentNoteRequestSchema).optional()
 }).strict();
@@ -119,9 +119,6 @@ export const enquiryDraftStep3Schema = enquiryStep3UpdateRequestSchema
     studentPhoneNumber: contactNumberSchema,
     counsellor: z.array(z.string()).optional(),
     telecaller: z.array(z.string()).optional(),
-    dateOfAdmission: requestDateSchema
-      .transform((date) => convertToMongoDate(date) as Date)
-      .optional(),
     dateOfBirth: requestDateSchema.transform((date) =>
       convertToMongoDate(date) as Date)
       .optional(),

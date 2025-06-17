@@ -20,7 +20,6 @@ export const downloadTransactionSlip = expressAsyncHandler(async (req: Authentic
 export const downloadAdmissionTransactionSlip = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { studentId } = req.body;
     const responseObj = await getTransactionSlipData(studentId, "", true);
-    console.log("Response Object : ", responseObj)
     return formatResponse(res, 200, "Admission Transaction Slip Data fetched successfully", true, responseObj);
 })
 

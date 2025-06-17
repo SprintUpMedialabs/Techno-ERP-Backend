@@ -57,7 +57,7 @@ export const StudentBaseInfoSchema = z.object({
 
     studentName: z.string({ required_error: "Student Name is required." }).nonempty("Student Name cannot be empty"),
     studentPhoneNumber: z.string().optional(),
-
+    dateOfAdmission: z.date(),
     fatherName: z.string({ required_error: "Father Name is required", }).nonempty("Father's Name is required"),
     fatherPhoneNumber: contactNumberSchema,
     fatherOccupation: z.string().optional(),

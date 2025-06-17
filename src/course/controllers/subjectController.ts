@@ -143,7 +143,6 @@ export const deleteSubject = expressAsyncHandler(async (req: AuthenticatedReques
       }
     );
 
-    console.log("Object of subject updated in db");
     await session.commitTransaction();
 
     const result = await Course.aggregate([
@@ -191,15 +190,11 @@ export const deleteSubject = expressAsyncHandler(async (req: AuthenticatedReques
     let lecturePlanDocs = docs.lecturePlan;
     let allDocs = [...additionalResources, ...practicalPlanDocs, ...lecturePlanDocs];
 
-    console.log(allDocs);
-
     for (const docUrl of allDocs) {
       await deleteFromS3(docUrl);
     }
 
     session.endSession();
-
-    // const responsePayload = await fetchSubjectInformation(courseId.toString(), semesterId.toString(), "", 1, 10);
 
     return formatResponse(res, 200, 'Subject Deleted Successfully', true, null);
   }

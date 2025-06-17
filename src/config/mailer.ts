@@ -32,8 +32,6 @@ export const sendEmail = async (to: string, subject: string, text: string, attac
     attachments
   };
 
-  console.log("Mail Options : ", mailOptions);
-
   try {
     const info = await transport.sendMail(mailOptions);
     return info;

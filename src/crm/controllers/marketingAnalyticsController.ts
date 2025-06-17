@@ -101,9 +101,6 @@ export const createMarketingAnalytics = expressAsyncHandler(async (req: Authenti
   }
 });
 
-
-
-
 export const getCallAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const callAnalytics = await MarketingAnalyticsModel.findOne({ type: MarketingAnalyticsEnum.NO_OF_CALLS });
 

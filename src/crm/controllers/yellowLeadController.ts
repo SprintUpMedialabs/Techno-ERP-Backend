@@ -85,10 +85,11 @@ export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedReq
   if (userIndex === -1) {
     throw createHttpError(404, 'User not found in analytics data.');
   }
+  
+  sendMessageToQueue(SQS_MARKETING_ANALYTICS_QUEUE_URL_YELLOW_LEAD, { currentLoggedInUser, isCalledToday: existingLead.isCalledToday, isRemarkChanged, isActiveLead: existingLead.isActiveLead, isFinalConversionChangedToAdmission, isFinalConversionChangedFromAdmission, isCampusVisitChangedToYes, isCampusVisitChangedToNo });
 
   if (isRemarkChanged && !existingLead?.isCalledToday) {
     userAnalyticsDoc.data[userIndex].totalCalls += 1;
-    sendMessageToQueue(SQS_MARKETING_ANALYTICS_QUEUE_URL_YELLOW_LEAD, { currentLoggedInUser, isCalledToday: existingLead.isCalledToday, isRemarkChanged, isActiveLead: existingLead.isActiveLead, isFinalConversionChangedToAdmission, isFinalConversionChangedFromAdmission, isCampusVisitChangedToYes, isCampusVisitChangedToNo });
     if (existingLead?.isActiveLead) {
       userAnalyticsDoc.data[userIndex].activeLeadCalls += 1;
     } else {

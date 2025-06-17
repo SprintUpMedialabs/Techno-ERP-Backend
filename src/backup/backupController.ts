@@ -81,15 +81,12 @@ backupRoute.get('/sync', authenticate, authorize([UserRoles.SYSTEM_ADMIN, UserRo
                     return res.status(500).json({ message: 'Dump failed', error: dumpStderr });
                 }
 
-                console.log('Dump completed.');
-
                 exec(restoreCommand, (restoreErr, restoreStdout, restoreStderr) => {
                     if (restoreErr) {
                         console.error('Restore error:', restoreStderr);
                         return res.status(500).json({ message: 'Restore failed', error: restoreStderr });
                     }
 
-                    console.log('Restore completed.');
                     return res.status(200).json({
                         message: '✅ Database synced successfully from production to development',
                     });
