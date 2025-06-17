@@ -133,8 +133,9 @@ export const enquiryDraftStep3Schema = enquiryStep3UpdateRequestSchema
 export const enquiryDraftStep1RequestSchema = enquiryStep1RequestSchema
   .extend({
     studentName: z.string({ required_error: "Student Name is required", }).nonempty('Student Name is required'),
-    studentPhoneNumber: contactNumberSchema,
+    studentPhoneNumber: contactNumberSchema.optional(),
     counsellor: z.array(z.string()).optional(),
+    course: z.string().optional(),
     telecaller: z.array(z.string()).optional(),
     emailId: z.string().email('Invalid email format').optional(),
     address: addressSchema.partial().optional(),
