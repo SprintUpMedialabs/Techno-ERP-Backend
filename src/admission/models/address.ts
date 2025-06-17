@@ -5,10 +5,11 @@ import { IAddressSchema } from "../../validators/commonSchema";
 export interface IAddressDocument extends IAddressSchema, Document { }
 
 export const addressSchema = new Schema<IAddressDocument>({
-  addressLine1: { type: String },
-  addressLine2: { type: String },
+  addressLine1: { type: String, default: '' },
+  addressLine2: { type: String, default: '' },
   district: {
     type: String,
+    default: ''
   },
   pincode: {
     type: String,
@@ -19,12 +20,14 @@ export const addressSchema = new Schema<IAddressDocument>({
   },
   state: {
     type: String,
+    default: ''
   },
   country: {
     type: String,
     enum: {
       values: Object.values(Countries),
       message: 'Invalid Country value'
-    }
+    },
+    default: Countries.India
   }
 });
