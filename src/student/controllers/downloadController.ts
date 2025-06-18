@@ -10,6 +10,7 @@ import { CollegeTransaction } from "../models/collegeTransactionHistory";
 import { Student } from "../models/student";
 import createHttpError from "http-errors";
 import { FinanceFeeType } from "../../config/constants";
+import { CourseMetaData } from "../../course/models/courseMetadata";
 
 export const downloadTransactionSlip = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { studentId, transactionId } = req.body;
@@ -72,7 +73,9 @@ export const getTransactionSlipData = async (studentId: string, transactionId: s
         transactionId = student?.transactionHistory?.at(0)?.toString() ?? '';
 
     const collegeTransaction = await CollegeTransaction.findById(transactionId);
-    const collegeMetaData = await CollegeMetaData.findOne({ name: student?.collegeName })
+    const course = await CourseMetaData.findOne({ courseCode : student?.courseCode });
+    const collegeMetaData = await CollegeMetaData.findOne({ collegeName : course?.collegeName });
+    
     const responseObj = {
         collegeName: collegeMetaData?.fullCollegeName,
         affiliationName: collegeMetaData?.fullAffiliation,
