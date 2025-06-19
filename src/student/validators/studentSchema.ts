@@ -108,8 +108,8 @@ export const StudentSchema = z.object({
     feeStatus: z.nativeEnum(FeeStatus).default(FeeStatus.DUE),
     extraBalance: z.number().default(0),
     prevTotalDueAtSemStart: z.number().default(0),
-    transactionHistory: z.array(objectIdSchema),
     step2And4Remark: z.string().optional(),
+    transactionHistory: z.array(objectIdSchema).optional()
 })
 
 export const CreateStudentSchema = z.object({
