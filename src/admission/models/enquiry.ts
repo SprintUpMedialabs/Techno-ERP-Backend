@@ -56,8 +56,7 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
       validate: {
         validator: (email: string) => emailSchema.safeParse(email).success,
         message: 'Invalid email format'
-      },
-      required: true
+      }
     },
     fatherName: {
       type: String,
