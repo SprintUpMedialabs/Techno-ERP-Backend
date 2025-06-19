@@ -55,7 +55,7 @@ export const StudentBaseInfoSchema = z.object({
     lurnRegistrationNo: z.string().optional(),
 
 
-    studentName: z.string({ required_error: "Student Name is required." }).nonempty("Student Name cannot be empty").optional(),
+    studentName: z.string({ required_error: "Student Name is required." }).nonempty("Student Name cannot be empty"),
     studentPhoneNumber: z.string().optional(),
     dateOfAdmission: z.date().optional(),
     fatherName: z.string({ required_error: "Father Name is required", }).nonempty("Father's Name is required").optional(),
@@ -96,10 +96,10 @@ export const StudentBaseInfoSchema = z.object({
 export const StudentSchema = z.object({
     studentInfo: StudentBaseInfoSchema.optional(),
     collegeName : z.string().optional(),
-    courseId: objectIdSchema.optional(),
+    courseId: objectIdSchema,
     departmentMetaDataId: objectIdSchema,
-    courseName: z.string({ required_error: "Course Name is required." }).nonempty("Course Name is required").optional(),
-    courseCode: z.string().optional(),
+    courseName: z.string({ required_error: "Course Name is required." }).nonempty("Course Name is required"),
+    courseCode: z.string(),
     startingYear: z.number().optional(),
     currentSemester: z.number().nonnegative("Current Semester of student must be greater than 0").optional(),
     currentAcademicYear: z.string().optional(),
@@ -112,7 +112,7 @@ export const StudentSchema = z.object({
 })
 
 export const CreateStudentSchema = z.object({
-    courseCode: z.string().optional(),
+    courseCode: z.string(),
     feeId: objectIdSchema.optional(),
     dateOfAdmission: z.date().optional(),
 
@@ -122,7 +122,7 @@ export const CreateStudentSchema = z.object({
     photoNo: z.number({ required_error: "Photo Number cannot be empty." }).nonnegative("Photo Number is required").optional(),
     formNo: z.string({ required_error: "Form No cannot be empty." }).nonempty("Form No is required").optional(),
 
-    studentName: z.string({ required_error: "Student Name is required." }).nonempty("Student Name cannot be empty").optional(),
+    studentName: z.string({ required_error: "Student Name is required." }).nonempty("Student Name cannot be empty"),
     studentPhoneNumber: z.string().optional(),
 
     fatherName: z.string({ required_error: "Father Name is required", }).nonempty("Father's Name is required").optional(),
@@ -136,10 +136,10 @@ export const CreateStudentSchema = z.object({
     emailId: z.string().email('Invalid email format').optional(),
     bloodGroup: z.nativeEnum(BloodGroup).optional(),
     dateOfBirth: requestDateSchema.transform((date) =>
-        convertToMongoDate(date ?? "") as Date
+        convertToMongoDate(date) as Date
     ).optional(),
     category: z.nativeEnum(Category).optional(),
-    course: z.string().optional(),
+    course: z.string(),
     references: z.array(z.nativeEnum(AdmissionReference)).optional(),
     srAmount: z.number().optional(),
 
@@ -177,7 +177,7 @@ export const updateStudentDetailsRequestSchema = z.object({
 
     gender: z.nativeEnum(Gender).default(Gender.OTHER),
     dateOfBirth: requestDateSchema.transform((date) =>
-        convertToMongoDate(date ?? "") as Date
+        convertToMongoDate(date) as Date
     ),
 
     religion: z.nativeEnum(Religion).optional(),

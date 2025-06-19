@@ -28,12 +28,12 @@ export const enquiryDraftSchema = new Schema<IEnquiryDraftDocument>(
             set: (value: string) => {
                 return convertToMongoDate(value);
             },
-            required: false
+            required: true
 
         },
         studentName: {
             type: String,
-            required: false
+            required: true
         },
         studentPhoneNumber: {
             type: String,
@@ -84,7 +84,7 @@ export const enquiryDraftSchema = new Schema<IEnquiryDraftDocument>(
         dateOfBirth: {
             type: Date,
             set: (value: string) => {
-                return convertToMongoDate(value ?? "");
+                return convertToMongoDate(value);
             },
             required: false
         },
@@ -102,7 +102,7 @@ export const enquiryDraftSchema = new Schema<IEnquiryDraftDocument>(
             //     values: Object.values(Course),
             //     message: 'Invalid Course value'
             // },
-            required: false
+            required: true
         },
         references: {
             type: [String],

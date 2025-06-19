@@ -18,7 +18,7 @@ export const createEnquiryDraftStep1 = expressAsyncHandler(functionLevelLogger(a
         throw createHttpError(400, validation.error.errors[0]);
     }
 
-    const enquiryDraft = await EnquiryDraft.create(data);
+    const enquiryDraft = await EnquiryDraft.create(validation.data);
 
     updateOnlyOneValueInDropDown(DropDownType.DISTRICT, enquiryDraft?.address?.district);
 

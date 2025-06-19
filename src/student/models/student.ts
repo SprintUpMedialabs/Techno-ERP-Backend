@@ -40,65 +40,42 @@ const StudentBaseInfoSchema = new Schema<IStudentBasicInfoDocument>({
     },
     studentName: {
         type: String,
-        required: false
+        required: true
     },
     studentPhoneNumber: {
         type: String,
-        required: false
     },
-
     fatherName: {
         type: String,
-        required: [false, "Father's Name is required"]
     },
     fatherPhoneNumber: {
         type: String,
-        required: [false, 'Father Phone Number is required.'],
-        validate: {
-            validator: (stuPhNum: string) => contactNumberSchema.safeParse(stuPhNum).success,
-            message: 'Invalid Father Phone Number'
-        }
     },
     fatherOccupation: {
         type: String,
-        required: false
     },
     motherName: {
         type: String,
-        required: [false, "Mother's Name is required"]
     },
     motherPhoneNumber: {
         type: String,
-        validate: {
-            validator: (stuPhNum: string) => {
-                if (!stuPhNum) return true;
-                return contactNumberSchema.safeParse(stuPhNum).success;
-            },
-            message: 'Invalid Mother Phone Number'
-        },
-        required: false
     },
     motherOccupation: {
         type: String,
-        required: false
     },
-
     emailId: {
         type: String,
         validate: {
             validator: (email: string) => emailSchema.safeParse(email).success,
             message: 'Invalid email format'
         },
-        required: false
     },
     bloodGroup: {
         type: String,
         enum: Object.values(BloodGroup),
-        required: false
     },
     dateOfBirth: {
         type: Date,
-        required: [false, 'Date is required'],
         set: (value: string | Date) => {
             if (value instanceof Date) return value;
             return convertToMongoDate(value);
@@ -110,7 +87,6 @@ const StudentBaseInfoSchema = new Schema<IStudentBasicInfoDocument>({
             values: Object.values(Category),
             message: 'Invalid Category value'
         },
-        required: false
     },
     references: {
         type: [String],
@@ -118,49 +94,39 @@ const StudentBaseInfoSchema = new Schema<IStudentBasicInfoDocument>({
           values: Object.values(AdmissionReference),
           message: 'Invalid Admission Reference value'
         },
-        required: false
     },
     srAmount: {
         type: Number,
-        required: false
     },
-    aadharNumber: {
+    aadharNumber: { 
         type: String,
         validate: {
             validator: (aadhar: string) => aadhar.length === 12,
             message: 'Invalid Aadhar Number'
         },
-        required: false
     },
     address: {
         type: addressSchema,
         minlength: [5, 'Address must be at least 5 characters long'],
-        required: false
     },
     academicDetails: {
         type: [academicDetailFormSchema],
         default: [],
-        required: false
     },
     entranceExamDetails: {
         type: entranceExamDetailSchema,
-        required: false
     },
     previousCollegeData: {
         type: previousCollegeDataSchema,
-        required: false
     },
     documents: {
         type: [singleDocumentSchema],
-        required: false
     },
     physicalDocumentNote: {
         type: [physicalDocumentNoteSchema],
-        required: false
     },
     stateOfDomicile: {
         type: String,
-        required: false
     },
     areaType: {
         type: String,
@@ -168,11 +134,9 @@ const StudentBaseInfoSchema = new Schema<IStudentBasicInfoDocument>({
             values: Object.values(AreaType),
             message: 'Invalid area type'
         },
-        required: false
     },
     nationality: {
         type: String,
-        required: false
     },
     gender: {
         type: String,
@@ -180,17 +144,14 @@ const StudentBaseInfoSchema = new Schema<IStudentBasicInfoDocument>({
             values: Object.values(Gender),
             message: 'Invalid gender value'
         },
-        required: false
     },
     religion: {
         type: String,
         enum: Object.values(Religion),
-        required: false
     },
     admittedThrough: {
         type: String,
         enum: Object.values(AdmittedThrough),
-        required: false
     }
 });
 
@@ -250,7 +211,6 @@ const AttendanceModel = new Schema<IAttendanceDocument>({
 const SubjectSchema = new Schema<ISubjectDocument>({
     subjectId: {
         type: Schema.Types.ObjectId,
-        required: false
     },
     attendance: {
         type: AttendanceModel,
@@ -265,75 +225,62 @@ const SubjectSchema = new Schema<ISubjectDocument>({
 const SemesterSchema = new Schema<ISemesterDocument>({
     semesterId: {
         type: Schema.Types.ObjectId,
-        required: false
     },
     semesterNumber: {
         type: Number,
-        required: false,
         min: 0
     },
     academicYear: {
         type: String,
-        required: false
     },
     courseYear: {
         type: String,
         enum: Object.values(CourseYears),
-        required: false
     },
     subjects: {
         type: [SubjectSchema],
-        required: false
     },
     fees: {
         type: FeeModel,
-        required: false
     }
 });
 
 const StudentModel = new Schema<IStudentDocument>({
     studentInfo: {
         type: StudentBaseInfoSchema,
-        required: false
     },
     courseId: {
         type: Schema.Types.ObjectId,
-        required: false
+        required: true
     },
     departmentMetaDataId: {
         type: Schema.Types.ObjectId,
-        required: false,
         ref: COLLECTION_NAMES.DEPARTMENT_META_DATA
     },
     courseName: {
         type: String,
-        required: false
+        required: true
     },
     courseCode: {
         type: String,
-        required: false
+        required: true
     },
     startingYear: {
         type: Number,
-        required: false
     },
     currentSemester: {
         type: Number,
-        required: false,
         min: 0
     },
     currentAcademicYear: {
         type: String,
-        required: false
     },
     totalSemester: {
         type: Number,
-        required: false,
         min: 0
     },
     semester: {
         type: [SemesterSchema],
-        required: false
     },
     feeStatus: {
         type: String,

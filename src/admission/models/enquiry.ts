@@ -30,7 +30,7 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
     },
     dateOfEnquiry: {
       type: Date,
-      required: false,
+      required: true,
       default: new Date(),
       set: (value: string) => {
         return convertToMongoDate(value);
@@ -42,7 +42,7 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
     },
     studentName: {
       type: String,
-      required: [false, 'Student Name is required']
+      required: [true, 'Student Name is required']
     },
     studentPhoneNumber: {
       type: String,
@@ -107,7 +107,6 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
     },
     course: {
       type: String,
-      required: false
     },
     references: {
       type: [String],

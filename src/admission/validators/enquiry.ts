@@ -16,23 +16,23 @@ import { singleDocumentSchema } from './singleDocumentSchema';
 
 export const enquirySchema = z.object({
 
-  admissionMode: z.nativeEnum(AdmissionMode).default(AdmissionMode.OFFLINE).optional(),
+  admissionMode: z.nativeEnum(AdmissionMode).default(AdmissionMode.OFFLINE),
 
-  studentName: z.string({ required_error: "Student Name is required", }).nonempty('Student Name is required').optional(),
+  studentName: z.string({ required_error: "Student Name is required", }).nonempty('Student Name is required'),
   studentPhoneNumber: contactNumberSchema.optional(),
   emailId: z.string().email('Invalid email format').optional(),
 
-  fatherName: z.string({ required_error: "Father Name is required", }).nonempty("Father's Name is required").optional(),
+  fatherName: z.string().optional(),
   fatherPhoneNumber: contactNumberSchema.optional(),
   fatherOccupation: z.string().optional(),
 
-  motherName: z.string({ required_error: "Mother's Name is required", }).nonempty("Mother's Name is required").optional(),
+  motherName: z.string().optional(),
   motherPhoneNumber: contactNumberSchema.optional(),
   motherOccupation: z.string().optional(),
 
 
   dateOfBirth: requestDateSchema.transform((date) =>
-    convertToMongoDate(date??"") as Date 
+    convertToMongoDate(date) as Date 
   ).optional(),
 
   category: z.nativeEnum(Category).optional(),
@@ -45,10 +45,10 @@ export const enquirySchema = z.object({
   academicDetails: academicDetailsArraySchema.optional(),
 
   dateOfEnquiry: requestDateSchema.transform((date) =>
-    convertToMongoDate(date??"") as Date
-  ).optional(),
+    convertToMongoDate(date) as Date
+  ),
 
-  gender: z.nativeEnum(Gender).default(Gender.OTHER).optional(),
+  gender: z.nativeEnum(Gender).default(Gender.OTHER),
 
   previousCollegeData: previousCollegeDataSchema.optional(),
 
@@ -71,7 +71,7 @@ export const enquirySchema = z.object({
 
   studentFee: objectIdSchema.optional(),
   studentFeeDraft: objectIdSchema.optional(),
-  dateOfAdmission: requestDateSchema.transform((date) => convertToMongoDate(date??"") as Date).optional(),
+  dateOfAdmission: requestDateSchema.transform((date) => convertToMongoDate(date) as Date).optional(),
 
   documents: z.array(singleDocumentSchema).optional(),
 
@@ -120,7 +120,7 @@ export const enquiryDraftStep3Schema = enquiryStep3UpdateRequestSchema
     counsellor: z.array(z.string()).optional(),
     telecaller: z.array(z.string()).optional(),
     dateOfBirth: requestDateSchema.transform((date) =>
-      convertToMongoDate(date??"") as Date ?? "")
+      convertToMongoDate(date) as Date ?? "")
       .optional(),
     entranceExamDetails: entranceExamDetailSchema
       .partial()
