@@ -118,7 +118,7 @@ export const createStudent = async (id: any, studentData: ICreateStudentSchema) 
     (sem: any) => {
       if (!sem.fees?.dueDate)
         return true;
-      return (sem.fees?.paidAmount || 0) >= (sem.fees?.totalFinalFee || 0)
+      return (sem.fees?.paidAmount ?? 0) >= (sem.fees?.totalFinalFee ?? 0)
     });
 
   const feeStatus = allSemestersSettled ? FeeStatus.PAID : FeeStatus.DUE;
@@ -129,7 +129,7 @@ export const createStudent = async (id: any, studentData: ICreateStudentSchema) 
     departmentMetaDataId: departmentMetaDataId,
     courseName: courseName,
     courseCode: courseCode,
-    startingYear: dateOfAdmission.getFullYear(),
+    startingYear: dateOfAdmission?.getFullYear(),
     currentSemester: currentSemester,
     currentAcademicYear: currentAcademicYear,
     totalSemester: totalSemesters,
@@ -143,8 +143,8 @@ export const createStudent = async (id: any, studentData: ICreateStudentSchema) 
 }
 
 const createSemesterFee = (id: any, semesterNumber: number, feesCourse: any): any => {
-  const otherFees = feesCourse.otherFees || [];
-  const semWiseFees = feesCourse.semWiseFees || [];
+  const otherFees = feesCourse.otherFees ?? [];
+  const semWiseFees = feesCourse.semWiseFees ?? [];
 
   const getFeeDetail = (type: string) => {
     return otherFees.find((fee: any) => fee.type === type);

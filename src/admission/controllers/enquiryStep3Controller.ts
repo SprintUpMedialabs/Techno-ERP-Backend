@@ -100,7 +100,7 @@ export const verifyOtpAndUpdateEnquiryStatus = expressAsyncHandler(functionLevel
     throw createHttpError(400, 'Enquiry not found');
   }
 
-  await validateOTP(enquiry.emailId, otp);
+  await validateOTP(enquiry.emailId!, otp);
 
   await Enquiry.findByIdAndUpdate(id, { applicationStatus: ApplicationStatus.STEP_4 }, { runValidators: true });
 

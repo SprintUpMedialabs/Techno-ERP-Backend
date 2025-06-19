@@ -9,9 +9,11 @@ export const saveAddressLine2OfStudent = expressAsyncHandler(async (req: Request
     try {
         const students = await Student.find({});
         for (const student of students) {
-            const line2 = student.studentInfo.address.addressLine2;
+            const line2 = student.studentInfo.address?.addressLine2;
             if (!line2 || line2 === undefined || line2 === null) {
-                student.studentInfo.address.addressLine2 = "";
+                if( student.studentInfo.address ) {
+                    student.studentInfo.address.addressLine2 = "";
+                }
                 await student.save();
             }
         }
@@ -28,7 +30,9 @@ export const saveAddressLine2OfEnquiry = expressAsyncHandler(async (req: Request
         for (const enquiry of enquiries) {
             const line2 = enquiry?.address?.addressLine2;
             if (!line2 || line2 === undefined || line2 === null) {
-                enquiry.address.addressLine2 = "";
+                if( enquiry.address ) {
+                    enquiry.address.addressLine2 = "";
+                }
                 await enquiry.save();
             }   
         }
@@ -45,7 +49,9 @@ export const saveAddressLine2OfEnquiryDraft = expressAsyncHandler(async (req: Re
         for (const enquiryDraft of enquiryDrafts) {
             const line2 = enquiryDraft?.address?.addressLine2;
             if (!line2 || line2 === undefined || line2 === null) {
-                enquiryDraft.address.addressLine2 = "";
+                if( enquiryDraft.address ) {
+                    enquiryDraft.address.addressLine2 = "";
+                }
                 await enquiryDraft.save();
             }
         }

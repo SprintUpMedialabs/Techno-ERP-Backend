@@ -13,7 +13,7 @@ const getDocument = (label: string, documents: ISingleDocumentSchema[]) => {
     const note = documents?.find(p =>
         p.type?.toLowerCase().includes(label.toLowerCase())
     );
-    return note ? (note.fileUrl ? note.fileUrl : note.dueBy) : '';
+    return note ? (note.fileUrl ?? note.dueBy) : '';
 };
 
 export const downloadAdmissionForm = expressAsyncHandler(async (req : AuthenticatedRequest, res : Response)=>{
@@ -22,7 +22,7 @@ export const downloadAdmissionForm = expressAsyncHandler(async (req : Authentica
     const enquiry = await Enquiry.findById(studentId);
     const course = await CourseMetaData.findOne({ courseCode : student?.courseCode });
     const collegeMetaData = await CollegeMetaData.findOne({ collegeName : course?.collegeName });
-    const addressLine2 = student?.studentInfo.address.addressLine2;
+    const addressLine2 = student?.studentInfo.address?.addressLine2;
     const responseObj = {
         fullCollegeName : collegeMetaData?.fullCollegeName,
         affiliationName : collegeMetaData?.fullAffiliation,
@@ -36,8 +36,8 @@ export const downloadAdmissionForm = expressAsyncHandler(async (req : Authentica
         fatherPhoneNumber : student?.studentInfo.fatherPhoneNumber,
         motherName : student?.studentInfo.motherName,
         motherPhoneNumber : student?.studentInfo.motherPhoneNumber,
-        admissionDate : convertToDDMMYYYY(enquiry?.dateOfAdmission!), //DTODO : Change with original value
-        dateOfBirth : convertToDDMMYYYY(student?.studentInfo.dateOfBirth!),
+        admissionDate : convertToDDMMYYYY(enquiry?.dateOfAdmission),
+        dateOfBirth : convertToDDMMYYYY(student?.studentInfo.dateOfBirth),
         emailId : student?.studentInfo.emailId,
         gender : student?.studentInfo.gender,
         religion : student?.studentInfo.religion,
@@ -47,9 +47,9 @@ export const downloadAdmissionForm = expressAsyncHandler(async (req : Authentica
         stateOfDomicile : student?.studentInfo.stateOfDomicile,
         areaType : student?.studentInfo.areaType,
         nationality : student?.studentInfo.nationality,
-        address : student?.studentInfo.address.addressLine1 + ", " +((!addressLine2 ) ? "" : addressLine2 + ", " )  + student?.studentInfo.address.district + ", " + student?.studentInfo.address.state + ", " + student?.studentInfo.address.country,
-        pincode : student?.studentInfo.address.pincode,
-        state : student?.studentInfo.address.state,
+        address :  student?.studentInfo.address?.addressLine1 + ", " +((!addressLine2 ) ? "" : addressLine2 + ", " )  + student?.studentInfo.address?.district + ", " + student?.studentInfo.address?.state + ", " + student?.studentInfo.address?.country,
+        pincode : student?.studentInfo.address?.pincode,
+        state : student?.studentInfo.address?.state,
         academicDetails : student?.studentInfo.academicDetails || [],
         entranceExamDetails : student?.studentInfo.entranceExamDetails || {},
         profileImage : getDocument("Photo",student?.studentInfo.documents ?? [])

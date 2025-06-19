@@ -20,7 +20,7 @@ export const enquirySchema = z.object({
 
   studentName: z.string({ required_error: "Student Name is required", }).nonempty('Student Name is required'),
   studentPhoneNumber: contactNumberSchema.optional(),
-  emailId: z.string().email('Invalid email format').optional(),
+  emailId: z.string().email('Invalid email format'),
 
   fatherName: z.string().optional(),
   fatherPhoneNumber: contactNumberSchema.optional(),
@@ -102,7 +102,7 @@ export const enquiryStep1UpdateRequestSchema = enquiryStep1RequestSchema.extend(
 
 export const enquiryStep3UpdateRequestSchema = enquirySchema.omit({ documents: true, studentFee: true, dateOfAdmission: true }).extend({
   id: objectIdSchema,
-  physicalDocumentNote: z.array(physicalDocumentNoteRequestSchema).optional()
+  physicalDocumentNote: z.array(physicalDocumentNoteRequestSchema).optional(),
 }).strict();
 
 export const otpSchemaForStep3 = z.object({
@@ -141,7 +141,8 @@ export const enquiryDraftStep1RequestSchema = enquiryStep1RequestSchema
   }).omit({ id: true }).partial().strict();
 
 export const enquiryDraftStep1UpdateSchema = enquiryDraftStep1RequestSchema.extend({
-  id: objectIdSchema      // This is referring to _id in the enquiryDraftsTable
+  id: objectIdSchema,      // This is referring to _id in the enquiryDraftsTable
+  emailId: z.string().email('Invalid email format').optional()
 }).partial().strict();
 
 export type IEnquiryStep1RequestSchema = z.infer<typeof enquiryStep1RequestSchema>;

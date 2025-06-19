@@ -94,33 +94,33 @@ export const StudentBaseInfoSchema = z.object({
 })
 
 export const StudentSchema = z.object({
-    studentInfo: StudentBaseInfoSchema.optional(),
-    collegeName : z.string().optional(),
+    studentInfo: StudentBaseInfoSchema,
+    collegeName : z.string(),
     courseId: objectIdSchema,
     departmentMetaDataId: objectIdSchema,
     courseName: z.string({ required_error: "Course Name is required." }).nonempty("Course Name is required"),
     courseCode: z.string(),
-    startingYear: z.number().optional(),
-    currentSemester: z.number().nonnegative("Current Semester of student must be greater than 0").optional(),
-    currentAcademicYear: z.string().optional(),
+    startingYear: z.number(),
+    currentSemester: z.number().nonnegative("Current Semester of student must be greater than 0"),
+    currentAcademicYear: z.string(),
     totalSemester: z.number({ required_error: "Total Number of Semesters is Required." }).nonnegative("Total number of semesters must be non-negative"),
     semester: z.array(SemesterSchema),
     feeStatus: z.nativeEnum(FeeStatus).default(FeeStatus.DUE),
     extraBalance: z.number().default(0),
     prevTotalDueAtSemStart: z.number().default(0),
-    transactionHistory: z.array(objectIdSchema).optional()
+    transactionHistory: z.array(objectIdSchema)
 })
 
 export const CreateStudentSchema = z.object({
     courseCode: z.string(),
     feeId: objectIdSchema.optional(),
-    dateOfAdmission: z.date().optional(),
+    dateOfAdmission: z.date(),
 
-    collegeName : z.string().optional(),
+    collegeName : z.string(),
     
-    universityId: z.string({ required_error: "University ID cannot be empty." }).nonempty("University ID is required").optional(),
-    photoNo: z.number({ required_error: "Photo Number cannot be empty." }).nonnegative("Photo Number is required").optional(),
-    formNo: z.string({ required_error: "Form No cannot be empty." }).nonempty("Form No is required").optional(),
+    universityId: z.string({ required_error: "University ID cannot be empty." }).nonempty("University ID is required"),
+    photoNo: z.number({ required_error: "Photo Number cannot be empty." }).nonnegative("Photo Number is required"),
+    formNo: z.string({ required_error: "Form No cannot be empty." }).nonempty("Form No is required"),
 
     studentName: z.string({ required_error: "Student Name is required." }).nonempty("Student Name cannot be empty"),
     studentPhoneNumber: z.string().optional(),
