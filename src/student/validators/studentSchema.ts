@@ -55,14 +55,14 @@ export const StudentBaseInfoSchema = z.object({
     lurnRegistrationNo: z.string().optional(),
 
 
-    studentName: z.string({ required_error: "Student Name is required." }).nonempty("Student Name cannot be empty"),
+    studentName: z.string({ required_error: "Student Name is required." }).nonempty("Student Name cannot be empty").optional(),
     studentPhoneNumber: z.string().optional(),
-    dateOfAdmission: z.date(),
-    fatherName: z.string({ required_error: "Father Name is required", }).nonempty("Father's Name is required"),
-    fatherPhoneNumber: contactNumberSchema,
+    dateOfAdmission: z.date().optional(),
+    fatherName: z.string({ required_error: "Father Name is required", }).nonempty("Father's Name is required").optional(),
+    fatherPhoneNumber: contactNumberSchema.optional(),
     fatherOccupation: z.string().optional(),
 
-    motherName: z.string({ required_error: "Mother's Name is required", }).nonempty("Mother's Name is required"),
+    motherName: z.string({ required_error: "Mother's Name is required", }).nonempty("Mother's Name is required").optional(),
     motherPhoneNumber: contactNumberSchema.optional(),
     motherOccupation: z.string().optional(),
 
@@ -71,13 +71,13 @@ export const StudentBaseInfoSchema = z.object({
     dateOfBirth: z.union([z.string(), z.date()]).transform((date) => {
         if (date instanceof Date) return date;
         return convertToMongoDate(date) as Date;
-    }),
-    category: z.nativeEnum(Category),
-    references: z.array(z.nativeEnum(AdmissionReference)),
+    }).optional(),
+    category: z.nativeEnum(Category).optional(),
+    references: z.array(z.nativeEnum(AdmissionReference)).optional(),
     srAmount: z.number().optional(),
 
     aadharNumber: z.string().regex(/^\d{12}$/, 'Aadhar Number must be exactly 12 digits').optional(),
-    address: addressSchema,
+    address: addressSchema.optional(),
     academicDetails: academicDetailsArraySchema.optional(),
 
 
@@ -94,15 +94,15 @@ export const StudentBaseInfoSchema = z.object({
 })
 
 export const StudentSchema = z.object({
-    studentInfo: StudentBaseInfoSchema,
-    collegeName : z.string(),
-    courseId: objectIdSchema,
+    studentInfo: StudentBaseInfoSchema.optional(),
+    collegeName : z.string().optional(),
+    courseId: objectIdSchema.optional(),
     departmentMetaDataId: objectIdSchema,
-    courseName: z.string({ required_error: "Course Name is required." }).nonempty("Course Name is required"),
-    courseCode: z.string(),
-    startingYear: z.number(),
-    currentSemester: z.number().nonnegative("Current Semester of student must be greater than 0"),
-    currentAcademicYear: z.string(),
+    courseName: z.string({ required_error: "Course Name is required." }).nonempty("Course Name is required").optional(),
+    courseCode: z.string().optional(),
+    startingYear: z.number().optional(),
+    currentSemester: z.number().nonnegative("Current Semester of student must be greater than 0").optional(),
+    currentAcademicYear: z.string().optional(),
     totalSemester: z.number({ required_error: "Total Number of Semesters is Required." }).nonnegative("Total number of semesters must be non-negative"),
     semester: z.array(SemesterSchema),
     feeStatus: z.nativeEnum(FeeStatus).default(FeeStatus.DUE),
@@ -112,39 +112,39 @@ export const StudentSchema = z.object({
 })
 
 export const CreateStudentSchema = z.object({
-    courseCode: z.string(),
-    feeId: objectIdSchema,
-    dateOfAdmission: z.date(),
+    courseCode: z.string().optional(),
+    feeId: objectIdSchema.optional(),
+    dateOfAdmission: z.date().optional(),
 
-    collegeName : z.string(),
+    collegeName : z.string().optional(),
     
-    universityId: z.string({ required_error: "University ID cannot be empty." }).nonempty("University ID is required"),
-    photoNo: z.number({ required_error: "Photo Number cannot be empty." }).nonnegative("Photo Number is required"),
-    formNo: z.string({ required_error: "Form No cannot be empty." }).nonempty("Form No is required"),
+    universityId: z.string({ required_error: "University ID cannot be empty." }).nonempty("University ID is required").optional(),
+    photoNo: z.number({ required_error: "Photo Number cannot be empty." }).nonnegative("Photo Number is required").optional(),
+    formNo: z.string({ required_error: "Form No cannot be empty." }).nonempty("Form No is required").optional(),
 
-    studentName: z.string({ required_error: "Student Name is required." }).nonempty("Student Name cannot be empty"),
+    studentName: z.string({ required_error: "Student Name is required." }).nonempty("Student Name cannot be empty").optional(),
     studentPhoneNumber: z.string().optional(),
 
-    fatherName: z.string({ required_error: "Father Name is required", }).nonempty("Father's Name is required"),
-    fatherPhoneNumber: contactNumberSchema,
+    fatherName: z.string({ required_error: "Father Name is required", }).nonempty("Father's Name is required").optional(),
+    fatherPhoneNumber: contactNumberSchema.optional(),
     fatherOccupation: z.string().optional(),
 
-    motherName: z.string({ required_error: "Mother's Name is required", }).nonempty("Mother's Name is required"),
+    motherName: z.string({ required_error: "Mother's Name is required", }).nonempty("Mother's Name is required").optional(),
     motherPhoneNumber: contactNumberSchema.optional(),
     motherOccupation: z.string().optional(),
 
     emailId: z.string().email('Invalid email format').optional(),
     bloodGroup: z.nativeEnum(BloodGroup).optional(),
     dateOfBirth: requestDateSchema.transform((date) =>
-        convertToMongoDate(date) as Date
-    ),
-    category: z.nativeEnum(Category),
-    course: z.string(),
-    references: z.array(z.nativeEnum(AdmissionReference)),
+        convertToMongoDate(date ?? "") as Date
+    ).optional(),
+    category: z.nativeEnum(Category).optional(),
+    course: z.string().optional(),
+    references: z.array(z.nativeEnum(AdmissionReference)).optional(),
     srAmount: z.number().optional(),
 
     aadharNumber: z.string().regex(/^\d{12}$/, 'Aadhar Number must be exactly 12 digits').optional(),
-    address: addressSchema,
+    address: addressSchema.optional(),
     academicDetails: academicDetailsArraySchema.optional(),
 
     previousCollegeData: previousCollegeDataSchema.optional(),
@@ -156,7 +156,7 @@ export const CreateStudentSchema = z.object({
     entranceExamDetails: entranceExamDetailSchema.optional(),
     gender: z.nativeEnum(Gender).default(Gender.OTHER),
     religion: z.nativeEnum(Religion).optional(),
-    admittedThrough: z.nativeEnum(AdmittedThrough)
+    admittedThrough: z.nativeEnum(AdmittedThrough).optional()
 });
 
 
@@ -177,7 +177,7 @@ export const updateStudentDetailsRequestSchema = z.object({
 
     gender: z.nativeEnum(Gender).default(Gender.OTHER),
     dateOfBirth: requestDateSchema.transform((date) =>
-        convertToMongoDate(date) as Date
+        convertToMongoDate(date ?? "") as Date
     ),
 
     religion: z.nativeEnum(Religion).optional(),

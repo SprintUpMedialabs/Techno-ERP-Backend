@@ -20,7 +20,7 @@ import { formatResponse } from "../../utils/formatResponse";
 
 const generateAddress = (address: IAddressSchema) => {
     const addressLine1 = address.addressLine1 ?? '';
-    const addressLine2 = address.addressLine2 ?? '';
+    const addressLine2 = (!address.addressLine2 ) ? "" : address.addressLine2;
     return addressLine2 ? ((addressLine1 ? addressLine1 + ", " : '') + addressLine2) : (addressLine1 ?? '')
 }
 

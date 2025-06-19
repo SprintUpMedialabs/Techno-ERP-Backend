@@ -16,6 +16,7 @@ import { financeAnalyticsRoute } from './student/routes/financeAnalyticsRoute';
 import { piplineRouter } from './pipline/piplineRoute';
 import { studentParentRoute } from './student-parent/routes/studentParentRoute';
 import { studentAuthRoute } from './student/routes/auth/studentAuthRoute';
+import { AddressRoute } from './address/addressContoller';
 
 export const apiRouter = express.Router();
 
@@ -94,3 +95,5 @@ apiRouter.use('/backup', backupRoute);
 apiRouter.use('/fee-analytics', financeAnalyticsRoute);
 
 apiRouter.use('/pipline', piplineRouter);
+
+apiRouter.use('/address', AddressRoute);

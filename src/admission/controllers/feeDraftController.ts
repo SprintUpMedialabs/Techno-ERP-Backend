@@ -35,9 +35,9 @@ export const createFeeDraft = expressAsyncHandler(functionLevelLogger(async (req
   const otherFees = await fetchOtherFees(enquiry.course as String);
   const semWiseFee = await fetchCourseFeeByCourse(enquiry.course as String);
 
-  if (!semWiseFee) {
-    throw createHttpError(500, 'Semester-wise fee structure not found for the course');
-  }
+  // if (!semWiseFee) {
+  //   throw createHttpError(500, 'Semester-wise fee structure not found for the course');
+  // }
 
   const { counsellor, telecaller, ...feeRelatedData } = validation.data;
 
@@ -57,7 +57,7 @@ export const createFeeDraft = expressAsyncHandler(functionLevelLogger(async (req
       };
     }) || [],
     semWiseFees: feeRelatedData.semWiseFees?.map((semFee, index) => ({
-      feeAmount: semFee.feeAmount ?? semWiseFee[index] ?? 0,
+      feeAmount: semFee.feeAmount ?? semWiseFee?.[index] ?? 0,
       finalFee: semFee.finalFee ?? 0,
       feesPaid: index === 0 ? sem1FeeDepositedTOA : 0
     })) || []
@@ -128,9 +128,9 @@ export const updateFeeDraft = expressAsyncHandler(functionLevelLogger(async (req
   const otherFees = await fetchOtherFees(enquiry.course as String);
   const semWiseFee = await fetchCourseFeeByCourse(enquiry.course as String);
 
-  if (!semWiseFee) {
-    throw createHttpError(500, 'Semester-wise fee structure not found for the course');
-  }
+  // if (!semWiseFee) {
+  //   throw createHttpError(500, 'Semester-wise fee structure not found for the course');
+  // }
 
   const { counsellor, telecaller, ...feeRelatedData } = validation.data;
   const updateData: any = {

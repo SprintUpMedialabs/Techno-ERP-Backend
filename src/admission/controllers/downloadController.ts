@@ -22,6 +22,7 @@ export const downloadAdmissionForm = expressAsyncHandler(async (req : Authentica
     const enquiry = await Enquiry.findById(studentId);
     const course = await CourseMetaData.findOne({ courseCode : student?.courseCode });
     const collegeMetaData = await CollegeMetaData.findOne({ collegeName : course?.collegeName });
+    const addressLine2 = student?.studentInfo.address.addressLine2;
     const responseObj = {
         fullCollegeName : collegeMetaData?.fullCollegeName,
         affiliationName : collegeMetaData?.fullAffiliation,
@@ -46,7 +47,7 @@ export const downloadAdmissionForm = expressAsyncHandler(async (req : Authentica
         stateOfDomicile : student?.studentInfo.stateOfDomicile,
         areaType : student?.studentInfo.areaType,
         nationality : student?.studentInfo.nationality,
-        address : student?.studentInfo.address.addressLine1 + ", " + student?.studentInfo.address.addressLine2 + ", " + student?.studentInfo.address.district + ", " + student?.studentInfo.address.state + ", " + student?.studentInfo.address.country,
+        address : student?.studentInfo.address.addressLine1 + ", " +((!addressLine2 ) ? "" : addressLine2 + ", " )  + student?.studentInfo.address.district + ", " + student?.studentInfo.address.state + ", " + student?.studentInfo.address.country,
         pincode : student?.studentInfo.address.pincode,
         state : student?.studentInfo.address.state,
         academicDetails : student?.studentInfo.academicDetails || [],
