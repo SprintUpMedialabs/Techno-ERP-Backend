@@ -58,7 +58,7 @@ export const getEnquiryData = expressAsyncHandler(functionLevelLogger(async (req
             date: "$dateOfEnquiry",
             timezone: "Asia/Kolkata"
           }
-        },        
+        },
         studentName: 1,
         studentPhoneNumber: 1,
         gender: 1,
@@ -85,7 +85,7 @@ export const getEnquiryData = expressAsyncHandler(functionLevelLogger(async (req
                   date: "$dateOfEnquiry",
                   timezone: "Asia/Kolkata"
                 }
-              },              
+              },
               studentName: 1,
               studentPhoneNumber: 1,
               gender: 1,
@@ -215,6 +215,7 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
 
     const studentData = {
       ...enquiryData,
+      "step2And4Remark": enquiryData?.feeDetailsRemark + " | " + enquiryData?.financeOfficeRemark,
       "courseCode": approvedEnquiry?.course,
       "feeId": approvedEnquiry?.studentFee,
       "dateOfAdmission": approvedEnquiry?.dateOfAdmission,
@@ -270,7 +271,7 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
       transactionHistory: [createTransaction[0]._id]
     }], { session });
 
-    incrementAdmissionAnalytics(student.courseCode,approvedEnquiry!.dateOfAdmission!);
+    incrementAdmissionAnalytics(student.courseCode, approvedEnquiry!.dateOfAdmission!);
     await session.commitTransaction();
     session.endSession();
 

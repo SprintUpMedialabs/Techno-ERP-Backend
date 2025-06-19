@@ -8,7 +8,7 @@ import { previousCollegeDataSchema } from "../../admission/models/previousColleg
 import { singleDocumentSchema } from "../../admission/models/singleDocument";
 import { AdmissionReference, AdmittedThrough, AreaType, BloodGroup, Category, COLLECTION_NAMES, CourseYears, FeeStatus, Gender, Religion } from "../../config/constants";
 import { convertToDDMMYYYY, convertToMongoDate } from "../../utils/convertDateToFormatedDate";
-import { contactNumberSchema, emailSchema } from "../../validators/commonSchema";
+import { emailSchema } from "../../validators/commonSchema";
 import { IAttendanceSchema, IBaseAttendanceSchema, IBaseExamSchema, IExamSchema, ISemesterSchema, IStudentBaseInfoSchema, IStudentSchema, ISubjectSchema } from "../validators/studentSchema";
 import { FeeModel } from "./fees";
 
@@ -301,6 +301,9 @@ const StudentModel = new Schema<IStudentDocument>({
             ref: COLLECTION_NAMES.TRANSACTION_HISTORY
         }],
         default: []
+    },
+    step2And4Remark: {
+        type: String,
     }
 }, { timestamps: true });
 

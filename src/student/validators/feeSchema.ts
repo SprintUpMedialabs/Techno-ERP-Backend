@@ -6,7 +6,8 @@ export const FeeUpdateHistorySchema = z.object({
     updatedAt : z.date(),
     extraAmount : z.number(),
     updatedFee : z.number(),
-    updatedBy : objectIdSchema
+    updatedBy : objectIdSchema,
+    remark : z.string().optional()
 });
 
 export const BaseFeeSchema = z.object({
@@ -36,6 +37,7 @@ export const EditFeeBreakUpSchema = z.object({
     studentId : objectIdSchema,
     semesterId : objectIdSchema,
     detailId : objectIdSchema,
+    remark : z.string().optional(),
     amount : z.number()
 })
 

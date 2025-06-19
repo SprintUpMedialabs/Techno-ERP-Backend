@@ -20,6 +20,9 @@ const FeeUpdateHistoryModel = new Schema <IFeeUpdateHistoryDocument>({
     updatedBy : {
         type : Schema.Types.ObjectId,
         ref : COLLECTION_NAMES.USER
+    },
+    remark : {
+        type : String
     }
 })
 

@@ -108,7 +108,8 @@ export const StudentSchema = z.object({
     feeStatus: z.nativeEnum(FeeStatus).default(FeeStatus.DUE),
     extraBalance: z.number().default(0),
     prevTotalDueAtSemStart: z.number().default(0),
-    transactionHistory: z.array(objectIdSchema)
+    transactionHistory: z.array(objectIdSchema),
+    step2And4Remark: z.string().optional(),
 })
 
 export const CreateStudentSchema = z.object({
@@ -156,7 +157,9 @@ export const CreateStudentSchema = z.object({
     entranceExamDetails: entranceExamDetailSchema.optional(),
     gender: z.nativeEnum(Gender).default(Gender.OTHER),
     religion: z.nativeEnum(Religion).optional(),
-    admittedThrough: z.nativeEnum(AdmittedThrough).optional()
+    admittedThrough: z.nativeEnum(AdmittedThrough).optional(),
+
+    step2And4Remark: z.string().optional(),
 });
 
 

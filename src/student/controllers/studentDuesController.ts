@@ -593,7 +593,7 @@ export const editFeeBreakUp = expressAsyncHandler(async (req: AuthenticatedReque
         throw createHttpError(400, editFeeDataValidation.error.errors[0])
     }
 
-    const { studentId, semesterId, detailId, amount: newFinalFee } = editFeeDataValidation.data;
+    const { studentId, semesterId, detailId, amount: newFinalFee, remark } = editFeeDataValidation.data;
 
     const student = await Student.findById(studentId);
     if (!student) {
@@ -620,7 +620,8 @@ export const editFeeBreakUp = expressAsyncHandler(async (req: AuthenticatedReque
         updatedAt: new Date(),
         extraAmount: diff,
         updatedFee: newFinalFee,
-        updatedBy: new mongoose.Types.ObjectId(req.data?.id)
+        updatedBy: new mongoose.Types.ObjectId(req.data?.id),
+        remark: remark
     });
 
     semester.fees.totalFinalFee += diff;

@@ -136,7 +136,8 @@ export const createStudent = async (id: any, studentData: ICreateStudentSchema) 
     semester: semesterArray,
     feeStatus: feeStatus,
     collegeName: studentData.collegeName,
-    transactionAmount: transactionAmount
+    transactionAmount: transactionAmount,
+    step2And4Remark: studentData.step2And4Remark
   }
 
   return student;
