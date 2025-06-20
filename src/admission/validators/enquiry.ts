@@ -100,7 +100,7 @@ export const enquiryStep1UpdateRequestSchema = enquiryStep1RequestSchema.extend(
 
 
 
-export const enquiryStep3UpdateRequestSchema = enquirySchema.omit({ documents: true, studentFee: true, dateOfAdmission: true }).extend({
+export const enquiryStep3UpdateRequestSchema = enquirySchema.omit({ documents: true, studentFee: true }).extend({
   id: objectIdSchema,
   emailId: z.string().email('Invalid email format'),
   physicalDocumentNote: z.array(physicalDocumentNoteRequestSchema).optional()
