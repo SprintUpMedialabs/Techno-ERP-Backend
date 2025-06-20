@@ -49,7 +49,7 @@ export const initializeDB = async () => {
       }
     }
 
-    await initializeCounter("transactionID", 0);
+    await initializeCounter("transactionID", 1);
 
     await initializeDropDowns();
 

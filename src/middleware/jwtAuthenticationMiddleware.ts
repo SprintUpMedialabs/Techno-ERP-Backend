@@ -12,7 +12,7 @@ export const authenticate = expressAsyncHandler(
     if (!token) {
       throw createHttpError(401, 'Unauthorized. Please log in again');
     }
-
+    
     const decoded = jwtHelper.verifyToken(token);
     const parsedUser = UserPayloadSchema.parse(decoded);
     req.data = parsedUser;
@@ -28,6 +28,8 @@ export const authorize = (allowedRoles: UserRoles[]) => expressAsyncHandler(asyn
     }
 
     const { roles } = req.data;
+    
+    allowedRoles.push(UserRoles.ADMIN);
 
     if (!roles || !Array.isArray(roles) || roles.length === 0) {
       throw createHttpError(403, 'Forbidden: You do not have any assigned roles.');

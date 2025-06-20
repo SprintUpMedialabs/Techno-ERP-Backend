@@ -21,7 +21,7 @@ export const userProfile = expressAsyncHandler(async (req: AuthenticatedRequest,
   const { id } = decodedData;
 
   const user = await User.findById(id);
-  
+
   return formatResponse(res, 200, 'Profile retrieved successfully', true, {
     userData: {
       id: user?._id,
@@ -63,7 +63,6 @@ export const fetchDropdownsBasedOnPage = expressAsyncHandler(async (req: Authent
   const { moduleName, role } = req.query;
   const id = req.data?.id;
   const roles = req.data?.roles!;
-
   const validation = dropdownSchema.safeParse({ role, moduleName });
   if (!validation.success) {
     throw createHttpError(400, "Invalid role or module name");
@@ -73,13 +72,15 @@ export const fetchDropdownsBasedOnPage = expressAsyncHandler(async (req: Authent
 
   if (moduleName === ModuleNames.MARKETING) {
     // If the user is ADMIN or LEAD_MARKETING (and not only marketing employee)
-    if (roles.includes(UserRoles.ADMIN) || roles.includes(UserRoles.LEAD_MARKETING)) {
+    if (roles.includes(UserRoles.ADMIN) || roles.includes(UserRoles.LEAD_MARKETING) || roles.includes(UserRoles.FRONT_DESK)) {
       users = await User.find({ roles: role });
     }
     // If the user is only a MARKETING_EMPLOYEE
     else if (roles.includes(UserRoles.EMPLOYEE_MARKETING)) {
       users = await User.findOne({ _id: id });
       users = [users];
+    }else{
+      throw createHttpError(403, "You are not authorized to access this page");
     }
     if (users) {
       const formattedUsers = users.map((user) => ({
@@ -88,6 +89,8 @@ export const fetchDropdownsBasedOnPage = expressAsyncHandler(async (req: Authent
         email: user?.email
       }));
       return formatResponse(res, 200, 'Fetching successful', true, formattedUsers)
+    }else{
+      throw createHttpError(404, "No users found");
     }
   } else if (moduleName === ModuleNames.ADMISSION || moduleName === ModuleNames.COURSE) {
     users = await User.find({ roles: role });

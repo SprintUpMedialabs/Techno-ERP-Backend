@@ -28,7 +28,7 @@ export const enquiryDraftSchema = new Schema<IEnquiryDraftDocument>(
             set: (value: string) => {
                 return convertToMongoDate(value);
             },
-            required: false
+            required: true
 
         },
         studentName: {
@@ -37,7 +37,7 @@ export const enquiryDraftSchema = new Schema<IEnquiryDraftDocument>(
         },
         studentPhoneNumber: {
             type: String,
-            required: true,
+            required: false,
             validate: {
                 validator: (stuPhNum: string) => contactNumberSchema.safeParse(stuPhNum).success,
                 message: 'Invalid Phone Number'
@@ -102,7 +102,7 @@ export const enquiryDraftSchema = new Schema<IEnquiryDraftDocument>(
             //     values: Object.values(Course),
             //     message: 'Invalid Course value'
             // },
-            required: false
+            required: true
         },
         references: {
             type: [String],

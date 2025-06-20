@@ -37,9 +37,7 @@ export const getFeesStructureById = async (req: Request, res: Response) => {
 };
 
 export const getCourseFeeByCourseName = expressAsyncHandler(async (req: Request, res: Response) => {
-    // console.log("Here")
     const courseCode = req.params.courseCode;
-    // console.log("COurse code is : ", courseCode);
     const courseFee = await fetchCourseFeeByCourse(courseCode as String);
 
     if(!courseFee)
@@ -103,7 +101,6 @@ export const fetchOtherFees = async (courseCode : String) => {
     const yearlyFee = record.fee.yearlyFee || [];
     const oneTimeFee = record.fee.oneTime || [];
     const otherFees = [...yearlyFee, ...oneTimeFee, bookBankAmt];
-    // console.log("Other fees : ", otherFees);
 
     return otherFees;
 

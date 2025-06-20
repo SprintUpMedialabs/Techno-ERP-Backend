@@ -7,30 +7,30 @@ export const studentFeeRoute = express.Router();
 
 studentFeeRoute.post("/active-dues",
     authenticate,
-    authorize([UserRoles.BASIC_USER]),
+    authorize([UserRoles.FINANCE]),
     getStudentDues
 );
 
 studentFeeRoute.get("/fee-information/:id",
     authenticate,
-    authorize([UserRoles.BASIC_USER]),
+    authorize([UserRoles.FINANCE]),
     fetchFeeInformationByStudentId
 );
 
 studentFeeRoute.post("/record-payment",
     authenticate,
-    authorize([UserRoles.BASIC_USER]),
+    authorize([UserRoles.FINANCE]),
     recordPayment
 );
 
 studentFeeRoute.post("/fee-update-history",
     authenticate,
-    authorize([UserRoles.BASIC_USER]),
+    authorize([UserRoles.FINANCE]),
     fetchFeeUpdatesHistory
 );
 
 studentFeeRoute.put("/fee-breakup",
     authenticate,
-    authorize([UserRoles.BASIC_USER]),
+    authorize([UserRoles.FINANCE]),
     editFeeBreakUp
 );

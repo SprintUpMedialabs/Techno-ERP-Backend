@@ -14,6 +14,7 @@ import { getCurrentLoggedInUser } from "../../auth/utils/getCurrentLoggedInUser"
 import { getCourseYrFromSemNum } from "../../course/utils/getAcaYrFromStartYrSemNum";
 import { toRoman } from "../utils/getRomanSemNumber";
 import { getCourseYearFromSemNumber } from "../../utils/getCourseYearFromSemNumber";
+import { formateFeeType } from "./downloadController";
 
 type FeeDetailInterface = {
     _id: string;
@@ -31,10 +32,10 @@ type FeeDetailInterface = {
 
 
 export const getStudentDues = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const { page, limit, search, academicYear, courseCode, courseYear } = req.body;
+    const {search, academicYear, courseCode, courseYear } = req.body;
 
     const filterStage: any = {
-        feeStatus: FeeStatus.DUE,
+        // feeStatus: FeeStatus.DUE,
         currentAcademicYear: academicYear,
     };
 
@@ -71,8 +72,6 @@ export const getStudentDues = expressAsyncHandler(async (req: AuthenticatedReque
 
     const studentAggregation = Student.aggregate([
         { $match: filterStage },
-        { $skip: (page - 1) * limit },
-        { $limit: limit },
         {
             $project: {
                 feeStatus: 1,
@@ -112,19 +111,12 @@ export const getStudentDues = expressAsyncHandler(async (req: AuthenticatedReque
 
     const countQuery = Student.countDocuments(filterStage);
 
-    const [students, totalCount] = await Promise.all([
+    const [students] = await Promise.all([
         studentAggregation,
         countQuery
     ]);
-
     return formatResponse(res, 200, "Student with Due Fees fetched successfully", true, {
         data: students,
-        pagination: {
-            page,
-            limit,
-            totalPages: Math.ceil(totalCount / limit),
-            totalCount
-        }
     })
 });
 
@@ -160,6 +152,7 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
                 departmentInfo: 1,
                 extraBalance: 1,
                 currentSemester: 1,
+                step2And4Remark: 1,
                 semesterNumber: "$semester.semesterNumber",
                 academicYear: "$semester.academicYear",
                 finalFee: "$semester.fees.totalFinalFee",
@@ -188,6 +181,7 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
                 currentSemester: { $first: "$currentSemester" },
                 extraBalance: { $first: "$extraBalance" },
                 departmentInfo: { $first: "$departmentInfo" },
+                step2And4Remark: { $first: "$step2And4Remark" },
                 semesterWiseFeeInformation: {
                     $push: {
                         semesterNumber: "$semesterNumber",
@@ -276,13 +270,13 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
                 semesterWiseFeeInformation: 1,
                 semesterBreakUp: 1,
                 extraBalance: 1,
+                step2And4Remark: 1
             }
         }
     ];
 
     const transactions = await fetchTransactionsByStudentID(studentId);
     const studentInformation = await Student.aggregate(pipeline);
-    // console.log(studentInformation[0]);
     studentInformation[0].transactionHistory = transactions;
     return formatResponse(res, 200, "Student fee information fetched successfully", true, studentInformation[0]);
 });
@@ -291,12 +285,8 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
 // FUEX : Here in future, if needed, we can add retry mechanism, not required as of now.
 export const recordPayment = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const paymentInfo: ICreateCollegeTransactionSchema = req.body;
-
-    console.log("Payment Info is : ", paymentInfo);
-
     const validation = CreateCollegeTransactionSchema.safeParse(paymentInfo);
 
-    console.log("Payment Info validation error is : ", validation.error);
     if (!validation.success)
         throw createHttpError(400, validation.error.errors[0]);
 
@@ -305,7 +295,6 @@ export const recordPayment = expressAsyncHandler(async (req: AuthenticatedReques
 
     try {
         let student = await Student.findById(validation.data.studentId).session(session);
-        console.log("Student is : ", student);
         if (!student) {
             throw createHttpError(404, "Student not found");
         }
@@ -324,9 +313,6 @@ export const recordPayment = expressAsyncHandler(async (req: AuthenticatedReques
             courseName: student.courseName,
             courseYear : getCourseYearFromSemNumber(student.currentSemester)
         }], { session });
-
-        console.log("Transaction created : ", transaction);
-        console.log(transaction[0]._id);
 
         const transactionSettlementHistory = [];
         if (validation.data.feeAction === FeeActions.REFUND) {
@@ -375,8 +361,6 @@ export const recordPayment = expressAsyncHandler(async (req: AuthenticatedReques
         const { student: updatedStudent, remainingBalance, transactionSettlementHistory: tsh } = await settleFees(student, paymentInfo.amount);
         student = updatedStudent;
 
-        // console.log("Updated student is  : ", updatedStudent);
-
         const updatedTransaction = await CollegeTransaction.findByIdAndUpdate(
             transaction[0]._id,
             {
@@ -421,7 +405,6 @@ export const recordPayment = expressAsyncHandler(async (req: AuthenticatedReques
 export const settleFees = async (student: any, amount: number) => {
     const transactionSettlementHistory = []
     if (student.feeStatus != FeeStatus.PAID) {
-        console.log("Karu chu settle bhai!")
         for (const sem of student.semester) {
             const fees = sem.fees;
 
@@ -434,7 +417,6 @@ export const settleFees = async (student: any, amount: number) => {
 
             //If the semester is already settled, then we have to move to next semester without processing.
             if (totalPaidAmount >= totalFinalFees) {
-                console.log(`Semester ${sem.semesterNumber} already settled.`);
                 continue;
             }
 
@@ -451,14 +433,12 @@ export const settleFees = async (student: any, amount: number) => {
                 //Below we take minimum, because it can happen that amountToBePaid is more but the amount deposited is less.
                 const amountPaid = Math.min(remainingFee, amount);
                 transactionSettlementHistory.push({
-                    name: sem.academicYear + " - " + getCourseYrFromSemNum(sem.semesterNumber) + " Year" + " - " + toRoman(sem.semesterNumber) + " Sem" + " - " + det.type,
+                    name: sem.academicYear + " - " + getCourseYrFromSemNum(sem.semesterNumber) + " Year" + " - " + toRoman(sem.semesterNumber) + " Sem" + " - " + formateFeeType(det.type as FinanceFeeType),
                     amount: amountPaid
                 })
                 det.paidAmount += amountPaid;
                 totalPaidAmount += amountPaid;
                 amount -= amountPaid;
-
-                // console.log(`Paid ₹${amountPaid} for '${det.type}' in Semester ${sem.semesterNumber}. Remaining amount: ₹${amount}`);
 
                 //After paying for particular category, if no more amount is left, we will stop.
                 if (amount === 0)
@@ -466,14 +446,12 @@ export const settleFees = async (student: any, amount: number) => {
             }
 
             fees.paidAmount = totalPaidAmount;
-            // console.log(`Updated paid amount for Semester ${sem.semesterNumber}: ₹${totalPaidAmount}`);
 
             if (amount === 0)
                 break;
         }
     }
 
-    console.log("Control is here");
     if (amount > 0) {
         //Add to existing extrabalance.
         student.extraBalance = (student.extraBalance || 0) + amount;
@@ -481,7 +459,6 @@ export const settleFees = async (student: any, amount: number) => {
             name : "Extra balance amount",
             amount : amount
         });
-        // console.log(`Extra amount ₹${amount} added to student's extra balance.`);
     }
 
     const allSemestersSettled = student.semester.every(
@@ -492,8 +469,6 @@ export const settleFees = async (student: any, amount: number) => {
         });
 
     student.feeStatus = allSemestersSettled ? FeeStatus.PAID : FeeStatus.DUE;
-
-    console.log("Final Fee Status:", student.feeStatus);
 
     return {
         student: student,
@@ -541,10 +516,6 @@ export const fetchFeeUpdatesHistory = expressAsyncHandler(async (req: Authentica
     studentId = new mongoose.Types.ObjectId(studentId);
     semesterId = new mongoose.Types.ObjectId(semesterId);
     detailId = new mongoose.Types.ObjectId(detailId);
-
-    console.log("Student ID is : ", studentId);
-    console.log("Semester ID is : ", semesterId);
-    console.log("Detail ID is : ", detailId);
 
     const pipeline = [
         {
@@ -604,8 +575,6 @@ export const fetchFeeUpdatesHistory = expressAsyncHandler(async (req: Authentica
     ];
 
     const feeHistory = await Student.aggregate(pipeline);
-    console.log("Fee history is : ", feeHistory[0]);
-
     return formatResponse(res, 200, "Fee Update History fetched successfully.", true, feeHistory[0]);
 });
 
@@ -618,8 +587,7 @@ export const editFeeBreakUp = expressAsyncHandler(async (req: AuthenticatedReque
         throw createHttpError(400, editFeeDataValidation.error.errors[0])
     }
 
-    const { studentId, semesterId, detailId, amount: newFinalFee } = editFeeDataValidation.data;
-
+    const { studentId, semesterId, detailId, amount: newFinalFee, remark } = editFeeDataValidation.data;
     const student = await Student.findById(studentId);
     if (!student) {
         throw createHttpError(404, "Student not found!")
@@ -645,7 +613,8 @@ export const editFeeBreakUp = expressAsyncHandler(async (req: AuthenticatedReque
         updatedAt: new Date(),
         extraAmount: diff,
         updatedFee: newFinalFee,
-        updatedBy: new mongoose.Types.ObjectId(req.data?.id)
+        updatedBy: new mongoose.Types.ObjectId(req.data?.id),
+        remark: remark
     });
 
     semester.fees.totalFinalFee += diff;
@@ -686,8 +655,6 @@ export const editFeeBreakUp = expressAsyncHandler(async (req: AuthenticatedReque
     student.feeStatus = allSemestersSettled ? FeeStatus.PAID : FeeStatus.DUE;
 
     await student.save();
-
-    console.log(student.semester);
 
     return formatResponse(res, 200, "Student fees updated successfully", true, null);
 });

@@ -11,7 +11,10 @@ export enum UserRoles {
   HOD = 'HOD',
   INSTRUCTOR = 'INSTRUCTOR',
   SYSTEM_ADMIN = 'SYSTEM_ADMIN',
-  STUDENT = 'STUDENT'
+  STUDENT = 'STUDENT',
+  FINANCE = 'FINANCE',
+  FRONT_DESK = 'FRONT_DESK',
+  LAMBDA_FUNCTION = 'LAMBDA_FUNCTION'
 }
 
 export enum PipelineStatus {
@@ -325,8 +328,10 @@ export enum COLLECTION_NAMES {
   FINANCE_ANALYTICS = "financeanalytics",
   MARKETING_SOURCE_WISE_ANALYTICS = "marketingsourcewiseanalytics",
   MARKETING_USER_WISE_ANALYTICS = "marketinguserwiseanalytics",
+  MARKETING_USER_WISE_ANALYTICS_V1 = "marketinguserwiseanalyticsv1",
   OTP = "otps",
-  ADMISSION_ANALYTICS = "admissionanalytics"
+  ADMISSION_ANALYTICS = "admissionanalytics",
+  ERROR_LOG = "errorlogs"
 }
 
 
@@ -398,7 +403,8 @@ export enum FinanceFeeType {
   BOOKBANK = "BOOKBANK",  //SEMESTERWISE
   EXAMFEES = "EXAMFEES",
   MISCELLANEOUS = "MISCELLANEOUS", //OTHERS
-  SEMESTERFEE = "SEMESTERFEE"
+  SEMESTERFEE = "SEMESTERFEE",
+  SEM1FEE = "SEM1FEE"
 }
 
 

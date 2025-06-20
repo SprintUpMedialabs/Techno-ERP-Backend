@@ -19,47 +19,47 @@ export const enquirySchema = z.object({
   admissionMode: z.nativeEnum(AdmissionMode).default(AdmissionMode.OFFLINE),
 
   studentName: z.string({ required_error: "Student Name is required", }).nonempty('Student Name is required'),
-  studentPhoneNumber: contactNumberSchema,
+  studentPhoneNumber: contactNumberSchema.optional(),
   emailId: z.string().email('Invalid email format'),
 
-  fatherName: z.string({ required_error: "Father Name is required", }).nonempty("Father's Name is required"),
-  fatherPhoneNumber: contactNumberSchema,
+  fatherName: z.string().optional(),
+  fatherPhoneNumber: contactNumberSchema.optional(),
   fatherOccupation: z.string().optional(),
 
-  motherName: z.string({ required_error: "Mother's Name is required", }).nonempty("Mother's Name is required"),
+  motherName: z.string().optional(),
   motherPhoneNumber: contactNumberSchema.optional(),
   motherOccupation: z.string().optional(),
 
 
   dateOfBirth: requestDateSchema.transform((date) =>
-    convertToMongoDate(date) as Date
-  ),
+    convertToMongoDate(date) as Date 
+  ).optional(),
 
-  category: z.nativeEnum(Category),
-  course: z.string().nonempty('Course can not be empty'),
+  category: z.nativeEnum(Category).optional(),
+  course: z.string().nonempty('Course can not be empty').optional(),
   references: z.array(z.nativeEnum(AdmissionReference)).optional(),
   srAmount: z.number().optional(),
 
-  address: addressSchema,
+  address: addressSchema.optional(),
 
   academicDetails: academicDetailsArraySchema.optional(),
 
   dateOfEnquiry: requestDateSchema.transform((date) =>
     convertToMongoDate(date) as Date
-  ).optional(),
+  ),
 
   gender: z.nativeEnum(Gender).default(Gender.OTHER),
 
   previousCollegeData: previousCollegeDataSchema.optional(),
 
-  stateOfDomicile: z.string().default(StatesOfIndia.UTTAR_PRADESH),
+  stateOfDomicile: z.string().default(StatesOfIndia.UTTAR_PRADESH).optional(),
   areaType: z.nativeEnum(AreaType).optional(),
-  nationality: z.string().default('INDIAN'),
+  nationality: z.string().default('INDIAN').optional(),
 
   entranceExamDetails: entranceExamDetailSchema.optional(),
 
-  counsellor: z.array(z.string()).default([]),
-  telecaller: z.array(z.string()).default([]),
+  counsellor: z.array(z.string()).default([]).optional(),
+  telecaller: z.array(z.string()).default([]).optional(),
   enquiryRemark: z.string().optional(),
   feeDetailsRemark: z.string().optional(),
   registarOfficeRemark: z.string().optional(),
@@ -67,7 +67,7 @@ export const enquirySchema = z.object({
 
   applicationStatus: z
     .nativeEnum(ApplicationStatus)
-    .default(ApplicationStatus.STEP_1),
+    .default(ApplicationStatus.STEP_1).optional(),
 
   studentFee: objectIdSchema.optional(),
   studentFeeDraft: objectIdSchema.optional(),
@@ -77,11 +77,11 @@ export const enquirySchema = z.object({
 
   physicalDocumentNote: z.array(physicalDocumentNoteSchema).optional(),
 
-  aadharNumber: z.string().regex(/^\d{12}$/, 'Aadhar Number must be exactly 12 digits'),
+  aadharNumber: z.string().regex(/^\d{12}$/, 'Aadhar Number must be exactly 12 digits').optional(),
   religion: z.nativeEnum(Religion).optional(),
   bloodGroup: z.nativeEnum(BloodGroup).optional(),
   admittedBy: z.union([objectIdSchema, z.enum(['Other'])]).optional(),
-  isFeeApplicable : z.boolean().default(true),
+  isFeeApplicable: z.boolean().default(true).optional(),
   admittedThrough: z.nativeEnum(AdmittedThrough).default(AdmittedThrough.DIRECT).optional()
 });
 
@@ -100,7 +100,7 @@ export const enquiryStep1UpdateRequestSchema = enquiryStep1RequestSchema.extend(
 
 
 
-export const enquiryStep3UpdateRequestSchema = enquirySchema.omit({ documents: true, studentFee: true }).extend({
+export const enquiryStep3UpdateRequestSchema = enquirySchema.omit({ documents: true, studentFee: true, dateOfAdmission: true }).extend({
   id: objectIdSchema,
   emailId: z.string().email('Invalid email format'),
   physicalDocumentNote: z.array(physicalDocumentNoteRequestSchema).optional()
@@ -120,11 +120,8 @@ export const enquiryDraftStep3Schema = enquiryStep3UpdateRequestSchema
     studentPhoneNumber: contactNumberSchema,
     counsellor: z.array(z.string()).optional(),
     telecaller: z.array(z.string()).optional(),
-    dateOfAdmission: requestDateSchema
-      .transform((date) => convertToMongoDate(date) as Date)
-      .optional(),
     dateOfBirth: requestDateSchema.transform((date) =>
-      convertToMongoDate(date) as Date)
+      convertToMongoDate(date) as Date ?? "")
       .optional(),
     entranceExamDetails: entranceExamDetailSchema
       .partial()
@@ -136,8 +133,6 @@ export const enquiryDraftStep3Schema = enquiryStep3UpdateRequestSchema
 
 export const enquiryDraftStep1RequestSchema = enquiryStep1RequestSchema
   .extend({
-    studentName: z.string({ required_error: "Student Name is required", }).nonempty('Student Name is required'),
-    studentPhoneNumber: contactNumberSchema,
     counsellor: z.array(z.string()).optional(),
     emailId: z.string().email('Invalid email format').optional(),
     telecaller: z.array(z.string()).optional(),
@@ -146,7 +141,8 @@ export const enquiryDraftStep1RequestSchema = enquiryStep1RequestSchema
   }).omit({ id: true }).partial().strict();
 
 export const enquiryDraftStep1UpdateSchema = enquiryDraftStep1RequestSchema.extend({
-  id: objectIdSchema      // This is referring to _id in the enquiryDraftsTable
+  id: objectIdSchema,      // This is referring to _id in the enquiryDraftsTable
+  emailId: z.string().email('Invalid email format').optional()
 }).partial().strict();
 
 export type IEnquiryStep1RequestSchema = z.infer<typeof enquiryStep1RequestSchema>;

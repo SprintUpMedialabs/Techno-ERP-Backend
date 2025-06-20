@@ -35,7 +35,6 @@ export const uploadToS3 = async (courseId : string, semesterId : string, subject
 
   try {
     await s3Client.send(command);
-    console.log(`File uploaded successfully: ${objectKey}`);
     return `https://${AWS_BUCKET_NAME}.s3.amazonaws.com/${objectKey}`;
   }
   catch (err) {

@@ -10,7 +10,7 @@ admissionRoute.use('/enquiry', enquiryRoute);
 
 admissionRoute.get('/analytics',
     authenticate,
-    authorize([UserRoles.BASIC_USER]),
+    authorize([UserRoles.ADMIN]),
     getAdmissionStats
 );
 

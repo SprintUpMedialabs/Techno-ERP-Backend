@@ -57,7 +57,7 @@ export const createFeeDraft = expressAsyncHandler(functionLevelLogger(async (req
       };
     }) || [],
     semWiseFees: feeRelatedData.semWiseFees?.map((semFee, index) => ({
-      feeAmount: semFee.feeAmount ?? semWiseFee[index] ?? 0,
+      feeAmount: semFee.feeAmount ?? semWiseFee?.[index] ?? 0,
       finalFee: semFee.finalFee ?? 0,
       feesPaid: index === 0 ? sem1FeeDepositedTOA : 0
     })) || []

@@ -3,7 +3,7 @@ import expressAsyncHandler from "express-async-handler";
 import createHttpError from "http-errors";
 import mongoose from "mongoose";
 import { AuthenticatedRequest } from "../../auth/validators/authenticatedRequest";
-import { AdmittedThrough, ApplicationStatus, Course, DropDownType } from "../../config/constants";
+import { ApplicationStatus, DropDownType } from "../../config/constants";
 import { functionLevelLogger } from "../../config/functionLevelLogging";
 import { updateOnlyOneValueInDropDown } from "../../utilityModules/dropdown/dropDownMetadataController";
 import { formatResponse } from "../../utils/formatResponse";
@@ -16,8 +16,6 @@ export const createEnquiry = expressAsyncHandler(functionLevelLogger(async (req:
   const data = req.body;
   const { _id: id, ...enquiryData } = data;
   const validation = enquiryStep1RequestSchema.safeParse(enquiryData);
-
-  console.log("Validation error : ", validation.error);
 
   if (!validation.success) {
     throw createHttpError(400, validation.error.errors[0]);
@@ -50,29 +48,5 @@ export const createEnquiry = expressAsyncHandler(functionLevelLogger(async (req:
     session?.endSession();
     throw createHttpError(error);
   }
-
-}));
-
-
-
-export const updateEnquiryStep1ById = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
-  // currently not in use
-  // const validation = enquiryStep1UpdateRequestSchema.safeParse(req.body);
-
-  // if (!validation.success) {
-  //   throw createHttpError(400, validation.error.errors[0]);
-  // }
-
-  // const { id, ...data } = validation.data;
-
-  // await checkIfStudentAdmitted(id);
-
-  // const updatedData = await Enquiry.findByIdAndUpdate(
-  //   { _id: id },
-  //   { $set: data },
-  //   { new: true, runValidators: true }
-  // );
-
-  // return formatResponse(res, 200, 'Enquiry data updated successfully', true, updatedData);
 
 }));

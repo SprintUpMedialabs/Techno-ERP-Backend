@@ -1,20 +1,18 @@
 import { Request, Response } from 'express';
 import expressAsyncHandler from 'express-async-handler';
 import createHttpError from 'http-errors';
-import axiosInstance from '../../api/axiosInstance';
-import { Endpoints } from '../../api/endPoints';
-import { safeAxiosPost } from '../../api/safeAxios';
-import { getCurrentLoggedInUser } from '../../auth/utils/getCurrentLoggedInUser';
+import mongoose from 'mongoose';
 import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
-import { DropDownType, FinalConversionType, LeadType, RequestAction } from '../../config/constants';
+import { DropDownType, FinalConversionType, LeadType } from '../../config/constants';
+import { SQS_MARKETING_ANALYTICS_QUEUE_URL_YELLOW_LEAD } from '../../secrets';
+import { sendMessageToQueue } from '../../sqs/sqsProducer';
 import { updateOnlyOneValueInDropDown } from '../../utilityModules/dropdown/dropDownMetadataController';
 import { formatResponse } from '../../utils/formatResponse';
 import { getISTDate, getISTDateWithTime } from '../../utils/getISTDate';
 import { parseFilter } from '../helpers/parseFilter';
 import { LeadMaster } from '../models/lead';
-import { MarketingUserWiseAnalytics } from '../models/marketingUserWiseAnalytics';
+import { MarketingUserWiseAnalytics, MarketingUserWiseAnalyticsV1 } from '../models/marketingUserWiseAnalytics';
 import { IYellowLeadUpdate, yellowLeadUpdateSchema } from '../validators/leads';
-import mongoose from 'mongoose';
 
 export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const updateData: IYellowLeadUpdate = req.body;
@@ -62,7 +60,7 @@ export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedReq
   let yellowLeadRequestDataRemarkLength = updateData.remarks?.length || 0;
 
 
-  const isRemarkChanged = existingRemarkLength < yellowLeadRequestDataRemarkLength ;
+  const isRemarkChanged = existingRemarkLength < yellowLeadRequestDataRemarkLength;
 
   if (isRemarkChanged) {
     updateData.followUpCount = existingLead.followUpCount + 1;
@@ -87,10 +85,11 @@ export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedReq
   if (userIndex === -1) {
     throw createHttpError(404, 'User not found in analytics data.');
   }
+  
+  sendMessageToQueue(SQS_MARKETING_ANALYTICS_QUEUE_URL_YELLOW_LEAD, { currentLoggedInUser, isCalledToday: existingLead.isCalledToday, isRemarkChanged, isActiveLead: existingLead.isActiveLead, isFinalConversionChangedToAdmission, isFinalConversionChangedFromAdmission, isCampusVisitChangedToYes, isCampusVisitChangedToNo });
 
   if (isRemarkChanged && !existingLead?.isCalledToday) {
     userAnalyticsDoc.data[userIndex].totalCalls += 1;
-
     if (existingLead?.isActiveLead) {
       userAnalyticsDoc.data[userIndex].activeLeadCalls += 1;
     } else {
@@ -128,29 +127,18 @@ export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedReq
       session
     });
 
-    // const updatedFollowUpCount = updatedYellowLead?.followUpCount ?? 0;
-    // if (updatedFollowUpCount > existingFollowUpCount) {
-    //   logFollowUpChange(existingLead._id, currentLoggedInUser, Actions.INCREAMENT)
-    // }
-    // else if (updatedFollowUpCount < existingFollowUpCount) {
-    //   logFollowUpChange(existingLead._id, currentLoggedInUser, Actions.DECREAMENT)
-    // }
-
-
     updateOnlyOneValueInDropDown(DropDownType.FIX_MARKETING_CITY, updatedYellowLead?.city);
     updateOnlyOneValueInDropDown(DropDownType.MARKETING_CITY, updatedYellowLead?.city);
     updateOnlyOneValueInDropDown(DropDownType.FIX_MARKETING_COURSE_CODE, updatedYellowLead?.course);
     updateOnlyOneValueInDropDown(DropDownType.MARKETING_COURSE_CODE, updatedYellowLead?.course);
 
-
-
-    safeAxiosPost(axiosInstance, `${Endpoints.AuditLogService.MARKETING.SAVE_LEAD}`, {
-      documentId: updatedYellowLead?._id,
-      action: RequestAction.POST,
-      payload: updatedYellowLead,
-      performedBy: req.data?.id,
-      restEndpoint: '/api/update-yellow-lead',
-    });
+    // safeAxiosPost(axiosInstance, `${Endpoints.AuditLogService.MARKETING.SAVE_LEAD}`, {
+    //   documentId: updatedYellowLead?._id,
+    //   action: RequestAction.POST,
+    //   payload: updatedYellowLead,
+    //   performedBy: req.data?.id,
+    //   restEndpoint: '/api/update-yellow-lead',
+    // });
 
     await session.commitTransaction();
 
@@ -161,6 +149,57 @@ export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedReq
   } finally {
     await session.endSession();
   }
+});
+
+export const marketingAnalyticsSQSHandlerYellowLead = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const { currentLoggedInUser, isCalledToday, isRemarkChanged, isActiveLead, isFinalConversionChangedToAdmission, isFinalConversionChangedFromAdmission, isCampusVisitChangedToYes, isCampusVisitChangedToNo } = req.body;
+
+  const todayStart = getISTDate();
+
+  const userAnalyticsDoc = await MarketingUserWiseAnalyticsV1.findOne({
+    date: todayStart,
+    data: { $elemMatch: { userId: currentLoggedInUser } },
+  });
+
+  if (!userAnalyticsDoc)
+    throw createHttpError(404, 'User analytics not found.');
+
+  const userIndex = userAnalyticsDoc.data.findIndex((entry) =>
+    entry.userId.toString() === currentLoggedInUser?.toString()
+  );
+
+  if (userIndex === -1) {
+    throw createHttpError(404, 'User not found in analytics data.');
+  }
+
+  if (isRemarkChanged && !isCalledToday) {
+    userAnalyticsDoc.data[userIndex].totalCalls += 1;
+
+    if (isActiveLead) {
+      userAnalyticsDoc.data[userIndex].activeLeadCalls += 1;
+    } else {
+      userAnalyticsDoc.data[userIndex].nonActiveLeadCalls += 1;
+    }
+
+  }
+
+  if (isFinalConversionChangedToAdmission) {
+    userAnalyticsDoc.data[userIndex].totalAdmissions += 1;
+  }
+  if (isFinalConversionChangedFromAdmission) {
+    userAnalyticsDoc.data[userIndex].totalAdmissions -= 1;
+  }
+
+  if (isCampusVisitChangedToYes) {
+    userAnalyticsDoc.data[userIndex].totalFootFall += 1;
+  }
+  if (isCampusVisitChangedToNo) {
+    userAnalyticsDoc.data[userIndex].totalFootFall -= 1;
+  }
+
+  await userAnalyticsDoc.save();
+
+  return formatResponse(res, 200, 'Marketing analytics updated successfully', true);
 });
 
 export const getFilteredYellowLeads = expressAsyncHandler(
@@ -344,13 +383,13 @@ export const getYellowLeadsAnalyticsV1 = expressAsyncHandler(async (req: Authent
     analytics.length > 0
       ? analytics[0]
       : {
-          allLeadsCount: 0,
-          campusVisitTrueCount: 0,
-          activeYellowLeadsCount: 0,
-          deadLeadCount: 0,
-          admissions: 0,
-          neutral: 0
-        };
+        allLeadsCount: 0,
+        campusVisitTrueCount: 0,
+        activeYellowLeadsCount: 0,
+        deadLeadCount: 0,
+        admissions: 0,
+        neutral: 0
+      };
 
   return formatResponse(res, 200, 'Yellow leads analytics fetched successfully', true, result);
 });

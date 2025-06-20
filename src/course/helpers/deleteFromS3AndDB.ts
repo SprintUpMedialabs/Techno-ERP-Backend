@@ -66,16 +66,14 @@ export const deleteFromS3AndDB = async (crsId: string, semId: string, subId: str
         }
 
         await session.commitTransaction();
-        console.log("Removed the URL successfully from DB");
         session.endSession();
 
         await deleteFromS3(documentUrl);
-        console.log("Deleted the file successfully from AWS");
+
     }
     catch (error: any) {
         await session.abortTransaction();
         session.endSession();
         throw createHttpError(404, error.message);
     }
-    return;
 };
