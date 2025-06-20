@@ -14,6 +14,7 @@ import { getCurrentLoggedInUser } from "../../auth/utils/getCurrentLoggedInUser"
 import { getCourseYrFromSemNum } from "../../course/utils/getAcaYrFromStartYrSemNum";
 import { toRoman } from "../utils/getRomanSemNumber";
 import { getCourseYearFromSemNumber } from "../../utils/getCourseYearFromSemNumber";
+import { formateFeeType } from "./downloadController";
 
 type FeeDetailInterface = {
     _id: string;
@@ -432,7 +433,7 @@ export const settleFees = async (student: any, amount: number) => {
                 //Below we take minimum, because it can happen that amountToBePaid is more but the amount deposited is less.
                 const amountPaid = Math.min(remainingFee, amount);
                 transactionSettlementHistory.push({
-                    name: sem.academicYear + " - " + getCourseYrFromSemNum(sem.semesterNumber) + " Year" + " - " + toRoman(sem.semesterNumber) + " Sem" + " - " + det.type,
+                    name: sem.academicYear + " - " + getCourseYrFromSemNum(sem.semesterNumber) + " Year" + " - " + toRoman(sem.semesterNumber) + " Sem" + " - " + formateFeeType(det.type as FinanceFeeType),
                     amount: amountPaid
                 })
                 det.paidAmount += amountPaid;

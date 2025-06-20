@@ -11,6 +11,8 @@ import { Student } from "../models/student";
 import createHttpError from "http-errors";
 import { FinanceFeeType } from "../../config/constants";
 import { CourseMetaData } from "../../course/models/courseMetadata";
+import { getCourseYrFromSemNum } from "../../course/utils/getAcaYrFromStartYrSemNum";
+import { toRoman } from "../utils/getRomanSemNumber";
 
 export const downloadTransactionSlip = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { studentId, transactionId } = req.body;
@@ -24,7 +26,7 @@ export const downloadAdmissionTransactionSlip = expressAsyncHandler(async (req: 
     return formatResponse(res, 200, "Admission Transaction Slip Data fetched successfully", true, responseObj);
 })
 
-const formateFeeType = (feeType: FinanceFeeType) => {
+export const formateFeeType = (feeType: FinanceFeeType) => {
     switch (feeType) {
         case FinanceFeeType.HOSTELCAUTIONMONEY:
             return "Hostel Caution Money";
@@ -65,7 +67,7 @@ export const getTransactionSlipData = async (studentId: string, transactionId: s
         if (semester.fees.dueDate) {
             semester.fees.details.forEach(fee => {
                 if (fee.paidAmount != fee.finalFee) {
-                    dues.push({ label: `Sem ${semester.semesterNumber} - ${formateFeeType(fee.type)}`, amount: fee.finalFee - fee.paidAmount });
+                    dues.push({ label: `${semester.academicYear} - ${getCourseYrFromSemNum(semester.semesterNumber)} - ${toRoman(semester.semesterNumber)} Sem - ${formateFeeType(fee.type)}`, amount: fee.finalFee - fee.paidAmount });
                 }
             });
         }
@@ -80,11 +82,9 @@ export const getTransactionSlipData = async (studentId: string, transactionId: s
 
     const formateTranscations: { label: string, amount: number }[] = [];
 
-    collegeTransaction?.transactionSettlementHistory?.forEach(((tnx,index)=>{
-        const label = tnx?.name.replace("2025-2026 - First Year - I Sem - ", "");
-
-        formateTranscations.push({ label: `2025-2026 - First Year - I Sem - ${formateFeeType(label as FinanceFeeType)}`, amount: tnx.amount });
-    }))
+    collegeTransaction?.transactionSettlementHistory?.forEach(((tnx)=>{
+        formateTranscations.push({ label: tnx.name, amount: tnx.amount });
+    }));
     
     const responseObj = {
         collegeName: collegeMetaData?.fullCollegeName,
