@@ -239,7 +239,8 @@ const createSemesterFee = (id: any, semesterNumber: number, feesCourse: any): an
 
     return {
       type: type,
-      schedule: FinanceFeeSchedule[type] ?? "YEARLY",
+      // schedule: FinanceFeeSchedule[type] ?? "YEARLY",
+      schedule: type in FinanceFeeSchedule ? FinanceFeeSchedule[type as keyof typeof FinanceFeeSchedule] : "YEARLY",
       actualFee,
       finalFee,
       paidAmount,
