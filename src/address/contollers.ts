@@ -19,7 +19,6 @@ export const saveAddressLine2OfStudent = expressAsyncHandler(async (req: Request
         }
         return formatResponse(res, 200, "Address line 2 saved successfully", true, {});
     } catch (error) {
-        console.log(error);
         return formatResponse(res, 500, "Error in saving address line 2", false, {});
     }
 })
@@ -38,7 +37,6 @@ export const saveAddressLine2OfEnquiry = expressAsyncHandler(async (req: Request
         }
         return formatResponse(res, 200, "Address line 2 saved successfully", true, {});
     } catch (error) {
-        console.log(error);
         return formatResponse(res, 500, "Error in saving address line 2", false, {});
     }
 })
@@ -57,7 +55,6 @@ export const saveAddressLine2OfEnquiryDraft = expressAsyncHandler(async (req: Re
         }
         return formatResponse(res, 200, "Address line 2 saved successfully", true, {});
     } catch (error) {
-        console.log(error);
         return formatResponse(res, 500, "Error in saving address line 2", false, {});
     }
 }

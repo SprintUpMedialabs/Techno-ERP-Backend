@@ -49,7 +49,8 @@ const formateFeeType = (feeType: FinanceFeeType) => {
         case FinanceFeeType.MISCELLANEOUS:
             return "Miscellaneous";
         case FinanceFeeType.SEMESTERFEE:
-            return "Semester Fee";
+        case FinanceFeeType.SEM1FEE:
+            return "Tuition Fees";
         default:
             return feeType;
     }
@@ -69,12 +70,21 @@ export const getTransactionSlipData = async (studentId: string, transactionId: s
             });
         }
     })
+    
     if (isAdmissionTransactionSlip)
         transactionId = student?.transactionHistory?.at(0)?.toString() ?? '';
 
     const collegeTransaction = await CollegeTransaction.findById(transactionId);
     const course = await CourseMetaData.findOne({ courseCode : student?.courseCode });
     const collegeMetaData = await CollegeMetaData.findOne({ collegeName : course?.collegeName });
+
+    const formateTranscations: { label: string, amount: number }[] = [];
+
+    collegeTransaction?.transactionSettlementHistory?.forEach(((tnx,index)=>{
+        const label = tnx?.name.replace("2025-2026 - First Year - I Sem - ", "");
+
+        formateTranscations.push({ label: `2025-2026 - First Year - I Sem - ${formateFeeType(label as FinanceFeeType)}`, amount: tnx.amount });
+    }))
     
     const responseObj = {
         collegeName: collegeMetaData?.fullCollegeName,
@@ -88,7 +98,7 @@ export const getTransactionSlipData = async (studentId: string, transactionId: s
         date: convertToDDMMYYYY(collegeTransaction?.dateTime),
         category: student?.studentInfo.category,
         session: student?.currentAcademicYear,
-        particulars: collegeTransaction?.transactionSettlementHistory,
+        particulars: formateTranscations,
         remarks: collegeTransaction?.remark,
         amountInWords: toTitleCase(toWords(collegeTransaction?.amount!)) + " Rupees Only",
         transactionType: collegeTransaction?.txnType,

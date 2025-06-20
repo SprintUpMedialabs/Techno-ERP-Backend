@@ -30,7 +30,7 @@ export const FeeSchema = z.object({
 export const FetchFeeHistorySchema = z.object({
     studentId : objectIdSchema,
     semesterId : objectIdSchema,
-    detailId : objectIdSchema
+    detailId : objectIdSchema,
 });
 
 export const EditFeeBreakUpSchema = z.object({

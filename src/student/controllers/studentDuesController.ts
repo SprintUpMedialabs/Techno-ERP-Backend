@@ -34,7 +34,7 @@ export const getStudentDues = expressAsyncHandler(async (req: AuthenticatedReque
     const { page, limit, search, academicYear, courseCode, courseYear } = req.body;
 
     const filterStage: any = {
-        feeStatus: FeeStatus.DUE,
+        // feeStatus: FeeStatus.DUE,
         currentAcademicYear: academicYear,
     };
 
@@ -116,7 +116,6 @@ export const getStudentDues = expressAsyncHandler(async (req: AuthenticatedReque
         studentAggregation,
         countQuery
     ]);
-
     return formatResponse(res, 200, "Student with Due Fees fetched successfully", true, {
         data: students,
         pagination: {
@@ -160,6 +159,7 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
                 departmentInfo: 1,
                 extraBalance: 1,
                 currentSemester: 1,
+                step2And4Remark: 1,
                 semesterNumber: "$semester.semesterNumber",
                 academicYear: "$semester.academicYear",
                 finalFee: "$semester.fees.totalFinalFee",
@@ -188,6 +188,7 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
                 currentSemester: { $first: "$currentSemester" },
                 extraBalance: { $first: "$extraBalance" },
                 departmentInfo: { $first: "$departmentInfo" },
+                step2And4Remark: { $first: "$step2And4Remark" },
                 semesterWiseFeeInformation: {
                     $push: {
                         semesterNumber: "$semesterNumber",
@@ -276,6 +277,7 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
                 semesterWiseFeeInformation: 1,
                 semesterBreakUp: 1,
                 extraBalance: 1,
+                step2And4Remark: 1
             }
         }
     ];
@@ -580,7 +582,6 @@ export const fetchFeeUpdatesHistory = expressAsyncHandler(async (req: Authentica
     ];
 
     const feeHistory = await Student.aggregate(pipeline);
-
     return formatResponse(res, 200, "Fee Update History fetched successfully.", true, feeHistory[0]);
 });
 
@@ -594,7 +595,6 @@ export const editFeeBreakUp = expressAsyncHandler(async (req: AuthenticatedReque
     }
 
     const { studentId, semesterId, detailId, amount: newFinalFee, remark } = editFeeDataValidation.data;
-
     const student = await Student.findById(studentId);
     if (!student) {
         throw createHttpError(404, "Student not found!")

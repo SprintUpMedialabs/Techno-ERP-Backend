@@ -16,7 +16,6 @@ export const createEnquiry = expressAsyncHandler(functionLevelLogger(async (req:
   const data = req.body;
   const { _id: id, ...enquiryData } = data;
   const validation = enquiryStep1RequestSchema.safeParse(enquiryData);
-  console.log(validation.error);
 
   if (!validation.success) {
     throw createHttpError(400, validation.error.errors[0]);
