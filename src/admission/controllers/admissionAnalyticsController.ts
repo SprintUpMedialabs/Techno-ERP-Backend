@@ -14,8 +14,9 @@ import mongoose from 'mongoose';
 
 // DACHECK: This function should be robust enough so that if it get failed then it retries by its own until it get success and also should send mails upon 5th attempt failure
 // TEST: this function is going to be tested with the time
-export const incrementAdmissionAnalytics = async (courseName: string, dateOfAdmission: Date) => {
+export const incrementAdmissionAnalytics = async (courseCode: string, dateOfAdmission: Date) => {
     const dateOfAdmissionMoment = moment(dateOfAdmission).tz('Asia/Kolkata');
+    const course = await CourseMetaData.findOne({ courseCode: courseCode }).select('courseName');
     const updates = [
         {
             type: AdmissionAggregationType.DATE_WISE,
@@ -30,12 +31,12 @@ export const incrementAdmissionAnalytics = async (courseName: string, dateOfAdmi
         {
             type: AdmissionAggregationType.MONTH_AND_COURSE_WISE,
             date: dateOfAdmissionMoment.startOf('month').toDate(), // 01/MM/YYYY
-            courseName: courseName,
+            courseName: course?.courseName,
         },
         {
             type: AdmissionAggregationType.YEAR_AND_COURSE_WISE,
             date: dateOfAdmissionMoment.startOf('year').toDate(), // 01/01/YYYY
-            courseName: courseName,
+            courseName: course?.courseName,
         },
     ];
 

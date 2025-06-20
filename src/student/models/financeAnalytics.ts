@@ -10,7 +10,7 @@ export interface CourseWiseDetails{
 }
 
 export interface CourseWiseInformation{
-    courseCode : string,
+    courseName : string,
     departmentName : string,
     totalCollection : number,
     totalExpectedRevenue : number,
@@ -52,7 +52,7 @@ const CourseWiseDetailSchema = new Schema<ICourseYearDetailDocument>({
 })
 
 const CourseWiseSchema = new Schema<ICourseWiseDocument>({
-    courseCode : {
+    courseName : {
         type : String
     },
     departmentName : {
