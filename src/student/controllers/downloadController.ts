@@ -11,6 +11,8 @@ import { Student } from "../models/student";
 import createHttpError from "http-errors";
 import { FinanceFeeType } from "../../config/constants";
 import { CourseMetaData } from "../../course/models/courseMetadata";
+import { getCourseYrFromSemNum } from "../../course/utils/getAcaYrFromStartYrSemNum";
+import { toRoman } from "../utils/getRomanSemNumber";
 
 export const downloadTransactionSlip = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { studentId, transactionId } = req.body;
@@ -24,7 +26,7 @@ export const downloadAdmissionTransactionSlip = expressAsyncHandler(async (req: 
     return formatResponse(res, 200, "Admission Transaction Slip Data fetched successfully", true, responseObj);
 })
 
-const formateFeeType = (feeType: FinanceFeeType) => {
+export const formateFeeType = (feeType: FinanceFeeType) => {
     switch (feeType) {
         case FinanceFeeType.HOSTELCAUTIONMONEY:
             return "Hostel Caution Money";
@@ -49,7 +51,8 @@ const formateFeeType = (feeType: FinanceFeeType) => {
         case FinanceFeeType.MISCELLANEOUS:
             return "Miscellaneous";
         case FinanceFeeType.SEMESTERFEE:
-            return "Semester Fee";
+        case FinanceFeeType.SEM1FEE:
+            return "Tuition Fees";
         default:
             return feeType;
     }
@@ -64,17 +67,24 @@ export const getTransactionSlipData = async (studentId: string, transactionId: s
         if (semester.fees.dueDate) {
             semester.fees.details.forEach(fee => {
                 if (fee.paidAmount != fee.finalFee) {
-                    dues.push({ label: `Sem ${semester.semesterNumber} - ${formateFeeType(fee.type)}`, amount: fee.finalFee - fee.paidAmount });
+                    dues.push({ label: `${semester.academicYear} - ${getCourseYrFromSemNum(semester.semesterNumber)} - ${toRoman(semester.semesterNumber)} Sem - ${formateFeeType(fee.type)}`, amount: fee.finalFee - fee.paidAmount });
                 }
             });
         }
     })
+    
     if (isAdmissionTransactionSlip)
         transactionId = student?.transactionHistory?.at(0)?.toString() ?? '';
 
     const collegeTransaction = await CollegeTransaction.findById(transactionId);
     const course = await CourseMetaData.findOne({ courseCode : student?.courseCode });
     const collegeMetaData = await CollegeMetaData.findOne({ collegeName : course?.collegeName });
+
+    const formateTranscations: { label: string, amount: number }[] = [];
+
+    collegeTransaction?.transactionSettlementHistory?.forEach(((tnx)=>{
+        formateTranscations.push({ label: tnx.name, amount: tnx.amount });
+    }));
     
     const responseObj = {
         collegeName: collegeMetaData?.fullCollegeName,
@@ -88,7 +98,7 @@ export const getTransactionSlipData = async (studentId: string, transactionId: s
         date: convertToDDMMYYYY(collegeTransaction?.dateTime),
         category: student?.studentInfo.category,
         session: student?.currentAcademicYear,
-        particulars: collegeTransaction?.transactionSettlementHistory,
+        particulars: formateTranscations,
         remarks: collegeTransaction?.remark,
         amountInWords: toTitleCase(toWords(collegeTransaction?.amount!)) + " Rupees Only",
         transactionType: collegeTransaction?.txnType,

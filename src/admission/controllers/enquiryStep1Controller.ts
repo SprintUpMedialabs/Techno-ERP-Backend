@@ -50,27 +50,3 @@ export const createEnquiry = expressAsyncHandler(functionLevelLogger(async (req:
   }
 
 }));
-
-
-
-export const updateEnquiryStep1ById = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
-  // currently not in use
-  // const validation = enquiryStep1UpdateRequestSchema.safeParse(req.body);
-
-  // if (!validation.success) {
-  //   throw createHttpError(400, validation.error.errors[0]);
-  // }
-
-  // const { id, ...data } = validation.data;
-
-  // await checkIfStudentAdmitted(id);
-
-  // const updatedData = await Enquiry.findByIdAndUpdate(
-  //   { _id: id },
-  //   { $set: data },
-  //   { new: true, runValidators: true }
-  // );
-
-  // return formatResponse(res, 200, 'Enquiry data updated successfully', true, updatedData);
-
-}));

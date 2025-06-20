@@ -3,7 +3,7 @@ import expressAsyncHandler from 'express-async-handler';
 import createHttpError from 'http-errors';
 import mongoose from 'mongoose';
 import { AuthenticatedRequest } from '../../auth/validators/authenticatedRequest';
-import { ApplicationStatus, COLLECTION_NAMES, Course, FeeActions, FormNoPrefixes, TGI, TransactionTypes } from '../../config/constants';
+import { ApplicationStatus, COLLECTION_NAMES, Course, FeeActions, FinanceFeeType, FormNoPrefixes, TGI, TransactionTypes } from '../../config/constants';
 import { functionLevelLogger } from '../../config/functionLevelLogging';
 import { createStudent } from '../../student/controllers/studentController';
 import { CollegeTransaction } from '../../student/models/collegeTransactionHistory';
@@ -21,6 +21,7 @@ import { incrementAdmissionAnalytics } from './admissionAnalyticsController';
 import { CourseMetaData } from '../../course/models/courseMetadata';
 import { CollegeMetaData } from '../models/collegeMetaData';
 import moment from 'moment-timezone';
+import { formateFeeType } from '../../student/controllers/downloadController';
 
 
 export const getEnquiryData = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
@@ -58,7 +59,7 @@ export const getEnquiryData = expressAsyncHandler(functionLevelLogger(async (req
             date: "$dateOfEnquiry",
             timezone: "Asia/Kolkata"
           }
-        },        
+        },
         studentName: 1,
         studentPhoneNumber: 1,
         gender: 1,
@@ -85,7 +86,7 @@ export const getEnquiryData = expressAsyncHandler(functionLevelLogger(async (req
                   date: "$dateOfEnquiry",
                   timezone: "Asia/Kolkata"
                 }
-              },              
+              },
               studentName: 1,
               studentPhoneNumber: 1,
               gender: 1,
@@ -215,6 +216,7 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
 
     const studentData = {
       ...enquiryData,
+      "step2And4Remark": enquiryData?.feeDetailsRemark + " | " + enquiryData?.financeOfficeRemark,
       "courseCode": approvedEnquiry?.course,
       "feeId": approvedEnquiry?.studentFee,
       "dateOfAdmission": approvedEnquiry?.dateOfAdmission,
@@ -243,7 +245,7 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
       otherFeesData.forEach(otherFees => {
         if (otherFees.feesDepositedTOA !== 0) {
           transactionSettlementHistory.push({
-            name: student.currentAcademicYear + " - " + "First Year" + " - " + toRoman(1) + " Sem" + " - " + otherFees.type,
+            name: student.currentAcademicYear + " - " + "First Year" + " - " + toRoman(1) + " Sem" + " - " + formateFeeType(otherFees.type as FinanceFeeType),
             amount: otherFees.feesDepositedTOA
           });
         }
@@ -270,7 +272,7 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
       transactionHistory: [createTransaction[0]._id]
     }], { session });
 
-    incrementAdmissionAnalytics(student.courseCode,approvedEnquiry!.dateOfAdmission!);
+    incrementAdmissionAnalytics(student.courseCode, approvedEnquiry!.dateOfAdmission!);
     await session.commitTransaction();
     session.endSession();
 

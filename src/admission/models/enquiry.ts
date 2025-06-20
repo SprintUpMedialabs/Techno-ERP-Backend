@@ -13,7 +13,7 @@ import { singleDocumentSchema } from './singleDocument';
 
 export interface IEnquiryDocument extends IEnquirySchema, Document {
   formNo: string;
-  date: Date;
+  date: Date | null;
   photoNo: number;
   universityId: string;
 }
@@ -60,11 +60,11 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
     },
     fatherName: {
       type: String,
-      required: [true, "Father's Name is required"]
+      required: [false, "Father's Name is required"]
     },
     fatherPhoneNumber: {
       type: String,
-      required: [true, 'Father Phone Number is required.'],
+      required: [false, 'Father Phone Number is required.'],
       validate: {
         validator: (stuPhNum: string) => contactNumberSchema.safeParse(stuPhNum).success,
         message: 'Invalid Father Phone Number'
@@ -75,7 +75,7 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
     },
     motherName: {
       type: String,
-      required: [true, "Mother's Name is required"]
+      required: [false, "Mother's Name is required"]
     },
     motherPhoneNumber: {
       type: String,
@@ -92,7 +92,7 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
     },
     dateOfBirth: {
       type: Date,
-      required: [true, 'Date is required'],
+      required: [false, 'Date is required'],
       set: (value: string) => {
         return convertToMongoDate(value);
       }
@@ -103,11 +103,10 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
         values: Object.values(Category),
         message: 'Invalid Category value'
       },
-      required: true
+      required: false
     },
     course: {
       type: String,
-      required: true
     },
     references: {
       type: [String],
@@ -227,7 +226,7 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
         message: 'Invalid Application Status value'
       },
       default: ApplicationStatus.STEP_1,
-      required: true
+      required: false
     },
     counsellor: {
       type: [String],

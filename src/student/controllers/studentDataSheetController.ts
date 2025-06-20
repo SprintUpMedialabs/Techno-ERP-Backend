@@ -18,9 +18,10 @@ import { sendEmail } from "../../config/mailer";
 import { DEVELOPER_EMAIL } from "../../secrets";
 import { formatResponse } from "../../utils/formatResponse";
 
-const generateAddress = (address: IAddressSchema) => {
+const generateAddress = (address: IAddressSchema | undefined) => {
+    if (!address) return '';
     const addressLine1 = address.addressLine1 ?? '';
-    const addressLine2 = address.addressLine2 ?? '';
+    const addressLine2 = address.addressLine2??"";
     return addressLine2 ? ((addressLine1 ? addressLine1 + ", " : '') + addressLine2) : (addressLine1 ?? '')
 }
 
@@ -64,7 +65,7 @@ const getDocument = (label: string, documents: ISingleDocumentSchema[]) => {
     const note = documents?.find(p =>
         p.type?.toLowerCase().includes(label.toLowerCase())
     );
-    return note ? (note.fileUrl ? note.fileUrl : convertToDDMMYYYY(note.dueBy)) : '';
+    return note ? (note.fileUrl ?? convertToDDMMYYYY(note.dueBy)) : '';
 };
 
 const getStudentState = (createdAt: Date, updatedAt: Date): string => {
@@ -86,7 +87,7 @@ const mapStudentToRow = async (student: IStudentSchema & { _id: ObjectId, create
     const enquiry = await Enquiry.findById(student._id);
 
     const academicDetails = info.academicDetails;
-    const collegeDetails = getCollegeInformation(academicDetails ? academicDetails : []);
+    const collegeDetails = getCollegeInformation(academicDetails ?? []);
     const physicalDocumentNote = info.physicalDocumentNote;
     const documents = info.documents;
 
@@ -97,7 +98,7 @@ const mapStudentToRow = async (student: IStudentSchema & { _id: ObjectId, create
         "Course": student.courseName ?? '',
         "LURN/PRE-REGISTRATION NO.": info.lurnRegistrationNo ?? '',
         "Form No.": info.formNo ?? '',
-        "Date of Admission": (enquiry?.dateOfAdmission) ? convertToDDMMYYYY(enquiry?.dateOfAdmission!) : '',
+        "Date of Admission": (enquiry?.dateOfAdmission) ? convertToDDMMYYYY(enquiry?.dateOfAdmission) : '',
         "Name of Student": info.studentName ?? '',
         "Father's Name": info.fatherName ?? '',
         "Mother's Name": info.motherName ?? '',

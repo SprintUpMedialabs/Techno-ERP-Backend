@@ -14,6 +14,7 @@ import { getCurrentLoggedInUser } from "../../auth/utils/getCurrentLoggedInUser"
 import { getCourseYrFromSemNum } from "../../course/utils/getAcaYrFromStartYrSemNum";
 import { toRoman } from "../utils/getRomanSemNumber";
 import { getCourseYearFromSemNumber } from "../../utils/getCourseYearFromSemNumber";
+import { formateFeeType } from "./downloadController";
 
 type FeeDetailInterface = {
     _id: string;
@@ -31,10 +32,10 @@ type FeeDetailInterface = {
 
 
 export const getStudentDues = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const { page, limit, search, academicYear, courseCode, courseYear } = req.body;
+    const {search, academicYear, courseCode, courseYear } = req.body;
 
     const filterStage: any = {
-        feeStatus: FeeStatus.DUE,
+        // feeStatus: FeeStatus.DUE,
         currentAcademicYear: academicYear,
     };
 
@@ -71,8 +72,6 @@ export const getStudentDues = expressAsyncHandler(async (req: AuthenticatedReque
 
     const studentAggregation = Student.aggregate([
         { $match: filterStage },
-        { $skip: (page - 1) * limit },
-        { $limit: limit },
         {
             $project: {
                 feeStatus: 1,
@@ -112,19 +111,12 @@ export const getStudentDues = expressAsyncHandler(async (req: AuthenticatedReque
 
     const countQuery = Student.countDocuments(filterStage);
 
-    const [students, totalCount] = await Promise.all([
+    const [students] = await Promise.all([
         studentAggregation,
         countQuery
     ]);
-
     return formatResponse(res, 200, "Student with Due Fees fetched successfully", true, {
         data: students,
-        pagination: {
-            page,
-            limit,
-            totalPages: Math.ceil(totalCount / limit),
-            totalCount
-        }
     })
 });
 
@@ -160,6 +152,7 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
                 departmentInfo: 1,
                 extraBalance: 1,
                 currentSemester: 1,
+                step2And4Remark: 1,
                 semesterNumber: "$semester.semesterNumber",
                 academicYear: "$semester.academicYear",
                 finalFee: "$semester.fees.totalFinalFee",
@@ -188,6 +181,7 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
                 currentSemester: { $first: "$currentSemester" },
                 extraBalance: { $first: "$extraBalance" },
                 departmentInfo: { $first: "$departmentInfo" },
+                step2And4Remark: { $first: "$step2And4Remark" },
                 semesterWiseFeeInformation: {
                     $push: {
                         semesterNumber: "$semesterNumber",
@@ -276,6 +270,7 @@ export const fetchFeeInformationByStudentId = expressAsyncHandler(async (req: Au
                 semesterWiseFeeInformation: 1,
                 semesterBreakUp: 1,
                 extraBalance: 1,
+                step2And4Remark: 1
             }
         }
     ];
@@ -438,7 +433,7 @@ export const settleFees = async (student: any, amount: number) => {
                 //Below we take minimum, because it can happen that amountToBePaid is more but the amount deposited is less.
                 const amountPaid = Math.min(remainingFee, amount);
                 transactionSettlementHistory.push({
-                    name: sem.academicYear + " - " + getCourseYrFromSemNum(sem.semesterNumber) + " Year" + " - " + toRoman(sem.semesterNumber) + " Sem" + " - " + det.type,
+                    name: sem.academicYear + " - " + getCourseYrFromSemNum(sem.semesterNumber) + " Year" + " - " + toRoman(sem.semesterNumber) + " Sem" + " - " + formateFeeType(det.type as FinanceFeeType),
                     amount: amountPaid
                 })
                 det.paidAmount += amountPaid;
@@ -580,7 +575,6 @@ export const fetchFeeUpdatesHistory = expressAsyncHandler(async (req: Authentica
     ];
 
     const feeHistory = await Student.aggregate(pipeline);
-
     return formatResponse(res, 200, "Fee Update History fetched successfully.", true, feeHistory[0]);
 });
 
@@ -593,8 +587,7 @@ export const editFeeBreakUp = expressAsyncHandler(async (req: AuthenticatedReque
         throw createHttpError(400, editFeeDataValidation.error.errors[0])
     }
 
-    const { studentId, semesterId, detailId, amount: newFinalFee } = editFeeDataValidation.data;
-
+    const { studentId, semesterId, detailId, amount: newFinalFee, remark } = editFeeDataValidation.data;
     const student = await Student.findById(studentId);
     if (!student) {
         throw createHttpError(404, "Student not found!")
@@ -620,7 +613,8 @@ export const editFeeBreakUp = expressAsyncHandler(async (req: AuthenticatedReque
         updatedAt: new Date(),
         extraAmount: diff,
         updatedFee: newFinalFee,
-        updatedBy: new mongoose.Types.ObjectId(req.data?.id)
+        updatedBy: new mongoose.Types.ObjectId(req.data?.id),
+        remark: remark
     });
 
     semester.fees.totalFinalFee += diff;

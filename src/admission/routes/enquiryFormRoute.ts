@@ -4,7 +4,7 @@ import upload from '../../config/multerConfig';
 import { authenticate, authorize } from '../../middleware/jwtAuthenticationMiddleware';
 import { createEnquiryDraftStep1, updateEnquiryDraftStep1 } from '../controllers/enquiryDraftController';
 import { approveEnquiry, getEnquiryById, getEnquiryData } from '../controllers/enquiryFormController';
-import { createEnquiry, updateEnquiryStep1ById } from '../controllers/enquiryStep1Controller';
+import { createEnquiry } from '../controllers/enquiryStep1Controller';
 import { createEnquiryStep2, updateEnquiryStep2ById } from '../controllers/enquiryStep2Controller';
 import { saveStep3Draft, updateEnquiryDocuments, updateEnquiryStep3ById, verifyOtpAndUpdateEnquiryStatus } from '../controllers/enquiryStep3Controller';
 import { updateEnquiryStep4ById } from '../controllers/enquiryStep4Controller';
@@ -16,12 +16,6 @@ enquiryRoute.post('/step-1',
     authenticate,
     authorize([UserRoles.REGISTAR, UserRoles.FINANCE,UserRoles.FRONT_DESK]),
     createEnquiry
-);
-
-enquiryRoute.put('/step-1',
-    authenticate,
-    authorize([UserRoles.REGISTAR, UserRoles.FINANCE,UserRoles.FRONT_DESK]),
-    updateEnquiryStep1ById
 );
 
 enquiryRoute.post('/step-2',

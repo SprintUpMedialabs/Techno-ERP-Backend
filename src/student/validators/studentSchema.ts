@@ -57,12 +57,12 @@ export const StudentBaseInfoSchema = z.object({
 
     studentName: z.string({ required_error: "Student Name is required." }).nonempty("Student Name cannot be empty"),
     studentPhoneNumber: z.string().optional(),
-    dateOfAdmission: z.date(),
-    fatherName: z.string({ required_error: "Father Name is required", }).nonempty("Father's Name is required"),
-    fatherPhoneNumber: contactNumberSchema,
+    dateOfAdmission: z.date().optional(),
+    fatherName: z.string({ required_error: "Father Name is required", }).nonempty("Father's Name is required").optional(),
+    fatherPhoneNumber: contactNumberSchema.optional(),
     fatherOccupation: z.string().optional(),
 
-    motherName: z.string({ required_error: "Mother's Name is required", }).nonempty("Mother's Name is required"),
+    motherName: z.string({ required_error: "Mother's Name is required", }).nonempty("Mother's Name is required").optional(),
     motherPhoneNumber: contactNumberSchema.optional(),
     motherOccupation: z.string().optional(),
 
@@ -71,13 +71,13 @@ export const StudentBaseInfoSchema = z.object({
     dateOfBirth: z.union([z.string(), z.date()]).transform((date) => {
         if (date instanceof Date) return date;
         return convertToMongoDate(date) as Date;
-    }),
-    category: z.nativeEnum(Category),
-    references: z.array(z.nativeEnum(AdmissionReference)),
+    }).optional(),
+    category: z.nativeEnum(Category).optional(),
+    references: z.array(z.nativeEnum(AdmissionReference)).optional(),
     srAmount: z.number().optional(),
 
     aadharNumber: z.string().regex(/^\d{12}$/, 'Aadhar Number must be exactly 12 digits').optional(),
-    address: addressSchema,
+    address: addressSchema.optional(),
     academicDetails: academicDetailsArraySchema.optional(),
 
 
@@ -108,12 +108,13 @@ export const StudentSchema = z.object({
     feeStatus: z.nativeEnum(FeeStatus).default(FeeStatus.DUE),
     extraBalance: z.number().default(0),
     prevTotalDueAtSemStart: z.number().default(0),
+    step2And4Remark: z.string().optional(),
     transactionHistory: z.array(objectIdSchema).optional()
 })
 
 export const CreateStudentSchema = z.object({
     courseCode: z.string(),
-    feeId: objectIdSchema,
+    feeId: objectIdSchema.optional(),
     dateOfAdmission: z.date(),
 
     collegeName : z.string(),
@@ -125,11 +126,11 @@ export const CreateStudentSchema = z.object({
     studentName: z.string({ required_error: "Student Name is required." }).nonempty("Student Name cannot be empty"),
     studentPhoneNumber: z.string().optional(),
 
-    fatherName: z.string({ required_error: "Father Name is required", }).nonempty("Father's Name is required"),
-    fatherPhoneNumber: contactNumberSchema,
+    fatherName: z.string({ required_error: "Father Name is required", }).nonempty("Father's Name is required").optional(),
+    fatherPhoneNumber: contactNumberSchema.optional(),
     fatherOccupation: z.string().optional(),
 
-    motherName: z.string({ required_error: "Mother's Name is required", }).nonempty("Mother's Name is required"),
+    motherName: z.string({ required_error: "Mother's Name is required", }).nonempty("Mother's Name is required").optional(),
     motherPhoneNumber: contactNumberSchema.optional(),
     motherOccupation: z.string().optional(),
 
@@ -137,14 +138,14 @@ export const CreateStudentSchema = z.object({
     bloodGroup: z.nativeEnum(BloodGroup).optional(),
     dateOfBirth: requestDateSchema.transform((date) =>
         convertToMongoDate(date) as Date
-    ),
-    category: z.nativeEnum(Category),
+    ).optional(),
+    category: z.nativeEnum(Category).optional(),
     course: z.string(),
-    references: z.array(z.nativeEnum(AdmissionReference)),
+    references: z.array(z.nativeEnum(AdmissionReference)).optional(),
     srAmount: z.number().optional(),
 
     aadharNumber: z.string().regex(/^\d{12}$/, 'Aadhar Number must be exactly 12 digits').optional(),
-    address: addressSchema,
+    address: addressSchema.optional(),
     academicDetails: academicDetailsArraySchema.optional(),
 
     previousCollegeData: previousCollegeDataSchema.optional(),
@@ -156,7 +157,9 @@ export const CreateStudentSchema = z.object({
     entranceExamDetails: entranceExamDetailSchema.optional(),
     gender: z.nativeEnum(Gender).default(Gender.OTHER),
     religion: z.nativeEnum(Religion).optional(),
-    admittedThrough: z.nativeEnum(AdmittedThrough)
+    admittedThrough: z.nativeEnum(AdmittedThrough).optional(),
+
+    step2And4Remark: z.string().optional(),
 });
 
 
