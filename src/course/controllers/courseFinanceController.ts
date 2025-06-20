@@ -10,18 +10,20 @@ import { formatResponse } from "../../utils/formatResponse";
 import { CourseDues } from "../models/courseDues";
 import { CourseMetaData } from "../models/courseMetadata";
 import { createPipeline } from "../../pipline/controller";
+import { getISTDate } from "../../utils/getISTDate";
 
 
 export const courseFeeDues = expressAsyncHandler(async (_: AuthenticatedRequest, res: Response) => {
-    const today = new Date();
+    const today = getISTDate(-1);
     const currentYear = today.getFullYear();
     const currentMonth = today.getMonth();
-    const courseYears = ['', 'FIRST', 'SECOND', 'THIRD', 'FOURTH'];
+    const courseYears = ['ZERO', 'FIRST', 'SECOND', 'THIRD', 'FOURTH'];
 
     const academicYear =
         currentMonth >= 6
             ? `${currentYear}-${currentYear + 1}`
             : `${currentYear - 1}-${currentYear}`;
+    const newAdmissionAcademicYear = currentMonth >= 6 ? `${currentYear + 1}-${currentYear + 2}` : `${currentYear}-${currentYear + 1}`;
 
     const courseList: any = await CourseMetaData.find(
         {},
@@ -36,12 +38,11 @@ export const courseFeeDues = expressAsyncHandler(async (_: AuthenticatedRequest,
     });
     const pipelineId = await createPipeline(PipelineName.COURSE_DUES);
     if (!pipelineId) throw createHttpError(400, "Pipeline creation failed");
-
+    
     await retryMechanism(async (session) => {
-
         for (const course of courseList) {
             const { courseCode, courseName, courseDuration, collegeName } = course;
-            const date = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
+            const date = getISTDate(-1);
 
             const department = course.departmentMetaDataId;
             const hod = department?.departmentHODId;
@@ -60,15 +61,16 @@ export const courseFeeDues = expressAsyncHandler(async (_: AuthenticatedRequest,
                 departmentHODEmail
             };
 
-            for (let i = 1; i <= courseDuration; i++) {
+            for (let i = 0; i <= courseDuration; i++) {
                 const courseYear = courseYears[i];
-                const semNumbers = [i * 2 - 1, i * 2];
+                const semNumbers = i==0?[1]: [i * 2 - 1, i * 2];
+                let useAcademicYear = i == 0 ? newAdmissionAcademicYear : academicYear;
 
                 const resultArray = await Student.aggregate([
                     {
                         $match: {
                             courseCode,
-                            currentAcademicYear: academicYear,
+                            currentAcademicYear: useAcademicYear,
                             currentSemester: { $in: semNumbers },
                             feeStatus: { $ne: FeeStatus.PAID }
                         }

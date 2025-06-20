@@ -9,7 +9,7 @@ export const courseYearDetailSchema = z.object({
 })
 
 export const courseWiseSchema = z.object({
-    courseCode : z.string(),
+    courseName : z.string(),
     departmentName : z.string(),
     details : z.array(courseYearDetailSchema),
     totalExpectedRevenue : z.number().nonnegative().default(0),
