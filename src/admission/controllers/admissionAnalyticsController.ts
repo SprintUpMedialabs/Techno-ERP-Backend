@@ -14,27 +14,28 @@ import mongoose from 'mongoose';
 
 // DACHECK: This function should be robust enough so that if it get failed then it retries by its own until it get success and also should send mails upon 5th attempt failure
 // TEST: this function is going to be tested with the time
-export const incrementAdmissionAnalytics = async (courseName: string, dateOfAdmission: Date) => {
+export const incrementAdmissionAnalytics = async (courseName: string,dateOfAdmission: Date) => {
     const dateOfAdmissionMoment = moment(dateOfAdmission).tz('Asia/Kolkata');
+
     const updates = [
         {
             type: AdmissionAggregationType.DATE_WISE,
-            date: dateOfAdmissionMoment.startOf('day').toDate(), // exact IST date
+            date: dateOfAdmissionMoment.clone().startOf('day').toDate(), // exact IST date
             courseName: 'ALL',
         },
         {
             type: AdmissionAggregationType.MONTH_WISE,
-            date: dateOfAdmissionMoment.startOf('month').toDate(), // 01/MM/YYYY
+            date: dateOfAdmissionMoment.clone().startOf('month').toDate(), // 01/MM/YYYY
             courseName: 'ALL',
         },
         {
             type: AdmissionAggregationType.MONTH_AND_COURSE_WISE,
-            date: dateOfAdmissionMoment.startOf('month').toDate(), // 01/MM/YYYY
+            date: dateOfAdmissionMoment.clone().startOf('month').toDate(), // 01/MM/YYYY
             courseName: courseName,
         },
         {
             type: AdmissionAggregationType.YEAR_AND_COURSE_WISE,
-            date: dateOfAdmissionMoment.startOf('year').toDate(), // 01/01/YYYY
+            date: dateOfAdmissionMoment.clone().startOf('year').toDate(), // 01/01/YYYY
             courseName: courseName,
         },
     ];

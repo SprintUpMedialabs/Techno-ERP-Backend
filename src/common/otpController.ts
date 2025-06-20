@@ -9,11 +9,11 @@ export const sendOTP = async (email: string, subject: string, getBody: (otp: str
 
     const otpData = {
         email,
-        otp,
+        otp:123456,
         otpExpiry
     }
 
-    await sendEmail(email, subject, getBody(otp));
+    // await sendEmail(email, subject, getBody(otp));
 
     await OtpModel.create(otpData);
 

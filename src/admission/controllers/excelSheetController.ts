@@ -79,7 +79,7 @@ export const getRecentAdmissionExcelSheetData = expressAsyncHandler(functionLeve
                 "financeOfficeRemark": "$enquiry.financeOfficeRemark",
             }
         }
-    ]);
+    ]); 
 
     const formattedData = studentData.map(student => {
         const applicableFee = student.semester?.[0]?.fees?.details?.reduce((acc: number, fee: FeeDetail) => acc + fee.actualFee, 0) || 0;
@@ -96,7 +96,7 @@ export const getRecentAdmissionExcelSheetData = expressAsyncHandler(functionLeve
             telecaller: student.telecaller || [],
             dateOfAdmission: student.dateOfAdmission,
             course: student.course,
-            counsellor: student.counsellor || [],
+             counsellor: student.counsellor || [],
             enquiryRemark: student.enquiryRemark || '',
             feeDetailsRemark: student.feeDetailsRemark || '',
             registarOfficeRemark: student.registarOfficeRemark || '',

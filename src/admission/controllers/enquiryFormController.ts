@@ -254,7 +254,7 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
 
     const createTransaction = await CollegeTransaction.create([{
       studentId: enquiry._id,
-      dateTime: new Date(),
+      dateTime: enquiry.dateOfAdmission,
       feeAction: FeeActions.DEPOSIT,
       amount: transactionAmount,
       txnType: transactionType ?? TransactionTypes.CASH,
