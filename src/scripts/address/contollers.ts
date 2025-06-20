@@ -1,9 +1,10 @@
 import expressAsyncHandler from "express-async-handler";
 import { Request, Response } from "express";
-import { Enquiry } from "../admission/models/enquiry";
-import { EnquiryDraft } from "../admission/models/enquiryDraft";
-import { Student } from "../student/models/student";
-import { formatResponse } from "../utils/formatResponse";
+import { Enquiry } from "../../admission/models/enquiry";
+import { EnquiryDraft } from "../../admission/models/enquiryDraft";
+import { Student } from "../../student/models/student";
+import { formatResponse } from "../../utils/formatResponse";
+
 
 export const saveAddressLine2OfStudent = expressAsyncHandler(async (req: Request, res: Response) => {
     try {

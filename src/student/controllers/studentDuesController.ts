@@ -31,7 +31,7 @@ type FeeDetailInterface = {
 
 
 export const getStudentDues = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const { page, limit, search, academicYear, courseCode, courseYear } = req.body;
+    const {search, academicYear, courseCode, courseYear } = req.body;
 
     const filterStage: any = {
         // feeStatus: FeeStatus.DUE,
@@ -71,8 +71,6 @@ export const getStudentDues = expressAsyncHandler(async (req: AuthenticatedReque
 
     const studentAggregation = Student.aggregate([
         { $match: filterStage },
-        { $skip: (page - 1) * limit },
-        { $limit: limit },
         {
             $project: {
                 feeStatus: 1,
@@ -112,18 +110,12 @@ export const getStudentDues = expressAsyncHandler(async (req: AuthenticatedReque
 
     const countQuery = Student.countDocuments(filterStage);
 
-    const [students, totalCount] = await Promise.all([
+    const [students] = await Promise.all([
         studentAggregation,
         countQuery
     ]);
     return formatResponse(res, 200, "Student with Due Fees fetched successfully", true, {
         data: students,
-        pagination: {
-            page,
-            limit,
-            totalPages: Math.ceil(totalCount / limit),
-            totalCount
-        }
     })
 });
 
