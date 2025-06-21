@@ -26,36 +26,44 @@ export const saveAddressLine2OfStudent = expressAsyncHandler(async (req: Request
 
 export const saveAddressLine2OfEnquiry = expressAsyncHandler(async (req: Request, res: Response)=> {
     try {
-        const enquiries = await Enquiry.find({});
-        for (const enquiry of enquiries) {
-            const line2 = enquiry?.address?.addressLine2;
-            if (!line2 || line2 === undefined || line2 === null) {
-                if( enquiry.address ) {
-                    enquiry.address.addressLine2 = "";
-                }
-                await enquiry.save();
-            }   
-        }
+        await Enquiry.updateMany(
+            {
+                $or: [
+                    { 'address.addressLine2': null },
+                    { 'address.addressLine2': undefined },
+                    { 'address.addressLine2': { $exists: false } }
+                ],
+                address: { $exists: true }
+            },
+            {
+                $set: { 'address.addressLine2': '' }
+            }
+        );
         return formatResponse(res, 200, "Address line 2 saved successfully", true, {});
     } catch (error) {
+        console.log(error);
         return formatResponse(res, 500, "Error in saving address line 2", false, {});
     }
 })
 
 export const saveAddressLine2OfEnquiryDraft = expressAsyncHandler(async (req: Request, res: Response) => {
     try {
-        const enquiryDrafts = await EnquiryDraft.find({});
-        for (const enquiryDraft of enquiryDrafts) {
-            const line2 = enquiryDraft?.address?.addressLine2;
-            if (!line2 || line2 === undefined || line2 === null) {
-                if( enquiryDraft.address ) {
-                    enquiryDraft.address.addressLine2 = "";
-                }
-                await enquiryDraft.save();
+        await EnquiryDraft.updateMany(
+            {
+                $or: [
+                    { 'address.addressLine2': null },
+                    { 'address.addressLine2': undefined },
+                    { 'address.addressLine2': { $exists: false } }
+                ],
+                address: { $exists: true }
+            },
+            {
+                $set: { 'address.addressLine2': '' }
             }
-        }
+        );
         return formatResponse(res, 200, "Address line 2 saved successfully", true, {});
     } catch (error) {
+        console.log(error);
         return formatResponse(res, 500, "Error in saving address line 2", false, {});
     }
 }

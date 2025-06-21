@@ -4,6 +4,6 @@ import { getAbsentStudents } from "./contollers";
 export const PhoneNoRoute = Router();
 
 PhoneNoRoute.post(
-  "/get-absent-phoneNumbers",
+  "/get-absent-phone-numbers",
   getAbsentStudents
 )

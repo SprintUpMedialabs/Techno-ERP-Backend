@@ -67,6 +67,13 @@ export const getEnquiryData = expressAsyncHandler(functionLevelLogger(async (req
         course: 1,
         applicationStatus: 1,
         fatherPhoneNumber: 1,
+        dateOfAdmission: {
+          $dateToString: {
+            format: "%d/%m/%Y",
+            date: "$dateOfAdmission",
+            timezone: "Asia/Kolkata"
+          }
+        },
         fatherName: 1,
         updatedAt: 1,
         source: { $literal: 'enquiry' }
