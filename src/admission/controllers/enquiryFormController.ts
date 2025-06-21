@@ -67,6 +67,13 @@ export const getEnquiryData = expressAsyncHandler(functionLevelLogger(async (req
         course: 1,
         applicationStatus: 1,
         fatherPhoneNumber: 1,
+        dateOfAdmission: {
+          $dateToString: {
+            format: "%d/%m/%Y",
+            date: "$dateOfAdmission",
+            timezone: "Asia/Kolkata"
+          }
+        },
         fatherName: 1,
         updatedAt: 1,
         source: { $literal: 'enquiry' }
@@ -254,7 +261,7 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
 
     const createTransaction = await CollegeTransaction.create([{
       studentId: enquiry._id,
-      dateTime: enquiry.dateOfAdmission,
+      dateTime: approvedEnquiry!.dateOfAdmission,
       feeAction: FeeActions.DEPOSIT,
       amount: transactionAmount,
       txnType: transactionType ?? TransactionTypes.CASH,
