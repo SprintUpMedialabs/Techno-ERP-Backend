@@ -178,7 +178,7 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
       set: (value: string) => {
         return convertToMongoDate(value);
       },
-      required: false
+      required: true
     },
     previousCollegeData: {
       type: previousCollegeDataSchema

@@ -5,17 +5,17 @@ import { Student } from "../../student/models/student";
 
 export const getAbsentStudents = expressAsyncHandler(async(req: Request, res: Response) => {
     try {
-        const {mobileNumbers} = req.body();
-        const students = await Student.find({});
+        const {mobileNumbers} = req.body;
+        const students = await Student.find({"studentInfo.studentPhoneNumber": {$nin: mobileNumbers}});
         let absentArray:string[] = [];
-
-        mobileNumbers.forEach((mobileNo:string) => {
-            if(!students.find((student) => student.studentInfo.studentPhoneNumber)){
-                absentArray.push(mobileNo)
+        students.forEach((student) => {
+            if(student.studentInfo.studentPhoneNumber){
+                absentArray.push(student.studentInfo.studentPhoneNumber);
             }
         })
-        return formatResponse(res, 200, "Address line 2 saved successfully", true, {absentArray});
+        return formatResponse(res, 200, "Absent students fetched successfully", true, {absentArray});
     } catch (error) {
-        return formatResponse(res, 500, "Error in saving address line 2", false, {});
+        console.log(error);
+        return formatResponse(res, 500, "Error in fetching absent students", false, {});
     }
 })

@@ -36,7 +36,8 @@ const StudentBaseInfoSchema = new Schema<IStudentBasicInfoDocument>({
         default: 'Not Provided'
     },
     dateOfAdmission: {
-        type: Date
+        type: Date,
+        required: true,
     },
     studentName: {
         type: String,
