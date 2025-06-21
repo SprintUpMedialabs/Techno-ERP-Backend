@@ -71,7 +71,7 @@ export const enquirySchema = z.object({
 
   studentFee: objectIdSchema.optional(),
   studentFeeDraft: objectIdSchema.optional(),
-  dateOfAdmission: requestDateSchema.transform((date) => convertToMongoDate(date) as Date).optional(),
+  dateOfAdmission: requestDateSchema.transform((date) => convertToMongoDate(date) as Date),
 
   documents: z.array(singleDocumentSchema).optional(),
 
