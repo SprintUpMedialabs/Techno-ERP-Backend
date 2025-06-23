@@ -14,8 +14,8 @@ export const requestDateSchema = z
   .regex(/^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/, 'Date must be in DD/MM/YYYY format').optional();
 
 export const contactNumberSchema = z
-  .string()
-  .regex(/^[1-9]\d{9}$/, 'Invalid contact number format. Expected: 1234567890').optional();
+  .string().optional();
+  // .regex(/^[1-9]\d{9}$/, 'Invalid contact number format. Expected: 1234567890').optional();
 
 
 // DTODO: make emailSchema uniform

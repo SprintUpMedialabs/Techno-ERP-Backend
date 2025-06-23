@@ -34,7 +34,7 @@ app.use(cookieParser());
 
 const allowedOrigins =
   process.env.NODE_ENV === 'production'
-    ? [process.env.FRONTEND_URL1, process.env.FRONTEND_URL2??"",process.env.FRONTEND_URL3??""] // PROD ENV
+    ? [process.env.FRONTEND_URL1, process.env.FRONTEND_URL2 ?? "", process.env.FRONTEND_URL3 ?? ""] // PROD ENV
     : '*'; // Allow all origins in DEV ENV
 
 const corsOptions = {

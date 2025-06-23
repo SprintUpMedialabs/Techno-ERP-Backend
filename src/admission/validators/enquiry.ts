@@ -19,15 +19,15 @@ export const enquirySchema = z.object({
   admissionMode: z.nativeEnum(AdmissionMode).default(AdmissionMode.OFFLINE),
 
   studentName: z.string({ required_error: "Student Name is required", }).nonempty('Student Name is required'),
-  studentPhoneNumber: contactNumberSchema.optional(),
+  studentPhoneNumber: z.string().optional(),//  contactNumberSchema.optional(),
   emailId: z.string().email('Invalid email format'),
 
   fatherName: z.string().optional(),
-  fatherPhoneNumber: contactNumberSchema.optional(),
+  fatherPhoneNumber: z.string().optional(),// contactNumberSchema.optional(),
   fatherOccupation: z.string().optional(),
 
   motherName: z.string().optional(),
-  motherPhoneNumber: contactNumberSchema.optional(),
+  motherPhoneNumber: z.string().optional(),// contactNumberSchema.optional(),
   motherOccupation: z.string().optional(),
 
 
@@ -116,7 +116,7 @@ export const enquiryDraftStep3Schema = enquiryStep3UpdateRequestSchema
     address: addressSchema.partial().optional(),
     academicDetails: z.array(academicDetailSchema.partial()).optional(),
     studentName: z.string({ required_error: "Student Name is required", }).nonempty('Student Name is required'),
-    studentPhoneNumber: contactNumberSchema,
+    studentPhoneNumber: z.string().optional(),// contactNumberSchema,
     counsellor: z.array(z.string()).optional(),
     telecaller: z.array(z.string()).optional(),
     dateOfBirth: requestDateSchema.transform((date) =>
