@@ -395,20 +395,21 @@ export const exportData = expressAsyncHandler(async (req: AuthenticatedRequest, 
 
   worksheet.columns = baseColumns;
   let leads;
-
-  if (isAdminOrLead) {
-    leads = await LeadMaster.find().populate({
-      path: 'assignedTo',
-      select: 'firstName lastName'
-    });
-  } else {
+  // console.log("we are here");
+  // if (isAdminOrLead) {
+  //   leads = await LeadMaster.find().populate({
+  //     path: 'assignedTo',
+  //     select: 'firstName lastName'
+  //   });
+  // } else {
     leads = await LeadMaster.find({
       assignedTo: { $in: [req.data?.id] }
     }).populate({
       path: 'assignedTo',
       select: 'firstName lastName'
     });
-  }
+  // }
+  // console.log(leads.length);
 
   leads.forEach((lead: any) => {
     const rowData: any = {
