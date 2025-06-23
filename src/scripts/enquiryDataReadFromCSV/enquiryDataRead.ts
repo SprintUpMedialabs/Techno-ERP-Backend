@@ -3,9 +3,11 @@ import csv from 'csv-parser';
 import fs from 'fs';
 import path from 'path';
 import { AdmissionMode, AdmissionReference, Category, Countries, Gender } from "../../config/constants";
+import moment from "moment-timezone";
+import { Request, Response } from "express";
 
 
-export const enquiryDataRead = async () => {
+export const enquiryDataRead = async (req: Request, res: Response) => {
     const course = [
         "BCOM",
         "BCOMH",
@@ -29,7 +31,6 @@ export const enquiryDataRead = async () => {
     fs.createReadStream(path.resolve(__dirname, "enquiry.csv"))
         .pipe(csv())
         .on('data', (row) => {
-            // console.log(row);
             const enquiry = {
                 admissionMode: row['Admission Mode']?.toUpperCase(),
                 dateOfEnquiry: convertToMongoDate1(row['Date of Enquiry']),
@@ -73,11 +74,12 @@ export const enquiryDataRead = async () => {
         })
         .on('end', async () => {
             try {
-                // res.send({ results, errors });
+                res.send({ results, errors });
                 await EnquiryDraft.insertMany(results);
                 console.log('CSV upload successful!');
-            } catch (error) {
+            } catch (error:any) {
                 console.error('Error uploading data:', error);
+                res.send({ error: error.message });
             }
         });
 }
