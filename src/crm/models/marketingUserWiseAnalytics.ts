@@ -68,5 +68,3 @@ const MarketingUserWiseAnalyticsSchema = new Schema<IMarketingUserWiseAnalyticsD
 }, { timestamps: true });
 
 export const MarketingUserWiseAnalytics = model<IMarketingUserWiseAnalyticsDocument>(COLLECTION_NAMES.MARKETING_USER_WISE_ANALYTICS,MarketingUserWiseAnalyticsSchema);
-
-export const MarketingUserWiseAnalyticsV1 = model<IMarketingUserWiseAnalyticsDocument>(COLLECTION_NAMES.MARKETING_USER_WISE_ANALYTICS_V1,MarketingUserWiseAnalyticsSchema,COLLECTION_NAMES.MARKETING_USER_WISE_ANALYTICS_V1);

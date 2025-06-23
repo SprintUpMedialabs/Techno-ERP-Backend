@@ -12,7 +12,7 @@ import { formatResponse } from '../../utils/formatResponse';
 import { getISTDate } from '../../utils/getISTDate';
 import { LeadMaster } from '../models/lead';
 import { MarketingSourceWiseAnalytics } from '../models/marketingSourceWiseAnalytics';
-import { MarketingUserWiseAnalytics, MarketingUserWiseAnalyticsV1 } from '../models/marketingUserWiseAnalytics';
+import { MarketingUserWiseAnalytics } from '../models/marketingUserWiseAnalytics';
 import { IAdminAnalyticsFilter } from "../types/marketingSpreadsheet";
 
 export const adminAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
@@ -621,7 +621,7 @@ export const initializeUserWiseAnalytics = expressAsyncHandler(async (req: Authe
                 { session }
             );
 
-            await MarketingUserWiseAnalyticsV1.create(
+            await MarketingUserWiseAnalytics.create(
                 [{ date: todayIST, data: initializedData }],
                 { session }
             );

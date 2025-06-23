@@ -11,7 +11,7 @@ import { formatResponse } from '../../utils/formatResponse';
 import { getISTDate, getISTDateWithTime } from '../../utils/getISTDate';
 import { parseFilter } from '../helpers/parseFilter';
 import { LeadMaster } from '../models/lead';
-import { MarketingUserWiseAnalytics, MarketingUserWiseAnalyticsV1 } from '../models/marketingUserWiseAnalytics';
+import { MarketingUserWiseAnalytics } from '../models/marketingUserWiseAnalytics';
 import { IYellowLeadUpdate, yellowLeadUpdateSchema } from '../validators/leads';
 
 export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
@@ -68,87 +68,87 @@ export const updateYellowLead = expressAsyncHandler(async (req: AuthenticatedReq
   }
 
   const currentLoggedInUser = req.data?.id;
-  const todayStart = getISTDate();
+  // const todayStart = getISTDate();
 
-  const userAnalyticsDoc = await MarketingUserWiseAnalytics.findOne({
-    date: todayStart,
-    data: { $elemMatch: { userId: currentLoggedInUser } },
-  });
+  // const userAnalyticsDoc = await MarketingUserWiseAnalytics.findOne({
+  //   date: todayStart,
+  //   data: { $elemMatch: { userId: currentLoggedInUser } },
+  // });
 
-  if (!userAnalyticsDoc)
-    throw createHttpError(404, 'User analytics not found.');
+  // if (!userAnalyticsDoc)
+  //   throw createHttpError(404, 'User analytics not found.');
 
-  const userIndex = userAnalyticsDoc.data.findIndex((entry) =>
-    entry.userId.toString() === currentLoggedInUser?.toString()
-  );
+  // const userIndex = userAnalyticsDoc.data.findIndex((entry) =>
+  //   entry.userId.toString() === currentLoggedInUser?.toString()
+  // );
 
-  if (userIndex === -1) {
-    throw createHttpError(404, 'User not found in analytics data.');
-  }
-  
+  // if (userIndex === -1) {
+  //   throw createHttpError(404, 'User not found in analytics data.');
+  // }
+
   sendMessageToQueue(SQS_MARKETING_ANALYTICS_QUEUE_URL_YELLOW_LEAD, { currentLoggedInUser, isCalledToday: existingLead.isCalledToday, isRemarkChanged, isActiveLead: existingLead.isActiveLead, isFinalConversionChangedToAdmission, isFinalConversionChangedFromAdmission, isCampusVisitChangedToYes, isCampusVisitChangedToNo });
 
   if (isRemarkChanged && !existingLead?.isCalledToday) {
-    userAnalyticsDoc.data[userIndex].totalCalls += 1;
-    if (existingLead?.isActiveLead) {
-      userAnalyticsDoc.data[userIndex].activeLeadCalls += 1;
-    } else {
-      userAnalyticsDoc.data[userIndex].nonActiveLeadCalls += 1;
-    }
+    // userAnalyticsDoc.data[userIndex].totalCalls += 1;
+    // if (existingLead?.isActiveLead) {
+    //   userAnalyticsDoc.data[userIndex].activeLeadCalls += 1;
+    // } else {
+    //   userAnalyticsDoc.data[userIndex].nonActiveLeadCalls += 1;
+    // }
     updateData.isCalledToday = true;
   }
 
 
-  if (isFinalConversionChangedToAdmission) {
-    userAnalyticsDoc.data[userIndex].totalAdmissions += 1;
-  }
-  if (isFinalConversionChangedFromAdmission) {
-    userAnalyticsDoc.data[userIndex].totalAdmissions -= 1;
-  }
+  // if (isFinalConversionChangedToAdmission) {
+  //   userAnalyticsDoc.data[userIndex].totalAdmissions += 1;
+  // }
+  // if (isFinalConversionChangedFromAdmission) {
+  //   userAnalyticsDoc.data[userIndex].totalAdmissions -= 1;
+  // }
 
-  if (isCampusVisitChangedToYes) {
-    userAnalyticsDoc.data[userIndex].totalFootFall += 1;
-  }
-  if (isCampusVisitChangedToNo) {
-    userAnalyticsDoc.data[userIndex].totalFootFall -= 1;
-  }
+  // if (isCampusVisitChangedToYes) {
+  //   userAnalyticsDoc.data[userIndex].totalFootFall += 1;
+  // }
+  // if (isCampusVisitChangedToNo) {
+  //   userAnalyticsDoc.data[userIndex].totalFootFall -= 1;
+  // }
 
-  const session = await mongoose.startSession();
-  session.startTransaction();
+  // const session = await mongoose.startSession();
+  // session.startTransaction();
 
-  try {
+  // try {
 
-    await userAnalyticsDoc.save({ session });
+  // await userAnalyticsDoc.save({ session });
 
 
-    const updatedYellowLead = await LeadMaster.findByIdAndUpdate(updateData._id, updateData, {
-      new: true,
-      runValidators: true,
-      session
-    });
+  const updatedYellowLead = await LeadMaster.findByIdAndUpdate(updateData._id, updateData, {
+    new: true,
+    runValidators: true,
+    // session
+  });
 
-    updateOnlyOneValueInDropDown(DropDownType.FIX_MARKETING_CITY, updatedYellowLead?.city);
-    updateOnlyOneValueInDropDown(DropDownType.MARKETING_CITY, updatedYellowLead?.city);
-    updateOnlyOneValueInDropDown(DropDownType.FIX_MARKETING_COURSE_CODE, updatedYellowLead?.course);
-    updateOnlyOneValueInDropDown(DropDownType.MARKETING_COURSE_CODE, updatedYellowLead?.course);
+  updateOnlyOneValueInDropDown(DropDownType.FIX_MARKETING_CITY, updatedYellowLead?.city);
+  updateOnlyOneValueInDropDown(DropDownType.MARKETING_CITY, updatedYellowLead?.city);
+  updateOnlyOneValueInDropDown(DropDownType.FIX_MARKETING_COURSE_CODE, updatedYellowLead?.course);
+  updateOnlyOneValueInDropDown(DropDownType.MARKETING_COURSE_CODE, updatedYellowLead?.course);
 
-    // safeAxiosPost(axiosInstance, `${Endpoints.AuditLogService.MARKETING.SAVE_LEAD}`, {
-    //   documentId: updatedYellowLead?._id,
-    //   action: RequestAction.POST,
-    //   payload: updatedYellowLead,
-    //   performedBy: req.data?.id,
-    //   restEndpoint: '/api/update-yellow-lead',
-    // });
+  // safeAxiosPost(axiosInstance, `${Endpoints.AuditLogService.MARKETING.SAVE_LEAD}`, {
+  //   documentId: updatedYellowLead?._id,
+  //   action: RequestAction.POST,
+  //   payload: updatedYellowLead,
+  //   performedBy: req.data?.id,
+  //   restEndpoint: '/api/update-yellow-lead',
+  // });
 
-    await session.commitTransaction();
+  // await session.commitTransaction();
 
-    return formatResponse(res, 200, 'Yellow lead updated successfully', true, updatedYellowLead);
-  } catch (error) {
-    await session.abortTransaction();
-    throw error;
-  } finally {
-    await session.endSession();
-  }
+  return formatResponse(res, 200, 'Yellow lead updated successfully', true, updatedYellowLead);
+  // } catch (error) {
+  //   await session.abortTransaction();
+  //   throw error;
+  // } finally {
+  //   await session.endSession();
+  // }
 });
 
 export const marketingAnalyticsSQSHandlerYellowLead = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
@@ -156,7 +156,7 @@ export const marketingAnalyticsSQSHandlerYellowLead = expressAsyncHandler(async 
 
   const todayStart = getISTDate();
 
-  const userAnalyticsDoc = await MarketingUserWiseAnalyticsV1.findOne({
+  const userAnalyticsDoc = await MarketingUserWiseAnalytics.findOne({
     date: todayStart,
     data: { $elemMatch: { userId: currentLoggedInUser } },
   });

@@ -38,10 +38,10 @@ export const enquiryDraftSchema = new Schema<IEnquiryDraftDocument>(
         studentPhoneNumber: {
             type: String,
             required: false,
-            validate: {
-                validator: (stuPhNum: string) => contactNumberSchema.safeParse(stuPhNum).success,
-                message: 'Invalid Phone Number'
-            },
+            // validate: {
+            //     validator: (stuPhNum: string) => contactNumberSchema.safeParse(stuPhNum).success,
+            //     message: 'Invalid Phone Number'
+            // },
         },
         emailId: {
             type: String,
@@ -57,10 +57,10 @@ export const enquiryDraftSchema = new Schema<IEnquiryDraftDocument>(
         },
         fatherPhoneNumber: {
             type: String,
-            validate: {
-                validator: (stuPhNum: string) => contactNumberSchema.safeParse(stuPhNum).success,
-                message: 'Invalid Father Phone Number'
-            },
+            // validate: {
+            //     validator: (stuPhNum: string) => contactNumberSchema.safeParse(stuPhNum).success,
+            //     message: 'Invalid Father Phone Number'
+            // },
             required: false
         },
         fatherOccupation: {
@@ -72,10 +72,10 @@ export const enquiryDraftSchema = new Schema<IEnquiryDraftDocument>(
         },
         motherPhoneNumber: {
             type: String,
-            validate: {
-                validator: (stuPhNum: string) => contactNumberSchema.safeParse(stuPhNum).success,
-                message: 'Invalid Mother Phone Number'
-            },
+            // validate: {
+            //     validator: (stuPhNum: string) => contactNumberSchema.safeParse(stuPhNum).success,
+            //     message: 'Invalid Mother Phone Number'
+            // },
             required: false
         },
         motherOccupation: {

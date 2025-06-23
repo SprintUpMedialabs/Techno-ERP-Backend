@@ -328,7 +328,6 @@ export enum COLLECTION_NAMES {
   FINANCE_ANALYTICS = "financeanalytics",
   MARKETING_SOURCE_WISE_ANALYTICS = "marketingsourcewiseanalytics",
   MARKETING_USER_WISE_ANALYTICS = "marketinguserwiseanalytics",
-  MARKETING_USER_WISE_ANALYTICS_V1 = "marketinguserwiseanalyticsv1",
   OTP = "otps",
   ADMISSION_ANALYTICS = "admissionanalytics",
   ERROR_LOG = "errorlogs"

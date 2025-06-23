@@ -46,10 +46,10 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
     },
     studentPhoneNumber: {
       type: String,
-      validate: {
-        validator: (stuPhNum: string) => contactNumberSchema.safeParse(stuPhNum).success,
-        message: 'Invalid Phone Number'
-      }
+      // validate: {
+      //   validator: (stuPhNum: string) => contactNumberSchema.safeParse(stuPhNum).success,
+      //   message: 'Invalid Phone Number'
+      // }
     },
     emailId: {
       type: String,
@@ -65,10 +65,10 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
     fatherPhoneNumber: {
       type: String,
       required: [false, 'Father Phone Number is required.'],
-      validate: {
-        validator: (stuPhNum: string) => contactNumberSchema.safeParse(stuPhNum).success,
-        message: 'Invalid Father Phone Number'
-      }
+      // validate: {
+      //   validator: (stuPhNum: string) => contactNumberSchema.safeParse(stuPhNum).success,
+      //   message: 'Invalid Father Phone Number'
+      // }
     },
     fatherOccupation: {
       type: String,
@@ -79,13 +79,13 @@ export const enquirySchema = new Schema<IEnquiryDocument>(
     },
     motherPhoneNumber: {
       type: String,
-      validate: {
-        validator: (stuPhNum: string) => {
-          if (!stuPhNum) return true; // Skip validation if not provided
-          return contactNumberSchema.safeParse(stuPhNum).success;
-        },
-        message: 'Invalid Mother Phone Number'
-      }
+      // validate: {
+      //   validator: (stuPhNum: string) => {
+      //     if (!stuPhNum) return true; // Skip validation if not provided
+      //     return contactNumberSchema.safeParse(stuPhNum).success;
+      //   },
+      //   message: 'Invalid Mother Phone Number'
+      // }
     },
     motherOccupation: {
       type: String,
