@@ -6,7 +6,7 @@ export interface ISpreadSheetMetaDataDocument extends ISpreadSheetMetaData, Docu
 
 const spreadSheetSchema = new Schema<ISpreadSheetMetaDataDocument>(
   {
-    name: { type: String, required: true },
+    name: { type: String, required: true, unique: true },
     lastIdxMarketingSheet: { type: Number, required: true },
   },
   { timestamps: true }
