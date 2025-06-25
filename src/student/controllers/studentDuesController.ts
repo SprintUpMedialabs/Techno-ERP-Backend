@@ -32,12 +32,15 @@ type FeeDetailInterface = {
 
 
 export const getStudentDues = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const {search, academicYear, courseCode, courseYear } = req.body;
+    const {search, academicYear, courseCode, courseYear, feeStatus } = req.body;
 
     const filterStage: any = {
-        // feeStatus: FeeStatus.DUE,
         currentAcademicYear: academicYear,
     };
+
+    if(feeStatus) {
+        filterStage.feeStatus = feeStatus;
+    }
 
     if (courseCode) {
         filterStage.courseCode = courseCode;
