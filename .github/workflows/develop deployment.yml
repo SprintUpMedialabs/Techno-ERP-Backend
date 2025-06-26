@@ -35,6 +35,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           source: "deploy.tar.gz"
           target: "/home/ubuntu/ERP-Develop"
+          debug: true
 
       - name: SSH and extract, restart
         uses: appleboy/ssh-action@v1.0.0
