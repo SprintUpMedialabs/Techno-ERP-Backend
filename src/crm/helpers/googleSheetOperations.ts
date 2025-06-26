@@ -118,13 +118,13 @@ export const updateStatusForMarketingSheet = async (newLastReadIndex: number, la
   ];
 
   //Blue
-  redRows.forEach((rowIndex) => {
+  redRows.forEach((row) => {
     requests.push({
       repeatCell: {
         range: {
           sheetId,
-          startRowIndex: rowIndex - 1,
-          endRowIndex: rowIndex,
+          startRowIndex: row.rowNumber - 1,
+          endRowIndex: row.rowNumber,
           startColumnIndex: 0,
           endColumnIndex: 2
         },
@@ -160,13 +160,13 @@ export const updateStatusForMarketingSheet = async (newLastReadIndex: number, la
   }
 
   //Pink
-  pinkRows.forEach((rowIndex) => {
+  pinkRows.forEach((row) => {
     requests.push({
       repeatCell: {
         range: {
           sheetId,
-          startRowIndex: rowIndex - 1,
-          endRowIndex: rowIndex,
+          startRowIndex: row.rowNumber - 1,
+          endRowIndex: row.rowNumber,
           startColumnIndex: 0,
           endColumnIndex: 2
         },

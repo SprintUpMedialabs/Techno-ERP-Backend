@@ -18,6 +18,7 @@ import { studentParentRoute } from './student-parent/routes/studentParentRoute';
 import { studentAuthRoute } from './student/routes/auth/studentAuthRoute';
 import { AddressRoute } from './scripts/address/addressRouter';
 import { PhoneNoRoute } from './scripts/absentPhoneNos/route';
+import { AddRemark2and4 } from './scripts/Reamrk2And4/route';
 
 
 export const apiRouter = express.Router();
@@ -98,6 +99,11 @@ apiRouter.use('/fee-analytics', financeAnalyticsRoute);
 
 apiRouter.use('/pipline', piplineRouter);
 
+/** for address saving to student, enquiries */
 apiRouter.use('/address', AddressRoute);
 
-apiRouter.use("/phonNo", PhoneNoRoute);
+/** for get absent phone numbers */
+apiRouter.use("/phoneNo", PhoneNoRoute);
+
+/** for adding step2And4Remark to student */
+apiRouter.use("/addRemark2and4", AddRemark2and4);

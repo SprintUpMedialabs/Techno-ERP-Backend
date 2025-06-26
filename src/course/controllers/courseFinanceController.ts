@@ -140,7 +140,23 @@ export const getCourseDuesByDate = expressAsyncHandler(async (req: Authenticated
 
     const targetDate = convertToMongoDate(date);
 
-    const dues = await CourseDues.find({ date: targetDate, ...collegeFilter });
+    let duesData = await CourseDues.find({ date: targetDate, ...collegeFilter });
+    const courseMetadata = await CourseMetaData.find(
+        { courseCode:  { $in: duesData.map(due => due.courseCode) } },
+    );
+    
+    const enhancedDues = duesData.map((due) => {
+        let departmentName = "";
+        const courseMeta = courseMetadata.find(meta => meta.courseCode === due.courseCode);
+        if(courseMeta) {
+            departmentName = courseMeta.departmentName || "";
+        }
+        
+        return {
+            ...due.toObject(),
+            departmentName,
+        };
+    });
 
-    return formatResponse(res, 200, "Course dues fetched", true, dues);
+    return formatResponse(res, 200, "Course dues fetched", true, enhancedDues);
 });

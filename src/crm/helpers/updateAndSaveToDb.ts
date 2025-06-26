@@ -31,22 +31,26 @@ const leadsToBeInserted = async (
     const row = latestData[index];
 
     //We need to add 1 as the sheet index starts from 1, whereas in loop, the index is starting from 0.
-    const correspondingSheetIndex = lastSavedIndex + Number(index) + 1;
+    const correspondingSheetIndex =( lastSavedIndex + Number(index) + 1) ;
+    const phoneNumber = row[requiredColumnHeaders[MarketingsheetHeaders.PhoneNumber]] ?? "-";
+    const name = row[requiredColumnHeaders[MarketingsheetHeaders.Name]] ?? "-";
+    const date = row[requiredColumnHeaders[MarketingsheetHeaders.Date]] ?? "-";
+    logger.info(`Processing row at  Date: ${date}`);
 
     try {
       if (!row) {
         logger.info('Empty row found at index : ', correspondingSheetIndex);
-        report.emptyRows.push(correspondingSheetIndex);
+        report.emptyRows.push({rowNumber: correspondingSheetIndex, phoneNumber, name});
         report.rowsFailed++;
         continue;
       }
 
       // if assignTo is not mentationed in sheet
       if (!row[requiredColumnHeaders[MarketingsheetHeaders.AssignedTo]]) {
-        report.assignedToNotFound.push(correspondingSheetIndex);
+        report.assignedToNotFound.push({rowNumber: correspondingSheetIndex, phoneNumber, name});
         report.rowsFailed++;
         continue;
-      }
+      }      
 
       let leadData = {
         ...(row[requiredColumnHeaders[MarketingsheetHeaders.Date]] && { date: row[requiredColumnHeaders[MarketingsheetHeaders.Date]] }),
@@ -78,12 +82,16 @@ const leadsToBeInserted = async (
         leadData.followUpCount = 1;
       }
 
+      if(!row[requiredColumnHeaders[MarketingsheetHeaders.LeadType]]) {
+        leadData.leadType = "LEFT_OVER";
+      }
+
       const leadDataValidation = leadSheetSchema.safeParse(leadData);
 
       if (leadDataValidation.success) {
 
         if (leadDataValidation.data.phoneNumber.length == 0 && leadDataValidation.data.name.length == 0) {
-          report.phoneNumberAndNameEmpty.push(correspondingSheetIndex);
+          report.phoneNumberAndNameEmpty.push({rowNumber: correspondingSheetIndex, phoneNumber: phoneNumber, name});
           report.rowsFailed++;
           continue;
         }
@@ -108,9 +116,11 @@ const leadsToBeInserted = async (
               MarketingEmployees.set(assignedTo, assignedToID);
             } else {
               if (!existingUser) {
-                report.assignedToNotFound.push(correspondingSheetIndex);
+                report.assignedToNotFound.push({rowNumber: correspondingSheetIndex, phoneNumber, name});
+                report.rowsFailed++;
               } else {
-                report.unauthorizedAssignedTo.push(correspondingSheetIndex);
+                report.unauthorizedAssignedTo.push({rowNumber: correspondingSheetIndex, phoneNumber, name});
+                report.rowsFailed++;
               }
               continue;
             }
@@ -121,10 +131,12 @@ const leadsToBeInserted = async (
       else {
         report.rowsFailed++;
         report.otherIssue.push({
-          rowId: correspondingSheetIndex,
+          rowNumber: correspondingSheetIndex,
           issue: leadDataValidation.error.errors
             .map((error) => `${error.path.join('.')}: ${error.message}`)
-            .join(', ')
+            .join(', '),
+          phoneNumber,
+          name
         });
         logger.error(
           'Validation failed for row',
@@ -173,7 +185,6 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number, sh
     updateStatusForMarketingSheet(lastSavedIndex + latestData.length, lastSavedIndex, report, sheetId, sheetName);
     return;
   }
-
   try {
     const insertedData = await LeadMaster.insertMany(dataToInsert, { ordered: false, throwOnValidationError: true });
     report.actullyProcessedRows = insertedData.length;
@@ -183,10 +194,10 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number, sh
       for (const e of error.writeErrors) {
         report.rowsFailed++;
         if (e.err.code === 11000) {
-          report.duplicateRowIds.push(e.err.index + lastSavedIndex + 1);
+          report.duplicateRowIds.push({ rowNumber: e.err.index + lastSavedIndex + 1, phoneNumber: latestData[e.err.index][requiredColumnHeaders[MarketingsheetHeaders.PhoneNumber]] || '', name: latestData[e.err.index][requiredColumnHeaders[MarketingsheetHeaders.Name]] || '' });
         }
         else {
-          report.otherIssue.push({ rowId: e.err.index + lastSavedIndex + 1, issue: e.err.errmsg });
+          report.otherIssue.push({ rowNumber: e.err.index + lastSavedIndex + 1, issue: e.err.errmsg, phoneNumber: latestData[e.err.index][requiredColumnHeaders[MarketingsheetHeaders.PhoneNumber]] || '' , name: latestData[e.err.index][requiredColumnHeaders[MarketingsheetHeaders.Name]] || '' });
         }
       }
     } catch (error) {
