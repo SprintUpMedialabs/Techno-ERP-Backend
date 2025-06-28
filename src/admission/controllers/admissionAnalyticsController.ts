@@ -176,22 +176,10 @@ export const getAdmissionStats = expressAsyncHandler(async (req: AuthenticatedRe
             });
         });
 
-        // Ensure all courses are represented in the response
-        allCourses.forEach(course => {
-            Object.values(groupedData).forEach(group => {
-                if (!group.courseWise.find(c => c.courseName === course.courseName)) {
-                    group.courseWise.push({ count: 0, courseName: course.courseName });
-
-                }
-            });
-        });
-
-        const formattedData = Object.values(groupedData);
-
         if (type === AdmissionAggregationType.MONTH_AND_COURSE_WISE) {
-            formatResponse(res, 200, 'Admission stats fetched successfully', true, { monthWise: formattedData });
+            formatResponse(res, 200, 'Admission stats fetched successfully', true, { monthWise: Object.values(groupedData) });
         } else {
-            formatResponse(res, 200, 'Admission stats fetched successfully', true, { yearWise: formattedData });
+            formatResponse(res, 200, 'Admission stats fetched successfully', true, { yearWise: Object.values(groupedData) });
         }
     } else {
         // For other types, keep existing format
