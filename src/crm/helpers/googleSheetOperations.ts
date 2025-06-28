@@ -91,10 +91,10 @@ export const updateStatusForMarketingSheet = async (newLastReadIndex: number, la
 
   const sheetId = sheetInfo.properties?.sheetId!;
 
-  const pinkRows = report.duplicateRowIds;
+  // const pinkRows = report.duplicateRowIds;
   const redRows1 = report.assignedToNotFound;
   const redRows2 = report.phoneNumberAndNameEmpty;
-  const redRows = [...redRows1, ...redRows2];
+  // const redRows = [...redRows1, ...redRows2];
 
   const requests: any[] = [
     //Green
@@ -118,25 +118,25 @@ export const updateStatusForMarketingSheet = async (newLastReadIndex: number, la
   ];
 
   //Blue
-  redRows.forEach((row) => {
-    requests.push({
-      repeatCell: {
-        range: {
-          sheetId,
-          startRowIndex: row.rowNumber - 1,
-          endRowIndex: row.rowNumber,
-          startColumnIndex: 0,
-          endColumnIndex: 2
-        },
-        cell: {
-          userEnteredFormat: {
-            backgroundColor: { red: 0.7, green: 0.85, blue: 1.0 }
-          },
-        },
-        fields: 'userEnteredFormat.backgroundColor',
-      },
-    });
-  });
+  // redRows.forEach((row) => {
+  //   requests.push({
+  //     repeatCell: {
+  //       range: {
+  //         sheetId,
+  //         startRowIndex: row.rowNumber - 1,
+  //         endRowIndex: row.rowNumber,
+  //         startColumnIndex: 0,
+  //         endColumnIndex: 2
+  //       },
+  //       cell: {
+  //         userEnteredFormat: {
+  //           backgroundColor: { red: 0.7, green: 0.85, blue: 1.0 }
+  //         },
+  //       },
+  //       fields: 'userEnteredFormat.backgroundColor',
+  //     },
+  //   });
+  // });
 
   if (lastSavedIndex > 1) {
     requests.push({
@@ -160,25 +160,25 @@ export const updateStatusForMarketingSheet = async (newLastReadIndex: number, la
   }
 
   //Pink
-  pinkRows.forEach((row) => {
-    requests.push({
-      repeatCell: {
-        range: {
-          sheetId,
-          startRowIndex: row.rowNumber - 1,
-          endRowIndex: row.rowNumber,
-          startColumnIndex: 0,
-          endColumnIndex: 2
-        },
-        cell: {
-          userEnteredFormat: {
-            backgroundColor: { red: 1.0, green: 0.8, blue: 0.9 },
-          },
-        },
-        fields: 'userEnteredFormat.backgroundColor',
-      },
-    });
-  });
+  // pinkRows.forEach((row) => {
+  //   requests.push({
+  //     repeatCell: {
+  //       range: {
+  //         sheetId,
+  //         startRowIndex: row.rowNumber - 1,
+  //         endRowIndex: row.rowNumber,
+  //         startColumnIndex: 0,
+  //         endColumnIndex: 2
+  //       },
+  //       cell: {
+  //         userEnteredFormat: {
+  //           backgroundColor: { red: 1.0, green: 0.8, blue: 0.9 },
+  //         },
+  //       },
+  //       fields: 'userEnteredFormat.backgroundColor',
+  //     },
+  //   });
+  // });
 
   await sheetInstance.spreadsheets.batchUpdate({
     spreadsheetId: MARKETING_SHEET_ID,

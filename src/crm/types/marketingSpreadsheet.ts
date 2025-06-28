@@ -3,8 +3,9 @@ import { Course, FinalConversionType, LeadType, Locations } from '../../config/c
 import { Gender } from 'aws-sdk/clients/polly';
 
 export interface IMarketingSpreadsheetProcessReport {
+  startingRowNumber: number;
+  endingRowNumber: number;
   rowsToBeProcessed: number;
-  actullyProcessedRows: number;
   rowsFailed: number;
   
   duplicateRowIds: {rowNumber: number, phoneNumber: string, name: string}[];

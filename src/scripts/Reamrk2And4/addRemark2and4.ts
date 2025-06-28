@@ -6,15 +6,17 @@ import expressAsyncHandler from "express-async-handler";
 import { formatResponse } from "../../utils/formatResponse";
 
 export const addRemark2and4 = expressAsyncHandler(async (req: Request, res: Response) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
 
     //take alll enquiry which have remark2 or remark4
     const enquires = await Enquiry.find({
       $or: [
-        { remark2: { $exists: true } },
-        { remark4: { $exists: true } }
+        { feeDetailsRemark: { $exists: true } },
+        { financeOfficeRemark: { $exists: true } }
       ]
-    })
+    });
 
     //update remark2 and remark4 in feeDetailsRemark and financeOfficeRemark
     //and save it in updatedEnquiries map with _id as key and combined remark as value
@@ -34,18 +36,24 @@ export const addRemark2and4 = expressAsyncHandler(async (req: Request, res: Resp
     const students = await Student.find(
       { _id: { $in: ids } },
     );
+    
 
     //update students with combined remark
     for (const student of students) {
       student.step2And4Remark = updatedEnquiries.get(student._id.toString()) || '';
-      await student.save();
+      await student.save({ session });
     }
+
+    await session.commitTransaction();
 
     return formatResponse(res, 200, "step2And4Remark updated successfully for students", true, {});
 
   } catch (error: Error | any) {
+    await session.abortTransaction();
     return formatResponse(res, 500, "Failed to update step2And4Remark for students", false, {
       error: error.message ?? "An unexpected error occurred"
     });
+  } finally {
+    session.endSession();
   }
 });

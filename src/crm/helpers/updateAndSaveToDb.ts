@@ -3,7 +3,7 @@ import { User } from '../../auth/models/user';
 import { DropDownType, Gender, UserRoles } from '../../config/constants';
 import logger from '../../config/logger';
 import { sendEmail } from '../../config/mailer';
-import { LEAD_MARKETING_EMAIL } from '../../secrets';
+import { LEAD_MARKETING_EMAIL, NODE_ENV } from '../../secrets';
 import { DropDownMetaData } from '../../utilityModules/dropdown/dropDownMetaDeta';
 import { formatCapital, formatDropdownValue, updateDropDownByType } from '../../utilityModules/dropdown/dropDownMetadataController';
 import { MarketingsheetHeaders } from '../enums/marketingSheetHeader';
@@ -81,11 +81,6 @@ const leadsToBeInserted = async (
       if (row[requiredColumnHeaders[MarketingsheetHeaders.Remarks]]) {
         leadData.followUpCount = 1;
       }
-
-      if(!row[requiredColumnHeaders[MarketingsheetHeaders.LeadType]]) {
-        leadData.leadType = "LEFT_OVER";
-      }
-
       const leadDataValidation = leadSheetSchema.safeParse(leadData);
 
       if (leadDataValidation.success) {
@@ -153,10 +148,11 @@ const leadsToBeInserted = async (
   return dataToInsert;
 };
 
-export const saveDataToDb = async (latestData: any[], lastSavedIndex: number, sheetId: string, sheetName: string, requiredColumnHeaders: { [key: string]: number }) => {
+export const saveDataToDb = async (latestData: any[], lastSavedIndex: number, sheetId: string, sheetName: string, requiredColumnHeaders: { [key: string]: number }, userEmail: string) => {
   const report: IMarketingSpreadsheetProcessReport = {
+    startingRowNumber: lastSavedIndex + 1,
+    endingRowNumber: lastSavedIndex + latestData.length,
     rowsToBeProcessed: latestData.length,
-    actullyProcessedRows: 0,
     rowsFailed: 0,
     duplicateRowIds: [],
     assignedToNotFound: [],
@@ -186,26 +182,30 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number, sh
     return;
   }
   try {
-    const insertedData = await LeadMaster.insertMany(dataToInsert, { ordered: false, throwOnValidationError: true });
-    report.actullyProcessedRows = insertedData.length;
+    report.rowsToBeProcessed = dataToInsert.length;
+    await LeadMaster.insertMany(dataToInsert, { ordered: false, throwOnValidationError: true });
+    
   } catch (error: any) {
     try {
-      report.actullyProcessedRows = error.result.insertedCount;
       for (const e of error.writeErrors) {
         report.rowsFailed++;
         if (e.err.code === 11000) {
-          report.duplicateRowIds.push({ rowNumber: e.err.index + lastSavedIndex + 1, phoneNumber: latestData[e.err.index][requiredColumnHeaders[MarketingsheetHeaders.PhoneNumber]] || '', name: latestData[e.err.index][requiredColumnHeaders[MarketingsheetHeaders.Name]] || '' });
+          report.duplicateRowIds.push({ rowNumber: 0, phoneNumber: e.err.op.phoneNumber ?? '', name: e.err.op.name ?? '' });
         }
         else {
-          report.otherIssue.push({ rowNumber: e.err.index + lastSavedIndex + 1, issue: e.err.errmsg, phoneNumber: latestData[e.err.index][requiredColumnHeaders[MarketingsheetHeaders.PhoneNumber]] || '' , name: latestData[e.err.index][requiredColumnHeaders[MarketingsheetHeaders.Name]] || '' });
+          report.otherIssue.push({ rowNumber:0, issue: e.err.errmsg, phoneNumber: e.err.op.phoneNumber ?? '' , name: e.err.op.name ?? '' });
         }
       }
     } catch (error) {
       logger.error(`Error processing rows: ${JSON.stringify(error)}`);
     }
   }
+  
   if (report.rowsFailed != 0) {
-    sendEmail(LEAD_MARKETING_EMAIL, 'Lead Processing Report', formatReport(report));
+    if( NODE_ENV != 'production'  ) {
+      userEmail='enquiry.sprintup@gmail.com';
+    }
+    sendEmail(userEmail, 'Lead Processing Report - ' + sheetName, formatReport(report));
     logger.info('Error report sent to Lead!');
   }
   updateDropDownByType(DropDownType.MARKETING_CITY, Array.from(citySet));

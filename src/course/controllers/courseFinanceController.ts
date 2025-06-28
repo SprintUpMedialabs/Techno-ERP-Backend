@@ -141,6 +141,7 @@ export const getCourseDuesByDate = expressAsyncHandler(async (req: Authenticated
     const targetDate = convertToMongoDate(date);
 
     let duesData = await CourseDues.find({ date: targetDate, ...collegeFilter });
+    // TODO1: lets change this by storing department name in course dues collection itself
     const courseMetadata = await CourseMetaData.find(
         { courseCode:  { $in: duesData.map(due => due.courseCode) } },
     );

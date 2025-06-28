@@ -45,13 +45,17 @@ export const formatReport = (report: IMarketingSpreadsheetProcessReport): string
       <h2 style="color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 8px;">Lead Processing Report</h2>
       
       <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-        <tr>
-          <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; width: 60%;">Total Rows Processed:</td>
-          <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${report.rowsToBeProcessed}</td>
+      <tr>
+          <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; width: 60%;">Starting Row Number:</td>
+          <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${report.startingRowNumber}</td>
         </tr>
         <tr>
-          <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Successfully Processed:</td>
-          <td style="padding: 8px; border: 1px solid #ddd; text-align: right; color: #27ae60;">${report.actullyProcessedRows}</td>
+          <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; width: 60%;">Ending Row Number:</td>
+          <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${report.endingRowNumber}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; width: 60%;">Total Rows to process:</td>
+          <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${report.rowsToBeProcessed}</td>
         </tr>
         <tr>
           <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Rows Failed:</td>
