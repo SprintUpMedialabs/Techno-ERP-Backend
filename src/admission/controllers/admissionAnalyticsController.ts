@@ -104,16 +104,6 @@ export const assignBaseValueToAdmissionAnalytics = expressAsyncHandler(async (re
     formatResponse(res, 200, 'Base value assigned successfully', true, null);
 });
 
-// TODO1:
-// clear admission analytics
-// from date 1 Jan make a call to assignBaseValueToAdmissionAnalytics
-    // year wise only one time
-    // month wise for each month
-    // date wise for each date
-
-// get all students
-// increment admission analytics -> pass course code and date of admission
-
 const getStartOfDateByType = (type: AdmissionAggregationType, dateStr: string): moment.Moment => {
     const format = 'DD-MM-YYYY'; // Corrected format
     const baseMoment = moment.tz(dateStr, format, 'Asia/Kolkata');

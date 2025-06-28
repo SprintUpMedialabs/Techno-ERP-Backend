@@ -19,6 +19,8 @@ import { studentAuthRoute } from './student/routes/auth/studentAuthRoute';
 import { AddressRoute } from './scripts/address/addressRouter';
 import { PhoneNoRoute } from './scripts/absentPhoneNos/route';
 import { AddRemark2and4 } from './scripts/Reamrk2And4/route';
+import { courseDuesRoute } from './scripts/updateCourseDues/route';
+import { redefineAdmissionAnalyticsRouter } from './scripts/AdmissionAnalytics/route';
 
 
 export const apiRouter = express.Router();
@@ -107,3 +109,9 @@ apiRouter.use("/phoneNo", PhoneNoRoute);
 
 /** for adding step2And4Remark to student */
 apiRouter.use("/addRemark2and4", AddRemark2and4);
+
+/** for updating course dues */
+apiRouter.use("/update-course-dues", courseDuesRoute);
+
+/** for redefining admission analytics */
+apiRouter.use("/redefine-admission-analytics", redefineAdmissionAnalyticsRouter);
