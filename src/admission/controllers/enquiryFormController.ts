@@ -223,7 +223,7 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
 
     const studentData = {
       ...enquiryData,
-      "step2And4Remark": enquiryData?.feeDetailsRemark + " | " + enquiryData?.financeOfficeRemark,
+      "step2And4Remark": (enquiryData?.feeDetailsRemark ?? "") + (enquiryData?.feeDetailsRemark ? " | " : "") + (enquiryData?.financeOfficeRemark ?? ""),
       "courseCode": approvedEnquiry?.course,
       "feeId": approvedEnquiry?.studentFee,
       "dateOfAdmission": approvedEnquiry?.dateOfAdmission,

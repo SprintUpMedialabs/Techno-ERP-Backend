@@ -196,7 +196,7 @@ export const getScheduleInformation = expressAsyncHandler(async (req: Authentica
 })
 
 
-// DTODO (DONE) : delete from db as well + will need to remove duplicate entries also 
+
 export const deleteFileUsingUrl = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   
   //In case of additional resource deletion, planId would be null, it will only be present for lecture plan and practical plan.

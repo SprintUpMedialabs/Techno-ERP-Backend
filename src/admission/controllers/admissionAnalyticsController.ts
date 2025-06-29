@@ -54,7 +54,7 @@ export const incrementAdmissionAnalytics = async (courseCode: string, dateOfAdmi
 export const assignBaseValueToAdmissionAnalytics = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { type } = req.query;
     const courseList = await CourseMetaData.find().select('courseName');
-    const courseNameList = courseList.map(course => ({  courseName: course.courseName }));
+    const courseNameList = courseList.map(course => ({ courseName: course.courseName }));
     const now = moment().tz('Asia/Kolkata');
     if (!Object.values(AdmissionAggregationType).includes(type as AdmissionAggregationType)) {
         throw createHttpError(400, 'Invalid type');
@@ -104,7 +104,6 @@ export const assignBaseValueToAdmissionAnalytics = expressAsyncHandler(async (re
     formatResponse(res, 200, 'Base value assigned successfully', true, null);
 });
 
-
 const getStartOfDateByType = (type: AdmissionAggregationType, dateStr: string): moment.Moment => {
     const format = 'DD-MM-YYYY'; // Corrected format
     const baseMoment = moment.tz(dateStr, format, 'Asia/Kolkata');
@@ -132,17 +131,17 @@ export const getAdmissionStats = expressAsyncHandler(async (req: AuthenticatedRe
     let queryFilters: any[] = [];
 
     if (type === AdmissionAggregationType.DATE_WISE) {
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < 7; i++) {
             const d = baseDate.clone().subtract(i, 'days');
             // if (d.month() === baseDate.month()) {
-                queryFilters.push({ type, date: d.toDate() });
+            queryFilters.push({ type, date: d.toDate() });
             // }
         }
     } else if (type === AdmissionAggregationType.MONTH_WISE) {
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < 7; i++) {
             const d = baseDate.clone().subtract(i, 'months');
             // if (d.year() === baseDate.year()) {
-                queryFilters.push({ type, date: d.startOf('month').toDate() });
+            queryFilters.push({ type, date: d.startOf('month').toDate() });
             // }
         }
     } else if (type === AdmissionAggregationType.YEAR_AND_COURSE_WISE) {
@@ -159,6 +158,7 @@ export const getAdmissionStats = expressAsyncHandler(async (req: AuthenticatedRe
     const data = await AdmissionAnalyticsModel.find({ $or: queryFilters });
 
     if (type === AdmissionAggregationType.MONTH_AND_COURSE_WISE || type === AdmissionAggregationType.YEAR_AND_COURSE_WISE) {
+        
         // Group data by date
         const groupedData: Record<string, { date: string, courseWise: { count: number; courseName: string }[] }> = {};
 
@@ -175,12 +175,10 @@ export const getAdmissionStats = expressAsyncHandler(async (req: AuthenticatedRe
             });
         });
 
-        const formattedData = Object.values(groupedData);
-
         if (type === AdmissionAggregationType.MONTH_AND_COURSE_WISE) {
-            formatResponse(res, 200, 'Admission stats fetched successfully', true, { monthWise: formattedData });
+            formatResponse(res, 200, 'Admission stats fetched successfully', true, { monthWise: Object.values(groupedData) });
         } else {
-            formatResponse(res, 200, 'Admission stats fetched successfully', true, { yearWise: formattedData });
+            formatResponse(res, 200, 'Admission stats fetched successfully', true, { yearWise: Object.values(groupedData) });
         }
     } else {
         // For other types, keep existing format

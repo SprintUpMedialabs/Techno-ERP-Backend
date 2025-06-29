@@ -23,11 +23,12 @@ import { IUpdateLeadRequestSchema, updateLeadRequestSchema } from '../validators
 
 export const uploadData = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const { id, name } = req.body;
+  const user = await User.findById(req.data?.id);
 
   if (id && name) {
     const latestData = await readFromGoogleSheet(id, name);
     if (latestData) {
-      await saveDataToDb(latestData.rowData, latestData.lastSavedIndex, id, name, latestData.requiredColumnHeaders);
+      await saveDataToDb(latestData.rowData, latestData.lastSavedIndex, id, name, latestData.requiredColumnHeaders,user?.email ?? '');
     }
   }
   return formatResponse(res, 200, 'Data updated in Database!', true);

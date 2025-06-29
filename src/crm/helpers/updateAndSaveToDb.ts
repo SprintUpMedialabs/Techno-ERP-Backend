@@ -3,7 +3,7 @@ import { User } from '../../auth/models/user';
 import { DropDownType, Gender, UserRoles } from '../../config/constants';
 import logger from '../../config/logger';
 import { sendEmail } from '../../config/mailer';
-import { LEAD_MARKETING_EMAIL } from '../../secrets';
+import { LEAD_MARKETING_EMAIL, NODE_ENV } from '../../secrets';
 import { DropDownMetaData } from '../../utilityModules/dropdown/dropDownMetaDeta';
 import { formatCapital, formatDropdownValue, updateDropDownByType } from '../../utilityModules/dropdown/dropDownMetadataController';
 import { MarketingsheetHeaders } from '../enums/marketingSheetHeader';
@@ -31,22 +31,26 @@ const leadsToBeInserted = async (
     const row = latestData[index];
 
     //We need to add 1 as the sheet index starts from 1, whereas in loop, the index is starting from 0.
-    const correspondingSheetIndex = lastSavedIndex + Number(index) + 1;
+    const correspondingSheetIndex =( lastSavedIndex + Number(index) + 1) ;
+    const phoneNumber = row[requiredColumnHeaders[MarketingsheetHeaders.PhoneNumber]] ?? "-";
+    const name = row[requiredColumnHeaders[MarketingsheetHeaders.Name]] ?? "-";
+    const date = row[requiredColumnHeaders[MarketingsheetHeaders.Date]] ?? "-";
+    logger.info(`Processing row at  Date: ${date}`);
 
     try {
       if (!row) {
         logger.info('Empty row found at index : ', correspondingSheetIndex);
-        report.emptyRows.push(correspondingSheetIndex);
+        report.emptyRows.push({rowNumber: correspondingSheetIndex, phoneNumber, name});
         report.rowsFailed++;
         continue;
       }
 
       // if assignTo is not mentationed in sheet
       if (!row[requiredColumnHeaders[MarketingsheetHeaders.AssignedTo]]) {
-        report.assignedToNotFound.push(correspondingSheetIndex);
+        report.assignedToNotFound.push({rowNumber: correspondingSheetIndex, phoneNumber, name});
         report.rowsFailed++;
         continue;
-      }
+      }      
 
       let leadData = {
         ...(row[requiredColumnHeaders[MarketingsheetHeaders.Date]] && { date: row[requiredColumnHeaders[MarketingsheetHeaders.Date]] }),
@@ -77,13 +81,12 @@ const leadsToBeInserted = async (
       if (row[requiredColumnHeaders[MarketingsheetHeaders.Remarks]]) {
         leadData.followUpCount = 1;
       }
-
       const leadDataValidation = leadSheetSchema.safeParse(leadData);
 
       if (leadDataValidation.success) {
 
         if (leadDataValidation.data.phoneNumber.length == 0 && leadDataValidation.data.name.length == 0) {
-          report.phoneNumberAndNameEmpty.push(correspondingSheetIndex);
+          report.phoneNumberAndNameEmpty.push({rowNumber: correspondingSheetIndex, phoneNumber: phoneNumber, name});
           report.rowsFailed++;
           continue;
         }
@@ -108,9 +111,11 @@ const leadsToBeInserted = async (
               MarketingEmployees.set(assignedTo, assignedToID);
             } else {
               if (!existingUser) {
-                report.assignedToNotFound.push(correspondingSheetIndex);
+                report.assignedToNotFound.push({rowNumber: correspondingSheetIndex, phoneNumber, name});
+                report.rowsFailed++;
               } else {
-                report.unauthorizedAssignedTo.push(correspondingSheetIndex);
+                report.unauthorizedAssignedTo.push({rowNumber: correspondingSheetIndex, phoneNumber, name});
+                report.rowsFailed++;
               }
               continue;
             }
@@ -121,10 +126,12 @@ const leadsToBeInserted = async (
       else {
         report.rowsFailed++;
         report.otherIssue.push({
-          rowId: correspondingSheetIndex,
+          rowNumber: correspondingSheetIndex,
           issue: leadDataValidation.error.errors
             .map((error) => `${error.path.join('.')}: ${error.message}`)
-            .join(', ')
+            .join(', '),
+          phoneNumber,
+          name
         });
         logger.error(
           'Validation failed for row',
@@ -141,10 +148,11 @@ const leadsToBeInserted = async (
   return dataToInsert;
 };
 
-export const saveDataToDb = async (latestData: any[], lastSavedIndex: number, sheetId: string, sheetName: string, requiredColumnHeaders: { [key: string]: number }) => {
+export const saveDataToDb = async (latestData: any[], lastSavedIndex: number, sheetId: string, sheetName: string, requiredColumnHeaders: { [key: string]: number }, userEmail: string) => {
   const report: IMarketingSpreadsheetProcessReport = {
+    startingRowNumber: lastSavedIndex + 1,
+    endingRowNumber: lastSavedIndex + latestData.length,
     rowsToBeProcessed: latestData.length,
-    actullyProcessedRows: 0,
     rowsFailed: 0,
     duplicateRowIds: [],
     assignedToNotFound: [],
@@ -173,28 +181,31 @@ export const saveDataToDb = async (latestData: any[], lastSavedIndex: number, sh
     updateStatusForMarketingSheet(lastSavedIndex + latestData.length, lastSavedIndex, report, sheetId, sheetName);
     return;
   }
-
   try {
-    const insertedData = await LeadMaster.insertMany(dataToInsert, { ordered: false, throwOnValidationError: true });
-    report.actullyProcessedRows = insertedData.length;
+    report.rowsToBeProcessed = dataToInsert.length;
+    await LeadMaster.insertMany(dataToInsert, { ordered: false, throwOnValidationError: true });
+    
   } catch (error: any) {
     try {
-      report.actullyProcessedRows = error.result.insertedCount;
       for (const e of error.writeErrors) {
         report.rowsFailed++;
         if (e.err.code === 11000) {
-          report.duplicateRowIds.push(e.err.index + lastSavedIndex + 1);
+          report.duplicateRowIds.push({ rowNumber: 0, phoneNumber: e.err.op.phoneNumber ?? '', name: e.err.op.name ?? '' });
         }
         else {
-          report.otherIssue.push({ rowId: e.err.index + lastSavedIndex + 1, issue: e.err.errmsg });
+          report.otherIssue.push({ rowNumber:0, issue: e.err.errmsg, phoneNumber: e.err.op.phoneNumber ?? '' , name: e.err.op.name ?? '' });
         }
       }
     } catch (error) {
       logger.error(`Error processing rows: ${JSON.stringify(error)}`);
     }
   }
+  
   if (report.rowsFailed != 0) {
-    sendEmail(LEAD_MARKETING_EMAIL, 'Lead Processing Report', formatReport(report));
+    if( NODE_ENV != 'production'  ) {
+      userEmail='enquiry.sprintup@gmail.com';
+    }
+    sendEmail(userEmail, 'Lead Processing Report - ' + sheetName, formatReport(report));
     logger.info('Error report sent to Lead!');
   }
   updateDropDownByType(DropDownType.MARKETING_CITY, Array.from(citySet));

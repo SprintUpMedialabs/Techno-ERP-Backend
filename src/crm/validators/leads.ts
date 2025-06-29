@@ -57,7 +57,7 @@ export const leadSheetSchema = z.object({
     // temporary fields
   course: z.string().optional().transform(val => val?.toUpperCase()),
   area: z.string().optional().transform(toTitleCase),
-  leadType: z.string().transform(formatAndValidateLeadType),
+  leadType: z.string().optional().transform(formatAndValidateLeadType),
   remarks: z
     .string()
     .transform(val => val ? [val] : [])

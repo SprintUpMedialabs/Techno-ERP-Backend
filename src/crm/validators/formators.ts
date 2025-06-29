@@ -16,6 +16,10 @@ export const formatDate = (date: string | undefined): string => {
         if (year.length === 2) {
             year = "20" + year;
         }
+        if(Number(month) > 12){
+            // If month is greater than 12, assume it's day/month/year format
+            [day, month] = [month, day];
+        }
         return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
     }
     return normalized;

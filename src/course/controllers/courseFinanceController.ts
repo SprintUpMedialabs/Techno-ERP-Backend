@@ -27,7 +27,7 @@ export const courseFeeDues = expressAsyncHandler(async (_: AuthenticatedRequest,
 
     const courseList: any = await CourseMetaData.find(
         {},
-        { courseCode: 1, courseName: 1, courseDuration: 1, departmentMetaDataId: 1, collegeName: 1 }
+        { courseCode: 1, courseName: 1, courseDuration: 1, departmentMetaDataId: 1, collegeName: 1, departmentName: 1 }
     ).populate({
         path: 'departmentMetaDataId',
         select: 'departmentName departmentHODId',
@@ -41,7 +41,7 @@ export const courseFeeDues = expressAsyncHandler(async (_: AuthenticatedRequest,
     
     await retryMechanism(async (session) => {
         for (const course of courseList) {
-            const { courseCode, courseName, courseDuration, collegeName } = course;
+            const { courseCode, courseName, courseDuration, collegeName, departmentName } = course;
             const date = getISTDate(-1);
 
             const department = course.departmentMetaDataId;
@@ -58,7 +58,8 @@ export const courseFeeDues = expressAsyncHandler(async (_: AuthenticatedRequest,
                 dues: [],
                 date,
                 departmentHODName,
-                departmentHODEmail
+                departmentHODEmail,
+                departmentName: department?.departmentName || ''
             };
 
             for (let i = 0; i <= courseDuration; i++) {
@@ -140,7 +141,8 @@ export const getCourseDuesByDate = expressAsyncHandler(async (req: Authenticated
 
     const targetDate = convertToMongoDate(date);
 
-    const dues = await CourseDues.find({ date: targetDate, ...collegeFilter });
+    let duesData = await CourseDues.find({ date: targetDate, ...collegeFilter });
+    // TODO1: lets change this by storing department name in course dues collection itself
 
-    return formatResponse(res, 200, "Course dues fetched", true, dues);
+    return formatResponse(res, 200, "Course dues fetched", true, duesData);
 });
