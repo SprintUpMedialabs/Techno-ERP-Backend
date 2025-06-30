@@ -158,8 +158,7 @@ export const getAdmissionStats = expressAsyncHandler(async (req: AuthenticatedRe
     const data = await AdmissionAnalyticsModel.find({ $or: queryFilters });
 
     if (type === AdmissionAggregationType.MONTH_AND_COURSE_WISE || type === AdmissionAggregationType.YEAR_AND_COURSE_WISE) {
-        //all courses 
-        const allCourses = await CourseMetaData.find().select('courseName');
+        
         // Group data by date
         const groupedData: Record<string, { date: string, courseWise: { count: number; courseName: string }[] }> = {};
 
@@ -183,30 +182,6 @@ export const getAdmissionStats = expressAsyncHandler(async (req: AuthenticatedRe
         }
     } else {
         // For other types, keep existing format
-        if (type === AdmissionAggregationType.DATE_WISE) {
-            queryFilters.forEach((filter, index) => {
-                if (!data.find(item => item.date?.getDate() === filter.date?.getDate() && item.date?.getMonth() === filter.date?.getMonth() && item.date?.getFullYear() === filter.date?.getFullYear())) {
-                    // console.log('Adding missing date:', filter.date.toString(), " Index:", index , " and", data[index]?.date?.getDate());
-                    data.push(new AdmissionAnalyticsModel({ type: AdmissionAggregationType.DATE_WISE, date: filter.date, count: 0, courseName: 'ALL' }));
-                }
-            });
-            data.sort((a, b) => b.date.getTime() - a.date.getTime());
-        }else if (type === AdmissionAggregationType.MONTH_WISE) {
-            queryFilters.forEach((filter, index) => {
-                if (!data.find(item => item.date?.getDate() === filter.date?.getDate() && item.date?.getMonth() === filter.date?.getMonth() && item.date?.getFullYear() === filter.date?.getFullYear())) {
-                    data.push(new AdmissionAnalyticsModel({ type: AdmissionAggregationType.MONTH_WISE, date: filter.date, count: 0, courseName: 'ALL' }));
-                }
-            }); 
-            data.sort((a, b) => b.date.getTime() - a.date.getTime());
-        }
-        else if (type === AdmissionAggregationType.YEAR_AND_COURSE_WISE) {
-            queryFilters.forEach((filter, index) => {
-                if (!data.find(item => item.date?.getDate() === filter.date?.getDate() && item.date?.getMonth() === filter.date?.getMonth() && item.date?.getFullYear() === filter.date?.getFullYear())) {
-                    data.push(new AdmissionAnalyticsModel({ type: AdmissionAggregationType.YEAR_AND_COURSE_WISE, date: filter.date, count: 0, courseName: 'ALL' }));
-                }
-            });
-            data.sort((a, b) => b.date.getTime() - a.date.getTime());
-        }
         formatResponse(res, 200, 'Admission stats fetched successfully', true, data);
     }
 });

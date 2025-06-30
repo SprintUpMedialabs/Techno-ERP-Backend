@@ -110,6 +110,7 @@ export const spacialAssignBaseValueToAdmissionAnalytics = async ({ type }: {
 
     await session.commitTransaction();
   } catch (error) {
+    await session.abortTransaction();
     console.error("Error assigning base value to admission analytics:", error);
   } finally {
     session.endSession();
