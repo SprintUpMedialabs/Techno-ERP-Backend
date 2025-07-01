@@ -22,7 +22,7 @@ export const createFinanceAnalytics = expressAsyncHandler(async (req: Authentica
   const date = dateMoment.toDate();
   const currentYear = date.getFullYear();
   const currentMonth = date.getMonth();
-  
+
   const courseYears = ['Zero', CourseYears.First, CourseYears.Second, CourseYears.Third, CourseYears.Fourth];
 
   const academicYear =
@@ -435,11 +435,17 @@ export const fetchDayWiseAnalytics = expressAsyncHandler(async (req: Authenticat
 
   const pastSevenDayDocs: { date: string; dailyCollection: number; }[] = [];
 
-  pastSevenDocs.forEach(daywiseDoc => {
+  pastDates.forEach((d) => {
+    const mongoDate = convertToMongoDate(d);
+
+    const matchingDoc = pastSevenDocs.find(
+      doc => mongoDate && doc.date && mongoDate.toISOString() === doc.date.toISOString()
+    );
+
     pastSevenDayDocs.push({
-      date: convertToDDMMYYYY(daywiseDoc.date),
-      dailyCollection: daywiseDoc.totalCollection
-    })
+      date: convertToDDMMYYYY(new Date(d)),
+      dailyCollection: matchingDoc ? matchingDoc.totalCollection : 0
+    });
   });
 
   const courseWiseData = analyticsForDate?.courseWise || [];
