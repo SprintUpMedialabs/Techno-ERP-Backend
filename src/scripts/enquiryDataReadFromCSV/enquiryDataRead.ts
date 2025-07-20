@@ -28,6 +28,7 @@ export const enquiryDataRead = async (req: Request, res: Response) => {
     ];
     const results: any[] = [];
     const errors: any[] = [];
+    const enquiries: any[] = [];
     fs.createReadStream(path.resolve(__dirname, "enquiry.csv"))
         .pipe(csv())
         .on('data', (row) => {
@@ -69,14 +70,28 @@ export const enquiryDataRead = async (req: Request, res: Response) => {
             if ((references.length === 0) || (!enquiry.course || !course.includes(enquiry.course))) {
                 errors.push(enquiry);
             } else {
-                results.push(enquiry);
+                enquiries.push(enquiry);
             }
         })
         .on('end', async () => {
             try {
-                res.send({ results, errors });
-                await EnquiryDraft.insertMany(results);
-                console.log('CSV upload successful!');
+                for (const enquiry of enquiries) {
+                    // Define your condition to check if it already exists
+                    const existing = await EnquiryDraft.findOne({
+                        studentPhoneNumber: enquiry.studentPhoneNumber,
+                        course: enquiry.course
+                    });
+
+                    if (!existing) {
+                        await EnquiryDraft.create(enquiry);
+                        results.push(enquiry);
+                    } else {
+                        console.log(`Duplicate found for ${enquiry.studentPhoneNumber} - ${enquiry.course}`);
+                    }
+                }
+
+                res.send({ inserted: results.length, duplicates: enquiries.length - results.length, errors });
+                console.log('CSV processing complete.');
             } catch (error:any) {
                 console.error('Error uploading data:', error);
                 res.send({ error: error.message });
