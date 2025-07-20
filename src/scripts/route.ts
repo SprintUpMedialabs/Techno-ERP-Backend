@@ -4,6 +4,8 @@ import { addRemark2and4 } from "./Reamrk2And4/addRemark2and4";
 import { redefineAdmissionAnalytics } from "./AdmissionAnalytics/controller";
 import { saveAddressLine2OfEnquiry, saveAddressLine2OfEnquiryDraft, saveAddressLine2OfStudent } from "./address/contollers";
 import { getAbsentStudents } from "./absentPhoneNos/contollers";
+import { uploadExcel } from "./addStudents/controller";
+import { bookBankModifyFee } from "./bookbankfee/controller";
 
 export const scriptsRouter = Router();
 
@@ -26,3 +28,9 @@ scriptsRouter.post(
   "/get-absent-phone-numbers",
   getAbsentStudents
 )
+
+/** add students */
+scriptsRouter.get("/upload-excel", uploadExcel);
+
+/** for book bank fee modification */
+scriptsRouter.get("/book-bank-modify-fee", bookBankModifyFee);
