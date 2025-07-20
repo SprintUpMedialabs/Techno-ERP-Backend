@@ -9,6 +9,9 @@ import { functionLevelLogger } from "../../config/functionLevelLogging";
 
 export const updateEnquiryStep4ById = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
     const feesDraftUpdateData: IFeesUpdateSchema = req.body;
+
+    //
+    
   
     // DA: will update this after having discussion with vb.
     const feesDraft = await updateFeeDetails([ApplicationStatus.STEP_4], feesDraftUpdateData);
