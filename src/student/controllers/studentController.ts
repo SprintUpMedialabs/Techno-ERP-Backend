@@ -113,7 +113,7 @@ export const createStudent = async (id: any, studentData: ICreateStudentSchema) 
       fees: fees
     })
   };
-  
+
   const allSemestersSettled = semesterArray.every(
     (sem: any) => {
       if (!sem.fees?.dueDate)
@@ -204,34 +204,48 @@ const createSemesterFee = (id: any, semesterNumber: number, feesCourse: any): an
 
 
     if (feeDetail) {
-      if (semesterNumber % 2 === 0) {
-        if (
-          type === FinanceFeeType.HOSTELYEARLY ||
-          type === FinanceFeeType.TRANSPORT ||
-          type === FinanceFeeType.PROSPECTUS ||
-          type === FinanceFeeType.STUDENTID ||
-          type === FinanceFeeType.UNIFORM ||
-          type === FinanceFeeType.STUDENTWELFARE
-        ) {
+      if (type === FinanceFeeType.BOOKBANK) {
+        if (semesterNumber == 1) {
+          actualFee = feeDetail.feeAmount;
+          finalFee = feeDetail.finalFee;
+        } else if (semesterNumber < semWiseFees.length) {
+          actualFee = feeDetail.feeAmount / 2;
+          finalFee = feeDetail.finalFee / 2;
+        } else {
           actualFee = 0;
           finalFee = 0;
-          paidAmount = 0;
+        }
+      }
+      else {
+        if (semesterNumber % 2 === 0) {
+          if (
+            type === FinanceFeeType.HOSTELYEARLY ||
+            type === FinanceFeeType.TRANSPORT ||
+            type === FinanceFeeType.PROSPECTUS ||
+            type === FinanceFeeType.STUDENTID ||
+            type === FinanceFeeType.UNIFORM ||
+            type === FinanceFeeType.STUDENTWELFARE
+          ) {
+            actualFee = 0;
+            finalFee = 0;
+            paidAmount = 0;
+          }
+          else {
+            actualFee = feeDetail.feeAmount;
+            finalFee = feeDetail.finalFee;
+            // paidAmount = feeDetail.feesDepositedTOA || 0;
+            paidAmount = 0;
+          }
         }
         else {
           actualFee = feeDetail.feeAmount;
           finalFee = feeDetail.finalFee;
-          // paidAmount = feeDetail.feesDepositedTOA || 0;
-          paidAmount = 0;
-        }
-      }
-      else {
-        actualFee = feeDetail.feeAmount;
-        finalFee = feeDetail.finalFee;
-        if (semesterNumber !== 1)
-          paidAmount = 0;
-        else {
-          paidAmount = feeDetail.feesDepositedTOA || 0;
-          amountForTransaction = amountForTransaction + (feeDetail.feesDepositedTOA || 0);
+          if (semesterNumber !== 1)
+            paidAmount = 0;
+          else {
+            paidAmount = feeDetail.feesDepositedTOA || 0;
+            amountForTransaction = amountForTransaction + (feeDetail.feesDepositedTOA || 0);
+          }
         }
       }
       feeUpdateHistory.push(createFeeUpdateHistory(finalFee));
