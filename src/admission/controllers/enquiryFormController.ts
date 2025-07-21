@@ -26,7 +26,7 @@ import { formateFeeType } from '../../student/controllers/downloadController';
 
 export const getEnquiryData = expressAsyncHandler(functionLevelLogger(async (req: AuthenticatedRequest, res: Response) => {
 
-  let { search, applicationStatus } = req.body;
+  let { search, applicationStatus, limit, page } = req.body;
 
   search ??= '';
 
@@ -109,12 +109,21 @@ export const getEnquiryData = expressAsyncHandler(functionLevelLogger(async (req
         ]
       }
     },
-    { $sort: { updatedAt: -1 } }
+    { $sort: { updatedAt: -1 } },
+    { $skip: page ? (parseInt(page)-1) * (limit ? parseInt(limit) : 10) : 0 },
+    { $limit: limit ? parseInt(limit) : 10 },
+    
   ]);
 
 
   if (combinedResults.length > 0) {
-    return formatResponse(res, 200, 'Enquiries corresponding to your search', true, combinedResults);
+    return formatResponse(res, 200, 'Enquiries corresponding to your search', true, {
+      enquiries: combinedResults,
+      totalCount: await Enquiry.countDocuments(filter) + await EnquiryDraft.countDocuments(filter),
+      page : page ? parseInt(page) : 0,
+      limit : limit ? parseInt(limit) : 10,
+      totalPages: Math.ceil((await Enquiry.countDocuments(filter) + await EnquiryDraft.countDocuments(filter)) / (limit ? parseInt(limit) : 10))
+    });
   }
   else {
     return formatResponse(res, 200, 'No enquiries found with this information', true);
