@@ -196,15 +196,16 @@ export const approveEnquiry = expressAsyncHandler(functionLevelLogger(async (req
       throw createHttpError(404, 'Please create the enquiry first!');
     }
 
-    const prefix = getCollegeName(enquiry.course as Course);
+    // const prefix = getCollegeName(enquiry.course as Course);
+    const courseMetadata = await CourseMetaData.findOne({ courseName: enquiry.course as Course });
 
     const serial = await EnquiryApplicationId.findOneAndUpdate(
-      { prefix: prefix },
+      { prefix: courseMetadata?.collegeName },
       { $inc: { lastSerialNumber: 1 } },
       { new: true, runValidators: true, session }
     );
 
-    const formNo = `${prefix}${serial!.lastSerialNumber}`;
+    const formNo = `${courseMetadata?.collegeName}${serial!.lastSerialNumber}`;
 
     const photoSerial = await EnquiryApplicationId.findOneAndUpdate(
       { prefix: FormNoPrefixes.PHOTO },

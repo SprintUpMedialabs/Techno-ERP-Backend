@@ -77,6 +77,7 @@ export const getRecentAdmissionExcelSheetData = expressAsyncHandler(functionLeve
                 "feeDetailsRemark": "$enquiry.feeDetailsRemark",
                 "registarOfficeRemark": "$enquiry.registarOfficeRemark",
                 "financeOfficeRemark": "$enquiry.financeOfficeRemark",
+                "dateOfBirth": "$studentInfo.dateOfBirth"
             }
         }
     ]);
@@ -94,13 +95,14 @@ export const getRecentAdmissionExcelSheetData = expressAsyncHandler(functionLeve
             discountApplicable: applicableFee - finalFee,
             totalDiscountApplicable: totalApplicableFee - totalFinalFee,
             telecaller: student.telecaller || [],
-            dateOfAdmission: student.dateOfAdmission,
+            dateOfAdmission: student.dateOfAdmission ? moment(student.dateOfAdmission).format('DD/MM/YYYY') : '',
             course: student.course,
             counsellor: student.counsellor || [],
             enquiryRemark: student.enquiryRemark || '',
             feeDetailsRemark: student.feeDetailsRemark || '',
             registarOfficeRemark: student.registarOfficeRemark || '',
             financeOfficeRemark: student.financeOfficeRemark || '',
+            dateOfBirth : student.dateOfBirth ? moment(student.dateOfBirth).format('DD/MM/YYYY') : '',
         };
     });
 
