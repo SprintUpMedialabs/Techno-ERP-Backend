@@ -32,7 +32,7 @@ type FeeDetailInterface = {
 
 
 export const getStudentDues = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const {search, academicYear, courseCode, courseYear, feeStatus } = req.body;
+    const {search, academicYear, courseCode, courseYear, feeStatus, limit, page } = req.body;
 
     const filterStage: any = {
         currentAcademicYear: academicYear,
@@ -109,7 +109,9 @@ export const getStudentDues = expressAsyncHandler(async (req: AuthenticatedReque
                     }
                 }
             }
-        }
+        },
+        {$skip : (page ? (parseInt(page)-1) * (limit ? parseInt(limit) : 10) : 0) },
+        {$limit: limit ? parseInt(limit) : 10},
     ]);
 
     const countQuery = Student.countDocuments(filterStage);
@@ -119,8 +121,12 @@ export const getStudentDues = expressAsyncHandler(async (req: AuthenticatedReque
         countQuery
     ]);
     return formatResponse(res, 200, "Student with Due Fees fetched successfully", true, {
-        data: students,
-    })
+        dues: students,
+        limit : limit ? parseInt(limit) : 10,
+        page : page ? parseInt(page) : 1,
+        totalPages : Math.ceil((await Student.countDocuments(filterStage) / (limit ? parseInt(limit) : 10))),
+        totalCount: await Student.countDocuments(filterStage),
+    });
 });
 
 
