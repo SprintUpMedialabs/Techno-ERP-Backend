@@ -71,12 +71,18 @@ const totalHttpRequestCount = new Counter({
   labelNames: ['method', 'path']
 });
 
+const totalRequestCounter = new Counter({
+  name: "total_req",
+  help: "Total Request Counter"
+})
+
 
 app.use((req, res, next) => {
   const end = httpRequestDuration.startTimer();
   res.on('finish', () => {
     end({ method: req.method, route: req.path, status_code: res.statusCode });
     totalHttpRequestCount.labels(req.method,req.path).inc();
+    totalRequestCounter.inc();
   });
   next();
 });
