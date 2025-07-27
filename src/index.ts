@@ -2,6 +2,7 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
+import statusMonitor from 'express-status-monitor';
 import morgan from 'morgan';
 import path from 'path';
 import connectToDatabase, { initializeDB } from './config/database';
@@ -53,7 +54,11 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 app.options('*', cors(corsOptions));
-
+app.use(statusMonitor()); 
+app.use(statusMonitor({
+  path: '/status',
+  title: 'My App Performance Monitor',
+}));
 connectToDatabase();
 initializeDB();
 
