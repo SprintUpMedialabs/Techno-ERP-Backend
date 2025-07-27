@@ -56,7 +56,7 @@ app.use(cors(corsOptions));
 
 app.options('*', cors(corsOptions));
 
-collectDefaultMetrics({register:register}); // Default Node.js metrics
+collectDefaultMetrics({ register: register }); // Default Node.js metrics
 // Optional: Histogram for request duration
 const httpRequestDuration = new Histogram({
   name: 'http_request_duration_ms',
@@ -81,8 +81,10 @@ app.use((req, res, next) => {
   const end = httpRequestDuration.startTimer();
   res.on('finish', () => {
     end({ method: req.method, route: req.path, status_code: res.statusCode });
-    totalHttpRequestCount.labels(req.method,req.path).inc();
-    totalRequestCounter.inc();
+    totalHttpRequestCount.labels(req.method, req.path).inc();
+    if (req.path != "metrics" && req.path != "status") {
+      totalRequestCounter.inc();
+    }
   });
   next();
 });
