@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
 import statusMonitor from 'express-status-monitor';
+import { collectDefaultMetrics, register, Histogram } from 'prom-client';
 import morgan from 'morgan';
 import path from 'path';
 import connectToDatabase, { initializeDB } from './config/database';
@@ -54,7 +55,30 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 app.options('*', cors(corsOptions));
-app.use(statusMonitor()); 
+
+collectDefaultMetrics(); // Default Node.js metrics
+// Optional: Histogram for request duration
+const httpRequestDuration = new Histogram({
+  name: 'http_request_duration_ms',
+  help: 'Duration of HTTP requests in ms',
+  labelNames: ['method', 'route', 'status_code'],
+  buckets: [50, 100, 200, 300, 500, 1000]
+});
+app.use((req, res, next) => {
+  const end = httpRequestDuration.startTimer();
+  res.on('finish', () => {
+    end({ method: req.method, route: req.path, status_code: res.statusCode });
+  });
+  next();
+});
+// Expose metrics
+app.get('/metrics', async (req, res) => {
+  res.set('Content-Type', register.contentType);
+  res.send(await register.metrics());
+});
+
+
+app.use(statusMonitor());
 app.use(statusMonitor({
   path: '/status',
   title: 'My App Performance Monitor',
