@@ -86,6 +86,10 @@ app.use(statusMonitor({
   path: '/status',
   title: 'My App Performance Monitor',
 }));
+app.get('/metrics', async (req, res) => {
+  res.set('Content-Type', register.contentType);
+  res.end(await register.metrics());
+});
 
 connectToDatabase();
 initializeDB();
