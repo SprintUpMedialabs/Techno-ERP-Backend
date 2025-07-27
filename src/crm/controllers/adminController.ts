@@ -643,43 +643,63 @@ export const reiterateLeads = expressAsyncHandler(async (req: AuthenticatedReque
 
     await retryMechanism(
         async (session) => {
-            const BATCH_SIZE = 1000; // Tune batch size as per memory limits
-            const cursor = LeadMaster.find({}, null, { lean: true }).cursor({ session });
-            let bulkOps: any[] = [];
-            let updatedCount = 0;
+            // const BATCH_SIZE = 1000; // Tune batch size as per memory limits
+            // const cursor = LeadMaster.find({}, null, { lean: true }).cursor({ session });
+            // let bulkOps: any[] = [];
+            // let updatedCount = 0;
 
-            for await (const lead of cursor) {
-                bulkOps.push({
-                    updateOne: {
-                        filter: { _id: lead._id },
-                        update: {
-                            $set: {
-                                isCalledToday: false,
-                                isActiveLead: lead.leadType === LeadType.ACTIVE,
-                            },
+            // for await (const lead of cursor) {
+            //     bulkOps.push({
+            //         updateOne: {
+            //             filter: { _id: lead._id },
+            //             update: {
+            //                 $set: {
+            //                     isCalledToday: false,
+            //                     isActiveLead: lead.leadType === LeadType.ACTIVE,
+            //                 },
+            //             },
+            //         },
+            //     });
+
+            //     if (bulkOps.length === BATCH_SIZE) {
+            //         const bulkWriteResult = await LeadMaster.bulkWrite(bulkOps, { session });
+            //         updatedCount += bulkWriteResult.modifiedCount;
+            //         bulkOps = []; // reset for next batch
+            //     }
+            // }
+
+            // // Process any remaining operations
+            // if (bulkOps.length > 0) {
+            //     const bulkWriteResult = await LeadMaster.bulkWrite(bulkOps, { session });
+            //     updatedCount += bulkWriteResult.modifiedCount;
+            // }
+
+            await LeadMaster.updateMany(
+                {},
+                [
+                  {
+                    $set: {
+                      isCalledToday: false,
+                      isActiveLead: {
+                        $cond: {
+                          if: { $eq: ["$leadType", LeadType.ACTIVE] },
+                          then: true,
+                          else: false,
                         },
+                      },
                     },
-                });
-
-                if (bulkOps.length === BATCH_SIZE) {
-                    const bulkWriteResult = await LeadMaster.bulkWrite(bulkOps, { session });
-                    updatedCount += bulkWriteResult.modifiedCount;
-                    bulkOps = []; // reset for next batch
-                }
-            }
-
-            // Process any remaining operations
-            if (bulkOps.length > 0) {
-                const bulkWriteResult = await LeadMaster.bulkWrite(bulkOps, { session });
-                updatedCount += bulkWriteResult.modifiedCount;
-            }
+                  },
+                ],
+                { session }
+              );
+              
 
             return formatResponse(
                 res,
                 200,
                 "Reiterated the Lead Master Table",
                 true,
-                updatedCount
+                // updatedCount
             );
 
         },
