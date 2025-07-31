@@ -357,108 +357,274 @@ export const logFollowUpChange = (leadId: any, userId: any, action: Actions) => 
 };
 
 
-export const exportData = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+// export const exportData = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
 
-  const roles = req.data?.roles || [];
-  const user = await User.findById(req.data?.id);
+//   const roles = req.data?.roles || [];
+//   const user = await User.findById(req.data?.id);
+
+//   const isAdminOrLead = roles.includes(UserRoles.ADMIN) || roles.includes(UserRoles.LEAD_MARKETING);
+
+//   const marketingSheet = user?.marketingSheet;
+//   const workbook = new ExcelJS.Workbook();
+//   const worksheet = workbook.addWorksheet(marketingSheet?.[0]?.name ?? 'Leads');
+
+//   // Define headers
+//   const baseColumns = [
+//     { header: 'Date', key: 'date' },
+//     { header: 'Source', key: 'source' },
+//     { header: 'Name', key: 'name' },
+//     { header: 'Phone Number', key: 'phoneNumber' },
+//     { header: 'Alt Phone Number', key: 'altPhoneNumber' },
+//     { header: 'Email', key: 'email' },
+//     { header: 'Course', key: 'course' },
+//     { header: 'Lead Type', key: 'leadType' },
+//     { header: 'Remarks', key: 'remarks' },
+//     { header: 'Area', key: 'area' },
+//     { header: 'City', key: 'city' },
+//     { header: 'Final Conversion', key: 'finalConversion' },
+//     { header: 'Gender', key: 'gender' },
+//     { header: 'School Name', key: 'schoolName' },
+//     { header: 'Lead Type Modified Date', key: 'leadTypeModifiedDate' },
+//     { header: 'Next Due Date', key: 'nextDueDate' },
+//     { header: 'Foot Fall', key: 'footFall' },
+//     { header: 'Follow Up Count', key: 'followUpCount' },
+//   ];
+
+//   if (isAdminOrLead) {
+//     baseColumns.push({ header: 'Assigned To', key: 'assignedTo' });
+//   }
+
+//   worksheet.columns = baseColumns;
+//   let leads;
+//   // console.log("we are here");
+//   // if (isAdminOrLead) {
+//   //   leads = await LeadMaster.find().populate({
+//   //     path: 'assignedTo',
+//   //     select: 'firstName lastName'
+//   //   });
+//   // } else {
+//     leads = await LeadMaster.find({
+//       assignedTo: { $in: [req.data?.id] }
+//     }).populate({
+//       path: 'assignedTo',
+//       select: 'firstName lastName'
+//     });
+//   // }
+//   // console.log(leads.length);
+
+//   leads.forEach((lead: any) => {
+//     const rowData: any = {
+//       date: lead.date ? convertToDDMMYYYY(lead.date) : '',
+//       source: lead.source || '',
+//       name: lead.name || '',
+//       phoneNumber: lead.phoneNumber || '',
+//       altPhoneNumber: lead.altPhoneNumber || '',
+//       email: lead.email || '',
+//       course: lead.course || '',
+//       leadType: lead.leadType || '',
+//       remarks: Array.isArray(lead.remarks) ? lead.remarks.join('\n') : '',
+//       area: lead.area || '',
+//       city: lead.city || '',
+//       finalConversion: lead.finalConversion || '',
+//       gender: lead.gender || '',
+//       schoolName: lead.schoolName || '',
+//       leadTypeModifiedDate: lead.leadTypeModifiedDate ? convertToDDMMYYYY(lead.leadTypeModifiedDate) : '',
+//       nextDueDate: lead.nextDueDate ? convertToDDMMYYYY(lead.nextDueDate) : '',
+//       footFall: lead.footFall ? 'Yes' : 'No',
+//       followUpCount: lead.followUpCount || 0,
+//     };
+
+//     if (isAdminOrLead) {
+//       rowData.assignedTo = lead.assignedTo.firstName + ' ' + lead.assignedTo.lastName;
+//     }
+
+//     worksheet.addRow(rowData);
+//   });
+
+//   worksheet.columns.forEach(column => {
+//     let maxLength = 10;
+//     column.eachCell?.({ includeEmpty: true }, cell => {
+//       const cellValue = cell.text ?? '';
+//       maxLength = Math.max(maxLength, cellValue.length);
+//     });
+//     column.width = maxLength + 2;
+//   });
+
+//   const formattedDate = moment().tz('Asia/Kolkata').format('DD-MM-YY');
+
+//   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+//   res.setHeader(
+//     'Content-Disposition',
+//     `attachment; filename="${user?.firstName ?? ''} ${user?.lastName ?? ''} - ${formattedDate}.xlsx"`
+//   );
+
+//   // ✅ Write the Excel file to response
+//   await workbook.xlsx.write(res);
+//   res.end(); // ✅ Must end the response
+// });
+
+
+
+export const exportData = expressAsyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const { roles = [], id: userId } = req.data || {};
+
+  // Early validation
+  if (!userId) {
+    throw createHttpError(401, 'User not authenticated');
+  }
 
   const isAdminOrLead = roles.includes(UserRoles.ADMIN) || roles.includes(UserRoles.LEAD_MARKETING);
 
-  const marketingSheet = user?.marketingSheet;
-  const workbook = new ExcelJS.Workbook();
-  const worksheet = workbook.addWorksheet(marketingSheet?.[0]?.name ?? 'Leads');
+  // Fetch user data
+  const user = await User.findById(userId).select('firstName lastName marketingSheet').lean();
 
-  // Define headers
-  const baseColumns = [
-    { header: 'Date', key: 'date' },
-    { header: 'Source', key: 'source' },
-    { header: 'Name', key: 'name' },
-    { header: 'Phone Number', key: 'phoneNumber' },
-    { header: 'Alt Phone Number', key: 'altPhoneNumber' },
-    { header: 'Email', key: 'email' },
-    { header: 'Course', key: 'course' },
-    { header: 'Lead Type', key: 'leadType' },
-    { header: 'Remarks', key: 'remarks' },
-    { header: 'Area', key: 'area' },
-    { header: 'City', key: 'city' },
-    { header: 'Final Conversion', key: 'finalConversion' },
-    { header: 'Gender', key: 'gender' },
-    { header: 'School Name', key: 'schoolName' },
-    { header: 'Lead Type Modified Date', key: 'leadTypeModifiedDate' },
-    { header: 'Next Due Date', key: 'nextDueDate' },
-    { header: 'Foot Fall', key: 'footFall' },
-    { header: 'Follow Up Count', key: 'followUpCount' },
-  ];
-
-  if (isAdminOrLead) {
-    baseColumns.push({ header: 'Assigned To', key: 'assignedTo' });
+  if (!user) {
+    throw createHttpError(404,'User not found');
   }
 
-  worksheet.columns = baseColumns;
-  let leads;
-  // console.log("we are here");
-  // if (isAdminOrLead) {
-  //   leads = await LeadMaster.find().populate({
-  //     path: 'assignedTo',
-  //     select: 'firstName lastName'
-  //   });
-  // } else {
-    leads = await LeadMaster.find({
-      assignedTo: { $in: [req.data?.id] }
-    }).populate({
-      path: 'assignedTo',
-      select: 'firstName lastName'
-    });
-  // }
-  // console.log(leads.length);
+  // Create workbook and worksheet
+  const workbook = new ExcelJS.Workbook();
+  const worksheetName = 'Leads';
+  const worksheet = workbook.addWorksheet(worksheetName);
 
-  leads.forEach((lead: any) => {
-    const rowData: any = {
-      date: lead.date ? convertToDDMMYYYY(lead.date) : '',
-      source: lead.source || '',
-      name: lead.name || '',
-      phoneNumber: lead.phoneNumber || '',
-      altPhoneNumber: lead.altPhoneNumber || '',
-      email: lead.email || '',
-      course: lead.course || '',
-      leadType: lead.leadType || '',
-      remarks: Array.isArray(lead.remarks) ? lead.remarks.join('\n') : '',
-      area: lead.area || '',
-      city: lead.city || '',
-      finalConversion: lead.finalConversion || '',
-      gender: lead.gender || '',
-      schoolName: lead.schoolName || '',
-      leadTypeModifiedDate: lead.leadTypeModifiedDate ? convertToDDMMYYYY(lead.leadTypeModifiedDate) : '',
-      nextDueDate: lead.nextDueDate ? convertToDDMMYYYY(lead.nextDueDate) : '',
-      footFall: lead.footFall ? 'Yes' : 'No',
-      followUpCount: lead.followUpCount || 0,
-    };
+  // Define columns configuration
+  const getColumns = (includeAssignedTo: boolean) => {
+    const baseColumns = [
+      { header: 'Date', key: 'date', width: 12 },
+      { header: 'Source', key: 'source', width: 15 },
+      { header: 'Name', key: 'name', width: 20 },
+      { header: 'Phone Number', key: 'phoneNumber', width: 15 },
+      { header: 'Alt Phone Number', key: 'altPhoneNumber', width: 15 },
+      { header: 'Email', key: 'email', width: 25 },
+      { header: 'Course', key: 'course', width: 15 },
+      { header: 'Lead Type', key: 'leadType', width: 15 },
+      { header: 'Remarks', key: 'remarks', width: 30 },
+      { header: 'Area', key: 'area', width: 15 },
+      { header: 'City', key: 'city', width: 15 },
+      { header: 'Final Conversion', key: 'finalConversion', width: 18 },
+      { header: 'Gender', key: 'gender', width: 10 },
+      { header: 'School Name', key: 'schoolName', width: 20 },
+      { header: 'Lead Type Modified Date', key: 'leadTypeModifiedDate', width: 20 },
+      { header: 'Next Due Date', key: 'nextDueDate', width: 15 },
+      { header: 'Foot Fall', key: 'footFall', width: 10 },
+      { header: 'Follow Up Count', key: 'followUpCount', width: 15 },
+    ];
 
-    if (isAdminOrLead) {
-      rowData.assignedTo = lead.assignedTo.firstName + ' ' + lead.assignedTo.lastName;
+    if (includeAssignedTo) {
+      baseColumns.push({ header: 'Assigned To', key: 'assignedTo', width: 20 });
     }
 
-    worksheet.addRow(rowData);
-  });
+    return baseColumns;
+  };
 
-  worksheet.columns.forEach(column => {
-    let maxLength = 10;
-    column.eachCell?.({ includeEmpty: true }, cell => {
-      const cellValue = cell.text ?? '';
-      maxLength = Math.max(maxLength, cellValue.length);
-    });
-    column.width = maxLength + 2;
-  });
+  worksheet.columns = getColumns(isAdminOrLead);
 
+  // Apply header formatting
+  const headerRow = worksheet.getRow(1);
+  headerRow.font = { bold: true };
+  headerRow.fill = {
+    type: 'pattern',
+    pattern: 'solid',
+    fgColor: { argb: 'FFE0E0E0' }
+  };
+
+  // Set response headers early
+  const userName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'User';
   const formattedDate = moment().tz('Asia/Kolkata').format('DD-MM-YY');
+  const filename = `${userName} - ${formattedDate}.xlsx`;
 
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-  res.setHeader(
-    'Content-Disposition',
-    `attachment; filename="${user?.firstName ?? ''} ${user?.lastName ?? ''} - ${formattedDate}.xlsx"`
-  );
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  res.setHeader('Cache-Control', 'no-cache');
 
-  // ✅ Write the Excel file to response
-  await workbook.xlsx.write(res);
-  res.end(); // ✅ Must end the response
+  try {
+    // Build query filter
+    const filter = isAdminOrLead ? {} : { assignedTo: userId };
+
+    // Configuration for batch processing
+    const BATCH_SIZE = 1000; // Process 1000 records at a time
+    let processedCount = 0;
+    let batchRows: any[] = [];
+
+    // Data transformation function
+    const transformLead = (lead: any) => {
+      const baseData: any = {
+        date: lead.date ? convertToDDMMYYYY(lead.date) : '',
+        source: lead.source || '',
+        name: lead.name || '',
+        phoneNumber: lead.phoneNumber || '',
+        altPhoneNumber: lead.altPhoneNumber || '',
+        email: lead.email || '',
+        course: lead.course || '',
+        leadType: lead.leadType || '',
+        remarks: Array.isArray(lead.remarks) ? lead.remarks.join('\n') : (lead.remarks || ''),
+        area: lead.area || '',
+        city: lead.city || '',
+        finalConversion: lead.finalConversion || '',
+        gender: lead.gender || '',
+        schoolName: lead.schoolName || '',
+        leadTypeModifiedDate: lead.leadTypeModifiedDate ? convertToDDMMYYYY(lead.leadTypeModifiedDate) : '',
+        nextDueDate: lead.nextDueDate ? convertToDDMMYYYY(lead.nextDueDate) : '',
+        footFall: lead.footFall ? 'Yes' : 'No',
+        followUpCount: lead.followUpCount || 0,
+      };
+
+      if (isAdminOrLead && lead.assignedTo) {
+        baseData.assignedTo = `${lead.assignedTo.firstName || ''} ${lead.assignedTo.lastName || ''}`.trim();
+      }
+
+      return baseData;
+    };
+
+    // Process data in batches using cursor
+    const cursor = LeadMaster.find(filter)
+      .populate('assignedTo', 'firstName lastName')
+      .lean()
+      .cursor({ batchSize: BATCH_SIZE });
+
+    // Process each document from cursor
+    for (let lead = await cursor.next(); lead != null; lead = await cursor.next()) {
+      const transformedLead = transformLead(lead);
+      batchRows.push(transformedLead);
+      processedCount++;
+
+      // When batch is full, add to worksheet and clear batch
+      if (batchRows.length >= BATCH_SIZE) {
+        worksheet.addRows(batchRows);
+        batchRows = []; // Clear batch array
+      }
+    }
+
+    // Add any remaining rows in the final batch
+    if (batchRows.length > 0) {
+      worksheet.addRows(batchRows);
+    }
+
+    // Close cursor
+    await cursor.close();
+
+    console.log(`Export completed. Total leads processed: ${processedCount}`);
+
+    // Auto-fit columns after all data is added
+    worksheet.columns.forEach(column => {
+      if (!column.width) {
+        let maxLength = column.header?.length || 10;
+        column.eachCell?.({ includeEmpty: false }, cell => {
+          const cellLength = cell.text?.length || 0;
+          maxLength = Math.max(maxLength, cellLength);
+        });
+        column.width = Math.min(maxLength + 2, 50); // Cap at 50 characters
+      }
+    });
+
+    // Write Excel file to response
+    await workbook.xlsx.write(res);
+    res.end();
+
+  } catch (error) {
+    console.error('Error during export:', error);
+    if (!res.headersSent) {
+      throw createHttpError(500,'Failed to generate Excel file');
+    }
+  }
 });
